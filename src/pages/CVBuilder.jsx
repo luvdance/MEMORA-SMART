@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import "../cv-builder/CVBuilder.css";
 import { printCV } from "../cv-builder/utils/printEngine";
 import { downloadCVPdf } from "../cv-builder/utils/pdfEngine";
+import CVQuickDesign from "../cv-builder/components/CVQuickDesign";
 
 const LOCAL_KEY = "memora_cv_draft";
 
@@ -181,6 +182,13 @@ export default function CVBuilder() {
       />
 
       <div className="cvb__body" data-active-tab={tab}>
+
+        <CVQuickDesign
+          template={template} setTemplate={setTemplate}
+          accent={accent} setAccent={setAccent}
+          theme={theme} setTheme={setTheme}
+          sectionOrder={sectionOrder} setSectionOrder={setSectionOrder}
+        />
 
         <CVForm
           cv={cv} setCV={setCV}

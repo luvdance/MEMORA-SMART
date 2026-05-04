@@ -2446,3 +2446,190 @@
     gap: 4px !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE QUICK-DESIGN TABS (Preview mode)
+══════════════════════════════════════════════════════════════ */
+
+/* Hidden on desktop — only shows in mobile preview mode */
+.cvb-quick-design {
+  display: none;
+}
+
+@media screen and (max-width: 900px) {
+
+  /* Show only when on Preview tab */
+  .cvb__body[data-active-tab="preview"] .cvb-quick-design {
+    display: block;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* Tab pills row */
+  .cvb-quick-design__tabs {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 12px 8px;
+    gap: 6px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .cvb-quick-design__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cvb-quick-design__tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: 0.2s;
+  }
+
+  .cvb-quick-design__tab i {
+    font-size: 0.75rem;
+  }
+
+  .cvb-quick-design__tab--active {
+    background: linear-gradient(90deg, #6699FF, #9D00FF);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  /* Content area below tabs */
+  .cvb-quick-design__content {
+    padding: 8px 12px 12px;
+    border-top: 1px solid rgba(0,0,0,0.04);
+    background: #fafafa;
+  }
+
+  /* Horizontal scrolling row inside each panel */
+  .cvb-quick-design__row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .cvb-quick-design__row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Template chips */
+  .cvb-quick-design__chip {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: 0.2s;
+  }
+
+  .cvb-quick-design__chip--active {
+    background: linear-gradient(90deg, #6699FF, #9D00FF);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  /* Accent dots */
+  .cvb-quick-design__dot {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: 0.2s;
+  }
+
+  .cvb-quick-design__dot--active {
+    border-color: #111;
+    transform: scale(1.1);
+  }
+
+  /* Theme card (showing bg + text colors as preview) */
+  .cvb-quick-design__theme-card {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    border: 2px solid #e2e8f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: 0.2s;
+  }
+
+  .cvb-quick-design__theme-card--active {
+    border-color: #9D00FF;
+    transform: scale(1.05);
+  }
+
+  .cvb-quick-design__theme-card-top {
+    flex: 1;
+  }
+
+  .cvb-quick-design__theme-card-bottom {
+    height: 16px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Reorder list — vertical, compact */
+  .cvb-quick-design__reorder {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .cvb-quick-design__reorder-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #333;
+    user-select: none;
+  }
+
+  .cvb-quick-design__reorder-item i {
+    color: #9D00FF;
+    cursor: grab;
+    font-size: 0.85rem;
+  }
+
+  .cvb-quick-design__reorder-item:active {
+    cursor: grabbing;
+  }
+}
