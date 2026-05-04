@@ -6,7 +6,7 @@ export default function CVNavbar({
   tab, setTab, onPrint, onDownload, pdfLoading,
   onSave, onShare, onClear,
   saving, saveStatus, isOwner, user,
-  format, setFormat, theme, setTheme,
+  format, setFormat, theme, setTheme, onOpenCustomize,
 }) {
   const navigate = useNavigate();
   const upd = (key, val) => setFormat((f) => ({ ...f, [key]: val }));
@@ -14,15 +14,19 @@ export default function CVNavbar({
   return (
     <nav className="cv-navbar">
 
-      {/* ── TOP BAR ── */}
+      {/* ══════════════════════════════════════
+          TOP BAR — Brand + Action Buttons
+      ══════════════════════════════════════ */}
       <div className="cv-navbar__top">
+
+        {/* LEFT: Brand */}
         <div className="cv-navbar__brand">
           <button className="cv-navbar__back" onClick={() => navigate("/dashboard")}>
             <i className="fas fa-long-arrow-alt-left"></i>
-            <span>Dashboard</span>
+            <span className="cv-btn-label">Dashboard</span>
           </button>
           <div className="cv-navbar__divider" />
-          <div>
+          <div className="cv-navbar__brand-text">
             <h1 className="cv-navbar__title">
               <i className="fas fa-file-alt"></i> CV Builder
             </h1>
@@ -30,12 +34,13 @@ export default function CVNavbar({
           </div>
         </div>
 
+        {/* RIGHT: Action Buttons */}
         <div className="cv-navbar__actions">
 
           {/* ABOUT */}
-          <button className="cv-navbar__back" onClick={() => navigate("/cv-builder")}>
+          <button className="cv-navbar__btn" onClick={() => navigate("/cv-builder")} title="About">
             <i className="fas fa-info-circle"></i>
-            <span>About</span>
+            <span className="cv-btn-label">About</span>
           </button>
 
           {/* SAVE STATUS */}
@@ -57,46 +62,30 @@ export default function CVNavbar({
 
           {/* SAVE */}
           {isOwner && (
-            <button className="cv-navbar__back" onClick={onSave} disabled={saving}>
+            <button className="cv-navbar__btn" onClick={onSave} disabled={saving} title="Save">
               <i className="fas fa-save"></i>
-              <span>{saving ? "Saving..." : "Save"}</span>
+              <span className="cv-btn-label">{saving ? "Saving..." : "Save"}</span>
             </button>
           )}
 
           {/* CLEAR */}
           {isOwner && (
-            <button className="cv-navbar__clear" onClick={onClear}>
+            <button className="cv-navbar__clear" onClick={onClear} title="Clear">
               <i className="fas fa-eraser"></i>
-              <span>Clear</span>
+              <span className="cv-btn-label">Clear</span>
             </button>
           )}
 
           {/* SHARE */}
-          <button className="cv-navbar__back" onClick={onShare}>
+          <button className="cv-navbar__btn" onClick={onShare} title="Share">
             <i className="fas fa-share-alt"></i>
-            <span>Share</span>
+            <span className="cv-btn-label">Share</span>
           </button>
 
-          {/* FORM / PREVIEW TABS */}
-          <div className="cv-navbar__tabs">
-            <button
-              onClick={() => setTab("form")}
-              className={`cv-navbar__tab ${tab === "form" ? "cv-navbar__tab--active" : ""}`}
-            >
-              <i className="fas fa-edit"></i> Form
-            </button>
-            <button
-              onClick={() => setTab("preview")}
-              className={`cv-navbar__tab ${tab === "preview" ? "cv-navbar__tab--active" : ""}`}
-            >
-              <i className="fas fa-eye"></i> Preview
-            </button>
-          </div>
-
           {/* PRINT */}
-          <button className="cv-navbar__back" onClick={onPrint}>
+          <button className="cv-navbar__btn" onClick={onPrint} title="Print">
             <i className="fas fa-print"></i>
-            <span>Print</span>
+            <span className="cv-btn-label">Print</span>
           </button>
 
           {/* DOWNLOAD PDF */}
@@ -104,16 +93,17 @@ export default function CVNavbar({
             className="cv-navbar__download"
             onClick={onDownload}
             disabled={pdfLoading}
+            title="Download PDF"
           >
             {pdfLoading ? (
               <>
                 <i className="fas fa-spinner fa-spin"></i>
-                <span>Generating...</span>
+                <span className="cv-btn-label">Generating...</span>
               </>
             ) : (
               <>
                 <i className="fas fa-download"></i>
-                <span>Download PDF</span>
+                <span className="cv-btn-label">Download PDF</span>
               </>
             )}
           </button>
@@ -121,7 +111,41 @@ export default function CVNavbar({
         </div>
       </div>
 
-      {/* ── FORMAT TOOLBAR ── */}
+      {/* ══════════════════════════════════════
+          TAB BAR — Form/Preview Toggle + Customize
+      ══════════════════════════════════════ */}
+      <div className="cv-navbar__tabbar">
+        <div className="cv-navbar__tabs">
+          <button
+            onClick={() => setTab("form")}
+            className={`cv-navbar__tab ${tab === "form" ? "cv-navbar__tab--active" : ""}`}
+          >
+            <i className="fas fa-edit"></i>
+            <span>Form</span>
+          </button>
+          <button
+            onClick={() => setTab("preview")}
+            className={`cv-navbar__tab ${tab === "preview" ? "cv-navbar__tab--active" : ""}`}
+          >
+            <i className="fas fa-eye"></i>
+            <span>Preview</span>
+          </button>
+        </div>
+
+        {/* MOBILE-ONLY CUSTOMIZE BUTTON */}
+        <button
+          onClick={onOpenCustomize}
+          className="cvb-mobile-customize-btn"
+          title="Customize design"
+        >
+          <i className="fas fa-sliders-h"></i>
+          <span>Customize</span>
+        </button>
+      </div>
+
+      {/* ══════════════════════════════════════
+          DESKTOP FORMAT TOOLBAR (hidden on mobile)
+      ══════════════════════════════════════ */}
       <div className="cv-fmt-bar">
 
         {/* ── ROW 1: DESIGN ── */}

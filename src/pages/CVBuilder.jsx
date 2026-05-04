@@ -17,7 +17,6 @@ export default function CVBuilder() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // ── LOAD DRAFT FROM LOCALSTORAGE ──
   const getSavedDraft = () => {
     try {
       const saved = localStorage.getItem(LOCAL_KEY);
@@ -27,62 +26,31 @@ export default function CVBuilder() {
   };
   const draft = getSavedDraft();
 
-  // ── CV CONTENT STATE ──
   const [cv, setCV] = useState(draft?.cv || emptyCV);
-
-  // ── TEMPLATE STATE ──
   const [template, setTemplate] = useState(draft?.template ?? 0);
-
-  // ── ACCENT COLOR STATE ──
   const [accent, setAccent] = useState(draft?.accent || ACCENT[0]);
-
-  // ── FONT & FORMAT STATE ──
   const [format, setFormat] = useState(draft?.format || defaultFormat);
-
-  // ── THEME STATE ──
   const [theme, setTheme] = useState(draft?.theme || defaultTheme);
-
-  // ── SECTION ORDER STATE ──
   const [sectionOrder, setSectionOrder] = useState(draft?.sectionOrder || DEFAULT_SECTION_ORDER);
-
-  // ── FORM STEP STATE ──
   const [step, setStep] = useState(0);
-
-  // ── TAB STATE ──
   const [tab, setTab] = useState("form");
-
-  // ── CLOUD CV ID STATE ──
   const [cvId, setCvId] = useState(urlCvId || null);
-
-  // ── SAVE LOADING STATE ──
   const [saving, setSaving] = useState(false);
-
-  // ── SAVE STATUS STATE ──
   const [saveStatus, setSaveStatus] = useState("");
-
-  // ── SHARE URL STATE ──
   const [shareUrl, setShareUrl] = useState("");
-
-  // ── MODAL VISIBILITY STATES ──
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDownloadGate, setShowDownloadGate] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
-
-  // ── OWNERSHIP STATE ──
+  const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);  // ← NEW
   const [isOwner, setIsOwner] = useState(true);
-
-  // ── PDF LOADING STATE ──
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  // ── PDF PREVIEW REF ──
   const previewRef = useRef();
 
-  // ── PRINT HANDLER (browser print) ──
   const handlePrint = () => {
     printCV({ previewRef, cv, theme, format });
   };
 
-  // ── DOWNLOAD PDF HANDLER (puppeteer) ──
   const handleDownloadPDF = async () => {
     if (!user) {
       setShowDownloadGate(true);
@@ -98,7 +66,6 @@ export default function CVBuilder() {
     setPdfLoading(false);
   };
 
-  // ── SYNC TO LOCALSTORAGE ON EVERY CHANGE ──
   useEffect(() => {
     if (urlCvId) return;
     try {
@@ -108,7 +75,6 @@ export default function CVBuilder() {
     } catch (e) {}
   }, [cv, template, accent, format, sectionOrder, theme, urlCvId]);
 
-  // ── LOAD CV FROM FIRESTORE IF SHARED LINK ──
   useEffect(() => {
     if (urlCvId) {
       loadCV(urlCvId).then((data) => {
@@ -126,7 +92,11 @@ export default function CVBuilder() {
     }
   }, [urlCvId, user]);
 
-  // ── SAVE TO FIRESTORE ──
+  // Lock body scroll when bottom sheet open
+  useEffect(() => {
+    document.body.style.overflow = showCustomizeSheet ? "hidden" : "";
+  }, [showCustomizeSheet]);
+
   const handleSave = async () => {
     if (!user) {
       navigate("/auth", { state: { from: `/dashboard/cv-builder` } });
@@ -158,7 +128,6 @@ export default function CVBuilder() {
     setSaving(false);
   };
 
-  // ── SHARE ──
   const handleShare = async () => {
     if (!cvId) await handleSave();
     const url = `${window.location.origin}/cv/${cvId}`;
@@ -166,12 +135,10 @@ export default function CVBuilder() {
     setShowShareModal(true);
   };
 
-  // ── COPY SHARE LINK ──
   const copyLink = () => {
     navigator.clipboard.writeText(shareUrl);
   };
 
-  // ── CLEAR ALL CV DATA ──
   const handleClear = () => {
     setCV(emptyCV);
     setTemplate(0);
@@ -186,10 +153,12 @@ export default function CVBuilder() {
     window.history.replaceState(null, "", `/dashboard/cv-builder`);
   };
 
+  const openCustomize = () => setShowCustomizeSheet(true);
+  const closeCustomize = () => setShowCustomizeSheet(false);
+
   return (
     <div className="cvb">
 
-      {/* ── NAVBAR ── */}
       <CVNavbar
         template={template} setTemplate={setTemplate}
         accent={accent} setAccent={setAccent}
@@ -208,12 +177,11 @@ export default function CVBuilder() {
         setFormat={setFormat}
         theme={theme}
         setTheme={setTheme}
+        onOpenCustomize={openCustomize}
       />
 
-      {/* ── MAIN BODY ── */}
-      <div className="cvb__body">
+      <div className="cvb__body" data-active-tab={tab}>
 
-        {/* FORM PANEL */}
         <CVForm
           cv={cv} setCV={setCV}
           template={template}
@@ -221,7 +189,6 @@ export default function CVBuilder() {
           tab={tab}
         />
 
-        {/* PREVIEW PANEL */}
         <CVPreview
           cv={cv} accent={accent}
           template={template}
@@ -236,7 +203,173 @@ export default function CVBuilder() {
 
       </div>
 
-      {/* ── CLEAR MODAL ── */}
+      {/* ── MOBILE BOTTOM SHEET (Customize) ── */}
+      <div className={`cvb-bottom-sheet-backdrop ${showCustomizeSheet ? "open" : ""}`} onClick={closeCustomize}></div>
+      <div className={`cvb-bottom-sheet ${showCustomizeSheet ? "open" : ""}`}>
+        <div className="cvb-bottom-sheet-header">
+          <h3>Customize CV</h3>
+          <button className="cvb-bottom-sheet-close" onClick={closeCustomize}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <div className="cvb-bottom-sheet-body">
+
+          {/* Template selector */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Template</span>
+            <select
+              value={template}
+              onChange={(e) => setTemplate(Number(e.target.value))}
+            >
+              <option value={0}>Classic Pro</option>
+              <option value={1}>Modern Edge</option>
+              <option value={2}>Executive Plus</option>
+              <option value={3}>Minimal Clean</option>
+              <option value={4}>Creative Side</option>
+              <option value={5}>Corporate Bold</option>
+              <option value={6}>Traditional Profile</option>
+            </select>
+          </div>
+
+          {/* Accent color */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Accent Color</span>
+            <input
+              type="color"
+              value={accent}
+              onChange={(e) => setAccent(e.target.value)}
+            />
+          </div>
+
+          {/* Theme colors */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Background</span>
+            <input
+              type="color"
+              value={theme.bg}
+              onChange={(e) => setTheme({ ...theme, bg: e.target.value })}
+            />
+          </div>
+
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Text Color</span>
+            <input
+              type="color"
+              value={theme.text}
+              onChange={(e) => setTheme({ ...theme, text: e.target.value })}
+            />
+          </div>
+
+          {/* Font family */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Font</span>
+            <select
+              value={format.fontFamily}
+              onChange={(e) => setFormat({ ...format, fontFamily: e.target.value })}
+            >
+              <option value="Source Serif 4">Georgia (Serif)</option>
+              <option value="Inter">Helvetica (Sans)</option>
+              <option value="Source Sans 3">Calibri</option>
+              <option value="EB Garamond">Garamond</option>
+              <option value="Cormorant Garamond">Palatino</option>
+              <option value="DM Sans">Verdana</option>
+              <option value="Manrope">Trebuchet</option>
+              <option value="Lora">Lora</option>
+            </select>
+          </div>
+
+          {/* Name size */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Name Size: {format.nameFontSize}px</span>
+            <input
+              type="range"
+              min="14"
+              max="36"
+              value={format.nameFontSize}
+              onChange={(e) => setFormat({ ...format, nameFontSize: Number(e.target.value) })}
+            />
+          </div>
+
+          {/* Body size */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Body Size: {format.bodyFontSize}px</span>
+            <input
+              type="range"
+              min="8"
+              max="14"
+              value={format.bodyFontSize}
+              onChange={(e) => setFormat({ ...format, bodyFontSize: Number(e.target.value) })}
+            />
+          </div>
+
+          {/* Heading size */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Heading Size: {format.headingFontSize}px</span>
+            <input
+              type="range"
+              min="9"
+              max="16"
+              value={format.headingFontSize}
+              onChange={(e) => setFormat({ ...format, headingFontSize: Number(e.target.value) })}
+            />
+          </div>
+
+          {/* Spacing */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Page Padding: {format.pagePadding}px</span>
+            <input
+              type="range"
+              min="12"
+              max="48"
+              value={format.pagePadding}
+              onChange={(e) => setFormat({ ...format, pagePadding: Number(e.target.value) })}
+            />
+          </div>
+
+          {/* Line height */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Line Spacing: {format.lineHeight}</span>
+            <input
+              type="range"
+              min="1"
+              max="2"
+              step="0.1"
+              value={format.lineHeight}
+              onChange={(e) => setFormat({ ...format, lineHeight: Number(e.target.value) })}
+            />
+          </div>
+
+          {/* Style toggles */}
+          <div className="cv-fmt-group">
+            <span className="cv-fmt-group-label">Heading Style</span>
+            <div className="cv-fmt-row">
+              <button
+                className={`cv-fmt-style-btn ${format.headingBold ? "active" : ""}`}
+                onClick={() => setFormat({ ...format, headingBold: !format.headingBold })}
+                style={{ fontWeight: 700 }}
+              >
+                Bold
+              </button>
+              <button
+                className={`cv-fmt-style-btn ${format.headingItalic ? "active" : ""}`}
+                onClick={() => setFormat({ ...format, headingItalic: !format.headingItalic })}
+                style={{ fontStyle: "italic" }}
+              >
+                Italic
+              </button>
+              <button
+                className={`cv-fmt-style-btn ${format.headingUppercase ? "active" : ""}`}
+                onClick={() => setFormat({ ...format, headingUppercase: !format.headingUppercase })}
+              >
+                AA
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── EXISTING MODALS ── */}
       {showClearModal && (
         <div className="cvb-modal" onClick={() => setShowClearModal(false)}>
           <div className="cvb-modal__box" onClick={(e) => e.stopPropagation()}>
@@ -257,7 +390,6 @@ export default function CVBuilder() {
         </div>
       )}
 
-      {/* ── SHARE MODAL ── */}
       {showShareModal && (
         <div className="cvb-modal" onClick={() => setShowShareModal(false)}>
           <div className="cvb-modal__box" onClick={(e) => e.stopPropagation()}>
@@ -267,11 +399,7 @@ export default function CVBuilder() {
             <h3>Share this CV</h3>
             <p>Anyone with this link can view and edit this CV. They'll need to log in to download it.</p>
             <div className="cvb-modal__link-row">
-              <input
-                className="cvb-modal__link-input"
-                value={shareUrl}
-                readOnly
-              />
+              <input className="cvb-modal__link-input" value={shareUrl} readOnly />
               <button className="cvb-modal__copy-btn" onClick={copyLink}>
                 <i className="fas fa-copy"></i> Copy
               </button>
@@ -285,7 +413,6 @@ export default function CVBuilder() {
         </div>
       )}
 
-      {/* ── DOWNLOAD GATE MODAL ── */}
       {showDownloadGate && (
         <div className="cvb-modal" onClick={() => setShowDownloadGate(false)}>
           <div className="cvb-modal__box" onClick={(e) => e.stopPropagation()}>
@@ -295,10 +422,7 @@ export default function CVBuilder() {
             <h3>Login to Download</h3>
             <p>You need a free Memora account to download your CV. Your progress will be saved automatically.</p>
             <div className="cvb-modal__actions">
-              <button
-                className="cvb-modal__primary"
-                onClick={() => navigate("/auth", { state: { from: window.location.pathname } })}
-              >
+              <button className="cvb-modal__primary" onClick={() => navigate("/auth", { state: { from: window.location.pathname } })}>
                 <i className="fas fa-user-plus"></i> Create Free Account
               </button>
               <button className="cvb-modal__close" onClick={() => setShowDownloadGate(false)}>
