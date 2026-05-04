@@ -78,7 +78,8 @@
   gap: 16px;
 }
 
-.cv-navbar__back {
+.cv-navbar__back,
+.cv-navbar__btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -94,7 +95,8 @@
   transition: 0.3s;
 }
 
-.cv-navbar__back:hover {
+.cv-navbar__back:hover,
+.cv-navbar__btn:hover {
   background: linear-gradient(90deg, #6699FF, #9D00FF);
   color: #fff;
   transform: translateX(-3px);
@@ -123,6 +125,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.cv-navbar__tabbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 32px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .cv-navbar__tabs {
@@ -662,6 +672,7 @@
   padding: 24px;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .cv-preview-panel--hidden {
@@ -720,6 +731,7 @@
   gap: 20px;
   align-items: flex-start;
   flex: 1;
+  min-width: 0;
 }
 
 .fmt-panel-wrapper {
@@ -898,7 +910,7 @@
 }
 
 .cv-preview__page {
-  width: 100% !important;
+  width: 210mm;
   min-height: 1123px;
   background: #fff;
   box-shadow: 0 8px 40px rgba(0,0,0,0.12);
@@ -1777,7 +1789,7 @@
 
 .cvl__input:focus {
   border-color: #9D00FF;
-  box-shadow: 0 0 0 3px rgba(157,0,255,0.1);
+  box-shadow: 0 0 0 3px rgba(157, 0, 255, 0.1);
 }
 
 .cvl__register-skip {
@@ -1848,131 +1860,263 @@
 /* ══════════════════════════════════════
    PAGE BREAK CONTROL FOR PRINT & PDF
 ══════════════════════════════════════ */
-
-/* Default — sections shouldn't break right after their heading */
 .cv-section {
   break-inside: auto;
   page-break-inside: auto;
 }
 
-/* Each individual item (job, education entry, achievement, etc.) — never split */
 .cv-item {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-/* Section headings — keep with the next element (first item) */
 .cv-section-heading {
   break-after: avoid;
   page-break-after: avoid;
   break-inside: avoid;
 }
 
-/* Whole short sections (skills, languages, certifications) — keep together */
 .cv-section-keep {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-/* Print-specific tweaks */
 @media print {
-  .cv-section {
-    break-inside: auto;
-  }
-  .cv-item {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  .cv-section-heading {
-    break-after: avoid;
-    page-break-after: avoid;
-  }
-  .cv-section-keep {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
+  .cv-section { break-inside: auto; }
+  .cv-item { break-inside: avoid; page-break-inside: avoid; }
+  .cv-section-heading { break-after: avoid; page-break-after: avoid; }
+  .cv-section-keep { break-inside: avoid; page-break-inside: avoid; }
 }
 
+
 /* ══════════════════════════════════════════════════════════════
+   ══════════════════════════════════════════════════════════════
    CV BUILDER — MOBILE RESPONSIVENESS
+   ══════════════════════════════════════════════════════════════
 ══════════════════════════════════════════════════════════════ */
 
-/* Mobile customize button — hidden on desktop */
+/* Hidden by default on desktop */
 .cvb-mobile-customize-btn {
   display: none;
 }
 
-/* Mobile bottom sheet for format controls */
-.cvb-bottom-sheet {
+.cvb-bottom-sheet,
+.cvb-bottom-sheet-backdrop {
   display: none;
 }
 
-/* ─────────────────────────────────
+/* ─────────────────────────────────────
    TABLET & MOBILE (≤900px)
-───────────────────────────────── */
-@media (max-width: 900px) {
+───────────────────────────────────── */
+@media screen and (max-width: 900px) {
 
-  /* Hide the desktop format bar — replaced by Customize button */
+  /* ── NAVBAR LAYOUT — 2 ROWS ── */
+  .cv-navbar {
+    padding: 0 !important;
+  }
+
+  .cv-navbar__top {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Brand on the left — let it shrink */
+  .cv-navbar__brand {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 220px) !important;
+    overflow: hidden !important;
+    gap: 8px !important;
+  }
+
+  .cv-navbar__brand .cv-navbar__back {
+    flex-shrink: 0 !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cv-navbar__brand .cv-navbar__back span {
+    display: none !important;
+  }
+
+  .cv-navbar__divider {
+    display: none !important;
+  }
+
+  .cv-navbar__brand-text,
+  .cv-navbar__brand > div:not(.cv-navbar__back):not(.cv-navbar__divider) {
+    overflow: hidden !important;
+    min-width: 0 !important;
+  }
+
+  .cv-navbar__title {
+    font-size: 0.9rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .cv-navbar__subtitle {
+    display: none !important;
+  }
+
+  /* Action group on the right — icon-only, never wraps */
+  .cv-navbar__actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* All action buttons → uniform compact icon-only */
+  .cv-navbar__actions button {
+    padding: 0 !important;
+    font-size: 0 !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    min-width: 36px !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+  }
+
+  .cv-navbar__actions button i {
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+  }
+
+  .cv-navbar__actions button span {
+    display: none !important;
+  }
+
+  /* Save status — show as small dot indicator only */
+  .cv-navbar__save-status {
+    padding: 4px 8px !important;
+    font-size: 0.65rem !important;
+    border-radius: 10px !important;
+  }
+
+  .cv-navbar__save-status span {
+    display: none !important;
+  }
+
+  /* Download stays gradient (still circle) */
+  .cv-navbar__download {
+    background: linear-gradient(90deg, #6699FF, #9D00FF) !important;
+    color: #fff !important;
+  }
+
+  .cv-navbar__clear {
+    background: #fff1f1 !important;
+    color: #ef4444 !important;
+  }
+
+  /* ── TABBAR ROW — Form/Preview pills + Customize button ── */
+  .cv-navbar__tabbar {
+    display: flex !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-sizing: border-box !important;
+  }
+
+  .cv-navbar__tabs {
+    flex: 1 !important;
+    display: flex !important;
+    background: #f5f5f5 !important;
+    border-radius: 10px !important;
+    padding: 4px !important;
+    gap: 0 !important;
+  }
+
+  .cv-navbar__tab {
+    flex: 1 !important;
+    padding: 9px 10px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #555 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+  }
+
+  .cv-navbar__tab--active {
+    background: #fff !important;
+    color: #9D00FF !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* Customize button — compact gradient pill */
+  .cvb-mobile-customize-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 9px 14px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(90deg, #6699FF, #9D00FF) !important;
+    color: #fff !important;
+    border: none !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Hide desktop format bar */
   .cv-fmt-bar {
     display: none !important;
   }
 
-  /* Show mobile customize button in the navbar */
-  .cvb-mobile-customize-btn {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    background: linear-gradient(90deg, #6699FF, #9D00FF);
-    color: #fff;
-    border: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  /* Tab switcher — make form/preview tabs more prominent on mobile */
-  .cv-tab-group {
-    display: flex !important;
-    gap: 6px;
-    flex: 1;
-    justify-content: center;
-  }
-
-  .cv-tab-btn {
-    flex: 1;
-    max-width: 120px;
-    padding: 8px 14px !important;
-    font-size: 0.85rem !important;
-  }
-
-  /* Body — show only one panel at a time based on tab */
+  /* ── BODY: SINGLE-PANEL VIEW ── */
   .cvb__body {
     display: block !important;
     padding: 0 !important;
-    height: calc(100vh - 60px) !important;
-    overflow: hidden !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
-  /* Form panel — full width when active */
   .cv-form-panel {
     width: 100% !important;
     max-width: 100% !important;
-    height: 100% !important;
     border-right: none !important;
     overflow-y: auto !important;
     padding: 16px !important;
+    box-sizing: border-box !important;
   }
 
-  /* Preview panel — full width when active */
   .cv-preview-panel {
     width: 100% !important;
     max-width: 100% !important;
-    height: 100% !important;
     overflow-y: auto !important;
     padding: 12px !important;
+    box-sizing: border-box !important;
   }
 
   /* Hide form panel when preview tab is active */
@@ -1985,22 +2129,44 @@
     display: none !important;
   }
 
-  /* Preview workspace adjustments */
+  /* ── PREVIEW SCALING — proper viewport-based shrink ── */
   .cv-preview__workspace {
-    padding: 8px !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .fmt-panel-wrapper {
+    display: none !important;
   }
 
   .cv-preview__page-wrapper {
-    transform: scale(0.55) !important;
-    transform-origin: top center !important;
-    margin-bottom: -45% !important;
+    display: block !important;
+    width: 100% !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
+  /* The CV page — shrink to fit screen via transform + scale wrapper */
   .cv-preview__page {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+    width: 100% !important;
+    display: flex;
+    min-height: 297mm !important;
+    transform: scale(calc((100vw - 32px) / 794)) !important;
+    transform-origin: top left !important;
+    margin: 0 !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
   }
 
-  /* Toolbar above preview — wrap on mobile */
+  /* Compensate for the scale by adjusting parent height */
+  .cv-preview__page-wrapper {
+    height: calc((100vw - 32px) * 1.414) !important;
+    overflow: hidden !important;
+  }
+
+  /* Toolbar above preview wraps cleanly */
   .cv-preview__toolbar {
     flex-wrap: wrap !important;
     gap: 6px !important;
@@ -2012,13 +2178,7 @@
     padding: 6px 10px !important;
   }
 
-  /* Save status badge */
-  .cv-save-status {
-    font-size: 0.7rem !important;
-    padding: 4px 8px !important;
-  }
-
-  /* ─── BOTTOM SHEET ─── */
+  /* ── BOTTOM SHEET ── */
   .cvb-bottom-sheet {
     display: block;
     position: fixed;
@@ -2059,7 +2219,6 @@
     opacity: 1;
   }
 
-  /* Bottom sheet handle bar */
   .cvb-bottom-sheet::before {
     content: "";
     display: block;
@@ -2070,7 +2229,6 @@
     margin: 12px auto 8px;
   }
 
-  /* Bottom sheet header */
   .cvb-bottom-sheet-header {
     display: flex;
     align-items: center;
@@ -2100,21 +2258,23 @@
     color: #555;
   }
 
-  /* Bottom sheet content area */
   .cvb-bottom-sheet-body {
     padding: 16px 20px 32px;
   }
 
-  /* Format groups inside bottom sheet — stack vertically */
   .cvb-bottom-sheet .cv-fmt-group {
     flex-direction: column;
     align-items: stretch;
     width: 100%;
     margin-bottom: 18px;
     gap: 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
   }
 
-  .cvb-bottom-sheet .cv-fmt-group-label {
+  .cvb-bottom-sheet .cv-fmt-group-label,
+  .cvb-bottom-sheet .cv-fmt-group__label {
     font-size: 0.75rem;
     font-weight: 700;
     color: #6699FF;
@@ -2123,9 +2283,6 @@
     margin-bottom: 4px;
   }
 
-  .cvb-bottom-sheet .cv-fmt-chip,
-  .cvb-bottom-sheet .cv-fmt-step-btn,
-  .cvb-bottom-sheet .cv-fmt-style-btn,
   .cvb-bottom-sheet select,
   .cvb-bottom-sheet input[type="color"],
   .cvb-bottom-sheet input[type="number"] {
@@ -2134,19 +2291,7 @@
     font-size: 0.9rem;
   }
 
-  .cvb-bottom-sheet .cv-fmt-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .cvb-bottom-sheet .cv-fmt-row > * {
-    flex: 1;
-    min-width: 0;
-  }
-
-  /* Modal adjustments on mobile */
+  /* Modal adjustments */
   .cvb-modal {
     padding: 16px !important;
   }
@@ -2160,41 +2305,71 @@
     font-size: 1.1rem !important;
   }
 
-  .cvb-modal__actions {
-    flex-direction: column !important;
-    width: 100% !important;
-  }
-
   .cvb-modal__actions button {
     width: 100% !important;
   }
 }
 
-/* ─────────────────────────────────
-   PHONE (≤600px) — tighter tweaks
-───────────────────────────────── */
+
+/* ─────────────────────────────────────
+   PHONE (≤600px) — tighter
+───────────────────────────────────── */
 @media (max-width: 600px) {
 
-  .cv-tab-btn {
+  .cv-navbar__top {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  .cv-navbar__brand {
+    max-width: calc(100% - 200px) !important;
+    gap: 6px !important;
+  }
+
+  .cv-navbar__title {
+    font-size: 0.85rem !important;
+  }
+
+  .cv-navbar__actions {
+    gap: 3px !important;
+  }
+
+  .cv-navbar__actions button {
+    width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    min-width: 32px !important;
+  }
+
+  .cv-navbar__actions button i {
     font-size: 0.8rem !important;
-    padding: 6px 12px !important;
+  }
+
+  .cv-navbar__save-status {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    justify-content: center !important;
+  }
+
+  .cv-navbar__save-status i {
+    font-size: 0.8rem !important;
+  }
+
+  .cv-navbar__tabbar {
+    padding: 6px 10px !important;
+    gap: 6px !important;
+  }
+
+  .cv-navbar__tab {
+    padding: 8px 8px !important;
+    font-size: 0.78rem !important;
   }
 
   .cvb-mobile-customize-btn {
-    padding: 5px 10px !important;
-    font-size: 0.78rem !important;
-  }
-
-  /* Smaller print/download buttons */
-  .cv-navbar__top button {
-    font-size: 0.78rem !important;
-    padding: 5px 10px !important;
-  }
-
-  /* Preview scale tighter on small phones */
-  .cv-preview__page-wrapper {
-    transform: scale(0.45) !important;
-    margin-bottom: -55% !important;
+    padding: 8px 12px !important;
+    font-size: 0.74rem !important;
   }
 
   /* Form fields larger touch targets */
@@ -2208,220 +2383,66 @@
   .cv-form-panel label {
     font-size: 0.85rem !important;
   }
-
-  /* Step navigation */
-  .cv-step-btns {
-    flex-direction: column !important;
-    gap: 8px !important;
-  }
-
-  .cv-step-btns button {
-    width: 100% !important;
-  }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CV BUILDER NAVBAR — MOBILE LAYOUT
-══════════════════════════════════════════════════════════════ */
-@media (max-width: 900px) {
 
-  /* ── NAVBAR CONTAINER ── */
-  .cv-navbar {
-    padding: 10px 12px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    background: #fff !important;
-    border-bottom: 1px solid #eee !important;
+/* ─────────────────────────────────────
+   ULTRA SMALL (≤414px iPhone XR)
+───────────────────────────────────── */
+@media (max-width: 414px) {
+
+  .cv-navbar__brand {
+    max-width: calc(100% - 175px) !important;
   }
 
-  /* ── TOP ROW: Logo/back + Action buttons (Save, Share, Print, Download) ── */
-  .cv-navbar__top {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 8px !important;
-    flex-wrap: nowrap !important;
-    width: 100% !important;
+  .cv-navbar__brand .cv-navbar__back {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
   }
 
-  /* Action button group on top right */
-  .cv-navbar__actions {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    flex-wrap: nowrap !important;
-  }
-
-  /* Make all action buttons compact and consistent */
-  .cv-navbar__top button,
-  .cv-navbar__actions button {
-    padding: 7px 10px !important;
-    font-size: 0.78rem !important;
-    border-radius: 8px !important;
-    white-space: nowrap !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    min-height: 36px !important;
-  }
-
-  /* Hide button text on small screens — keep icons only */
-  .cv-navbar__top button .cv-btn-label,
-  .cv-navbar__actions button .cv-btn-label {
-    display: none !important;
-  }
-
-  .cv-navbar__top button i,
-  .cv-navbar__actions button i {
-    font-size: 0.95rem !important;
+  .cv-navbar__brand .cv-navbar__back i {
     margin: 0 !important;
   }
 
-  /* Save status badge */
-  .cv-save-status {
-    font-size: 0.7rem !important;
-    padding: 4px 8px !important;
-  }
-
-  /* ── BOTTOM ROW: Tabs (Form/Preview) + Customize ── */
-  .cv-navbar__tabs {
-    display: flex !important;
-    align-items: stretch !important;
-    width: 100% !important;
-    gap: 0 !important;
-    background: #f5f5f5 !important;
-    border-radius: 10px !important;
-    padding: 4px !important;
-    overflow: hidden !important;
-  }
-
-  /* Form / Preview toggle pills */
-  .cv-navbar__tab {
-    flex: 1 !important;
-    padding: 10px 12px !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 8px !important;
-    color: #555 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    white-space: nowrap !important;
-  }
-
-  .cv-navbar__tab--active {
-    background: #fff !important;
-    color: #9D00FF !important;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
-  }
-
-  .cv-navbar__tab i {
-    font-size: 0.9rem !important;
-  }
-
-  /* CUSTOMIZE BUTTON — sits next to tabs, gradient-styled */
-  .cvb-mobile-customize-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 10px 14px !important;
-    border-radius: 8px !important;
-    background: linear-gradient(90deg, #6699FF, #9D00FF) !important;
-    color: #fff !important;
-    border: none !important;
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    margin-left: 6px !important;
-  }
-
-  .cvb-mobile-customize-btn:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(157,0,255,0.25) !important;
-  }
-
-  /* Hide format bar on mobile — handled by Customize button */
-  .cv-fmt-bar {
-    display: none !important;
-  }
-}
-
-
-/* ─────────────────────────────────
-   PHONE (≤600px) — tighter
-───────────────────────────────── */
-@media (max-width: 600px) {
-
-  .cv-navbar {
-    padding: 8px 10px !important;
-    gap: 8px !important;
-  }
-
-  .cv-navbar__top button,
-  .cv-navbar__actions button {
-    padding: 6px 8px !important;
-    min-height: 34px !important;
-  }
-
-  .cv-navbar__tab {
-    padding: 9px 10px !important;
+  .cv-navbar__title {
     font-size: 0.8rem !important;
   }
 
-  .cv-navbar__tab i {
-    font-size: 0.85rem !important;
-  }
-
-  .cvb-mobile-customize-btn {
-    padding: 9px 12px !important;
-    font-size: 0.78rem !important;
-  }
-
-  .cv-save-status {
+  .cv-navbar__title i {
     display: none !important;
   }
-}
 
+  .cv-navbar__actions button {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+  }
 
-/* ─────────────────────────────────
-   ULTRA SMALL (≤414px iPhone XR)
-───────────────────────────────── */
-@media (max-width: 414px) {
+  .cv-navbar__actions button i {
+    font-size: 0.75rem !important;
+  }
 
   .cv-navbar__tabs {
     padding: 3px !important;
   }
 
   .cv-navbar__tab {
-    padding: 8px 8px !important;
-    font-size: 0.75rem !important;
-    gap: 4px !important;
-  }
-
-  .cv-navbar__tab i {
-    font-size: 0.8rem !important;
-  }
-
-  .cvb-mobile-customize-btn {
-    padding: 8px 10px !important;
+    padding: 7px 6px !important;
     font-size: 0.72rem !important;
     gap: 4px !important;
   }
 
-  /* Even more compact action buttons */
-  .cv-navbar__top button,
-  .cv-navbar__actions button {
-    padding: 5px 7px !important;
-    min-height: 32px !important;
+  .cv-navbar__tab i {
+    display: none !important;
+  }
+
+  .cvb-mobile-customize-btn {
+    padding: 7px 10px !important;
+    font-size: 0.7rem !important;
+    gap: 4px !important;
   }
 }
