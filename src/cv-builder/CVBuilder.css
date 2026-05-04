@@ -2633,3 +2633,51 @@
     cursor: grabbing;
   }
 }
+
+@media screen and (max-width: 900px) {
+
+  /* Font card — rectangular pill showing font name in its own font */
+  .cvb-quick-design__font-card {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    min-width: 90px;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .cvb-quick-design__font-card-name {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .cvb-quick-design__font-card-label {
+    font-size: 0.65rem;
+    color: #999;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .cvb-quick-design__font-card--active {
+    background: linear-gradient(90deg, rgba(102,153,255,0.1), rgba(157,0,255,0.1));
+    border-color: #9D00FF;
+  }
+
+  .cvb-quick-design__font-card--active .cvb-quick-design__font-card-name {
+    color: #9D00FF;
+  }
+
+  .cvb-quick-design__font-card--active .cvb-quick-design__font-card-label {
+    color: #9D00FF;
+  }
+}

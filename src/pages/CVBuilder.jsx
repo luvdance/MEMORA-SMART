@@ -188,6 +188,7 @@ export default function CVBuilder() {
           accent={accent} setAccent={setAccent}
           theme={theme} setTheme={setTheme}
           sectionOrder={sectionOrder} setSectionOrder={setSectionOrder}
+          format={format} setFormat={setFormat}
         />
 
         <CVForm

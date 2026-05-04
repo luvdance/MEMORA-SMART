@@ -13,7 +13,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { TEMPLATES, ACCENT, THEME_PRESETS } from "../utils/constants";
+import { TEMPLATES, ACCENT, THEME_PRESETS, FONT_OPTIONS } from "../utils/constants";
 
 const SECTION_LABELS = {
   biodata: "Personal Details",
@@ -50,6 +50,7 @@ export default function CVQuickDesign({
   accent, setAccent,
   theme, setTheme,
   sectionOrder, setSectionOrder,
+  format, setFormat,
 }) {
   const [activeTab, setActiveTab] = useState("templates");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -63,6 +64,10 @@ export default function CVQuickDesign({
     }
   };
 
+  const setFont = (fontValue) => {
+    setFormat({ ...format, fontFamily: fontValue });
+  };
+
   return (
     <div className="cvb-quick-design">
 
@@ -73,6 +78,12 @@ export default function CVQuickDesign({
           className={`cvb-quick-design__tab ${activeTab === "templates" ? "cvb-quick-design__tab--active" : ""}`}
         >
           <i className="fas fa-th-large"></i> Templates
+        </button>
+        <button
+          onClick={() => setActiveTab("font")}
+          className={`cvb-quick-design__tab ${activeTab === "font" ? "cvb-quick-design__tab--active" : ""}`}
+        >
+          <i className="fas fa-font"></i> Font
         </button>
         <button
           onClick={() => setActiveTab("accent")}
@@ -107,6 +118,23 @@ export default function CVQuickDesign({
                 className={`cvb-quick-design__chip ${template === i ? "cvb-quick-design__chip--active" : ""}`}
               >
                 {name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* FONT */}
+        {activeTab === "font" && (
+          <div className="cvb-quick-design__row">
+            {FONT_OPTIONS.map((font) => (
+              <button
+                key={font.value}
+                onClick={() => setFont(font.value)}
+                className={`cvb-quick-design__font-card ${format.fontFamily === font.value ? "cvb-quick-design__font-card--active" : ""}`}
+                style={{ fontFamily: font.value }}
+              >
+                <span className="cvb-quick-design__font-card-name">Aa</span>
+                <span className="cvb-quick-design__font-card-label">{font.label}</span>
               </button>
             ))}
           </div>
