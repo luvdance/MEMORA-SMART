@@ -2779,3 +2779,86 @@
     min-width: 0 !important;
   }
 }
+
+@media screen and (max-width: 900px) {
+
+  .cvb-quick-design__font-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cvb-quick-design__sizes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .cvb-quick-design__size-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .cvb-quick-design__size-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #555;
+  }
+
+  .cvb-quick-design__stepper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .cvb-quick-design__step-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #fff;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    line-height: 1;
+  }
+
+  .cvb-quick-design__step-btn:hover,
+  .cvb-quick-design__step-btn:active {
+    background: linear-gradient(90deg, #6699FF, #9D00FF);
+    color: #fff;
+  }
+
+  .cvb-quick-design__step-val {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #333;
+    min-width: 36px;
+    text-align: center;
+  }
+}
+
+.cvb-modal__copy-btn--copied {
+  background: linear-gradient(90deg, #16a34a, #22c55e) !important;
+  animation: copyPulse 0.4s ease;
+}
+
+@keyframes copyPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}

@@ -45,6 +45,7 @@ export default function CVBuilder() {
   const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);  // ← NEW
   const [isOwner, setIsOwner] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const previewRef = useRef();
 
@@ -137,8 +138,10 @@ export default function CVBuilder() {
   };
 
   const copyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
-  };
+  navigator.clipboard.writeText(shareUrl);
+  setCopied(true);
+  setTimeout(() => setCopied(false), 2000);
+};
 
   const handleClear = () => {
     setCV(emptyCV);
@@ -409,8 +412,16 @@ export default function CVBuilder() {
             <p>Anyone with this link can view and edit this CV. They'll need to log in to download it.</p>
             <div className="cvb-modal__link-row">
               <input className="cvb-modal__link-input" value={shareUrl} readOnly />
-              <button className="cvb-modal__copy-btn" onClick={copyLink}>
-                <i className="fas fa-copy"></i> Copy
+              <button className={`cvb-modal__copy-btn ${copied ? "cvb-modal__copy-btn--copied" : ""}`} onClick={copyLink}>
+                {copied ? (
+                  <>
+                    <i className="fas fa-check"></i> Copied!
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-copy"></i> Copy
+                  </>
+                )}
               </button>
             </div>
             <div className="cvb-modal__actions">

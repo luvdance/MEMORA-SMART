@@ -125,19 +125,76 @@ export default function CVQuickDesign({
 
         {/* FONT */}
         {activeTab === "font" && (
-          <div className="cvb-quick-design__row">
+        <div className="cvb-quick-design__font-panel">
+
+            {/* Font family cards — horizontal scroll */}
+            <div className="cvb-quick-design__row">
             {FONT_OPTIONS.map((font) => (
-              <button
+                <button
                 key={font.value}
                 onClick={() => setFont(font.value)}
                 className={`cvb-quick-design__font-card ${format.fontFamily === font.value ? "cvb-quick-design__font-card--active" : ""}`}
                 style={{ fontFamily: font.value }}
-              >
+                >
                 <span className="cvb-quick-design__font-card-name">Aa</span>
                 <span className="cvb-quick-design__font-card-label">{font.label}</span>
-              </button>
+                </button>
             ))}
-          </div>
+            </div>
+
+            {/* Size steppers */}
+            <div className="cvb-quick-design__sizes">
+
+            {/* Name size */}
+            <div className="cvb-quick-design__size-row">
+                <span className="cvb-quick-design__size-label">Name</span>
+                <div className="cvb-quick-design__stepper">
+                <button
+                    className="cvb-quick-design__step-btn"
+                    onClick={() => setFormat({ ...format, nameFontSize: Math.max(16, format.nameFontSize - 1) })}
+                >−</button>
+                <span className="cvb-quick-design__step-val">{format.nameFontSize}px</span>
+                <button
+                    className="cvb-quick-design__step-btn"
+                    onClick={() => setFormat({ ...format, nameFontSize: Math.min(32, format.nameFontSize + 1) })}
+                >+</button>
+                </div>
+            </div>
+
+            {/* Body size */}
+            <div className="cvb-quick-design__size-row">
+                <span className="cvb-quick-design__size-label">Body</span>
+                <div className="cvb-quick-design__stepper">
+                <button
+                    className="cvb-quick-design__step-btn"
+                    onClick={() => setFormat({ ...format, bodyFontSize: Math.max(8, format.bodyFontSize - 1) })}
+                >−</button>
+                <span className="cvb-quick-design__step-val">{format.bodyFontSize}px</span>
+                <button
+                    className="cvb-quick-design__step-btn"
+                    onClick={() => setFormat({ ...format, bodyFontSize: Math.min(14, format.bodyFontSize + 1) })}
+                >+</button>
+                </div>
+            </div>
+
+            {/* Heading size */}
+            <div className="cvb-quick-design__size-row">
+                <span className="cvb-quick-design__size-label">Heading</span>
+                <div className="cvb-quick-design__stepper">
+                <button
+                    className="cvb-quick-design__step-btn"
+                    onClick={() => setFormat({ ...format, headingFontSize: Math.max(9, format.headingFontSize - 1) })}
+                >−</button>
+                <span className="cvb-quick-design__step-val">{format.headingFontSize}px</span>
+                <button
+                    className="cvb-quick-design__step-btn"
+                    onClick={() => setFormat({ ...format, headingFontSize: Math.min(16, format.headingFontSize + 1) })}
+                >+</button>
+                </div>
+            </div>
+
+            </div>
+        </div>
         )}
 
         {/* ACCENT COLORS */}
