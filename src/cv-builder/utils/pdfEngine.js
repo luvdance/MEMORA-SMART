@@ -25,7 +25,11 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   <style>
     @page {
       size: A4 portrait;
-      margin: ${verticalMargin}mm 0;
+      margin: ${verticalMargin}mm 0 0 0;
+    }
+
+    @page :first {
+      margin-top: 0;
     }
 
     *, *::before, *::after {
