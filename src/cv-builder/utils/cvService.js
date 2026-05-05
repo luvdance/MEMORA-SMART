@@ -29,6 +29,7 @@ export async function saveCV({
   accent,
   format,
   sectionOrder,
+  theme,           // ← ADDED
   title,
 }) {
   const id = cvId || generateId();

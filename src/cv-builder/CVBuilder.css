@@ -3174,9 +3174,37 @@
   }
 }
 
-/* Hide bottom nav on desktop */
-.cvb-bottom-nav,
-.cvb-more-sheet,
-.cvb-more-backdrop {
-  display: none;
+/* ══════════════════════════════════════
+   HIDE BOTTOM NAV & MORE SHEET ON DESKTOP
+══════════════════════════════════════ */
+@media screen and (min-width: 901px) {
+  .cvb-bottom-nav,
+  .cvb-more-sheet,
+  .cvb-more-backdrop {
+    display: none !important;
+  }
+}
+
+/* ══════════════════════════════════════
+   ENSURE MORE SHEET RENDERS ON MOBILE
+══════════════════════════════════════ */
+@media screen and (max-width: 900px) {
+  .cvb-more-sheet {
+    display: block;
+  }
+
+  .cvb-more-backdrop {
+    display: block;
+  }
+
+  /* Backdrop only fully visible when "open" class is present */
+  .cvb-more-backdrop {
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .cvb-more-backdrop.cvb-more-backdrop--open {
+    pointer-events: auto;
+    opacity: 1;
+  }
 }

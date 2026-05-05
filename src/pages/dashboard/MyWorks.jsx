@@ -62,8 +62,14 @@ export default function MyWorks() {
   return (
     <DashboardLayout title="My Works" subtitle="All your saved projects in one place">
 
-      {/* TABS */}
-      <div className="myworks__tabs">
+    {/* MOBILE-ONLY BACK BUTTON */}
+    <button className="dash-back-btn" onClick={() => navigate("/dashboard")}>
+      <i className="fas fa-arrow-left"></i>
+      <span>Back to Dashboard</span>
+    </button>
+
+    {/* TABS */}
+    <div className="myworks__tabs">
         {[
           { key: "cvs", label: "CVs", icon: "fas fa-file-alt" },
           { key: "websites", label: "Websites", icon: "fas fa-laptop-code", soon: true },

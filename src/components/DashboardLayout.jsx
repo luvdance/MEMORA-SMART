@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardSidebar from "./DashboardSidebar";
+import DashboardMobileNav from "./DashboardMobileNav";
 
 export default function DashboardLayout({ children, title, subtitle }) {
   const { user } = useAuth();
@@ -41,6 +42,7 @@ export default function DashboardLayout({ children, title, subtitle }) {
           {children}
         </div>
       </div>
+      <DashboardMobileNav />
     </div>
   );
 }
