@@ -46,8 +46,12 @@ export default function CVBuilder() {
   const [isOwner, setIsOwner] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const previewRef = useRef();
+
+  const openMore = () => setShowMoreMenu(true);
+  const closeMore = () => setShowMoreMenu(false);
 
   const handlePrint = () => {
     printCV({ previewRef, cv, theme, format });
@@ -95,9 +99,9 @@ export default function CVBuilder() {
   }, [urlCvId, user]);
 
   // Lock body scroll when bottom sheet open
-  useEffect(() => {
-    document.body.style.overflow = showCustomizeSheet ? "hidden" : "";
-  }, [showCustomizeSheet]);
+ useEffect(() => {
+    document.body.style.overflow = (showCustomizeSheet || showMoreMenu) ? "hidden" : "";
+  }, [showCustomizeSheet, showMoreMenu]);
 
   const handleSave = async () => {
     if (!user) {
@@ -452,6 +456,159 @@ export default function CVBuilder() {
           </div>
         </div>
       )}
+
+      {/* ══════════════════════════════════════
+    MOBILE BOTTOM NAVIGATION BAR
+══════════════════════════════════════ */}
+<nav className="cvb-bottom-nav">
+  <button
+    className={`cvb-bottom-nav__item ${tab === "form" ? "cvb-bottom-nav__item--active" : ""}`}
+    onClick={() => setTab("form")}
+  >
+    <i className="fas fa-edit"></i>
+    <span>Form</span>
+  </button>
+
+  <button
+    className={`cvb-bottom-nav__item ${tab === "preview" ? "cvb-bottom-nav__item--active" : ""}`}
+    onClick={() => setTab("preview")}
+  >
+    <i className="fas fa-eye"></i>
+    <span>Preview</span>
+  </button>
+
+  <button
+    className={`cvb-bottom-nav__item ${saveStatus === "saved" ? "cvb-bottom-nav__item--saved" : ""} ${saving ? "cvb-bottom-nav__item--saving" : ""}`}
+    onClick={handleSave}
+    disabled={saving}
+  >
+    {saving ? (
+      <i className="fas fa-spinner fa-spin"></i>
+    ) : saveStatus === "saved" ? (
+      <i className="fas fa-check-circle"></i>
+    ) : (
+      <i className="fas fa-save"></i>
+    )}
+    <span>{saving ? "Saving" : saveStatus === "saved" ? "Saved" : "Save"}</span>
+  </button>
+
+  <button
+    className="cvb-bottom-nav__item cvb-bottom-nav__item--download"
+    onClick={handleDownloadPDF}
+    disabled={pdfLoading}
+  >
+    {pdfLoading ? (
+      <i className="fas fa-spinner fa-spin"></i>
+    ) : (
+      <i className="fas fa-download"></i>
+    )}
+    <span>{pdfLoading ? "..." : "Download"}</span>
+  </button>
+
+  <button
+    className={`cvb-bottom-nav__item ${showMoreMenu ? "cvb-bottom-nav__item--active" : ""}`}
+    onClick={openMore}
+  >
+    <i className="fas fa-ellipsis-h"></i>
+    <span>More</span>
+  </button>
+</nav>
+
+{/* ══════════════════════════════════════
+    MORE MENU SHEET
+══════════════════════════════════════ */}
+<div
+  className={`cvb-more-backdrop ${showMoreMenu ? "cvb-more-backdrop--open" : ""}`}
+  onClick={closeMore}
+></div>
+
+<div className={`cvb-more-sheet ${showMoreMenu ? "cvb-more-sheet--open" : ""}`}>
+  <div className="cvb-more-sheet__header">
+    <h3 className="cvb-more-sheet__title">More options</h3>
+    <button className="cvb-more-sheet__close" onClick={closeMore}>
+      <i className="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div className="cvb-more-sheet__list">
+
+    <button
+      className="cvb-more-sheet__item"
+      onClick={() => { closeMore(); openCustomize(); }}
+    >
+      <span className="cvb-more-sheet__item-icon">
+        <i className="fas fa-sliders-h"></i>
+      </span>
+      <div className="cvb-more-sheet__item-text">
+        <p className="cvb-more-sheet__item-label">Customize</p>
+        <p className="cvb-more-sheet__item-sub">Fonts, sizes, spacing & colors</p>
+      </div>
+      <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
+    </button>
+
+    <button
+      className="cvb-more-sheet__item"
+      onClick={() => { closeMore(); handleShare(); }}
+    >
+      <span className="cvb-more-sheet__item-icon">
+        <i className="fas fa-share-alt"></i>
+      </span>
+      <div className="cvb-more-sheet__item-text">
+        <p className="cvb-more-sheet__item-label">Share CV</p>
+        <p className="cvb-more-sheet__item-sub">Get a public link to share</p>
+      </div>
+      <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
+    </button>
+
+    <button
+      className="cvb-more-sheet__item"
+      onClick={() => { closeMore(); handlePrint(); }}
+    >
+      <span className="cvb-more-sheet__item-icon">
+        <i className="fas fa-print"></i>
+      </span>
+      <div className="cvb-more-sheet__item-text">
+        <p className="cvb-more-sheet__item-label">Print</p>
+        <p className="cvb-more-sheet__item-sub">Open browser print dialog</p>
+      </div>
+      <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
+    </button>
+
+    <button
+      className="cvb-more-sheet__item"
+      onClick={() => { closeMore(); navigate("/cv-builder"); }}
+    >
+      <span className="cvb-more-sheet__item-icon">
+        <i className="fas fa-info-circle"></i>
+      </span>
+      <div className="cvb-more-sheet__item-text">
+        <p className="cvb-more-sheet__item-label">About CV Builder</p>
+        <p className="cvb-more-sheet__item-sub">Learn more & view tutorial</p>
+      </div>
+      <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
+    </button>
+
+    {isOwner && (
+      <>
+        <div className="cvb-more-sheet__divider"></div>
+
+        <button
+          className="cvb-more-sheet__item cvb-more-sheet__item--danger"
+          onClick={() => { closeMore(); setShowClearModal(true); }}
+        >
+          <span className="cvb-more-sheet__item-icon">
+            <i className="fas fa-eraser"></i>
+          </span>
+          <div className="cvb-more-sheet__item-text">
+            <p className="cvb-more-sheet__item-label">Clear CV</p>
+            <p className="cvb-more-sheet__item-sub">Erase all content (cannot be undone)</p>
+          </div>
+        </button>
+      </>
+    )}
+
+  </div>
+</div>
 
     </div>
   );

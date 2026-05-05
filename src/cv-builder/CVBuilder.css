@@ -2862,3 +2862,321 @@
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE: Clean top bar + Bottom navigation bar
+══════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 900px) {
+
+  /* ── TOP BAR: only brand + back, no actions ── */
+  .cv-navbar__top {
+    padding: 10px 12px !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+  }
+
+  /* HIDE all action buttons from top bar — they go to bottom nav */
+  .cv-navbar__actions {
+    display: none !important;
+  }
+
+  /* HIDE the old tab bar — bottom nav replaces it */
+  .cv-navbar__tabbar {
+    display: none !important;
+  }
+
+  /* Brand stretches full width since actions are gone */
+  .cv-navbar__brand {
+    flex: 1 !important;
+    max-width: 100% !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     BOTTOM NAVIGATION BAR
+  ══════════════════════════════════════════════════════════ */
+  .cvb-bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100;
+    display: flex !important;
+    align-items: stretch;
+    justify-content: space-around;
+    background: #fff;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom)) 4px;
+    backdrop-filter: blur(12px);
+  }
+
+  /* Each nav item */
+  .cvb-bottom-nav__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #888;
+    font-family: 'Neulis', 'Raleway', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    transition: 0.2s;
+    border-radius: 10px;
+    min-width: 0;
+  }
+
+  .cvb-bottom-nav__item i {
+    font-size: 1.1rem;
+    transition: 0.2s;
+  }
+
+  .cvb-bottom-nav__item:hover {
+    color: #9D00FF;
+  }
+
+  .cvb-bottom-nav__item--active {
+    color: #9D00FF;
+  }
+
+  .cvb-bottom-nav__item--active i {
+    transform: scale(1.1);
+  }
+
+  /* Subtle dot indicator above active tab */
+  .cvb-bottom-nav__item--active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: linear-gradient(90deg, #6699FF, #9D00FF);
+    border-radius: 0 0 3px 3px;
+  }
+
+  .cvb-bottom-nav__item {
+    position: relative;
+  }
+
+  /* Download button — special gradient styling, the hero action */
+  .cvb-bottom-nav__item--download {
+    background: linear-gradient(90deg, #6699FF, #9D00FF);
+    color: #fff !important;
+    margin: 4px 6px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(157, 0, 255, 0.3);
+  }
+
+  .cvb-bottom-nav__item--download i {
+    color: #fff !important;
+  }
+
+  .cvb-bottom-nav__item--download::before {
+    display: none;
+  }
+
+  .cvb-bottom-nav__item--download:hover {
+    color: #fff !important;
+    transform: translateY(-2px);
+  }
+
+  /* Save button — turns green when saved */
+  .cvb-bottom-nav__item--saved i,
+  .cvb-bottom-nav__item--saved {
+    color: #16a34a !important;
+  }
+
+  /* Save button — saving state with spinner */
+  .cvb-bottom-nav__item--saving {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  /* Make body padding-bottom equal to nav height so content isn't hidden */
+  .cvb {
+    padding-bottom: 70px !important;
+  }
+
+  /* Ensure the form/preview panels can scroll past the nav */
+  .cv-form-panel,
+  .cv-preview-panel {
+    padding-bottom: 80px !important;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════
+     "MORE" MENU SHEET (slides up from bottom)
+  ══════════════════════════════════════════════════════════ */
+  .cvb-more-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 1500;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .cvb-more-sheet--open {
+    transform: translateY(0);
+  }
+
+  .cvb-more-sheet::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+    margin: 12px auto 16px;
+  }
+
+  .cvb-more-sheet__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .cvb-more-sheet__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+  }
+
+  .cvb-more-sheet__close {
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #555;
+  }
+
+  .cvb-more-sheet__list {
+    padding: 8px 0 16px;
+  }
+
+  .cvb-more-sheet__item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Neulis', 'Raleway', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+    transition: 0.2s;
+  }
+
+  .cvb-more-sheet__item:hover,
+  .cvb-more-sheet__item:active {
+    background: rgba(157, 0, 255, 0.05);
+  }
+
+  .cvb-more-sheet__item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(102, 153, 255, 0.12), rgba(157, 0, 255, 0.12));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9D00FF;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  .cvb-more-sheet__item-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cvb-more-sheet__item-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111;
+    margin: 0;
+  }
+
+  .cvb-more-sheet__item-sub {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 1px;
+  }
+
+  /* Danger item (Clear) */
+  .cvb-more-sheet__item--danger {
+    color: #ef4444;
+  }
+
+  .cvb-more-sheet__item--danger .cvb-more-sheet__item-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .cvb-more-sheet__item--danger .cvb-more-sheet__item-label {
+    color: #ef4444;
+  }
+
+  .cvb-more-sheet__divider {
+    height: 1px;
+    background: #f1f1f1;
+    margin: 8px 20px;
+  }
+
+  /* Backdrop for the more sheet */
+  .cvb-more-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1499;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .cvb-more-backdrop--open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Bottom sheet (Customize) — adjust z-index so it appears above bottom nav */
+  .cvb-bottom-sheet {
+    z-index: 2000 !important;
+  }
+
+  .cvb-bottom-sheet-backdrop {
+    z-index: 1999 !important;
+  }
+}
+
+/* Hide bottom nav on desktop */
+.cvb-bottom-nav,
+.cvb-more-sheet,
+.cvb-more-backdrop {
+  display: none;
+}
