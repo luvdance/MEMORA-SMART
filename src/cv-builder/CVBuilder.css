@@ -3232,6 +3232,7 @@
   font-size: 0.75rem;
   opacity: 0.7;
   margin: 0;
+  display: block !important;
 }
 
 .cv-navbar__logo--large {
