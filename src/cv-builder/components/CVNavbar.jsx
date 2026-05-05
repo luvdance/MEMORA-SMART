@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { TEMPLATES, ACCENT, FONT_OPTIONS, THEME_PRESETS } from "../utils/constants";
+import cvLogo from "../../assets/cv logo.png";
 
 export default function CVNavbar({
   template, setTemplate, accent, setAccent,
@@ -26,12 +27,20 @@ export default function CVNavbar({
             <span className="cv-btn-label">Dashboard</span>
           </button>
           <div className="cv-navbar__divider" />
-          <div className="cv-navbar__brand-text">
-            <h1 className="cv-navbar__title">
-              <i className="fas fa-file-alt"></i> CV Builder
-            </h1>
-            <p className="cv-navbar__subtitle">AI-Powered · Multiple Templates · PDF Export</p>
-          </div>
+            <div className="cv-navbar__brand">
+              <img 
+                src={cvLogo} 
+                alt="Memora Smart Portfolio Logo" 
+                className="cv-navbar__logo"
+              />
+
+              <div className="cv-navbar__brand-text">
+                <h1 className="cv-navbar__title">Memora Smart Portfolio</h1>
+                <p className="cv-navbar__subtitle">
+                  Professional CVs that get noticed
+                </p>
+              </div>
+            </div>
         </div>
 
         {/* RIGHT: Action Buttons */}

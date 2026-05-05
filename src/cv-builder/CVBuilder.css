@@ -3208,3 +3208,32 @@
     opacity: 1;
   }
 }
+
+.cv-navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cv-navbar__logo {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  background-color: red;
+}
+
+.cv-navbar__title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cv-navbar__subtitle {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.cv-navbar__logo--large {
+  height: 45px;
+}
