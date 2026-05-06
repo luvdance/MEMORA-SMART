@@ -2,26 +2,22 @@ export function Label({ children }) {
   return <label className="cv-label">{children}</label>;
 }
 
-export function Input({ value, onChange, placeholder, type = "text" }) {
+export function Input({ className, ...props }) {
   return (
     <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className="cv-input"
+      type="text"
+      {...props}
+      className={`cv-input ${className || ""}`}
     />
   );
 }
 
-export function Textarea({ value, onChange, placeholder, rows = 3 }) {
+export function Textarea({ className, rows = 3, ...props }) {
   return (
     <textarea
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
       rows={rows}
-      className="cv-textarea"
+      {...props}
+      className={`cv-textarea ${className || ""}`}
     />
   );
 }
