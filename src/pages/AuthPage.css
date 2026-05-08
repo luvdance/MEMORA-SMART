@@ -326,3 +326,357 @@
     padding: 40px 6%;
   }
 }
+
+/* ══════════════════════════════════════════════════
+   GOOGLE SIGN IN BUTTON
+══════════════════════════════════════════════════ */
+.auth__google-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Neulis', 'Raleway', sans-serif;
+  color: #333;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-bottom: 16px;
+}
+
+.auth__google-btn:hover {
+  border-color: #9D00FF;
+  background: #fafafa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.auth__google-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* DIVIDER */
+.auth__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+.auth__divider::before,
+.auth__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth__divider span {
+  font-size: 0.78rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* PASSWORD VISIBILITY TOGGLE */
+.auth__input-wrap {
+  position: relative;
+}
+
+.auth__password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+.auth__password-toggle:hover {
+  color: #9D00FF;
+}
+
+.auth__input-wrap input[type="password"],
+.auth__input-wrap input[type="text"] {
+  padding-right: 40px;
+}
+
+/* EMAIL STATUS */
+.auth__input-wrap--success {
+  border-color: #16a34a !important;
+}
+
+.auth__input-wrap--warning {
+  border-color: #f59e0b !important;
+}
+
+.auth__field-status {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.95rem;
+  color: #888;
+}
+
+.auth__field-status--success {
+  color: #16a34a;
+}
+
+.auth__field-status--warning {
+  color: #f59e0b;
+}
+
+.auth__field-msg {
+  font-size: 0.78rem;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.auth__field-msg--warning {
+  color: #d97706;
+}
+
+.auth__field-msg--success {
+  color: #16a34a;
+}
+
+.auth__field-msg span {
+  color: #9D00FF;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.auth__field-msg span:hover {
+  text-decoration: underline;
+}
+
+/* FORGOT PASSWORD LINK */
+.auth__forgot-link {
+  text-align: right;
+  font-size: 0.78rem;
+  color: #9D00FF;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: 0.2s;
+}
+
+.auth__forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* AUTH MODAL */
+.auth__modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+  padding: 20px;
+}
+
+.auth__modal-box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px 28px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: scaleIn 0.2s ease;
+}
+
+.auth__modal-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(102,153,255,0.15), rgba(157,0,255,0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.auth__modal-icon i {
+  font-size: 1.5rem;
+  color: #9D00FF;
+}
+
+.auth__modal-icon--success {
+  background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(22,163,74,0.2));
+}
+
+.auth__modal-icon--success i {
+  color: #16a34a;
+}
+
+.auth__modal-box h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #111;
+}
+
+.auth__modal-box p {
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.auth__modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.auth__modal-cancel {
+  background: #f1f1f1;
+  border: none;
+  padding: 10px;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  color: #555;
+  font-family: 'Neulis', 'Raleway', sans-serif;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 600;
+}
+
+.auth__modal-cancel:hover {
+  background: #e5e5e5;
+}
+
+/* VERIFY EMAIL SCREEN */
+.auth__verify-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(102,153,255,0.15), rgba(157,0,255,0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.auth__verify-icon i {
+  font-size: 2rem;
+  color: #9D00FF;
+}
+
+.auth__verify-email {
+  background: linear-gradient(90deg, rgba(102,153,255,0.1), rgba(157,0,255,0.1));
+  color: #9D00FF;
+  padding: 10px 16px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 12px 0;
+  word-break: break-all;
+}
+
+.auth__verify-text {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.auth__verify-back {
+  background: transparent;
+  border: none;
+  color: #555;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 10px;
+  font-family: 'Neulis', 'Raleway', sans-serif;
+  margin-top: 12px;
+  font-weight: 600;
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auth__verify-back:hover {
+  color: #9D00FF;
+}
+
+.auth__verify-hint {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 16px;
+}
+
+.auth__verify-hint span {
+  color: #9D00FF;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth__verify-hint span:hover {
+  text-decoration: underline;
+}
+
+/* SUCCESS MESSAGE */
+.auth__success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #16a34a;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* MOBILE TWEAKS */
+@media screen and (max-width: 900px) {
+  .auth__google-btn {
+    padding: 11px 14px;
+    font-size: 0.85rem;
+  }
+
+  .auth__verify-email {
+    font-size: 0.82rem;
+  }
+
+  .auth__modal-box {
+    padding: 28px 20px;
+  }
+}
