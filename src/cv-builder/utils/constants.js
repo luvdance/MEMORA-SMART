@@ -83,7 +83,7 @@ export const emptyCV = {
 
   experience: [{ company: "", role: "", start: "", end: "", current: false, responsibilities: "" }],
   education: [{ school: "", degree: "", field: "", start: "", end: "" }],
-  skills: "", certifications: "", languages: "", photo: null,
+  skills: "", certifications: [], languages: "", photo: null,
   achievements: [{ title: "", date: "", description: "" }],
   volunteer: [{ organization: "", role: "", start: "", end: "", description: "" }],
   references: [{ name: "", title: "", company: "", email: "", phone: "" }],

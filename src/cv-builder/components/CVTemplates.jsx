@@ -14,6 +14,72 @@ function formatDate(dateStr) {
   }
 }
 
+// ── CERTIFICATION HELPERS ──
+
+function hasCertifications(cv) {
+  if (!cv.certifications) return false;
+  if (typeof cv.certifications === "string") return cv.certifications.trim().length > 0;
+  if (Array.isArray(cv.certifications)) return cv.certifications.some(c => c && c.name);
+  return false;
+}
+
+function normalizeCertifications(certifications) {
+  if (!certifications) return [];
+
+  if (typeof certifications === "string") {
+    return certifications
+      .split(/[,;\n]/)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(name => ({
+        name,
+        issuer: "",
+        issueDate: "",
+        expiryDate: "",
+        noExpiry: false,
+        credentialId: "",
+        credentialUrl: "",
+      }));
+  }
+
+  if (Array.isArray(certifications)) {
+    return certifications.filter(c => c && c.name);
+  }
+
+  return [];
+}
+
+function CertificationItem({ cert, fontSize, lineHeight, color, accent, compact = false }) {
+  const s = fontSize;
+  return (
+    <div className="cv-item" style={{ marginBottom: compact ? 6 : 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+        <b style={{ fontSize: s, color }}>{cert.name}</b>
+        {(cert.issueDate || cert.expiryDate || cert.noExpiry) && (
+          <span style={{ fontSize: s - 1, color, opacity: 0.6 }}>
+            {cert.issueDate}
+            {cert.issueDate && (cert.expiryDate || cert.noExpiry) && " – "}
+            {cert.noExpiry ? "No Expiry" : cert.expiryDate}
+          </span>
+        )}
+      </div>
+      {cert.issuer && (
+        <div style={{ fontSize: s - 1, color: accent, marginTop: 1 }}>{cert.issuer}</div>
+      )}
+      {cert.credentialId && (
+        <div style={{ fontSize: s - 2, color, opacity: 0.55, marginTop: 1 }}>
+          ID: {cert.credentialId}
+        </div>
+      )}
+      {cert.credentialUrl && (
+        <div style={{ fontSize: s - 2, color: accent, opacity: 0.85, marginTop: 1, wordBreak: "break-all" }}>
+          {cert.credentialUrl}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Contact icon helper
 function ContactItem({ icon, text, color, fontSize }) {
   if (!text) return null;
@@ -329,14 +395,6 @@ function renderMainSection(key, cv, accent, format, theme) {
       return cv.publications?.[0]?.title ? (
         <Section key={key} title="Publications" accent={accent} format={format}>
           {cv.publications.map((pub, i) => {
-            const linkStyle = {
-              fontSize: s - 1,
-              color: accent,
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-            };
             return (
               <div key={i} className="cv-item" style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -354,11 +412,9 @@ function renderMainSection(key, cv, accent, format, theme) {
                   </div>
                 )}
                 {pub.url && (
-                  <div style={{ marginTop: 3 }}>
-                    <a href={pub.url} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                      {"🔗 "}
-                      {pub.url.length > 50 ? pub.url.substring(0, 50) + "..." : pub.url}
-                    </a>
+                  <div style={{ marginTop: 3, fontSize: s - 1, color: accent, wordBreak: "break-all" }}>
+                    {"🔗 "}
+                    {pub.url.length > 50 ? pub.url.substring(0, 50) + "..." : pub.url}
                   </div>
                 )}
               </div>
@@ -381,14 +437,24 @@ function renderMainSection(key, cv, accent, format, theme) {
         </Section>
       ) : null;
 
-    case "certifications":
-      return cv.certifications ? (
+    case "certifications": {
+      if (!hasCertifications(cv)) return null;
+      const certs = normalizeCertifications(cv.certifications);
+      return (
         <Section key={key} title="Certifications" accent={accent} format={format} keepTogether>
-          <p style={{ whiteSpace: "pre-wrap", fontSize: s, margin: "4px 0", color: tc }}>
-            {cv.certifications}
-          </p>
+          {certs.map((c, i) => (
+            <CertificationItem
+              key={i}
+              cert={c}
+              fontSize={s}
+              lineHeight={lh}
+              color={tc}
+              accent={accent}
+            />
+          ))}
         </Section>
-      ) : null;
+      );
+    }
 
     case "hobbies":
       return cv.hobbies ? (
@@ -544,13 +610,17 @@ function renderMinimalSection(key, cv, accent, format, theme) {
       return cv.publications?.[0]?.title ? (
         <MinimalSection key={key} title="Publications" format={format} theme={theme}>
           {cv.publications.map((pub, i) => {
-            const linkStyle = { fontSize: s - 1, color: accent, textDecoration: "none" };
             return (
               <div key={i} className="cv-item" style={{ marginBottom: 8, paddingLeft: 10, borderLeft: `2px solid ${accent}` }}>
                 <b style={{ fontSize: s, color: tc }}>{pub.title}</b>
                 {pub.journal && <div style={{ fontSize: s - 1, color: tc, opacity: 0.65, fontStyle: "italic" }}>{pub.journal}</div>}
                 {pub.date && <div style={{ fontSize: s - 1, color: tc, opacity: 0.5 }}>{pub.date}</div>}
-                {pub.url && <a href={pub.url} target="_blank" rel="noopener noreferrer" style={linkStyle}>{"🔗 "}{pub.url.length > 45 ? pub.url.substring(0, 45) + "..." : pub.url}</a>}
+                {pub.url && (
+                  <div style={{ fontSize: s - 1, color: accent, wordBreak: "break-all" }}>
+                    {"🔗 "}
+                    {pub.url.length > 45 ? pub.url.substring(0, 45) + "..." : pub.url}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -564,12 +634,39 @@ function renderMinimalSection(key, cv, accent, format, theme) {
         </MinimalSection>
       ) : null;
 
-    case "certifications":
-      return cv.certifications ? (
+    case "certifications": {
+      if (!hasCertifications(cv)) return null;
+      const certs = normalizeCertifications(cv.certifications);
+      return (
         <MinimalSection key={key} title="Certifications" format={format} theme={theme} keepTogether>
-          <p style={{ fontSize: s, color: tc, whiteSpace: "pre-wrap", margin: "4px 0" }}>{cv.certifications}</p>
+          {certs.map((c, i) => (
+            <div key={i} className="cv-item" style={{ marginBottom: 6, paddingLeft: 10, borderLeft: `2px solid ${accent}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                <b style={{ fontSize: s, color: tc }}>{c.name}</b>
+                {(c.issueDate || c.expiryDate || c.noExpiry) && (
+                  <span style={{ fontSize: s - 1, color: tc, opacity: 0.55 }}>
+                    {c.issueDate}
+                    {c.issueDate && (c.expiryDate || c.noExpiry) && " – "}
+                    {c.noExpiry ? "No Expiry" : c.expiryDate}
+                  </span>
+                )}
+              </div>
+              {c.issuer && (
+                <div style={{ fontSize: s - 1, color: accent }}>{c.issuer}</div>
+              )}
+              {c.credentialId && (
+                <div style={{ fontSize: s - 2, color: tc, opacity: 0.5 }}>ID: {c.credentialId}</div>
+              )}
+              {c.credentialUrl && (
+                <div style={{ fontSize: s - 2, color: accent, opacity: 0.85, wordBreak: "break-all" }}>
+                  {c.credentialUrl}
+                </div>
+              )}
+            </div>
+          ))}
         </MinimalSection>
-      ) : null;
+      );
+    }
 
     case "hobbies":
       return cv.hobbies ? (
@@ -617,14 +714,31 @@ function renderSideSection(key, cv, format) {
           <p style={{ fontSize: s - 1, margin: "3px 0", color: "#e2e8f0" }}>{cv.languages}</p>
         </SideSection>
       ) : null;
-    case "certifications":
-      return cv.certifications ? (
+    case "certifications": {
+      if (!hasCertifications(cv)) return null;
+      const certs = normalizeCertifications(cv.certifications);
+      return (
         <SideSection key={key} title="Certifications" format={format}>
-          <p style={{ fontSize: s - 1, whiteSpace: "pre-wrap", margin: "3px 0", color: "#e2e8f0" }}>
-            {cv.certifications}
-          </p>
+          {certs.map((c, i) => (
+            <div key={i} style={{ marginBottom: 6 }}>
+              <div style={{ fontSize: s - 1, fontWeight: "bold", color: "#e2e8f0", lineHeight: 1.3 }}>
+                {c.name}
+              </div>
+              {c.issuer && (
+                <div style={{ fontSize: s - 2, color: "#94a3b8", marginTop: 1 }}>{c.issuer}</div>
+              )}
+              {(c.issueDate || c.noExpiry || c.expiryDate) && (
+                <div style={{ fontSize: s - 2, color: "#94a3b8", opacity: 0.85 }}>
+                  {c.issueDate}
+                  {c.issueDate && (c.expiryDate || c.noExpiry) && " – "}
+                  {c.noExpiry ? "No Expiry" : c.expiryDate}
+                </div>
+              )}
+            </div>
+          ))}
         </SideSection>
-      ) : null;
+      );
+    }
     default:
       return null;
   }
@@ -654,7 +768,6 @@ export function ClassicPro({ cv, accent, format, sectionOrder, theme }) {
       padding: `0 ${format.pagePadding}px`,
       boxSizing: "border-box",
     }}>
-      {/* HEADER — top padding here makes page 1 breathe */}
       <div style={{ borderBottom: `3px solid ${accent}`, paddingTop: format.pagePadding, paddingBottom: 10, marginBottom: 10 }}>
         <div style={{
           fontSize: format.nameFontSize,
@@ -725,7 +838,6 @@ export function ModernEdge({ cv, accent, format, sectionOrder, theme }) {
       minHeight: "100%",
       boxSizing: "border-box",
     }}>
-      {/* HEADER — bleeds full-width */}
       <div style={{ background: accent, color: "#fff", padding: "16px 20px", marginBottom: 14 }}>
         <div style={{
           fontSize: format.nameFontSize,
@@ -766,7 +878,6 @@ export function ModernEdge({ cv, accent, format, sectionOrder, theme }) {
           )}
         </div>
       </div>
-      {/* BODY */}
       <div style={{ padding: `0 ${format.pagePadding}px` }}>
         {sectionOrder.map(key => renderMainSection(key, cv, accent, format, theme))}
       </div>
@@ -794,7 +905,6 @@ export function ExecutivePlus({ cv, accent, format, sectionOrder, theme }) {
       boxSizing: "border-box",
     }}>
 
-      {/* SIDEBAR */}
       <div style={{
         width: 190,
         background: theme.sidebar,
@@ -840,7 +950,6 @@ export function ExecutivePlus({ cv, accent, format, sectionOrder, theme }) {
         {sideSections.map(key => renderSideSection(key, cv, format))}
       </div>
 
-      {/* MAIN */}
       <div style={{ flex: 1, padding: `0 ${format.pagePadding}px` }}>
         <div style={{ paddingTop: format.pagePadding }}>
           {mainSections.map(key => renderMainSection(key, cv, accent, format, theme))}
@@ -866,7 +975,6 @@ export function MinimalClean({ cv, accent, format, sectionOrder, theme }) {
       padding: `0 ${format.pagePadding}px`,
       boxSizing: "border-box",
     }}>
-      {/* HEADER */}
       <div style={{ marginBottom: 24, paddingTop: format.pagePadding, paddingBottom: 16, borderBottom: `1px solid ${theme.text}18` }}>
         <div style={{
           fontSize: format.nameFontSize + 4,
@@ -929,7 +1037,6 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
       minHeight: "100%",
       boxSizing: "border-box",
     }}>
-      {/* LEFT SIDEBAR */}
       <div style={{ width: 200, background: accent, color: "#fff", padding: format.pagePadding, flexShrink: 0 }}>
         {cv.photo && (
           <div style={{ marginBottom: 16, textAlign: "center" }}>
@@ -973,11 +1080,30 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
               <p style={{ fontSize: format.bodyFontSize - 1, color: "rgba(255,255,255,0.85)", margin: 0 }}>{cv.languages}</p>
             </CreativeSideSection>
           );
-          if (key === "certifications" && cv.certifications) return (
-            <CreativeSideSection key={key} title="Certifications" accent={accent} format={format}>
-              <p style={{ fontSize: format.bodyFontSize - 1, color: "rgba(255,255,255,0.85)", margin: 0, whiteSpace: "pre-wrap" }}>{cv.certifications}</p>
-            </CreativeSideSection>
-          );
+          if (key === "certifications" && hasCertifications(cv)) {
+            const certs = normalizeCertifications(cv.certifications);
+            return (
+              <CreativeSideSection key={key} title="Certifications" accent={accent} format={format}>
+                {certs.map((c, i) => (
+                  <div key={i} style={{ marginBottom: 6 }}>
+                    <div style={{ fontSize: format.bodyFontSize - 1, fontWeight: "bold", color: "#fff", lineHeight: 1.3 }}>
+                      {c.name}
+                    </div>
+                    {c.issuer && (
+                      <div style={{ fontSize: format.bodyFontSize - 2, color: "rgba(255,255,255,0.7)" }}>{c.issuer}</div>
+                    )}
+                    {(c.issueDate || c.noExpiry || c.expiryDate) && (
+                      <div style={{ fontSize: format.bodyFontSize - 2, color: "rgba(255,255,255,0.6)" }}>
+                        {c.issueDate}
+                        {c.issueDate && (c.expiryDate || c.noExpiry) && " – "}
+                        {c.noExpiry ? "No Expiry" : c.expiryDate}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CreativeSideSection>
+            );
+          }
           if (key === "achievements" && cv.achievements?.[0]?.title) return (
             <CreativeSideSection key={key} title="Achievements" accent={accent} format={format}>
               {cv.achievements.map((a, i) => (
@@ -992,7 +1118,6 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
         })}
       </div>
 
-      {/* MAIN */}
       <div style={{ flex: 1, padding: `${format.pagePadding}px ${format.pagePadding}px 0` }}>
         {mainSections.map(key => renderMainSection(key, cv, accent, format, theme))}
       </div>
@@ -1015,7 +1140,6 @@ export function CorporateBold({ cv, accent, format, sectionOrder, theme }) {
       boxSizing: "border-box",
     }}>
 
-      {/* BOLD HEADER */}
       <div style={{ background: theme.sidebar, padding: "24px 32px", marginBottom: 0 }}>
         <div style={{
           fontSize: format.nameFontSize + 6,
@@ -1062,10 +1186,8 @@ export function CorporateBold({ cv, accent, format, sectionOrder, theme }) {
         </div>
       </div>
 
-      {/* ACCENT BAR */}
       <div style={{ height: 5, background: accent, marginBottom: 0 }} />
 
-      {/* BODY */}
       <div style={{ padding: `${format.pagePadding}px`, boxSizing: "border-box" }}>
         <TwoCol
           left={
@@ -1091,7 +1213,6 @@ export function CorporateBold({ cv, accent, format, sectionOrder, theme }) {
 
 // ══════════════════════════════════════════════
 // ── TEMPLATE 7: TRADITIONAL PROFILE ──
-// (perfect for bio-data heavy CVs)
 // ══════════════════════════════════════════════
 export function TraditionalProfile({ cv, accent, format, sectionOrder, theme }) {
   return (
@@ -1106,7 +1227,6 @@ export function TraditionalProfile({ cv, accent, format, sectionOrder, theme }) 
       boxSizing: "border-box",
     }}>
 
-      {/* HEADER WITH OPTIONAL PHOTO */}
       <div style={{
         display: "flex",
         gap: 18,
@@ -1171,7 +1291,6 @@ export function TraditionalProfile({ cv, accent, format, sectionOrder, theme }) 
         </div>
       </div>
 
-      {/* BIO DATA TABLE — prominent in this template */}
       {(cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin) && (
         <div className="cv-section cv-section-keep" style={{ marginBottom: 14 }}>
           <div className="cv-section-heading" style={{
@@ -1247,7 +1366,6 @@ export function TraditionalProfile({ cv, accent, format, sectionOrder, theme }) 
         </div>
       )}
 
-      {/* OTHER SECTIONS — biodata is rendered above so skip it here */}
       {sectionOrder
         .filter(s => s !== "biodata")
         .map(key => renderMainSection(key, cv, accent, format, theme))}

@@ -2,74 +2,93 @@ import { Label, Input, Textarea, AiBtn } from "./UIElements";
 import { STEPS } from "../utils/constants";
 import { callClaude } from "../utils/CallClaude";
 import { smartCase, liveTitleCase, liveCapitalizeSentences, liveCommaListTitleCase } from "../utils/textCasing";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// Migrate old text-format certifications to new structured format
+function migrateCertifications(cv, setCV) {
+  if (typeof cv.certifications === "string" && cv.certifications.trim()) {
+    const items = cv.certifications
+      .split(/[,;\n]/)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(name => ({
+        name,
+        issuer: "",
+        issueDate: "",
+        expiryDate: "",
+        noExpiry: false,
+        credentialId: "",
+        credentialUrl: "",
+      }));
+    setCV(p => ({ ...p, certifications: items }));
+  } else if (!Array.isArray(cv.certifications)) {
+    setCV(p => ({ ...p, certifications: [] }));
+  }
+}
 
 export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
   const [loading, setLoading] = useState({});
 
-  // ── UPDATE HANDLERS (live typing) ──
-// Helper to determine which live-format a field needs
-const getLiveFormat = (field) => {
-  const f = field.toLowerCase();
+  // ── ONE-TIME MIGRATION: convert old text certifications to array ──
+  useEffect(() => {
+    migrateCertifications(cv, setCV);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // No live formatting for these
-  if (f.includes('email') || f.includes('linkedin') || f.includes('website') ||
-      f.includes('github') || f.includes('twitter') || f.includes('url') ||
-      f.includes('phone') || f.includes('nin') || f.includes('password') ||
-      f.includes('date') || f.includes('start') || f.includes('end')) {
-    return null;
-  }
+  // Helper to determine which live-format a field needs
+  const getLiveFormat = (field) => {
+    const f = field.toLowerCase();
 
-  // Comma-separated lists → live title case for EACH item
-  if (f.includes('skills') || f.includes('languages') ||
-      f.includes('certifications') || f.includes('hobbies')) {
-    return 'commaList';
-  }
+    if (f.includes('email') || f.includes('linkedin') || f.includes('website') ||
+        f.includes('github') || f.includes('twitter') || f.includes('url') ||
+        f.includes('phone') || f.includes('nin') || f.includes('password') ||
+        f.includes('date') || f.includes('start') || f.includes('end') ||
+        f.includes('credentialid')) {
+      return null;
+    }
 
-  // Long-form fields → sentence-style live (first letter of sentences)
-  if (f.includes('summary') || f.includes('objective') ||
-      f.includes('description') || f.includes('responsibilit')) {
-    return 'sentence';
-  }
+    if (f.includes('skills') || f.includes('languages') || f.includes('hobbies')) {
+      return 'commaList';
+    }
 
-  // Everything else → live title case (each word as you type)
-  return 'title';
-};
+    if (f.includes('summary') || f.includes('objective') ||
+        f.includes('description') || f.includes('responsibilit')) {
+      return 'sentence';
+    }
 
+    return 'title';
+  };
 
-// Apply live formatting based on field type
-const applyLive = (field, value) => {
-  const liveType = getLiveFormat(field);
-  if (!liveType || !value) return value;
-  if (liveType === 'sentence') return liveCapitalizeSentences(value);
-  if (liveType === 'title') return liveTitleCase(value);
-  if (liveType === 'commaList') return liveCommaListTitleCase(value);
-  return value;
-};
+  const applyLive = (field, value) => {
+    const liveType = getLiveFormat(field);
+    if (!liveType || !value) return value;
+    if (liveType === 'sentence') return liveCapitalizeSentences(value);
+    if (liveType === 'title') return liveTitleCase(value);
+    if (liveType === 'commaList') return liveCommaListTitleCase(value);
+    return value;
+  };
 
-// ── UPDATE HANDLERS (live typing with smart capitalization) ──
-const upd = (field) => (e) => {
-  const val = applyLive(field, e.target.value);
-  setCV(p => ({ ...p, [field]: val }));
-};
+  // ── UPDATE HANDLERS ──
+  const upd = (field) => (e) => {
+    const val = applyLive(field, e.target.value);
+    setCV(p => ({ ...p, [field]: val }));
+  };
 
-const updExp = (i, field) => (e) => {
-  const val = field === "current"
-    ? e.target.checked
-    : applyLive(field, e.target.value);
-  const exp = [...cv.experience];
-  exp[i] = { ...exp[i], [field]: val };
-  setCV(p => ({ ...p, experience: exp }));
-};
+  const updExp = (i, field) => (e) => {
+    const val = field === "current" ? e.target.checked : applyLive(field, e.target.value);
+    const exp = [...cv.experience];
+    exp[i] = { ...exp[i], [field]: val };
+    setCV(p => ({ ...p, experience: exp }));
+  };
 
-const updEdu = (i, field) => (e) => {
-  const val = applyLive(field, e.target.value);
-  const edu = [...cv.education];
-  edu[i] = { ...edu[i], [field]: val };
-  setCV(p => ({ ...p, education: edu }));
-};
+  const updEdu = (i, field) => (e) => {
+    const val = applyLive(field, e.target.value);
+    const edu = [...cv.education];
+    edu[i] = { ...edu[i], [field]: val };
+    setCV(p => ({ ...p, education: edu }));
+  };
 
-  // ── BLUR HANDLERS (auto-casing on blur) ──
+  // ── BLUR HANDLERS ──
   const blur = (field) => (e) => {
     smartCase(e.target.value, field, (v) => setCV(p => ({ ...p, [field]: v })));
   };
@@ -132,6 +151,36 @@ const updEdu = (i, field) => (e) => {
     setLoading(l => ({ ...l, [key]: false }));
   };
 
+  const aiSuggestCertifications = async () => {
+    setLoading(l => ({ ...l, certs: true }));
+    try {
+      const text = await callClaude(
+        `Suggest 3 industry-recognized certifications for a ${cv.jobTitle || "professional"}. Return ONLY a JSON array like: [{"name": "PMP", "issuer": "Project Management Institute"}, {"name": "AWS Certified Solutions Architect", "issuer": "Amazon Web Services"}]. No preamble, no markdown, just the JSON array.`
+      );
+      const cleaned = text.replace(/```json|```/g, "").trim();
+      const suggestions = JSON.parse(cleaned);
+      const newCerts = suggestions.map(s => ({
+        name: s.name || "",
+        issuer: s.issuer || "",
+        issueDate: "",
+        expiryDate: "",
+        noExpiry: false,
+        credentialId: "",
+        credentialUrl: "",
+      }));
+      setCV(p => ({
+        ...p,
+        certifications: [
+          ...(Array.isArray(p.certifications) ? p.certifications : []),
+          ...newCerts,
+        ]
+      }));
+    } catch (err) {
+      alert("AI error: " + err.message);
+    }
+    setLoading(l => ({ ...l, certs: false }));
+  };
+
   const handlePhoto = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -189,21 +238,11 @@ const updEdu = (i, field) => (e) => {
         <div className="cv-form__grid">
           <div className="cv-form__field">
             <Label>Date of Birth</Label>
-            <Input
-              type="date"
-              value={cv.dateOfBirth || ""}
-              onChange={upd("dateOfBirth")}
-              placeholder="YYYY-MM-DD"
-            />
+            <Input type="date" value={cv.dateOfBirth || ""} onChange={upd("dateOfBirth")} placeholder="YYYY-MM-DD" />
           </div>
           <div className="cv-form__field">
             <Label>Place of Birth</Label>
-            <Input
-              value={cv.placeOfBirth || ""}
-              onChange={upd("placeOfBirth")}
-              onBlur={blur("placeOfBirth")}
-              placeholder="e.g. Lagos, Nigeria"
-            />
+            <Input value={cv.placeOfBirth || ""} onChange={upd("placeOfBirth")} onBlur={blur("placeOfBirth")} placeholder="e.g. Lagos, Nigeria" />
           </div>
         </div>
 
@@ -233,63 +272,33 @@ const updEdu = (i, field) => (e) => {
         <div className="cv-form__grid">
           <div className="cv-form__field">
             <Label>Nationality</Label>
-            <Input
-              value={cv.nationality || ""}
-              onChange={upd("nationality")}
-              onBlur={blur("nationality")}
-              placeholder="e.g. Nigerian"
-            />
+            <Input value={cv.nationality || ""} onChange={upd("nationality")} onBlur={blur("nationality")} placeholder="e.g. Nigerian" />
           </div>
           <div className="cv-form__field">
             <Label>State of Origin</Label>
-            <Input
-              value={cv.stateOfOrigin || ""}
-              onChange={upd("stateOfOrigin")}
-              onBlur={blur("stateOfOrigin")}
-              placeholder="e.g. Lagos State"
-            />
+            <Input value={cv.stateOfOrigin || ""} onChange={upd("stateOfOrigin")} onBlur={blur("stateOfOrigin")} placeholder="e.g. Lagos State" />
           </div>
         </div>
 
         <div className="cv-form__grid">
           <div className="cv-form__field">
             <Label>Local Government Area (LGA)</Label>
-            <Input
-              value={cv.lga || ""}
-              onChange={upd("lga")}
-              onBlur={blur("lga")}
-              placeholder="e.g. Ikeja"
-            />
+            <Input value={cv.lga || ""} onChange={upd("lga")} onBlur={blur("lga")} placeholder="e.g. Ikeja" />
           </div>
           <div className="cv-form__field">
             <Label>Religion</Label>
-            <Input
-              value={cv.religion || ""}
-              onChange={upd("religion")}
-              onBlur={blur("religion")}
-              placeholder="e.g. Christianity, Islam, Other"
-            />
+            <Input value={cv.religion || ""} onChange={upd("religion")} onBlur={blur("religion")} placeholder="e.g. Christianity, Islam, Other" />
           </div>
         </div>
 
         <div className="cv-form__field">
           <Label>National ID Number (NIN) — optional</Label>
-          <Input
-            value={cv.nin || ""}
-            onChange={upd("nin")}
-            placeholder="11-digit NIN"
-          />
+          <Input value={cv.nin || ""} onChange={upd("nin")} placeholder="11-digit NIN" />
         </div>
 
         <div className="cv-form__field">
           <Label>Hobbies & Interests</Label>
-          <Textarea
-            value={cv.hobbies || ""}
-            onChange={upd("hobbies")}
-            onBlur={blur("hobbies")}
-            placeholder="e.g. Reading, Football, Travel, Photography"
-            rows={2}
-          />
+          <Textarea value={cv.hobbies || ""} onChange={upd("hobbies")} onBlur={blur("hobbies")} placeholder="e.g. Reading, Football, Travel, Photography" rows={2} />
         </div>
       </div>
     );
@@ -300,25 +309,13 @@ const updEdu = (i, field) => (e) => {
         <h2 className="cv-form__heading">Summary & Objective</h2>
         <div className="cv-form__field">
           <Label>Professional Summary</Label>
-          <Textarea
-            value={cv.summary}
-            onChange={upd("summary")}
-            onBlur={blur("summary")}
-            placeholder="A brief professional summary..."
-            rows={4}
-          />
+          <Textarea value={cv.summary} onChange={upd("summary")} onBlur={blur("summary")} placeholder="A brief professional summary..." rows={4} />
           <AiBtn loading={loading.summary} onClick={() => aiSuggest("summary",
             `Write a compelling professional summary for a ${cv.jobTitle || "professional"} named ${cv.name || "a candidate"}. 3-4 sentences. No preamble.`)} />
         </div>
         <div className="cv-form__field">
           <Label>Career Objective</Label>
-          <Textarea
-            value={cv.objective}
-            onChange={upd("objective")}
-            onBlur={blur("objective")}
-            placeholder="Your career objective..."
-            rows={3}
-          />
+          <Textarea value={cv.objective} onChange={upd("objective")} onBlur={blur("objective")} placeholder="Your career objective..." rows={3} />
           <AiBtn loading={loading.objective} onClick={() => aiSuggest("objective",
             `Write a career objective for a ${cv.jobTitle || "professional"}. 2-3 sentences. No preamble.`)} />
         </div>
@@ -335,12 +332,7 @@ const updEdu = (i, field) => (e) => {
             {[["Company", "company"], ["Job Title / Role", "role"]].map(([lbl, key]) => (
               <div className="cv-form__field" key={key}>
                 <Label>{lbl}</Label>
-                <Input
-                  value={e[key]}
-                  onChange={updExp(i, key)}
-                  onBlur={blurExp(i, key)}
-                  placeholder={lbl}
-                />
+                <Input value={e[key]} onChange={updExp(i, key)} onBlur={blurExp(i, key)} placeholder={lbl} />
               </div>
             ))}
             <div className="cv-form__grid">
@@ -359,13 +351,7 @@ const updEdu = (i, field) => (e) => {
             </label>
             <div className="cv-form__field">
               <Label>Responsibilities</Label>
-              <Textarea
-                value={e.responsibilities}
-                onChange={updExp(i, "responsibilities")}
-                onBlur={blurExp(i, "responsibilities")}
-                placeholder="Describe your duties and achievements..."
-                rows={4}
-              />
+              <Textarea value={e.responsibilities} onChange={updExp(i, "responsibilities")} onBlur={blurExp(i, "responsibilities")} placeholder="Describe your duties and achievements..." rows={4} />
               <AiBtn loading={loading["resp_" + i]} onClick={() => aiResponsibilities(i)} />
             </div>
           </div>
@@ -384,12 +370,7 @@ const updEdu = (i, field) => (e) => {
             {[["School/University", "school"], ["Degree", "degree"], ["Field of Study", "field"]].map(([lbl, key]) => (
               <div className="cv-form__field" key={key}>
                 <Label>{lbl}</Label>
-                <Input
-                  value={e[key]}
-                  onChange={updEdu(i, key)}
-                  onBlur={blurEdu(i, key)}
-                  placeholder={lbl}
-                />
+                <Input value={e[key]} onChange={updEdu(i, key)} onBlur={blurEdu(i, key)} placeholder={lbl} />
               </div>
             ))}
             <div className="cv-form__grid">
@@ -412,35 +393,162 @@ const updEdu = (i, field) => (e) => {
     if (step === 5) return (
       <div className="cv-form__section">
         <h2 className="cv-form__heading">Skills & More</h2>
+
         <div className="cv-form__field">
           <Label>Skills (comma or newline separated)</Label>
-          <Textarea
-            value={cv.skills}
-            onChange={upd("skills")}
-            onBlur={blur("skills")}
-            placeholder="e.g. Project Management, Excel, Leadership..."
-            rows={3}
-          />
+          <Textarea value={cv.skills} onChange={upd("skills")} onBlur={blur("skills")} placeholder="e.g. Project Management, Excel, Leadership..." rows={3} />
           <AiBtn loading={loading.skills} onClick={() => aiSuggest("skills",
             `List 8-10 relevant professional skills for a ${cv.jobTitle || "professional"}. Comma-separated only. No preamble.`)} />
         </div>
+
         <div className="cv-form__field">
           <Label>Languages</Label>
-          <Input
-            value={cv.languages}
-            onChange={upd("languages")}
-            onBlur={blur("languages")}
-            placeholder="e.g. English (Fluent), French (Intermediate)"
-          />
+          <Input value={cv.languages} onChange={upd("languages")} onBlur={blur("languages")} placeholder="e.g. English (Fluent), French (Intermediate)" />
         </div>
+
+        {/* CERTIFICATIONS — STRUCTURED */}
         <div className="cv-form__field">
           <Label>Certifications</Label>
-          <Textarea
-            value={cv.certifications}
-            onChange={upd("certifications")}
-            onBlur={blur("certifications")}
-            placeholder="e.g. PMP, AWS Certified..."
-            rows={3}
+          <p style={{ fontSize: "0.78rem", color: "#888", margin: "0 0 12px" }}>
+            Add your professional certifications, licenses, and credentials.
+          </p>
+
+          {(Array.isArray(cv.certifications) ? cv.certifications : []).map((c, i) => (
+            <div key={i} className="cv-form__card">
+              <div className="cv-form__card-header">
+                <div className="cv-form__card-label">Certification {i + 1}</div>
+                <button
+                  className="cv-form__card-delete"
+                  onClick={() => {
+                    const arr = [...cv.certifications];
+                    arr.splice(i, 1);
+                    setCV(p => ({ ...p, certifications: arr }));
+                  }}
+                  title="Remove this certification"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div className="cv-form__field">
+                <Label>Certification Name</Label>
+                <Input
+                  value={c.name || ""}
+                  onChange={(e) => {
+                    const arr = [...cv.certifications];
+                    arr[i] = { ...arr[i], name: applyLive("certName", e.target.value) };
+                    setCV(p => ({ ...p, certifications: arr }));
+                  }}
+                  onBlur={blurArr("certifications", i, "name")}
+                  placeholder="e.g. AWS Certified Solutions Architect"
+                />
+              </div>
+
+              <div className="cv-form__field">
+                <Label>Issuing Organization</Label>
+                <Input
+                  value={c.issuer || ""}
+                  onChange={(e) => {
+                    const arr = [...cv.certifications];
+                    arr[i] = { ...arr[i], issuer: applyLive("issuer", e.target.value) };
+                    setCV(p => ({ ...p, certifications: arr }));
+                  }}
+                  onBlur={blurArr("certifications", i, "issuer")}
+                  placeholder="e.g. Amazon Web Services"
+                />
+              </div>
+
+              <div className="cv-form__grid">
+                <div>
+                  <Label>Issue Date</Label>
+                  <Input
+                    value={c.issueDate || ""}
+                    onChange={(e) => {
+                      const arr = [...cv.certifications];
+                      arr[i] = { ...arr[i], issueDate: e.target.value };
+                      setCV(p => ({ ...p, certifications: arr }));
+                    }}
+                    placeholder="e.g. March 2024"
+                  />
+                </div>
+                <div>
+                  <Label>Expiration Date</Label>
+                  <Input
+                    value={c.noExpiry ? "" : (c.expiryDate || "")}
+                    onChange={(e) => {
+                      const arr = [...cv.certifications];
+                      arr[i] = { ...arr[i], expiryDate: e.target.value };
+                      setCV(p => ({ ...p, certifications: arr }));
+                    }}
+                    placeholder={c.noExpiry ? "No expiration" : "e.g. March 2027"}
+                    disabled={c.noExpiry}
+                  />
+                </div>
+              </div>
+
+              <label className="cv-form__checkbox">
+                <input
+                  type="checkbox"
+                  checked={c.noExpiry || false}
+                  onChange={(e) => {
+                    const arr = [...cv.certifications];
+                    arr[i] = {
+                      ...arr[i],
+                      noExpiry: e.target.checked,
+                      expiryDate: e.target.checked ? "" : arr[i].expiryDate,
+                    };
+                    setCV(p => ({ ...p, certifications: arr }));
+                  }}
+                />
+                This certification does not expire
+              </label>
+
+              <div className="cv-form__grid">
+                <div>
+                  <Label>Credential ID (optional)</Label>
+                  <Input
+                    value={c.credentialId || ""}
+                    onChange={(e) => {
+                      const arr = [...cv.certifications];
+                      arr[i] = { ...arr[i], credentialId: e.target.value };
+                      setCV(p => ({ ...p, certifications: arr }));
+                    }}
+                    placeholder="e.g. AWS-ASA-12345"
+                  />
+                </div>
+                <div>
+                  <Label>Credential URL (optional)</Label>
+                  <Input
+                    type="url"
+                    value={c.credentialUrl || ""}
+                    onChange={(e) => {
+                      const arr = [...cv.certifications];
+                      arr[i] = { ...arr[i], credentialUrl: e.target.value.toLowerCase() };
+                      setCV(p => ({ ...p, certifications: arr }));
+                    }}
+                    placeholder="https://verify.example.com/..."
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <button
+            className="cv-form__add-btn"
+            onClick={() => setCV(p => ({
+              ...p,
+              certifications: [
+                ...(Array.isArray(p.certifications) ? p.certifications : []),
+                { name: "", issuer: "", issueDate: "", expiryDate: "", noExpiry: false, credentialId: "", credentialUrl: "" }
+              ]
+            }))}
+          >
+            <i className="fas fa-plus"></i> Add Certification
+          </button>
+
+          <AiBtn
+            loading={loading.certs}
+            onClick={aiSuggestCertifications}
           />
         </div>
       </div>
@@ -466,7 +574,7 @@ const updEdu = (i, field) => (e) => {
                   value={a.title}
                   onChange={(e) => {
                     const arr = [...(cv.achievements || [])];
-                    arr[i] = { ...arr[i], title: e.target.value };
+                    arr[i] = { ...arr[i], title: applyLive("title", e.target.value) };
                     setCV(p => ({ ...p, achievements: arr }));
                   }}
                   onBlur={blurArr("achievements", i, "title")}
@@ -491,7 +599,7 @@ const updEdu = (i, field) => (e) => {
                   value={a.description}
                   onChange={(e) => {
                     const arr = [...(cv.achievements || [])];
-                    arr[i] = { ...arr[i], description: e.target.value };
+                    arr[i] = { ...arr[i], description: applyLive("description", e.target.value) };
                     setCV(p => ({ ...p, achievements: arr }));
                   }}
                   onBlur={blurArr("achievements", i, "description")}
@@ -527,7 +635,7 @@ const updEdu = (i, field) => (e) => {
                   value={v.organization}
                   onChange={(e) => {
                     const arr = [...(cv.volunteer || [])];
-                    arr[i] = { ...arr[i], organization: e.target.value };
+                    arr[i] = { ...arr[i], organization: applyLive("organization", e.target.value) };
                     setCV(p => ({ ...p, volunteer: arr }));
                   }}
                   onBlur={blurArr("volunteer", i, "organization")}
@@ -540,7 +648,7 @@ const updEdu = (i, field) => (e) => {
                   value={v.role}
                   onChange={(e) => {
                     const arr = [...(cv.volunteer || [])];
-                    arr[i] = { ...arr[i], role: e.target.value };
+                    arr[i] = { ...arr[i], role: applyLive("role", e.target.value) };
                     setCV(p => ({ ...p, volunteer: arr }));
                   }}
                   onBlur={blurArr("volunteer", i, "role")}
@@ -579,7 +687,7 @@ const updEdu = (i, field) => (e) => {
                   value={v.description}
                   onChange={(e) => {
                     const arr = [...(cv.volunteer || [])];
-                    arr[i] = { ...arr[i], description: e.target.value };
+                    arr[i] = { ...arr[i], description: applyLive("description", e.target.value) };
                     setCV(p => ({ ...p, volunteer: arr }));
                   }}
                   onBlur={blurArr("volunteer", i, "description")}
@@ -615,7 +723,7 @@ const updEdu = (i, field) => (e) => {
                   value={pub.title}
                   onChange={(e) => {
                     const arr = [...(cv.publications || [])];
-                    arr[i] = { ...arr[i], title: e.target.value };
+                    arr[i] = { ...arr[i], title: applyLive("title", e.target.value) };
                     setCV(p => ({ ...p, publications: arr }));
                   }}
                   onBlur={blurArr("publications", i, "title")}
@@ -629,7 +737,7 @@ const updEdu = (i, field) => (e) => {
                     value={pub.journal}
                     onChange={(e) => {
                       const arr = [...(cv.publications || [])];
-                      arr[i] = { ...arr[i], journal: e.target.value };
+                      arr[i] = { ...arr[i], journal: applyLive("journal", e.target.value) };
                       setCV(p => ({ ...p, publications: arr }));
                     }}
                     onBlur={blurArr("publications", i, "journal")}
@@ -673,7 +781,7 @@ const updEdu = (i, field) => (e) => {
                   value={pub.description}
                   onChange={(e) => {
                     const arr = [...(cv.publications || [])];
-                    arr[i] = { ...arr[i], description: e.target.value };
+                    arr[i] = { ...arr[i], description: applyLive("description", e.target.value) };
                     setCV(p => ({ ...p, publications: arr }));
                   }}
                   onBlur={blurArr("publications", i, "description")}
@@ -710,7 +818,7 @@ const updEdu = (i, field) => (e) => {
                     value={r.name}
                     onChange={(e) => {
                       const arr = [...(cv.references || [])];
-                      arr[i] = { ...arr[i], name: e.target.value };
+                      arr[i] = { ...arr[i], name: applyLive("name", e.target.value) };
                       setCV(p => ({ ...p, references: arr }));
                     }}
                     onBlur={blurArr("references", i, "name")}
@@ -723,7 +831,7 @@ const updEdu = (i, field) => (e) => {
                     value={r.title}
                     onChange={(e) => {
                       const arr = [...(cv.references || [])];
-                      arr[i] = { ...arr[i], title: e.target.value };
+                      arr[i] = { ...arr[i], title: applyLive("title", e.target.value) };
                       setCV(p => ({ ...p, references: arr }));
                     }}
                     onBlur={blurArr("references", i, "title")}
@@ -736,7 +844,7 @@ const updEdu = (i, field) => (e) => {
                     value={r.company}
                     onChange={(e) => {
                       const arr = [...(cv.references || [])];
-                      arr[i] = { ...arr[i], company: e.target.value };
+                      arr[i] = { ...arr[i], company: applyLive("company", e.target.value) };
                       setCV(p => ({ ...p, references: arr }));
                     }}
                     onBlur={blurArr("references", i, "company")}
@@ -749,7 +857,7 @@ const updEdu = (i, field) => (e) => {
                     value={r.email}
                     onChange={(e) => {
                       const arr = [...(cv.references || [])];
-                      arr[i] = { ...arr[i], email: e.target.value };
+                      arr[i] = { ...arr[i], email: e.target.value.toLowerCase() };
                       setCV(p => ({ ...p, references: arr }));
                     }}
                     onBlur={blurArr("references", i, "email")}
@@ -789,7 +897,6 @@ const updEdu = (i, field) => (e) => {
 
   return (
     <div className={`cv-form-panel ${tab === "preview" ? "cv-form-panel--hidden" : ""}`}>
-      {/* Step Nav */}
       <div className="cv-steps">
         {STEPS.map((s, i) => (
           <button
