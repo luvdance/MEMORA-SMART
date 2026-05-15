@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase";
 import DashboardLayout from "../../components/DashboardLayout";
+import { getUserDoc } from "../../utils/userService";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export default function Profile() {
   const [photo, setPhoto] = useState(user?.photoURL || null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [planData, setPlanData] = useState(null);
 
   const handlePhoto = (e) => {
     const file = e.target.files[0];
@@ -44,6 +46,12 @@ export default function Profile() {
   };
 
   const initial = name?.charAt(0).toUpperCase() || "U";
+
+  useEffect(() => {
+    if (user?.uid) {
+      getUserDoc(user.uid).then(setPlanData);
+    }
+  }, [user]);
 
   return (
     <DashboardLayout title="Profile" subtitle="Manage your personal information">
@@ -125,6 +133,63 @@ export default function Profile() {
             </div>
           )}
         </div>
+
+        <div className="dash-profile__card">
+  <h3><i className="fas fa-crown"></i> Your Plan</h3>
+  {planData ? (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <div style={{
+          padding: "6px 16px",
+          borderRadius: 25,
+          background: planData.isPro
+            ? "linear-gradient(90deg, #6699FF, #9D00FF)"
+            : planData.paidDownloads > 0
+            ? "#f0fdf4"
+            : "#f8f9ff",
+          color: planData.isPro ? "#fff" : planData.paidDownloads > 0 ? "#16a34a" : "#888",
+          fontWeight: 700,
+          fontSize: "0.82rem",
+        }}>
+          {planData.isPro ? "⚡ Memora Pro" : planData.paidDownloads > 0 ? "📄 Pay-per-CV" : planData.freeCVUsed ? "🔒 Free (used)" : "🎯 Free"}
+        </div>
+        {planData.isPro && planData.proExpiresAt && (
+          <span style={{ fontSize: "0.78rem", color: "#888" }}>
+            Renews {new Date(planData.proExpiresAt?.toDate ? planData.proExpiresAt.toDate() : planData.proExpiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+          </span>
+        )}
+        {planData.paidDownloads > 0 && (
+          <span style={{ fontSize: "0.78rem", color: "#888" }}>
+            {planData.paidDownloads} download{planData.paidDownloads !== 1 ? "s" : ""} remaining
+          </span>
+        )}
+      </div>
+      {!planData.isPro && (
+        
+        <a href="/pricing"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "9px 20px",
+            borderRadius: 25,
+            background: "linear-gradient(90deg, #6699FF, #9D00FF)",
+            color: "#fff",
+            textDecoration: "none",
+            fontWeight: 700,
+            fontSize: "0.82rem",
+          }}
+        >
+          <i className="fas fa-bolt"></i> Upgrade to Pro
+        </a>
+      )}
+    </div>
+  ) : (
+    <div style={{ color: "#888", fontSize: "0.875rem" }}>
+      <i className="fas fa-spinner fa-spin"></i> Loading plan...
+    </div>
+  )}
+</div>
 
         {/* PASSWORD */}
         <div className="dash-profile__card">

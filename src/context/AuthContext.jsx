@@ -12,6 +12,7 @@ import {
   GoogleAuthProvider,
   fetchSignInMethodsForEmail,
 } from "firebase/auth";
+import { initUserDoc } from "../utils/userService";
 
 const AuthContext = createContext();
 
@@ -26,11 +27,17 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
-        // Reload to get fresh emailVerified status (Firebase doesn't auto-refresh this)
         try {
+          // Reload to get fresh emailVerified status
           await u.reload();
-          setUser(auth.currentUser);
+          const currentUser = auth.currentUser;
+
+          // Initialize user doc in Firestore (creates it if first login)
+          await initUserDoc(currentUser);
+
+          setUser(currentUser);
         } catch (err) {
+          console.error("Auth state error:", err);
           setUser(u);
         }
       } else {
