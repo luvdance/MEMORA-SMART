@@ -5,24 +5,20 @@ import "./PaywallModal.css";
 
 export default function PaywallModal({ onClose, onPaymentSuccess }) {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(null); // "cv" | "pro" | null
+  const [loading, setLoading] = useState(null);
   const [error, setError] = useState("");
 
   const handleBuyCV = () => {
     if (!user?.email) return;
     setError("");
     setLoading("cv");
-
     buyCV({
       email: user.email,
       onSuccess: (result) => {
         setLoading(null);
         onPaymentSuccess("single_cv", result);
       },
-      onClose: () => {
-        // User closed the popup without paying — reset spinner
-        setLoading(null);
-      },
+      onClose: () => setLoading(null),
     });
   };
 
@@ -30,123 +26,126 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
     if (!user?.email) return;
     setError("");
     setLoading("pro");
-
     subscribePro({
       email: user.email,
       onSuccess: (result) => {
         setLoading(null);
         onPaymentSuccess("pro_subscription", result);
       },
-      onClose: () => {
-        // User closed the popup without paying — reset spinner
-        setLoading(null);
-      },
+      onClose: () => setLoading(null),
     });
   };
 
   return (
-    <div className="paywall__backdrop" onClick={onClose}>
-      <div className="paywall__modal" onClick={(e) => e.stopPropagation()}>
+    <div className="pw__backdrop" onClick={onClose}>
+      <div className="pw__modal" onClick={(e) => e.stopPropagation()}>
+
+        {/* CLOSE */}
+        <button className="pw__close" onClick={onClose}>
+          <i className="fas fa-times"></i>
+        </button>
 
         {/* HEADER */}
-        <div className="paywall__header">
-          <span className="paywall__icon">🎯</span>
-          <h2>You've used your free CV</h2>
-          <p>Choose a plan to continue downloading</p>
-          <button className="paywall__close" onClick={onClose}>
-            <i className="fas fa-times"></i>
-          </button>
+        <div className="pw__header">
+          <div className="pw__header-icon">
+            <i className="fas fa-download"></i>
+          </div>
+          <h2>Download Your CV</h2>
+          <p>Your free download has been used. Choose a plan to continue.</p>
         </div>
 
         {/* PLANS */}
-        <div className="paywall__plans">
+        <div className="pw__plans">
 
           {/* SINGLE CV */}
-          <div className="paywall__plan">
-            <div className="paywall__plan-header">
-              <div className="paywall__plan-icon">📄</div>
-              <div>
-                <h3>Single CV</h3>
-                <p>One-time download</p>
+          <div className="pw__plan">
+            <div className="pw__plan-top">
+              <div className="pw__plan-info">
+                <h3>Single Download</h3>
+                <p>One PDF — use it, keep it</p>
               </div>
-              <div className="paywall__plan-price">
-                <span className="paywall__price">₦3,500</span>
-                <span className="paywall__price-note">once</span>
+              <div className="pw__plan-price">
+                <span className="pw__amount">₦3,500</span>
+                <span className="pw__period">one-time</span>
               </div>
             </div>
-            <ul className="paywall__features">
-              <li><i className="fas fa-check"></i> 1 PDF download</li>
-              <li><i className="fas fa-check"></i> All 7 templates</li>
-              <li><i className="fas fa-check"></i> ATS-optimized</li>
+
+            <ul className="pw__features">
+              <li><i className="fas fa-check"></i> 1 high-quality PDF download</li>
+              <li><i className="fas fa-check"></i> All 7 professional templates</li>
+              <li><i className="fas fa-check"></i> ATS-optimized formatting</li>
               <li><i className="fas fa-check"></i> AI-enhanced content</li>
             </ul>
+
             <button
-              className="paywall__btn paywall__btn--secondary"
+              className="pw__btn"
               onClick={handleBuyCV}
               disabled={loading !== null}
             >
               {loading === "cv" ? (
                 <><i className="fas fa-spinner fa-spin"></i> Opening payment...</>
               ) : (
-                <><i className="fas fa-download"></i> Buy this CV — ₦3,500</>
+                <>Pay ₦3,500 — Download Now</>
               )}
             </button>
           </div>
 
-          {/* OR DIVIDER */}
-          <div className="paywall__divider">
-            <span>or save more with Pro</span>
+          {/* DIVIDER */}
+          <div className="pw__or">
+            <span>or</span>
           </div>
 
           {/* PRO */}
-          <div className="paywall__plan paywall__plan--featured">
-            <div className="paywall__plan-badge">BEST VALUE</div>
-            <div className="paywall__plan-header">
-              <div className="paywall__plan-icon">⚡</div>
-              <div>
+          <div className="pw__plan pw__plan--pro">
+            <div className="pw__pro-badge">Most Popular</div>
+
+            <div className="pw__plan-top">
+              <div className="pw__plan-info">
                 <h3>Memora Pro</h3>
-                <p>Unlimited everything</p>
+                <p>Unlimited downloads, every month</p>
               </div>
-              <div className="paywall__plan-price">
-                <span className="paywall__price">₦7,500</span>
-                <span className="paywall__price-note">/month</span>
+              <div className="pw__plan-price">
+                <span className="pw__amount">₦7,500</span>
+                <span className="pw__period">/ month</span>
               </div>
             </div>
-            <ul className="paywall__features">
-              <li><i className="fas fa-check"></i> Unlimited downloads</li>
-              <li><i className="fas fa-check"></i> All 7 templates</li>
-              <li><i className="fas fa-check"></i> Unlimited switches</li>
-              <li><i className="fas fa-check"></i> Priority AI</li>
-              <li><i className="fas fa-check"></i> Future templates</li>
+
+            <ul className="pw__features">
+              <li><i className="fas fa-check"></i> Unlimited PDF downloads</li>
+              <li><i className="fas fa-check"></i> All 7 templates, unlimited switches</li>
+              <li><i className="fas fa-check"></i> Priority AI suggestions</li>
+              <li><i className="fas fa-check"></i> All future templates included</li>
               <li><i className="fas fa-check"></i> Cancel anytime</li>
             </ul>
+
             <button
-              className="paywall__btn paywall__btn--primary"
+              className="pw__btn"
               onClick={handleSubscribePro}
               disabled={loading !== null}
             >
               {loading === "pro" ? (
                 <><i className="fas fa-spinner fa-spin"></i> Opening payment...</>
               ) : (
-                <><i className="fas fa-bolt"></i> Go Pro — ₦7,500/mo</>
+                <>Subscribe — ₦7,500 / month</>
               )}
             </button>
-            <p className="paywall__cancel-note">Cancel anytime. No hidden fees.</p>
+
+            <p className="pw__cancel-note">No contracts. Cancel from your profile anytime.</p>
           </div>
 
         </div>
 
         {/* ERROR */}
         {error && (
-          <div className="paywall__error">
+          <div className="pw__error">
             <i className="fas fa-exclamation-circle"></i> {error}
           </div>
         )}
 
-        {/* SECURITY */}
-        <div className="paywall__security">
+        {/* FOOTER */}
+        <div className="pw__footer">
           <i className="fas fa-lock"></i>
-          <span>Secured by Paystack · Your card details are never stored</span>
+          <span>Payments secured by Paystack. Your card details are never stored on our servers.</span>
         </div>
 
       </div>
