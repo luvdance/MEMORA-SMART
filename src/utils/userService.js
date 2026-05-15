@@ -61,14 +61,22 @@ export async function getUserDoc(uid) {
  * Returns { canDownload, reason, requiresPayment, isFree, userStatus }
  */
 export async function checkDownloadAccess(uid) {
-  const userData = await getUserDoc(uid);
+  let userData = await getUserDoc(uid);
 
+  // If user doc doesn't exist yet, create it and allow free download
   if (!userData) {
-    return {
-      canDownload: false,
-      reason: "user_not_found",
-      requiresPayment: false,
-    };
+    await initUserDoc({ uid, email: null, displayName: null, photoURL: null });
+    userData = await getUserDoc(uid);
+    // Still no doc after init — fail open (let them download)
+    if (!userData) {
+      return {
+        canDownload: true,
+        reason: "free_cv",
+        isFree: true,
+        userStatus: "free",
+        requiresPayment: false,
+      };
+    }
   }
 
   // Pro subscription active?
