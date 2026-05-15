@@ -15,11 +15,14 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
 
     buyCV({
       email: user.email,
-      onSuccess: async (result) => {
+      onSuccess: (result) => {
         setLoading(null);
         onPaymentSuccess("single_cv", result);
       },
-      onClose: () => setLoading(null),
+      onClose: () => {
+        // User closed the popup without paying — reset spinner
+        setLoading(null);
+      },
     });
   };
 
@@ -30,11 +33,14 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
 
     subscribePro({
       email: user.email,
-      onSuccess: async (result) => {
+      onSuccess: (result) => {
         setLoading(null);
         onPaymentSuccess("pro_subscription", result);
       },
-      onClose: () => setLoading(null),
+      onClose: () => {
+        // User closed the popup without paying — reset spinner
+        setLoading(null);
+      },
     });
   };
 
@@ -44,7 +50,7 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
 
         {/* HEADER */}
         <div className="paywall__header">
-          <div className="paywall__icon">🎯</div>
+          <span className="paywall__icon">🎯</span>
           <h2>You've used your free CV</h2>
           <p>Choose a plan to continue downloading</p>
           <button className="paywall__close" onClick={onClose}>
@@ -87,9 +93,9 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
             </button>
           </div>
 
-          {/* DIVIDER */}
+          {/* OR DIVIDER */}
           <div className="paywall__divider">
-            <span>or</span>
+            <span>or save more with Pro</span>
           </div>
 
           {/* PRO */}
@@ -109,9 +115,9 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
             <ul className="paywall__features">
               <li><i className="fas fa-check"></i> Unlimited downloads</li>
               <li><i className="fas fa-check"></i> All 7 templates</li>
-              <li><i className="fas fa-check"></i> Unlimited template switches</li>
-              <li><i className="fas fa-check"></i> Priority AI suggestions</li>
-              <li><i className="fas fa-check"></i> All future templates</li>
+              <li><i className="fas fa-check"></i> Unlimited switches</li>
+              <li><i className="fas fa-check"></i> Priority AI</li>
+              <li><i className="fas fa-check"></i> Future templates</li>
               <li><i className="fas fa-check"></i> Cancel anytime</li>
             </ul>
             <button
@@ -137,10 +143,10 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
           </div>
         )}
 
-        {/* SECURITY NOTE */}
+        {/* SECURITY */}
         <div className="paywall__security">
           <i className="fas fa-lock"></i>
-          <span>Secured by Paystack. Your card details are never stored.</span>
+          <span>Secured by Paystack · Your card details are never stored</span>
         </div>
 
       </div>
