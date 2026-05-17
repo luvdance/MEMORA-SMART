@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { STEPS } from "../utils/constants";
 import { callClaude } from "../utils/callClaude";
-import { smartCase} from "../utils/textCasing";
+import { smartCase, liveTitleCase, liveCapitalizeSentences, liveCommaListTitleCase } from "../utils/textCasing";
 
 // ── UI ELEMENTS ──
 function Label({ children }) {
@@ -51,7 +51,6 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
 
   // ── FIELD UPDATERS ──
   const upd = (field) => (e) => setCV(p => ({ ...p, [field]: e.target.value }));
-  const updBlur = (field, fn) => (e) => setCV(p => ({ ...p, [field]: fn(e.target.value) }));
 
   const updExp = (i, field) => (e) => {
     const exp = [...cv.experience];
@@ -199,10 +198,6 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
             <Input
               value={cv[key] || ""}
               onChange={upd(key)}
-              onBlur={updBlur(key, (v) => {
-                if (key === "name") return titleCase(v);
-                return v;
-              })}
               placeholder={lbl}
             />
           </div>
@@ -243,8 +238,8 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           <AiBtn
             loading={loading.objective}
             onClick={() => aiSuggest(
-              "summary",
-              `Write a 2-sentence professional summary for a ${cv.jobTitle || "professional"}${cv.name ? " named " + cv.name : ""}. Be specific, confident, and concise. No heading, no label, no markdown. Start directly with the person's name or role.`
+              "objective",
+              `Write exactly 1 sentence career objective for a ${cv.jobTitle || "professional"}. State the role they want and the value they bring. Plain text only, no heading, start immediately with the content.`
             )}
           />
         </div>
