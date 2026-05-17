@@ -9,11 +9,17 @@ export async function callClaude(prompt) {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 300,
-      system: "You are a professional CV writer. Return plain text only. Never use markdown, headings, bullet symbols, hashtags, asterisks, bold, italics, or any formatting characters. Never start with a label or title. Return only the requested content as it will appear directly in a CV.",
+      max_tokens: 150,
+      system: "You are a CV writer. Output plain text only. No markdown. No headings. No hashtags. No asterisks. No labels. Just the content.",
       messages: [{ role: "user", content: prompt }],
     }),
   });
+
   const data = await res.json();
-  return data.content?.[0]?.text || "";
+  let text = data.content?.[0]?.text || "";
+
+  // Remove ANY line that starts with # (markdown heading)
+  text = text.replace(/^#.*$/gm, "").trim();
+
+  return text;
 }
