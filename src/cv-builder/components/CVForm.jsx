@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { STEPS } from "../utils/constants";
 import { callClaude } from "../utils/callClaude";
-import { smartCase } from "../utils/textCasing";
+import { smartCase, titleCase, sentenceCase } from "../utils/textCasing";
 
 // ── UI ELEMENTS ──
 function Label({ children }) {
