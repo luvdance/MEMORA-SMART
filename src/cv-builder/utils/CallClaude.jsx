@@ -9,8 +9,8 @@ export async function callClaude(prompt) {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system: "You are a professional CV writer. Always return plain text only. Never use markdown, headings, bold, italics, bullet symbols, hashtags, asterisks, or any formatting characters. Never add labels or section titles. Return only the requested content exactly as it will appear in a CV document.",
+      max_tokens: 300,
+      system: "You are a professional CV writer. Return plain text only. Never use markdown, headings, bullet symbols, hashtags, asterisks, bold, italics, or any formatting characters. Never start with a label or title. Return only the requested content as it will appear directly in a CV.",
       messages: [{ role: "user", content: prompt }],
     }),
   });

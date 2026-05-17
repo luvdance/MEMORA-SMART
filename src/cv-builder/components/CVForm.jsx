@@ -227,7 +227,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
             loading={loading.summary}
             onClick={() => aiSuggest(
               "summary",
-              `Write a compelling professional summary for a ${cv.jobTitle || "professional"} named ${cv.name || "a candidate"}. 3-4 sentences. Return ONLY the plain paragraph text. No headings, no labels, no markdown, no preamble, no formatting symbols. Just the paragraph.`
+              `Write a 2-sentence professional summary for a ${cv.jobTitle || "professional"}${cv.name ? " named " + cv.name : ""}. Be specific, confident, and concise. No heading, no label, no markdown. Start directly with the person's name or role.`
             )}
           />
         </div>
@@ -243,8 +243,8 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           <AiBtn
             loading={loading.objective}
             onClick={() => aiSuggest(
-              "objective",
-              `Write a career objective for a ${cv.jobTitle || "professional"}${cv.name ? " named " + cv.name : ""}. 2-3 sentences. Return ONLY the plain text. No headings, no labels, no markdown, no preamble, no formatting symbols. Just the sentences.`
+              "summary",
+              `Write a 2-sentence professional summary for a ${cv.jobTitle || "professional"}${cv.name ? " named " + cv.name : ""}. Be specific, confident, and concise. No heading, no label, no markdown. Start directly with the person's name or role.`
             )}
           />
         </div>
