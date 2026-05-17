@@ -93,6 +93,11 @@ export const emptyCV = {
 };
 
 export const STEPS = [
-  "Personal", "Bio Data", "Summary", "Experience",
-  "Education", "Skills & More", "Extras"
+  "Personal",
+  "Summary",
+  "Experience",
+  "Education",
+  "Skills & More",
+  "Extras",
+  "Biodata",
 ];

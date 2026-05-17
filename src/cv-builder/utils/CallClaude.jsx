@@ -8,8 +8,9 @@ export async function callClaude(prompt) {
       "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 1000,
+      system: "You are a professional CV writer. Always return plain text only. Never use markdown, headings, bold, italics, bullet symbols, hashtags, asterisks, or any formatting characters. Never add labels or section titles. Return only the requested content exactly as it will appear in a CV document.",
       messages: [{ role: "user", content: prompt }],
     }),
   });
