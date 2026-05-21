@@ -49,21 +49,85 @@ function AiBtn({ onClick, loading, label = "AI Suggest" }) {
 export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
   const [loading, setLoading] = useState({});
 
-  // ── FIELD UPDATERS ──
-  const upd = (field) => (e) => setCV(p => ({ ...p, [field]: e.target.value }));
+  // ── LIVE FORMAT HELPER ──
+  const getLiveFormat = (field) => {
+    const f = field.toLowerCase();
+    if (f.includes('email') || f.includes('linkedin') || f.includes('website') ||
+        f.includes('github') || f.includes('twitter') || f.includes('url') ||
+        f.includes('phone') || f.includes('nin') || f.includes('password') ||
+        f.includes('date') || f.includes('start') || f.includes('end') ||
+        f.includes('credentialid')) {
+      return null;
+    }
+    if (f.includes('skills') || f.includes('languages') || f.includes('hobbies')) {
+      return 'commaList';
+    }
+    if (f.includes('summary') || f.includes('objective') ||
+        f.includes('description') || f.includes('responsibilit')) {
+      return 'sentence';
+    }
+    return 'title';
+  };
+
+  const applyLive = (field, value) => {
+    const liveType = getLiveFormat(field);
+    if (!liveType || !value) return value;
+    if (liveType === 'sentence') return liveCapitalizeSentences(value);
+    if (liveType === 'title') return liveTitleCase(value);
+    if (liveType === 'commaList') return liveCommaListTitleCase(value);
+    return value;
+  };
+
+  // ── UPDATE HANDLERS (with live casing) ──
+  const upd = (field) => (e) => {
+    const val = applyLive(field, e.target.value);
+    setCV(p => ({ ...p, [field]: val }));
+  };
 
   const updExp = (i, field) => (e) => {
+    const val = field === "current" ? e.target.checked : applyLive(field, e.target.value);
     const exp = [...cv.experience];
-    exp[i] = { ...exp[i], [field]: field === "current" ? e.target.checked : e.target.value };
+    exp[i] = { ...exp[i], [field]: val };
     setCV(p => ({ ...p, experience: exp }));
   };
+
   const updEdu = (i, field) => (e) => {
+    const val = applyLive(field, e.target.value);
     const edu = [...cv.education];
-    edu[i] = { ...edu[i], [field]: e.target.value };
+    edu[i] = { ...edu[i], [field]: val };
     setCV(p => ({ ...p, education: edu }));
   };
 
-  // ── CERTIFICATION MIGRATION (old string → array) ──
+  // ── BLUR HANDLERS (smart casing on focus loss) ──
+  const blur = (field) => (e) => {
+    smartCase(e.target.value, field, (v) => setCV(p => ({ ...p, [field]: v })));
+  };
+
+  const blurExp = (i, field) => (e) => {
+    smartCase(e.target.value, field, (v) => {
+      const exp = [...cv.experience];
+      exp[i] = { ...exp[i], [field]: v };
+      setCV(p => ({ ...p, experience: exp }));
+    });
+  };
+
+  const blurEdu = (i, field) => (e) => {
+    smartCase(e.target.value, field, (v) => {
+      const edu = [...cv.education];
+      edu[i] = { ...edu[i], [field]: v };
+      setCV(p => ({ ...p, education: edu }));
+    });
+  };
+
+  const blurArr = (arrName, i, field) => (e) => {
+    smartCase(e.target.value, field, (v) => {
+      const arr = [...(cv[arrName] || [])];
+      arr[i] = { ...arr[i], [field]: v };
+      setCV(p => ({ ...p, [arrName]: arr }));
+    });
+  };
+
+  // ── CERTIFICATION MIGRATION ──
   useEffect(() => {
     if (typeof cv.certifications === "string" && cv.certifications.trim()) {
       const converted = cv.certifications
@@ -93,8 +157,11 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
   }));
 
   const updCert = (i, field) => (e) => {
+    const val = field === "noExpiry"
+      ? e.target.checked
+      : applyLive(field, e.target.value);
     const certs = Array.isArray(cv.certifications) ? [...cv.certifications] : [];
-    certs[i] = { ...certs[i], [field]: field === "noExpiry" ? e.target.checked : e.target.value };
+    certs[i] = { ...certs[i], [field]: val };
     setCV(p => ({ ...p, certifications: certs }));
   };
 
@@ -159,7 +226,6 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
     setLoading(l => ({ ...l, certifications: false }));
   };
 
-  // ── PHOTO ──
   const handlePhoto = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -198,6 +264,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
             <Input
               value={cv[key] || ""}
               onChange={upd(key)}
+              onBlur={blur(key)}
               placeholder={lbl}
             />
           </div>
@@ -215,6 +282,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           <Textarea
             value={cv.summary}
             onChange={upd("summary")}
+            onBlur={blur("summary")}
             placeholder="A brief professional summary highlighting your key strengths..."
             rows={4}
           />
@@ -232,6 +300,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           <Textarea
             value={cv.objective}
             onChange={upd("objective")}
+            onBlur={blur("objective")}
             placeholder="Your career objective and what you aim to achieve..."
             rows={3}
           />
@@ -259,6 +328,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                 <Input
                   value={e[key]}
                   onChange={updExp(i, key)}
+                  onBlur={blurExp(i, key)}
                   placeholder={lbl}
                 />
               </div>
@@ -282,6 +352,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
               <Textarea
                 value={e.responsibilities}
                 onChange={updExp(i, "responsibilities")}
+                onBlur={blurExp(i, "responsibilities")}
                 placeholder="Describe your key duties and achievements in this role..."
                 rows={4}
               />
@@ -318,7 +389,12 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
             ].map(([lbl, key]) => (
               <div className="cv-form__field" key={key}>
                 <Label>{lbl}</Label>
-                <Input value={e[key]} onChange={updEdu(i, key)} placeholder={lbl} />
+                <Input
+                  value={e[key]}
+                  onChange={updEdu(i, key)}
+                  onBlur={blurEdu(i, key)}
+                  placeholder={lbl}
+                />
               </div>
             ))}
             <div className="cv-form__grid">
@@ -355,7 +431,8 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           <Textarea
             value={cv.skills}
             onChange={upd("skills")}
-            placeholder="e.g. Project Management, Microsoft Excel, Leadership, Communication..."
+            onBlur={blur("skills")}
+            placeholder="e.g. Project Management, Microsoft Excel, Leadership..."
             rows={3}
           />
           <AiBtn
@@ -372,6 +449,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           <Input
             value={cv.languages}
             onChange={upd("languages")}
+            onBlur={blur("languages")}
             placeholder="e.g. English (Fluent), Yoruba (Native), French (Intermediate)"
           />
           <AiBtn
@@ -388,6 +466,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           <Input
             value={cv.hobbies}
             onChange={upd("hobbies")}
+            onBlur={blur("hobbies")}
             placeholder="e.g. Reading, Football, Volunteering, Photography..."
           />
           <AiBtn
@@ -422,6 +501,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                 <Input
                   value={cert.name}
                   onChange={updCert(i, "name")}
+                  onBlur={blurArr("certifications", i, "name")}
                   placeholder="e.g. Project Management Professional (PMP)"
                 />
               </div>
@@ -430,6 +510,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                 <Input
                   value={cert.issuer}
                   onChange={updCert(i, "issuer")}
+                  onBlur={blurArr("certifications", i, "issuer")}
                   placeholder="e.g. Project Management Institute"
                 />
               </div>
@@ -515,9 +596,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                   value={a.title}
                   onChange={(e) => {
                     const arr = [...cv.achievements];
-                    arr[i] = { ...arr[i], title: e.target.value };
+                    arr[i] = { ...arr[i], title: applyLive("title", e.target.value) };
                     setCV(p => ({ ...p, achievements: arr }));
                   }}
+                  onBlur={blurArr("achievements", i, "title")}
                   placeholder="e.g. Employee of the Year"
                 />
               </div>
@@ -539,9 +621,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                   value={a.description}
                   onChange={(e) => {
                     const arr = [...cv.achievements];
-                    arr[i] = { ...arr[i], description: e.target.value };
+                    arr[i] = { ...arr[i], description: applyLive("description", e.target.value) };
                     setCV(p => ({ ...p, achievements: arr }));
                   }}
+                  onBlur={blurArr("achievements", i, "description")}
                   placeholder="Briefly describe this achievement..."
                   rows={2}
                 />
@@ -574,9 +657,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                   value={v.organization}
                   onChange={(e) => {
                     const arr = [...cv.volunteer];
-                    arr[i] = { ...arr[i], organization: e.target.value };
+                    arr[i] = { ...arr[i], organization: applyLive("organization", e.target.value) };
                     setCV(p => ({ ...p, volunteer: arr }));
                   }}
+                  onBlur={blurArr("volunteer", i, "organization")}
                   placeholder="e.g. Red Cross"
                 />
               </div>
@@ -586,9 +670,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                   value={v.role}
                   onChange={(e) => {
                     const arr = [...cv.volunteer];
-                    arr[i] = { ...arr[i], role: e.target.value };
+                    arr[i] = { ...arr[i], role: applyLive("role", e.target.value) };
                     setCV(p => ({ ...p, volunteer: arr }));
                   }}
+                  onBlur={blurArr("volunteer", i, "role")}
                   placeholder="e.g. Community Coordinator"
                 />
               </div>
@@ -624,9 +709,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                   value={v.description}
                   onChange={(e) => {
                     const arr = [...cv.volunteer];
-                    arr[i] = { ...arr[i], description: e.target.value };
+                    arr[i] = { ...arr[i], description: applyLive("description", e.target.value) };
                     setCV(p => ({ ...p, volunteer: arr }));
                   }}
+                  onBlur={blurArr("volunteer", i, "description")}
                   placeholder="Describe your volunteer work..."
                   rows={2}
                 />
@@ -659,9 +745,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                   value={pub.title}
                   onChange={(e) => {
                     const arr = [...cv.publications];
-                    arr[i] = { ...arr[i], title: e.target.value };
+                    arr[i] = { ...arr[i], title: applyLive("title", e.target.value) };
                     setCV(p => ({ ...p, publications: arr }));
                   }}
+                  onBlur={blurArr("publications", i, "title")}
                   placeholder="e.g. Machine Learning in Healthcare"
                 />
               </div>
@@ -671,9 +758,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                   value={pub.journal}
                   onChange={(e) => {
                     const arr = [...cv.publications];
-                    arr[i] = { ...arr[i], journal: e.target.value };
+                    arr[i] = { ...arr[i], journal: applyLive("journal", e.target.value) };
                     setCV(p => ({ ...p, publications: arr }));
                   }}
+                  onBlur={blurArr("publications", i, "journal")}
                   placeholder="e.g. IEEE Transactions on..."
                 />
               </div>
@@ -732,9 +820,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                     value={r.name}
                     onChange={(e) => {
                       const arr = [...cv.references];
-                      arr[i] = { ...arr[i], name: e.target.value };
+                      arr[i] = { ...arr[i], name: applyLive("name", e.target.value) };
                       setCV(p => ({ ...p, references: arr }));
                     }}
+                    onBlur={blurArr("references", i, "name")}
                     placeholder="John Smith"
                   />
                 </div>
@@ -744,9 +833,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                     value={r.title}
                     onChange={(e) => {
                       const arr = [...cv.references];
-                      arr[i] = { ...arr[i], title: e.target.value };
+                      arr[i] = { ...arr[i], title: applyLive("title", e.target.value) };
                       setCV(p => ({ ...p, references: arr }));
                     }}
+                    onBlur={blurArr("references", i, "title")}
                     placeholder="e.g. Senior Manager"
                   />
                 </div>
@@ -756,9 +846,10 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
                     value={r.company}
                     onChange={(e) => {
                       const arr = [...cv.references];
-                      arr[i] = { ...arr[i], company: e.target.value };
+                      arr[i] = { ...arr[i], company: applyLive("company", e.target.value) };
                       setCV(p => ({ ...p, references: arr }));
                     }}
+                    onBlur={blurArr("references", i, "company")}
                     placeholder="e.g. Acme Corp"
                   />
                 </div>
@@ -826,6 +917,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
               type={type}
               value={cv[key] || ""}
               onChange={upd(key)}
+              onBlur={type === "text" && key !== "nin" ? blur(key) : undefined}
               placeholder={lbl}
             />
           </div>
