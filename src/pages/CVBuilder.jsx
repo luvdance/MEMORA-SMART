@@ -61,6 +61,9 @@ export default function CVBuilder() {
   const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
+  //PAYWALL
+  const [pendingAction, setPendingAction] = useState(null); // "print" | "download" | null
+
   const previewRef = useRef();
 
   // ── AUTO-SAVE TO LOCALSTORAGE ──
@@ -97,34 +100,50 @@ export default function CVBuilder() {
   }, [showCustomizeSheet, showMoreMenu]);
 
   // ── PRINT ──
-  const handlePrint = () => {
-    printCV({ previewRef, cv, theme, format });
-  };
+  const handlePrint = async () => {
+  if (!user) {
+    setShowDownloadGate(true);
+    return;
+  }
+  try {
+    const access = await checkDownloadAccess(user.uid);
+    if (access.canDownload) {
+      await recordDownload(user.uid, access);
+      triggerPrint();
+    } else {
+      setPendingAction("print");
+      setShowPaywall(true);
+    }
+  } catch (err) {
+    console.error("Print access check failed:", err);
+    triggerPrint();
+  }
+};
+
+const triggerPrint = () => {
+  printCV({ previewRef, cv, theme, format });
+};
 
   // ── DOWNLOAD PDF (with paywall check) ──
   const handleDownloadPDF = async () => {
-    if (!user) {
-      setShowDownloadGate(true);
-      return;
-    }
-
-    try {
-      const access = await checkDownloadAccess(user.uid);
-
-      if (access.canDownload) {
-        // Record usage then trigger download
-        await recordDownload(user.uid, access);
-        await triggerPdfDownload();
-      } else {
-        // Show paywall
-        setShowPaywall(true);
-      }
-    } catch (err) {
-      console.error("Download access check failed:", err);
-      // Fail open — let them download if check fails to avoid blocking paid users
+  if (!user) {
+    setShowDownloadGate(true);
+    return;
+  }
+  try {
+    const access = await checkDownloadAccess(user.uid);
+    if (access.canDownload) {
+      await recordDownload(user.uid, access);
       await triggerPdfDownload();
+    } else {
+      setPendingAction("download");  // ← ADD THIS LINE
+      setShowPaywall(true);
     }
-  };
+  } catch (err) {
+    console.error("Download access check failed:", err);
+    await triggerPdfDownload();
+  }
+};
 
   // ── TRIGGER ACTUAL PDF DOWNLOAD ──
   const triggerPdfDownload = async () => {
@@ -140,26 +159,33 @@ export default function CVBuilder() {
 
   // ── PAYMENT SUCCESS HANDLER ──
   const handlePaymentSuccess = (type, result) => {
-    setShowPaywall(false);
-    // Give webhook ~2 seconds to update Firestore, then trigger download
-    setTimeout(async () => {
-      try {
-        const access = await checkDownloadAccess(user.uid);
-        if (access.canDownload) {
-          await recordDownload(user.uid, access);
-          await triggerPdfDownload();
+  setShowPaywall(false);
+  const action = pendingAction;
+  setPendingAction(null);
+
+  setTimeout(async () => {
+    try {
+      const access = await checkDownloadAccess(user.uid);
+      if (access.canDownload) {
+        await recordDownload(user.uid, access);
+        if (action === "print") {
+          triggerPrint();
         } else {
-          // Retry once more after another 2 seconds
-          setTimeout(async () => {
-            await triggerPdfDownload();
-          }, 2000);
+          await triggerPdfDownload();
         }
-      } catch (err) {
-        console.error(err);
-        await triggerPdfDownload();
+      } else {
+        setTimeout(async () => {
+          if (action === "print") triggerPrint();
+          else await triggerPdfDownload();
+        }, 2000);
       }
-    }, 2000);
-  };
+    } catch (err) {
+      console.error(err);
+      if (action === "print") triggerPrint();
+      else await triggerPdfDownload();
+    }
+  }, 2000);
+};
 
   // ── SAVE ──
   const handleSave = async () => {
