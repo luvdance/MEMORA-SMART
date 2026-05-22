@@ -34,15 +34,16 @@ export default function AuthPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendSuccess, setResendSuccess] = useState(false);
 
-  const {
-    register,
-    login,
-    loginWithGoogle,
-    logout,
-    resendVerification,
-    resetPassword,
-    checkEmail,
-  } = useAuth();
+const {
+  user,
+  register,
+  login,
+  loginWithGoogle,
+  logout,
+  resendVerification,
+  resetPassword,
+  checkEmail,
+} = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,6 +71,22 @@ export default function AuthPage() {
       setEmailStatus(null);
       return;
     }
+
+    // ── Auto-redirect when user logs in successfully ──
+useEffect(() => {
+  if (user && !showVerifyScreen) {
+    // For unverified new users, don't auto-redirect — they need to see verify screen
+    const userCreatedAt = user.metadata?.creationTime
+      ? new Date(user.metadata.creationTime).getTime()
+      : 0;
+    const ENFORCEMENT_DATE = new Date("2026-05-08T00:00:00Z").getTime();
+    const isExistingUser = userCreatedAt < ENFORCEMENT_DATE;
+
+    if (user.emailVerified || isExistingUser) {
+      navigate(from, { replace: true });
+    }
+  }
+}, [user, showVerifyScreen, from, navigate]);
 
     setEmailStatus("checking");
     const t = setTimeout(async () => {
@@ -108,7 +125,7 @@ const handleSubmit = async () => {
         setLoading(false);
         return;
       }
-      navigate(from, { replace: true });
+      
     } else {
       // Pre-check before creating account
       if (emailStatus === "exists" || emailStatus === "google-only") {
@@ -138,7 +155,6 @@ const handleSubmit = async () => {
     setLoading(true);
     try {
       await loginWithGoogle();
-      navigate(from, { replace: true });
     } catch (err) {
       if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
         // Silent fail

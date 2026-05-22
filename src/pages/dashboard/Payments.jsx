@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { getUserDoc } from "../../utils/userService";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -12,6 +13,7 @@ export default function Payments() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRequery, setShowRequery] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -68,6 +70,12 @@ export default function Payments() {
     <div className="payments-page">
       <div className="payments-page__container">
 
+        {/* MOBILE-ONLY BACK BUTTON */}
+      <button className="dash-back-btn" onClick={() => navigate("/dashboard")}>
+        <i className="fas fa-arrow-left"></i>
+        <span>Back to Dashboard</span>
+      </button>
+      
         {/* HEADER */}
         <div className="payments-page__header">
           <h1><i className="fas fa-credit-card"></i> Payments</h1>
