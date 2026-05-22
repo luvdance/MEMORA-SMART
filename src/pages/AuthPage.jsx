@@ -34,16 +34,16 @@ export default function AuthPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendSuccess, setResendSuccess] = useState(false);
 
-const {
-  user,
-  register,
-  login,
-  loginWithGoogle,
-  logout,
-  resendVerification,
-  resetPassword,
-  checkEmail,
-} = useAuth();
+  const {
+    user,
+    register,
+    login,
+    loginWithGoogle,
+    logout,
+    resendVerification,
+    resetPassword,
+    checkEmail,
+  } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -65,28 +65,28 @@ const {
     return () => clearTimeout(t);
   }, [resendCooldown]);
 
+  // ── Auto-redirect when user logs in successfully ──
+  useEffect(() => {
+    if (user && !showVerifyScreen) {
+      // For unverified new users, don't auto-redirect — they need to see verify screen
+      const userCreatedAt = user.metadata?.creationTime
+        ? new Date(user.metadata.creationTime).getTime()
+        : 0;
+      const ENFORCEMENT_DATE = new Date("2026-05-08T00:00:00Z").getTime();
+      const isExistingUser = userCreatedAt < ENFORCEMENT_DATE;
+
+      if (user.emailVerified || isExistingUser) {
+        navigate(from, { replace: true });
+      }
+    }
+  }, [user, showVerifyScreen, from, navigate]);
+
   // ── Debounced email existence check (signup mode only) ──
   useEffect(() => {
     if (!email || !email.includes("@") || isLogin) {
       setEmailStatus(null);
       return;
     }
-
-    // ── Auto-redirect when user logs in successfully ──
-useEffect(() => {
-  if (user && !showVerifyScreen) {
-    // For unverified new users, don't auto-redirect — they need to see verify screen
-    const userCreatedAt = user.metadata?.creationTime
-      ? new Date(user.metadata.creationTime).getTime()
-      : 0;
-    const ENFORCEMENT_DATE = new Date("2026-05-08T00:00:00Z").getTime();
-    const isExistingUser = userCreatedAt < ENFORCEMENT_DATE;
-
-    if (user.emailVerified || isExistingUser) {
-      navigate(from, { replace: true });
-    }
-  }
-}, [user, showVerifyScreen, from, navigate]);
 
     setEmailStatus("checking");
     const t = setTimeout(async () => {
@@ -104,50 +104,50 @@ useEffect(() => {
   }, [email, isLogin, checkEmail]);
 
   // ── EMAIL/PASSWORD SUBMIT ──
-const handleSubmit = async () => {
-  setError("");
-  setLoading(true);
-  try {
-    if (isLogin) {
-      const result = await login(email, password);
+  const handleSubmit = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      if (isLogin) {
+        const result = await login(email, password);
 
-      // Grandfathering: existing users (registered before enforcement date) skip verification
-      const userCreatedAt = result.user.metadata?.creationTime
-        ? new Date(result.user.metadata.creationTime).getTime()
-        : 0;
-      const ENFORCEMENT_DATE = new Date("2026-05-08T00:00:00Z").getTime();
-      const isExistingUser = userCreatedAt < ENFORCEMENT_DATE;
+        // Grandfathering: existing users (registered before enforcement date) skip verification
+        const userCreatedAt = result.user.metadata?.creationTime
+          ? new Date(result.user.metadata.creationTime).getTime()
+          : 0;
+        const ENFORCEMENT_DATE = new Date("2026-05-08T00:00:00Z").getTime();
+        const isExistingUser = userCreatedAt < ENFORCEMENT_DATE;
 
-      // Only block NEW unverified users
-      if (!result.user.emailVerified && !isExistingUser) {
-        setVerifyEmail(result.user.email);
+        // Only block NEW unverified users
+        if (!result.user.emailVerified && !isExistingUser) {
+          setVerifyEmail(result.user.email);
+          setShowVerifyScreen(true);
+          setLoading(false);
+          return;
+        }
+
+      } else {
+        // Pre-check before creating account
+        if (emailStatus === "exists" || emailStatus === "google-only") {
+          setError(
+            emailStatus === "google-only"
+              ? "This email is registered with Google. Please use 'Continue with Google' to sign in."
+              : "An account with this email already exists. Please log in instead."
+          );
+          setLoading(false);
+          return;
+        }
+        await register(name, email, password);
+        // Show verify screen
+        setVerifyEmail(email);
         setShowVerifyScreen(true);
-        setLoading(false);
-        return;
+        setResendCooldown(60);
       }
-      
-    } else {
-      // Pre-check before creating account
-      if (emailStatus === "exists" || emailStatus === "google-only") {
-        setError(
-          emailStatus === "google-only"
-            ? "This email is registered with Google. Please use 'Continue with Google' to sign in."
-            : "An account with this email already exists. Please log in instead."
-        );
-        setLoading(false);
-        return;
-      }
-      await register(name, email, password);
-      // Show verify screen
-      setVerifyEmail(email);
-      setShowVerifyScreen(true);
-      setResendCooldown(60);
+    } catch (err) {
+      setError(getAuthError(err));
     }
-  } catch (err) {
-    setError(getAuthError(err));
-  }
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   // ── GOOGLE SIGN IN ──
   const handleGoogleSignIn = async () => {
