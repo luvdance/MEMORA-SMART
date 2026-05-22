@@ -17,6 +17,7 @@ const apps = [
 
 const account = [
   { label: "Profile", icon: "fas fa-user", path: "/dashboard/profile" },
+  { label: "Payments", icon: "fas fa-credit-card", path: "/dashboard/payments" },
   { label: "Settings", icon: "fas fa-cog", path: "/dashboard/settings" },
 ];
 

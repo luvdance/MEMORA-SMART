@@ -142,6 +142,11 @@ export default function PaywallModal({ onClose, onPaymentSuccess }) {
           </div>
         )}
 
+        <div className="paywall__requery-link">
+            Already paid but no access?{" "}
+            <button onClick={() => onClose("requery")}>Verify payment</button>
+        </div>
+
         {/* FOOTER */}
         <div className="pw__footer">
           <i className="fas fa-lock"></i>

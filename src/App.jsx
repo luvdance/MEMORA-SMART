@@ -7,6 +7,7 @@ import CVBuilder from "./pages/CVBuilder";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
+import Payments from "./pages/dashboard/Payments";
 
 function App() {
   return (

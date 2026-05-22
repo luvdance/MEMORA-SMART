@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { updateProfile } from "firebase/auth";
@@ -134,61 +134,64 @@ export default function Profile() {
           )}
         </div>
 
-        <div className="dash-profile__card">
-  <h3><i className="fas fa-crown"></i> Your Plan</h3>
+        {/* PAYMENTS & PLAN */}
+<div className="dash-profile__card dash-profile__card--payments">
+  <h3><i className="fas fa-credit-card"></i> Payments & Plan</h3>
+
   {planData ? (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <div style={{
-          padding: "6px 16px",
-          borderRadius: 25,
-          background: planData.isPro
-            ? "linear-gradient(90deg, #6699FF, #9D00FF)"
+    <div className="dash-profile__plan-row">
+      <div className="dash-profile__plan-info">
+        <div className={`dash-profile__plan-badge ${
+          planData.isPro
+            ? "dash-profile__plan-badge--pro"
             : planData.paidDownloads > 0
-            ? "#f0fdf4"
-            : "#f8f9ff",
-          color: planData.isPro ? "#fff" : planData.paidDownloads > 0 ? "#16a34a" : "#888",
-          fontWeight: 700,
-          fontSize: "0.82rem",
-        }}>
-          {planData.isPro ? "⚡ Memora Pro" : planData.paidDownloads > 0 ? "📄 Pay-per-CV" : planData.freeCVUsed ? "🔒 Free (used)" : "🎯 Free"}
+            ? "dash-profile__plan-badge--credits"
+            : planData.freeCVUsed
+            ? "dash-profile__plan-badge--exhausted"
+            : "dash-profile__plan-badge--free"
+        }`}>
+          <i className={`fas fa-${
+            planData.isPro ? "bolt"
+              : planData.paidDownloads > 0 ? "coins"
+              : planData.freeCVUsed ? "lock"
+              : "gift"
+          }`}></i>
+          {planData.isPro
+            ? "Memora Pro"
+            : planData.paidDownloads > 0
+            ? `${planData.paidDownloads} credit${planData.paidDownloads !== 1 ? "s" : ""}`
+            : planData.freeCVUsed
+            ? "Free (used)"
+            : "Free"}
         </div>
-        {planData.isPro && planData.proExpiresAt && (
-          <span style={{ fontSize: "0.78rem", color: "#888" }}>
-            Renews {new Date(planData.proExpiresAt?.toDate ? planData.proExpiresAt.toDate() : planData.proExpiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-          </span>
-        )}
-        {planData.paidDownloads > 0 && (
-          <span style={{ fontSize: "0.78rem", color: "#888" }}>
-            {planData.paidDownloads} download{planData.paidDownloads !== 1 ? "s" : ""} remaining
-          </span>
-        )}
+        <p className="dash-profile__plan-sub">
+          {planData.isPro
+            ? "Unlimited downloads"
+            : planData.paidDownloads > 0
+            ? "Use anytime — no expiry"
+            : planData.freeCVUsed
+            ? "Upgrade or buy a download to continue"
+            : "1 free download available"}
+        </p>
       </div>
-      {!planData.isPro && (
-        
-        <a href="/pricing"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "9px 20px",
-            borderRadius: 25,
-            background: "linear-gradient(90deg, #6699FF, #9D00FF)",
-            color: "#fff",
-            textDecoration: "none",
-            fontWeight: 700,
-            fontSize: "0.82rem",
-          }}
-        >
-          <i className="fas fa-bolt"></i> Upgrade to Pro
-        </a>
-      )}
+
+      <button
+        className="dash-profile__payments-btn"
+        onClick={() => navigate("/dashboard/payments")}
+      >
+        View Payments <i className="fas fa-arrow-right"></i>
+      </button>
     </div>
   ) : (
     <div style={{ color: "#888", fontSize: "0.875rem" }}>
       <i className="fas fa-spinner fa-spin"></i> Loading plan...
     </div>
   )}
+
+  <div className="dash-profile__plan-help">
+    <i className="fas fa-info-circle"></i>
+    <span>Paid but no access yet? Tap "View Payments" to verify.</span>
+  </div>
 </div>
 
         {/* PASSWORD */}

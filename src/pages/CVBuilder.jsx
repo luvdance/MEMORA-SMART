@@ -12,6 +12,7 @@ import PaywallModal from "../components/PaywallModal";
 import "../cv-builder/CVBuilder.css";
 import { printCV } from "../cv-builder/utils/printEngine";
 import { downloadCVPdf } from "../cv-builder/utils/pdfEngine";
+import PaymentRequery from "../components/PaymentRequery";
 
 const LOCAL_KEY = "memora_cv_draft";
 
@@ -63,6 +64,7 @@ export default function CVBuilder() {
 
   //PAYWALL
   const [pendingAction, setPendingAction] = useState(null); // "print" | "download" | null
+  const [showRequery, setShowRequery] = useState(false);
 
   const previewRef = useRef();
 
@@ -136,7 +138,7 @@ const triggerPrint = () => {
       await recordDownload(user.uid, access);
       await triggerPdfDownload();
     } else {
-      setPendingAction("download");  // ← ADD THIS LINE
+      setPendingAction("download"); 
       setShowPaywall(true);
     }
   } catch (err) {
@@ -163,26 +165,53 @@ const triggerPrint = () => {
   const action = pendingAction;
   setPendingAction(null);
 
+  // Wait for webhook, then verify
   setTimeout(async () => {
     try {
       const access = await checkDownloadAccess(user.uid);
       if (access.canDownload) {
         await recordDownload(user.uid, access);
-        if (action === "print") {
-          triggerPrint();
-        } else {
-          await triggerPdfDownload();
-        }
+        if (action === "print") triggerPrint();
+        else await triggerPdfDownload();
       } else {
-        setTimeout(async () => {
-          if (action === "print") triggerPrint();
-          else await triggerPdfDownload();
-        }, 2000);
+        // Webhook didn't fire — try requerying with the reference
+        if (result?.reference) {
+          try {
+            const requeryRes = await fetch("/api/requery-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                reference: result.reference,
+                userId: user.uid,
+              }),
+            });
+            const requeryData = await requeryRes.json();
+            
+            if (requeryData.success) {
+              // Try the action again
+              setTimeout(async () => {
+                const newAccess = await checkDownloadAccess(user.uid);
+                if (newAccess.canDownload) {
+                  await recordDownload(user.uid, newAccess);
+                  if (action === "print") triggerPrint();
+                  else await triggerPdfDownload();
+                }
+              }, 1000);
+            } else {
+              alert("Your payment is processing. Please use 'Verify Payment' if access doesn't activate in a few minutes.");
+              setShowRequery(true);
+            }
+          } catch (err) {
+            console.error("Auto-requery failed:", err);
+            setShowRequery(true);
+          }
+        } else {
+          setShowRequery(true);
+        }
       }
     } catch (err) {
       console.error(err);
-      if (action === "print") triggerPrint();
-      else await triggerPdfDownload();
+      setShowRequery(true);
     }
   }, 2000);
 };
@@ -496,8 +525,22 @@ const triggerPrint = () => {
       {/* ── PAYWALL MODAL (authenticated but free CV used) ── */}
       {showPaywall && (
         <PaywallModal
-          onClose={() => setShowPaywall(false)}
+          onClose={(action) => {
+            setShowPaywall(false);
+            if (action === "requery") setShowRequery(true);
+          }}
           onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
+
+      {showRequery && (
+        <PaymentRequery
+          onClose={() => setShowRequery(false)}
+          onSuccess={() => {
+            setShowRequery(false);
+            // Re-attempt their pending action
+            handlePaymentSuccess();
+          }}
         />
       )}
 

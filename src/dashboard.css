@@ -1375,3 +1375,110 @@
     color: #dc2626;
   }
 }
+
+/* Payments & Plan card */
+.dash-profile__card--payments {
+  background: linear-gradient(135deg, rgba(102,153,255,0.04), rgba(157,0,255,0.04));
+  border: 1px solid rgba(157,0,255,0.12);
+}
+
+.dash-profile__plan-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.dash-profile__plan-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-profile__plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 25px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.dash-profile__plan-badge--pro {
+  background: linear-gradient(90deg, #6699FF, #9D00FF);
+  color: #fff;
+}
+
+.dash-profile__plan-badge--credits {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.dash-profile__plan-badge--free {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.dash-profile__plan-badge--exhausted {
+  background: #fff7e6;
+  color: #d97706;
+}
+
+.dash-profile__plan-sub {
+  font-size: 0.78rem;
+  color: #888;
+  margin: 0;
+}
+
+.dash-profile__payments-btn {
+  padding: 10px 18px;
+  border-radius: 25px;
+  background: linear-gradient(90deg, #6699FF, #9D00FF);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(157,0,255,0.3);
+  transition: 0.2s;
+}
+
+.dash-profile__payments-btn:hover {
+  transform: translateY(-2px);
+}
+
+.dash-profile__plan-help {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(157, 0, 255, 0.06);
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.dash-profile__plan-help i {
+  color: #9D00FF;
+  font-size: 0.85rem;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .dash-profile__plan-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dash-profile__payments-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
