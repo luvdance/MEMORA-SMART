@@ -16,7 +16,6 @@ function App() {
       <Route path="/cv-builder" element={<CVLanding />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/admin" element={<Admin />} />
-      <Route path="/payments" element={<Payments />} />
       {/* Public shared CV link - no auth required to view/edit */}
       <Route path="/cv/:cvId" element={<CVBuilder />} />
       <Route path="/dashboard/*" element={
