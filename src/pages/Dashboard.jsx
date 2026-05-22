@@ -4,10 +4,11 @@ import Profile from "./dashboard/Profile";
 import CVBuilder from "./CVBuilder";
 import DashboardLayout from "../components/DashboardLayout";
 import MyWorks from "./dashboard/MyWorks";
+import Payments from "./dashboard/Payments";
 
 
 
-function ComingSoon({ name }) {
+function ComingSoon({ name }) { 
   return (
     <DashboardLayout title={name} subtitle="This app is coming soon">
       <div style={{ textAlign: "center", padding: "80px 20px" }}>
@@ -31,6 +32,7 @@ export default function Dashboard() {
       <Route path="data-analysis" element={<ComingSoon name="Data Analysis" />} />
       <Route path="ai-automation" element={<ComingSoon name="AI Automation" />} />
       <Route path="settings" element={<ComingSoon name="Settings" />} />
+      <Route path="payments" element={<Payments />} />
     </Routes>
   );
 }
