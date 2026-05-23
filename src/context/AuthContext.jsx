@@ -50,16 +50,16 @@ export function AuthProvider({ children }) {
 
   // ── EMAIL/PASSWORD SIGN UP (with verification email) ──
   const register = async (name, email, password) => {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    if (name) {
-      await updateProfile(result.user, { displayName: name });
-    }
-    // Auto-send verification email
-    await sendEmailVerification(result.user, {
-      url: `${window.location.origin}/auth?verified=true`,
-    });
-    return result;
-  };
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+  if (name) {
+    await updateProfile(result.user, { displayName: name });
+    await result.user.reload();  // ← ADD: force token refresh
+  }
+  await sendEmailVerification(result.user, {
+    url: `${window.location.origin}/auth?verified=true`,
+  });
+  return result;
+};
 
   // ── EMAIL/PASSWORD LOGIN ──
   const login = (email, password) =>

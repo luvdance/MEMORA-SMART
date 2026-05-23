@@ -22,17 +22,16 @@ export async function initUserDoc(user) {
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
+    const userName = user.displayName || "";
     await setDoc(ref, {
       uid: user.uid,
       email: user.email,
-      displayName: user.displayName || "",
+      name: userName,           // ← ADD this (matches what Admin reads)
+      displayName: userName,    // ← KEEP this for backwards compatibility
       photoURL: user.photoURL || "",
 
-      // Pay-per-CV tracking
       freeCVUsed: false,
       paidDownloads: 0,
-
-      // Pro subscription
       isPro: false,
       proExpiresAt: null,
       paystackSubscriptionCode: null,
@@ -43,6 +42,16 @@ export async function initUserDoc(user) {
     });
     return (await getDoc(ref)).then(s => s.data());
   }
+
+  // Update name if it was missing or empty (handles race condition)
+  if (user.displayName && (!snap.data().name || snap.data().name === "")) {
+    await updateDoc(ref, {
+      name: user.displayName,
+      displayName: user.displayName,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
   return snap.data();
 }
 
