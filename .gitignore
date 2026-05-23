@@ -30,3 +30,6 @@ dist-ssr
 .env.local
 .env.production
 .env.development
+.env*.local
+service-account.json
+set-admin.js

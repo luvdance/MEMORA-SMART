@@ -3271,3 +3271,62 @@
   border-color: #ef4444;
   transform: scale(1.05);
 }
+
+.cv-form__voice-banner {
+  margin-bottom: 20px;
+}
+
+.cv-form__voice-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(102,153,255,0.08), rgba(157,0,255,0.08));
+  border: 1.5px dashed #9D00FF;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: 'Neulis', 'Raleway', sans-serif;
+  transition: 0.2s;
+}
+
+.cv-form__voice-btn:hover {
+  background: linear-gradient(135deg, rgba(102,153,255,0.15), rgba(157,0,255,0.15));
+  transform: translateY(-2px);
+}
+
+.cv-form__voice-btn > i:first-child {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6699FF, #9D00FF);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.cv-form__voice-text {
+  flex: 1;
+  text-align: left;
+}
+
+.cv-form__voice-text strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #111;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.cv-form__voice-text span {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.cv-form__voice-btn > i:last-child {
+  color: #9D00FF;
+  font-size: 0.85rem;
+}
