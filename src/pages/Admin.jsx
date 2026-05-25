@@ -330,7 +330,7 @@ if (!isAdmin) return null;
         </div>
 
         {/* PROMO STATUS */}
-        <div className="admin__promo-card">
+        <div className={`admin__promo-card ${!promoState?.active ? "admin__promo-card--ended" : ""}`}>
         <div>
             <h3>🔥 Launch Promo</h3>
             {promoState?.active ? (
