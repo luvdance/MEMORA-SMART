@@ -184,3 +184,27 @@ export async function getUserPendingTransfers(uid) {
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
+
+/**
+ * Get launch promo state. Used to decide bonus credits.
+ */
+export async function getLaunchPromoState() {
+  try {
+    const ref = doc(db, "settings", "global");
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      return { active: false, count: 0, limit: 50, bonus: 0 };
+    }
+    const data = snap.data();
+    return {
+      active: data.launchPromoActive === true,
+      count: data.launchPromoCount || 0,
+      limit: data.launchPromoLimit || 50,
+      bonus: data.launchPromoBonus || 5,
+      spotsLeft: Math.max(0, (data.launchPromoLimit || 50) - (data.launchPromoCount || 0)),
+    };
+  } catch (err) {
+    console.error("Failed to read promo state:", err);
+    return { active: false, count: 0, limit: 50, bonus: 0, spotsLeft: 0 };
+  }
+}

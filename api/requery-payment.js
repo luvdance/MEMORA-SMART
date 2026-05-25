@@ -100,11 +100,46 @@ export default async function handler(req, res) {
     }
 
     // 5. Grant the appropriate access based on purchase type
+    let creditsGranted = 0;
+    let promoApplied = false;
+
     if (purchaseType === "single_cv") {
-      await userDoc.ref.update({
-        paidDownloads: FieldValue.increment(1),
-        updatedAt: FieldValue.serverTimestamp(),
+      // Use a transaction to check + update promo state safely
+      const settingsRef = db.collection("settings").doc("global");
+
+      let totalCredits = 1;
+
+      await db.runTransaction(async (transaction) => {
+        const settingsDoc = await transaction.get(settingsRef);
+        const settings = settingsDoc.exists ? settingsDoc.data() : {};
+
+        const promoActive = settings.launchPromoActive === true;
+        const promoCount = settings.launchPromoCount || 0;
+        const promoLimit = settings.launchPromoLimit || 50;
+        const promoBonus = settings.launchPromoBonus || 5;
+
+        if (promoActive && promoCount < promoLimit) {
+          totalCredits += promoBonus;
+          promoApplied = true;
+
+          const newCount = promoCount + 1;
+          const updates = { launchPromoCount: newCount };
+
+          if (newCount >= promoLimit) {
+            updates.launchPromoActive = false;
+            updates.launchPromoEndedAt = FieldValue.serverTimestamp();
+          }
+
+          transaction.update(settingsRef, updates);
+        }
+
+        transaction.update(userDoc.ref, {
+          paidDownloads: FieldValue.increment(totalCredits),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
       });
+
+      creditsGranted = totalCredits;
     } else if (purchaseType === "pro_subscription") {
       const proExpiresAt = new Date();
       proExpiresAt.setDate(proExpiresAt.getDate() + 31);
@@ -125,15 +160,21 @@ export default async function handler(req, res) {
       purchaseType,
       provider: "paystack",
       status: "success",
-      source: "requery", // marker showing this came from requery not webhook
+      source: "requery",
+      creditsGranted: creditsGranted || null,
+      promoApplied: promoApplied || false,
       createdAt: FieldValue.serverTimestamp(),
     });
 
     return res.status(200).json({
       success: true,
-      message: "Payment verified and access granted",
+      message: promoApplied
+        ? `Payment verified! You got ${creditsGranted} CV credits (launch bonus included).`
+        : "Payment verified and access granted",
       amount,
       purchaseType,
+      creditsGranted,
+      promoApplied,
     });
 
   } catch (err) {

@@ -494,3 +494,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+.admin__promo-card {
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border: 1.5px solid #fdba74;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin__promo-card h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #c2410c;
+  margin: 0 0 4px;
+}
+
+.admin__promo-card p {
+  font-size: 0.85rem;
+  color: #9a3412;
+  margin: 0;
+}
+
+.admin__promo-card button {
+  padding: 9px 18px;
+  border-radius: 25px;
+  border: none;
+  background: #c2410c;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}

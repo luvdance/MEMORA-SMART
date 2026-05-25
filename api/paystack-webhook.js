@@ -43,98 +43,86 @@ export default async function handler(req, res) {
       // ── ONE-TIME CV PURCHASE ──
       case "charge.success": {
         const email = data.customer?.email;
-        const amount = data.amount; // in kobo
+        const amount = data.amount;
         const reference = data.reference;
         const metadata = data.metadata || {};
         const purchaseType = metadata.purchase_type || "single_cv";
 
         if (!email) break;
 
-        // Find user by email
+        // Find user
         const usersRef = db.collection("users");
         const snapshot = await usersRef.where("email", "==", email).get();
 
         if (snapshot.empty) {
-          console.error("No user found for email:", email);
-          break;
+            console.error("No user found for email:", email);
+            break;
         }
 
         const userDoc = snapshot.docs[0];
         const userId = userDoc.id;
 
         if (purchaseType === "single_cv") {
-          // Add 1 paid download credit
-          await userDoc.ref.update({
-            paidDownloads: FieldValue.increment(1),
-            updatedAt: FieldValue.serverTimestamp(),
-          });
+            // Use a transaction to check + update promo state safely
+            const settingsRef = db.collection("settings").doc("global");
+
+            let totalCredits = 1;
+            let promoApplied = false;
+
+            await db.runTransaction(async (transaction) => {
+            const settingsDoc = await transaction.get(settingsRef);
+            const settings = settingsDoc.exists ? settingsDoc.data() : {};
+
+            const promoActive = settings.launchPromoActive === true;
+            const promoCount = settings.launchPromoCount || 0;
+            const promoLimit = settings.launchPromoLimit || 50;
+            const promoBonus = settings.launchPromoBonus || 5;
+
+            if (promoActive && promoCount < promoLimit) {
+                totalCredits += promoBonus; // 1 + 5 = 6
+                promoApplied = true;
+
+                const newCount = promoCount + 1;
+                const updates = { launchPromoCount: newCount };
+
+                // Auto-end promo when limit hit
+                if (newCount >= promoLimit) {
+                updates.launchPromoActive = false;
+                updates.launchPromoEndedAt = FieldValue.serverTimestamp();
+                }
+
+                transaction.update(settingsRef, updates);
+            }
+
+            transaction.update(userDoc.ref, {
+                paidDownloads: FieldValue.increment(totalCredits),
+                updatedAt: FieldValue.serverTimestamp(),
+            });
+            });
+
+            console.log(`Granted ${totalCredits} credits to ${email}${promoApplied ? " (promo applied)" : ""}`);
         }
 
         // Record payment in payments collection
         await db.collection("payments").add({
-          userId,
-          email,
-          amount: amount / 100, // convert kobo to naira
-          currency: "NGN",
-          reference,
-          purchaseType,
-          provider: "paystack",
-          status: "success",
-          createdAt: FieldValue.serverTimestamp(),
+            userId,
+            email,
+            amount: amount / 100,
+            currency: "NGN",
+            reference,
+            purchaseType,
+            provider: "paystack",
+            status: "success",
+            createdAt: FieldValue.serverTimestamp(),
         });
 
         console.log(`Payment recorded for ${email} — type: ${purchaseType}`);
         break;
-      }
-
-      // ── PRO SUBSCRIPTION CREATED ──
-      case "subscription.create": {
-        const email = data.customer?.email;
-        const subscriptionCode = data.subscription_code;
-        const customerCode = data.customer?.customer_code;
-        const nextPaymentDate = data.next_payment_date;
-
-        if (!email) break;
-
-        const snapshot = await db.collection("users")
-          .where("email", "==", email).get();
-
-        if (snapshot.empty) break;
-
-        const userDoc = snapshot.docs[0];
-
-        // Calculate pro expiry (next payment date or 31 days from now as fallback)
-        const proExpiresAt = nextPaymentDate
-          ? new Date(nextPaymentDate)
-          : new Date(Date.now() + 31 * 24 * 60 * 60 * 1000);
-
-        await userDoc.ref.update({
-          isPro: true,
-          proExpiresAt,
-          paystackSubscriptionCode: subscriptionCode,
-          paystackCustomerCode: customerCode,
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-
-        await db.collection("payments").add({
-          userId: userDoc.id,
-          email,
-          amount: 7500,
-          currency: "NGN",
-          purchaseType: "pro_subscription",
-          subscriptionCode,
-          provider: "paystack",
-          status: "success",
-          createdAt: FieldValue.serverTimestamp(),
-        });
-
-        console.log(`Pro subscription created for ${email}`);
-        break;
-      }
+        }
 
       // ── PRO SUBSCRIPTION RENEWED ──
       case "invoice.payment_failed":
-      case "charge.success": {
+      {
         // Handled above — subscription renewals also fire charge.success
         break;
       }

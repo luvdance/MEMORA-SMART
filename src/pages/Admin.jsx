@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   collection, query, where, getDocs,
-  doc, updateDoc, serverTimestamp, increment, orderBy, limit
+  doc, updateDoc, serverTimestamp, increment, orderBy, limit, getDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
 import "./Admin.css";
+import { getLaunchPromoState } from "../utils/userService";
 
-// ⚠️ Replace with YOUR actual Firebase UID
 export default function Admin() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +32,29 @@ export default function Admin() {
   // Shared state
   const [fetching, setFetching] = useState(true);
   const [processing, setProcessing] = useState(null);
+
+  // Promo state
+  const [promoState, setPromoState] = useState(null);
+
+useEffect(() => {
+  if (isAdmin) {
+    loadPromoState();
+  }
+}, [isAdmin]);
+
+const loadPromoState = async () => {
+  const state = await getLaunchPromoState();
+  setPromoState(state);
+};
+
+const togglePromo = async () => {
+  const ref = doc(db, "settings", "global");
+  await updateDoc(ref, {
+    launchPromoActive: !promoState.active,
+    updatedAt: serverTimestamp(),
+  });
+  loadPromoState();
+};
 
   useEffect(() => {
   if (loading) return;
@@ -202,18 +225,32 @@ export default function Admin() {
       if (!userSnap.empty) {
         const userRef = userSnap.docs[0].ref;
         if (transfer.type === "single_cv") {
-          await updateDoc(userRef, {
-            paidDownloads: increment(1),
+        // Check promo state
+        const settingsRef = doc(db, "settings", "global");
+        const settingsSnap = await getDoc(settingsRef);
+        const settings = settingsSnap.data() || {};
+        const promoActive = settings.launchPromoActive === true;
+        const promoCount = settings.launchPromoCount || 0;
+        const promoLimit = settings.launchPromoLimit || 50;
+        const promoBonus = settings.launchPromoBonus || 5;
+
+        let totalCredits = 1;
+
+        if (promoActive && promoCount < promoLimit) {
+            totalCredits += promoBonus;
+            const newCount = promoCount + 1;
+            const updates = { launchPromoCount: newCount };
+            if (newCount >= promoLimit) {
+            updates.launchPromoActive = false;
+            updates.launchPromoEndedAt = serverTimestamp();
+            }
+            await updateDoc(settingsRef, updates);
+        }
+
+        await updateDoc(userRef, {
+            paidDownloads: increment(totalCredits),
             updatedAt: serverTimestamp(),
-          });
-        } else if (transfer.type === "pro_monthly") {
-          const proExpiresAt = new Date();
-          proExpiresAt.setDate(proExpiresAt.getDate() + 31);
-          await updateDoc(userRef, {
-            isPro: true,
-            proExpiresAt,
-            updatedAt: serverTimestamp(),
-          });
+        });
         }
       }
       await fetchTransfers();
@@ -290,6 +327,21 @@ if (!isAdmin) return null;
           >
             <i className="fas fa-money-bill-wave"></i> Manual Transfers
           </button>
+        </div>
+
+        {/* PROMO STATUS */}
+        <div className="admin__promo-card">
+        <div>
+            <h3>🔥 Launch Promo</h3>
+            {promoState?.active ? (
+            <p>{promoState.spotsLeft} of {promoState.limit} spots remaining</p>
+            ) : (
+            <p>Ended — customers now get 1 CV per ₦3,500</p>
+            )}
+        </div>
+        <button onClick={togglePromo}>
+            {promoState?.active ? "End Promo Now" : "Reactivate Promo"}
+        </button>
         </div>
 
         {/* ────── USERS TAB ────── */}
