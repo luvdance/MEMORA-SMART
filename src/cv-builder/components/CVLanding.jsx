@@ -89,8 +89,8 @@ export default function CVLanding() {
         <stop offset="100%" stopColor="#4ade80" />
       </linearGradient>
     </defs>
-  </svg>
-  
+  </svg> 
+
       {/* NAVBAR */}
       <nav className="cvl__nav">
         <div className="cvl__nav-brand" onClick={() => navigate("/")}>
