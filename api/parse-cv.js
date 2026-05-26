@@ -1,6 +1,5 @@
 import formidable from "formidable";
 import { readFile } from "fs/promises";
-import pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 
 export const config = {
