@@ -81,6 +81,16 @@ export default function CVLanding() {
   return (
     <div className="cvl">
 
+{/* SVG GRADIENT DEFS */}
+  <svg width="0" height="0" style={{ position: "absolute" }}>
+    <defs>
+      <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#22c55e" />
+        <stop offset="100%" stopColor="#4ade80" />
+      </linearGradient>
+    </defs>
+  </svg>
+  
       {/* NAVBAR */}
       <nav className="cvl__nav">
         <div className="cvl__nav-brand" onClick={() => navigate("/")}>
@@ -181,6 +191,68 @@ export default function CVLanding() {
           </div>
           <div className="cvl__badge cvl__badge--templates">
             <i className="fas fa-paint-brush"></i> 3 Templates
+          </div>
+        </div>
+      </section>
+
+{/* ATS SCORE CTA */}
+      <section className="cvl__ats-cta">
+        <div className="cvl__ats-cta-inner">
+          <div className="cvl__ats-cta-content">
+            <span className="cvl__ats-badge">
+              <i className="fas fa-bolt"></i> NEW · 100% FREE
+            </span>
+            <h2>
+              Is your CV <span className="cvl__gradient-text">invisible</span> to recruiters?
+            </h2>
+            <p>
+              <strong>75% of Nigerian companies</strong> use Applicant Tracking Systems. 
+              Your CV gets filtered by software <strong>before</strong> a human ever sees it. 
+              Find out your ATS score in 10 seconds — and fix what's blocking your interviews.
+            </p>
+            <div className="cvl__ats-features">
+              <div className="cvl__ats-feature">
+                <i className="fas fa-check"></i> Upload PDF, DOCX, or paste text
+              </div>
+              <div className="cvl__ats-feature">
+                <i className="fas fa-check"></i> Score 0-100 with detailed breakdown
+              </div>
+              <div className="cvl__ats-feature">
+                <i className="fas fa-check"></i> 5 specific improvements with examples
+              </div>
+              <div className="cvl__ats-feature">
+                <i className="fas fa-check"></i> No signup required
+              </div>
+            </div>
+            <button
+              className="cvl__ats-btn"
+              onClick={() => navigate("/ats-check")}
+            >
+              <i className="fas fa-bolt"></i> Check My ATS Score Free
+              <i className="fas fa-arrow-right" style={{ marginLeft: 4 }}></i>
+            </button>
+            <p className="cvl__ats-trust">
+              <i className="fas fa-lock"></i> Your CV is analyzed once and never stored
+            </p>
+          </div>
+
+          <div className="cvl__ats-visual">
+            <div className="cvl__ats-gauge">
+              <svg viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="85" className="cvl__ats-gauge-bg" />
+                <circle cx="100" cy="100" r="85" className="cvl__ats-gauge-fill" />
+              </svg>
+              <div className="cvl__ats-gauge-center">
+                <div className="cvl__ats-gauge-score">87</div>
+                <div className="cvl__ats-gauge-label">ATS Score</div>
+              </div>
+            </div>
+            <div className="cvl__ats-tag cvl__ats-tag--good">
+              <i className="fas fa-check-circle"></i> ATS Friendly
+            </div>
+            <div className="cvl__ats-tag cvl__ats-tag--metric">
+              <i className="fas fa-chart-line"></i> Strong Keywords
+            </div>
           </div>
         </div>
       </section>

@@ -7,6 +7,7 @@ import CVBuilder from "./pages/CVBuilder";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
+import ATSChecker from "./pages/ATSChecker";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/admin" element={<Admin />} />
       {/* Public shared CV link - no auth required to view/edit */}
       <Route path="/cv/:cvId" element={<CVBuilder />} />
+      <Route path="/ats-check" element={<ATSChecker />} />
       <Route path="/dashboard/*" element={
         <ProtectedRoute>
           <Dashboard />
