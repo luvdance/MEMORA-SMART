@@ -565,3 +565,10 @@
     justify-content: center;
   }
 }
+
+.ats__hint {
+  font-size: 0.78rem;
+  color: #888;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}

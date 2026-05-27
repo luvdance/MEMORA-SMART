@@ -1,19 +1,3 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  });
-}
-
-const db = getFirestore();
-
-// In-memory rate limit (resets when serverless cold-starts)
 const rateLimit = new Map();
 
 export default async function handler(req, res) {
@@ -21,8 +5,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Rate limit: 5 ATS scans per IP per hour (free tool, must protect)
-  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  // Rate limit: 5 ATS scans per IP per hour
+  const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
   const now = Date.now();
   const windowMs = 60 * 60 * 1000;
   const maxRequests = 5;
@@ -52,51 +36,19 @@ export default async function handler(req, res) {
     });
   }
 
-  const systemPrompt = `You are an expert ATS (Applicant Tracking System) and Nigerian recruitment specialist. You analyze CVs from the perspective of:
-1. ATS parsing algorithms (used by 75%+ of Nigerian companies)
-2. Modern Nigerian recruiters' best practices
-3. Industry-specific keyword optimization
+  const systemPrompt = `You are an expert ATS (Applicant Tracking System) and Nigerian recruitment specialist. Score the CV on a strict 0-100 scale across these 5 categories:
 
-Score the CV on a strict 0-100 scale across these 5 categories:
-
-1. STRUCTURE & FORMATTING (20 points)
-   - Clear sections (Contact, Summary, Experience, Education, Skills)
-   - Consistent date formatting
-   - Logical chronological order
-   - No tables/columns that confuse ATS parsers
-   - Standard section headings
-
-2. KEYWORDS & RELEVANCE (25 points)
-   - Industry-relevant terms
-   - Matches job description (if provided)
-   - Action verbs (Led, Implemented, Achieved, etc.)
-   - Technical skills explicitly named
-   - Avoid vague phrases ("hard-working", "team player")
-
-3. ACHIEVEMENTS & METRICS (20 points)
-   - Quantified results (numbers, percentages, currency)
-   - Specific outcomes vs generic duties
-   - Action-Result framework
-   - Concrete examples
-
-4. PROFESSIONAL SUMMARY (15 points)
-   - Strong opening 2-3 sentences
-   - Clear value proposition
-   - Tailored to target role
-   - No generic objective statements
-
-5. CONTACT & ESSENTIALS (20 points)
-   - Email, phone present
-   - LinkedIn URL
-   - Professional email (not "babyboy23@yahoo.com")
-   - Location specified
-   - No unnecessary personal info that could trigger bias filters
+1. STRUCTURE & FORMATTING (20 points) - Clear sections, consistent formatting, ATS-readable layout
+2. KEYWORDS & RELEVANCE (25 points) - Industry-relevant terms, action verbs, matches job description if provided
+3. ACHIEVEMENTS & METRICS (20 points) - Quantified results, specific outcomes, concrete examples
+4. PROFESSIONAL SUMMARY (15 points) - Strong opening, clear value proposition, tailored to target role
+5. CONTACT & ESSENTIALS (20 points) - Email, phone, LinkedIn, professional details
 
 Return ONLY valid JSON in this exact format (no markdown, no preamble):
 
 {
   "overallScore": 75,
-  "rating": "Good" | "Excellent" | "Needs Work" | "Critical",
+  "rating": "Good",
   "categories": {
     "structure": { "score": 18, "max": 20, "feedback": "..." },
     "keywords": { "score": 20, "max": 25, "feedback": "..." },
@@ -116,11 +68,9 @@ Return ONLY valid JSON in this exact format (no markdown, no preamble):
 }
 
 Rules:
+- rating must be one of: "Excellent" (90+), "Good" (70-89), "Needs Work" (50-69), "Critical" (<50)
 - topImprovements: exactly 5 items, ranked by impact
-- Be specific and actionable, not generic
 - Use Nigerian context where relevant
-- If CV is exceptional (90+) be honest about it
-- If CV is poor (under 50) be direct but constructive
 - Always include concrete examples in improvements`;
 
   const userPrompt = jobDescription && jobDescription.trim().length > 20
@@ -143,23 +93,28 @@ Rules:
       }),
     });
 
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Anthropic API error:", response.status, errText);
+      return res.status(500).json({
+        success: false,
+        error: `Anthropic API returned ${response.status}: ${errText.substring(0, 200)}`,
+      });
+    }
+
     const data = await response.json();
     let text = data.content?.[0]?.text || "";
     text = text.replace(/```json|```/g, "").trim();
 
-    const result = JSON.parse(text);
-
-    // Log scan for analytics
+    let result;
     try {
-      await db.collection("ats_scans").add({
-        score: result.overallScore,
-        cvLength: cvText.length,
-        hasJobDescription: !!(jobDescription && jobDescription.trim().length > 20),
-        ip: ip || "unknown",
-        createdAt: FieldValue.serverTimestamp(),
+      result = JSON.parse(text);
+    } catch (parseErr) {
+      console.error("JSON parse failed. Raw text:", text.substring(0, 500));
+      return res.status(500).json({
+        success: false,
+        error: "AI returned malformed JSON. Please try again.",
       });
-    } catch (logErr) {
-      console.error("Failed to log scan:", logErr);
     }
 
     return res.status(200).json({ success: true, ...result });
@@ -167,7 +122,7 @@ Rules:
     console.error("ATS scoring error:", err);
     return res.status(500).json({
       success: false,
-      error: "Could not analyze CV. Please try again or check your CV format.",
+      error: "Could not analyze CV: " + err.message,
     });
   }
 }

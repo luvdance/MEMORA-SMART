@@ -245,14 +245,36 @@ const parsePdfInBrowser = async (file) => {
             <div className="ats__job-section">
               <label>
                 <i className="fas fa-bullseye"></i> Target Job Description 
-                <span className="ats__optional">(optional — boosts accuracy)</span>
-              </label>
+                <span className="ats__optional">(optional — but boosts accuracy 3x)</span>
+                </label>
+                <p className="ats__hint">
+                Copy the entire job posting from LinkedIn, Jobberman, or wherever you found it. 
+                The more detail, the more accurate your match score.
+                </p>
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Paste the job description you're applying for. This gives you a personalized match score."
-                rows={5}
-              />
+                placeholder={`Paste the full job description here. Example:
+
+                Job Title: Marketing Manager
+                Company: Andela Nigeria
+                Location: Lagos, Hybrid
+
+                We are seeking an experienced Marketing Manager to lead our brand growth initiatives. The ideal candidate will:
+
+                - 5+ years experience in digital marketing
+                - Strong skills in SEO, content strategy, paid ads
+                - Proven track record managing budgets of ₦5M+
+                - Experience with HubSpot, Google Analytics, Meta Ads
+                - Bachelor's degree in Marketing or related field
+
+                Responsibilities:
+                - Develop and execute marketing campaigns
+                - Manage social media presence across platforms
+                - Lead a team of 3 marketing associates
+                - Report directly to the VP of Marketing`}
+                rows={8}
+                />
             </div>
 
             {error && (
