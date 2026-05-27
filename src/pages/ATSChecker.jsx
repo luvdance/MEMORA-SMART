@@ -13,7 +13,24 @@ export default function ATSChecker() {
   const [parsing, setParsing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
+  // Load saved result from localStorage on mount
+const [result, setResult] = useState(() => {
+  try {
+    const saved = localStorage.getItem("ats_last_result");
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+});
+
+// Also restore the input that produced it (so users can re-analyze)
+const [savedCvText, setSavedCvText] = useState(() => {
+  try {
+    return localStorage.getItem("ats_last_cv") || "";
+  } catch {
+    return "";
+  }
+});
 
   const handleFileUpload = async (e) => {
   const file = e.target.files[0];
@@ -111,14 +128,25 @@ const parsePdfInBrowser = async (file) => {
 
       const data = await res.json();
 
-      if (data.success) {
+        if (data.success) {
         setResult(data);
+        // Save to localStorage
+        try {
+            localStorage.setItem("ats_last_result", JSON.stringify(data));
+            localStorage.setItem("ats_last_cv", cvText);
+            localStorage.setItem("ats_last_jd", jobDescription || "");
+            localStorage.setItem("ats_last_date", new Date().toISOString());
+            setSavedCvText(cvText);
+        } catch (e) {
+            console.warn("Could not save to localStorage:", e);
+        }
+        
         setTimeout(() => {
-          document.getElementById("ats-results")?.scrollIntoView({ behavior: "smooth" });
+            document.getElementById("ats-results")?.scrollIntoView({ behavior: "smooth" });
         }, 100);
-      } else {
+        } else {
         setError(data.error || "Analysis failed");
-      }
+        }
     } catch (err) {
       setError("Network error: " + err.message);
     }
@@ -127,12 +155,19 @@ const parsePdfInBrowser = async (file) => {
   };
 
   const handleReset = () => {
-    setResult(null);
-    setCvText("");
-    setJobDescription("");
-    setFileName("");
-    setError("");
-  };
+  setResult(null);
+  setCvText("");
+  setJobDescription("");
+  setFileName("");
+  setError("");
+  setSavedCvText("");
+  try {
+    localStorage.removeItem("ats_last_result");
+    localStorage.removeItem("ats_last_cv");
+    localStorage.removeItem("ats_last_jd");
+    localStorage.removeItem("ats_last_date");
+  } catch {}
+};
 
   const getScoreColor = (score) => {
     if (score >= 80) return "#16a34a";
@@ -151,15 +186,25 @@ const parsePdfInBrowser = async (file) => {
     }
   };
 
+  const handleDownloadReport = () => {
+  // Use browser print dialog (saves as PDF when user chooses "Save as PDF")
+  document.body.classList.add("ats-printing");
+  window.print();
+  // Remove the class after print dialog closes
+  setTimeout(() => {
+    document.body.classList.remove("ats-printing");
+  }, 1000);
+};
+
   return (
     <div className="ats">
       <div className="ats__container">
 
         {/* HEADER */}
         <header className="ats__header">
-          <button className="ats__back" onClick={() => navigate("/")}>
-            <i className="fas fa-arrow-left"></i> Home
-          </button>
+          <button className="ats__back" onClick={() => navigate("/cv-builder")}>
+            <i className="fas fa-arrow-left"></i> Back to CV Builder
+        </button>
           <div className="ats__hero">
             <div className="ats__hero-badge">FREE TOOL</div>
             <h1>Is your CV invisible to ATS?</h1>
@@ -256,23 +301,22 @@ const parsePdfInBrowser = async (file) => {
                 onChange={(e) => setJobDescription(e.target.value)}
                 placeholder={`Paste the full job description here. Example:
 
-                Job Title: Marketing Manager
-                Company: Andela Nigeria
-                Location: Lagos, Hybrid
+Job Title: Marketing Manager
+Company: Andela Nigeria
+Location: Lagos, Hybrid
 
-                We are seeking an experienced Marketing Manager to lead our brand growth initiatives. The ideal candidate will:
+We are seeking an experienced Marketing Manager to lead our brand growth initiatives. The ideal candidate will:
 
-                - 5+ years experience in digital marketing
-                - Strong skills in SEO, content strategy, paid ads
-                - Proven track record managing budgets of ₦5M+
-                - Experience with HubSpot, Google Analytics, Meta Ads
-                - Bachelor's degree in Marketing or related field
+- 5+ years experience in digital marketing
+- Strong skills in SEO, content strategy, paid ads
+- Proven track record managing budgets of ₦5M+
+- Experience with HubSpot, Google Analytics, Meta Ads
+- Bachelor's degree in Marketing or related field
 
-                Responsibilities:
-                - Develop and execute marketing campaigns
-                - Manage social media presence across platforms
-                - Lead a team of 3 marketing associates
-                - Report directly to the VP of Marketing`}
+Responsibilities:
+- Develop and execute marketing campaigns
+- Manage social media presence across platforms
+- Lead a team of 3 marketing associates`}
                 rows={8}
                 />
             </div>
@@ -305,6 +349,23 @@ const parsePdfInBrowser = async (file) => {
         {result && (
           <div id="ats-results" className="ats__results">
 
+            {result && savedCvText && cvText !== savedCvText && (
+            <div className="ats__saved-banner">
+                <i className="fas fa-history"></i>
+                <span>
+                Showing your last analyzed CV from{" "}
+                {(() => {
+                    try {
+                    const d = new Date(localStorage.getItem("ats_last_date"));
+                    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+                    } catch { return "earlier"; }
+                })()}
+                </span>
+                <button onClick={handleReset}>
+                <i className="fas fa-times"></i> Start fresh
+                </button>
+            </div>
+            )}
             {/* SCORE GAUGE */}
             <div className="ats__score-card">
               <div className="ats__score-gauge">
@@ -319,6 +380,7 @@ const parsePdfInBrowser = async (file) => {
                     }}
                   />
                 </svg>
+                
                 <div className="ats__gauge-text">
                   <div className="ats__gauge-score" style={{ color: getScoreColor(result.overallScore) }}>
                     {result.overallScore}
@@ -331,6 +393,22 @@ const parsePdfInBrowser = async (file) => {
                 <h2>{result.rating}</h2>
               </div>
             </div>
+
+            {/* DOWNLOAD ACTIONS */}
+                <div className="ats__download-actions">
+                <button
+                    className="ats__download-btn"
+                    onClick={handleDownloadReport}
+                >
+                    <i className="fas fa-file-pdf"></i> Download Report as PDF
+                </button>
+                <button
+                    className="ats__download-btn ats__download-btn--secondary"
+                    onClick={() => window.print()}
+                >
+                    <i className="fas fa-print"></i> Print Report
+                </button>
+                </div>
 
             {/* CATEGORIES */}
             <div className="ats__categories">

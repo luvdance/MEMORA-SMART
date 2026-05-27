@@ -93,13 +93,16 @@ export default function CVLanding() {
 
       {/* NAVBAR */}
       <nav className="cvl__nav">
-        <div className="cvl__nav-brand" onClick={() => navigate("/")}>
-          <i className="fas fa-long-arrow-alt-left"></i>
-          <span>Back to Home</span>
-        </div>
         <div className="cvl__nav-links">
           <a href="#features">Features</a>
           <a href="#how">How it Works</a>
+          <button 
+            className="cvl__nav-ats-btn" 
+            onClick={() => navigate("/ats-check")}
+          >
+            <i className="fas fa-bolt"></i> ATS Checker
+            <span className="cvl__nav-badge">FREE</span>
+          </button>
         </div>
         <div className="cvl__nav-actions">
           {user ? (
