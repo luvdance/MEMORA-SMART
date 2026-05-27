@@ -813,6 +813,18 @@ export function ClassicPro({ cv, accent, format, sectionOrder, theme }) {
               {cv.linkedin}
             </span>
           )}
+          {cv.website && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fas fa-globe" style={{ color: accent, fontSize: format.bodyFontSize - 2 }}></i>
+              {cv.website}
+            </span>
+          )}
+          {cv.github && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fab fa-github" style={{ color: accent, fontSize: format.bodyFontSize - 2 }}></i>
+              {cv.github}
+            </span>
+          )}
         </div>
       </div>
 
@@ -874,6 +886,17 @@ export function ModernEdge({ cv, accent, format, sectionOrder, theme }) {
           {cv.linkedin && (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
               <i className="fab fa-linkedin"></i> {cv.linkedin}
+            </span>
+          )}
+
+          {cv.website && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fas fa-globe"></i> {cv.website}
+            </span>
+          )}
+          {cv.github && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fab fa-github"></i> {cv.github}
             </span>
           )}
         </div>
@@ -945,6 +968,8 @@ export function ExecutivePlus({ cv, accent, format, sectionOrder, theme }) {
           <ContactItem icon="fa-phone" text={cv.phone} color="#e2e8f0" fontSize={format.bodyFontSize - 1} />
           <ContactItem icon="fa-map-marker-alt" text={cv.address} color="#e2e8f0" fontSize={format.bodyFontSize - 1} />
           <ContactItem icon="fa-linkedin fab" text={cv.linkedin} color="#e2e8f0" fontSize={format.bodyFontSize - 1} />
+          <ContactItem icon="fa-globe" text={cv.website} color="#e2e8f0" fontSize={format.bodyFontSize - 1} />
+          <ContactItem icon="fa-github fab" text={cv.github} color="#e2e8f0" fontSize={format.bodyFontSize - 1} />
         </SideSection>
 
         {sideSections.map(key => renderSideSection(key, cv, format))}
@@ -1010,6 +1035,16 @@ export function MinimalClean({ cv, accent, format, sectionOrder, theme }) {
               <i className="fab fa-linkedin" style={{ color: accent, fontSize: format.bodyFontSize - 2 }}></i> {cv.linkedin}
             </span>
           )}
+          {cv.website && (
+            <span style={{ fontSize: format.bodyFontSize - 1, color: theme.text, opacity: 0.7, display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fas fa-globe" style={{ color: accent, fontSize: format.bodyFontSize - 2 }}></i> {cv.website}
+            </span>
+          )}
+          {cv.github && (
+            <span style={{ fontSize: format.bodyFontSize - 1, color: theme.text, opacity: 0.7, display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fab fa-github" style={{ color: accent, fontSize: format.bodyFontSize - 2 }}></i> {cv.github}
+            </span>
+          )}
         </div>
       </div>
 
@@ -1062,6 +1097,8 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
           <ContactItem icon="fa-phone" text={cv.phone} color="rgba(255,255,255,0.9)" fontSize={format.bodyFontSize - 1} />
           <ContactItem icon="fa-map-marker-alt" text={cv.address} color="rgba(255,255,255,0.9)" fontSize={format.bodyFontSize - 1} />
           <ContactItem icon="fa-linkedin fab" text={cv.linkedin} color="rgba(255,255,255,0.9)" fontSize={format.bodyFontSize - 1} />
+          <ContactItem icon="fa-globe" text={cv.website} color="rgba(255,255,255,0.9)" fontSize={format.bodyFontSize - 1} />
+          <ContactItem icon="fa-github fab" text={cv.github} color="rgba(255,255,255,0.9)" fontSize={format.bodyFontSize - 1} />
         </CreativeSideSection>
 
         {orderedSide.map(key => {
@@ -1183,6 +1220,16 @@ export function CorporateBold({ cv, accent, format, sectionOrder, theme }) {
               <i className="fab fa-linkedin" style={{ color: accent }}></i> {cv.linkedin}
             </span>
           )}
+          {cv.website && (
+            <span style={{ fontSize: format.bodyFontSize - 1, color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <i className="fas fa-globe" style={{ color: accent }}></i> {cv.website}
+            </span>
+          )}
+          {cv.github && (
+            <span style={{ fontSize: format.bodyFontSize - 1, color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <i className="fab fa-github" style={{ color: accent }}></i> {cv.github}
+            </span>
+          )}
         </div>
       </div>
 
@@ -1285,6 +1332,16 @@ export function TraditionalProfile({ cv, accent, format, sectionOrder, theme }) 
             {cv.linkedin && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                 <i className="fab fa-linkedin" style={{ color: accent }}></i> {cv.linkedin}
+              </span>
+            )}
+            {cv.website && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <i className="fas fa-globe" style={{ color: accent }}></i> {cv.website}
+              </span>
+            )}
+            {cv.github && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <i className="fab fa-github" style={{ color: accent }}></i> {cv.github}
               </span>
             )}
           </div>

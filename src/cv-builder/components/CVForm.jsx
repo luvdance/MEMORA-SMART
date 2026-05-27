@@ -259,6 +259,7 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           ["Address / Location", "address"],
           ["LinkedIn URL", "linkedin"],
           ["Website / Portfolio", "website"],
+          ["GitHub URL", "github"],
         ].map(([lbl, key]) => (
           <div className="cv-form__field" key={key}>
             <Label>{lbl}</Label>
