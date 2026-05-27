@@ -16,44 +16,78 @@ export default function ATSChecker() {
   const [result, setResult] = useState(null);
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setError("File too large. Max 5MB.");
-      return;
-    }
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    setError("File too large. Max 5MB.");
+    return;
+  }
 
-    setError("");
-    setParsing(true);
-    setFileName(file.name);
+  setError("");
+  setParsing(true);
+  setFileName(file.name);
 
-    try {
+  try {
+    const ext = file.name.toLowerCase().split(".").pop();
+    let text = "";
+
+    if (ext === "pdf") {
+      text = await parsePdfInBrowser(file);
+    } else if (ext === "docx" || ext === "doc") {
+      // Send DOCX to server (mammoth works fine on Vercel)
       const formData = new FormData();
       formData.append("cv", file);
-
       const res = await fetch("/api/parse-cv", {
         method: "POST",
         body: formData,
       });
-
       const data = await res.json();
-
-      if (data.success) {
-        setCvText(data.text);
-        setInputMode("paste");
-      } else {
-        setError(data.error || "Failed to read file");
-        setFileName("");
-      }
-    } catch (err) {
-      setError("Upload failed: " + err.message);
-      setFileName("");
+      if (data.success) text = data.text;
+      else throw new Error(data.error || "Failed to parse DOCX");
+    } else if (ext === "txt") {
+      text = await file.text();
+    } else {
+      throw new Error("Unsupported file type. Upload PDF, DOCX, or TXT.");
     }
 
-    setParsing(false);
-  };
+    if (!text || text.trim().length < 100) {
+      throw new Error("Could not extract enough text. Is your CV image-only or scanned?");
+    }
+
+    setCvText(text);
+    setInputMode("paste");
+  } catch (err) {
+    setError(err.message);
+    setFileName("");
+  }
+
+  setParsing(false);
+};
+
+// Browser-side PDF parser
+const parsePdfInBrowser = async (file) => {
+  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  
+  // Set the worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc = await import(
+    "pdfjs-dist/legacy/build/pdf.worker.mjs?url"
+  ).then(m => m.default);
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  
+  let fullText = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map((item) => item.str).join(" ");
+    fullText += pageText + "\n";
+  }
+  
+  return fullText.trim();
+};
 
   const handleAnalyze = async () => {
     if (!cvText || cvText.trim().length < 100) {

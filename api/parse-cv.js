@@ -4,7 +4,7 @@ import mammoth from "mammoth";
 
 export const config = {
   api: {
-    bodyParser: false, // formidable handles parsing
+    bodyParser: false,
   },
 };
 
@@ -14,10 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const form = formidable({
-      maxFileSize: 5 * 1024 * 1024, // 5MB max
-    });
-
+    const form = formidable({ maxFileSize: 5 * 1024 * 1024 });
     const [fields, files] = await form.parse(req);
     const file = Array.isArray(files.cv) ? files.cv[0] : files.cv;
 
@@ -26,35 +23,29 @@ export default async function handler(req, res) {
     }
 
     const buffer = await readFile(file.filepath);
+    const ext = file.originalFilename?.toLowerCase().split(".").pop();
     let text = "";
 
-    const ext = file.originalFilename?.toLowerCase().split(".").pop();
-
-    if (ext === "pdf") {
-      const pdfData = await pdfParse(buffer);
-      text = pdfData.text;
-    } else if (ext === "docx" || ext === "doc") {
+    if (ext === "docx" || ext === "doc") {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
-    } else if (ext === "txt") {
-      text = buffer.toString("utf-8");
     } else {
       return res.status(400).json({
-        error: "Unsupported file type. Please upload PDF, DOCX, or TXT.",
+        error: "This endpoint only handles DOCX. PDFs are parsed in browser.",
       });
     }
 
     if (!text || text.trim().length < 100) {
       return res.status(400).json({
-        error: "Could not extract enough text. Is your CV image-only or password-protected?",
+        error: "Could not extract enough text from DOCX.",
       });
     }
 
     return res.status(200).json({ success: true, text: text.trim() });
   } catch (err) {
-    console.error("CV parsing error:", err);
+    console.error("DOCX parsing error:", err);
     return res.status(500).json({
-      error: "Failed to parse file: " + err.message,
+      error: "Failed to parse: " + err.message,
     });
   }
 }
