@@ -13,6 +13,7 @@ import "../cv-builder/CVBuilder.css";
 import { printCV } from "../cv-builder/utils/printEngine";
 import { downloadCVPdf } from "../cv-builder/utils/pdfEngine";
 import PaymentRequery from "../components/PaymentRequery";
+import { track } from "../utils/analytics";
 
 const LOCAL_KEY = "memora_cv_draft";
 
@@ -114,6 +115,7 @@ export default function CVBuilder() {
       triggerPrint();
     } else {
       setPendingAction("print");
+      track("paywall_shown", { action: "download" });
       setShowPaywall(true);
     }
   } catch (err) {
@@ -139,6 +141,7 @@ const triggerPrint = () => {
       await triggerPdfDownload();
     } else {
       setPendingAction("download"); 
+      track("paywall_shown", { action: "download" });
       setShowPaywall(true);
     }
   } catch (err) {
@@ -161,6 +164,7 @@ const triggerPrint = () => {
 
   // ── PAYMENT SUCCESS HANDLER ──
   const handlePaymentSuccess = (type, result) => {
+  track("payment_completed", { type });
   setShowPaywall(false);
   const action = pendingAction;
   setPendingAction(null);

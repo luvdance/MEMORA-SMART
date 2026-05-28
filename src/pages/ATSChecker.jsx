@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ATSChecker.css";
+import { track } from "../utils/analytics";
+import { useEffect } from "react"; 
 
 export default function ATSChecker() {
   const navigate = useNavigate();
@@ -112,6 +114,7 @@ const parsePdfInBrowser = async (file) => {
       return;
     }
 
+    track("ats_check_started", { hasJobDescription: !!jobDescription.trim() });
     setError("");
     setAnalyzing(true);
     setResult(null);
@@ -130,6 +133,7 @@ const parsePdfInBrowser = async (file) => {
 
         if (data.success) {
         setResult(data);
+        track("ats_check_completed", { score: data.overallScore, rating: data.rating });
         // Save to localStorage
         try {
             localStorage.setItem("ats_last_result", JSON.stringify(data));
@@ -195,6 +199,10 @@ const parsePdfInBrowser = async (file) => {
     document.body.classList.remove("ats-printing");
   }, 1000);
 };
+
+useEffect(() => {
+  track("ats_page_viewed");
+}, []);
 
   return (
     <div className="ats">
@@ -499,7 +507,10 @@ Responsibilities:
               <div className="ats__cta-actions">
                 <button
                   className="ats__cta-btn ats__cta-btn--primary"
-                  onClick={() => navigate("/cv-builder")}
+                  onClick={() => {
+                    track("ats_build_cv_clicked", { score: result.overallScore });
+                    navigate("/cv-builder");
+                  }}
                 >
                   <i className="fas fa-bolt"></i> Build My Optimized CV
                 </button>

@@ -13,6 +13,7 @@ import {
   fetchSignInMethodsForEmail,
 } from "firebase/auth";
 import { initUserDoc } from "../utils/userService";
+import { track, identify, resetAnalytics } from "../utils/analytics";
 
 const AuthContext = createContext();
 
@@ -34,14 +35,15 @@ export function AuthProvider({ children }) {
 
           // Initialize user doc in Firestore (creates it if first login)
           await initUserDoc(currentUser);
-
           setUser(currentUser);
+          identify(currentUser.uid, { email: currentUser.email, name: currentUser.displayName });
         } catch (err) {
           console.error("Auth state error:", err);
           setUser(u);
         }
       } else {
         setUser(null);
+        
       }
       setLoading(false);
     });
@@ -58,6 +60,7 @@ export function AuthProvider({ children }) {
   await sendEmailVerification(result.user, {
     url: `${window.location.origin}/auth?verified=true`,
   });
+  track("signup_completed", { method: "email" });
   return result;
 };
 
@@ -68,11 +71,15 @@ export function AuthProvider({ children }) {
   // ── GOOGLE SIGN IN ──
   const loginWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider);
+    track("signup_completed", { method: "google" });
     return result.user;
   };
 
   // ── LOGOUT ──
-  const logout = () => signOut(auth);
+  const logout = async () => {
+    resetAnalytics();
+    await signOut(auth);
+  };
 
   // ── RESEND VERIFICATION EMAIL ──
   const resendVerification = async () => {
