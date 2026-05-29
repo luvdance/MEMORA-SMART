@@ -223,7 +223,7 @@ const parsePdfInBrowser = async (file) => {
     });
 
     const data = await res.json();
-
+    //data success
     if (data.success && data.cv) {
       localStorage.setItem("optimized_cv", JSON.stringify(data.cv));
       localStorage.setItem("optimized_cv_source", JSON.stringify({
