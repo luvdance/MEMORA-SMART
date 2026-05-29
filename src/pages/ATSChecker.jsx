@@ -535,20 +535,26 @@ Responsibilities:
             </div>
 
             {/* DOWNLOAD ACTIONS */}
-                <div className="ats__download-actions">
-                <button
-                    className="ats__download-btn"
-                    onClick={handleDownloadReport}
-                >
-                    <i className="fas fa-file-pdf"></i> Download Report as PDF
-                </button>
-                <button
-                    className="ats__download-btn ats__download-btn--secondary"
-                    onClick={() => window.print()}
-                >
-                    <i className="fas fa-print"></i> Print Report
-                </button>
-                </div>
+            <div className="ats__download-actions">
+              <button
+                className="ats__download-btn"
+                onClick={handleDownloadReport}
+              >
+                <i className="fas fa-file-pdf"></i> Download Report as PDF
+              </button>
+              <button
+                className="ats__download-btn ats__download-btn--secondary"
+                onClick={() => window.print()}
+              >
+                <i className="fas fa-print"></i> Print Report
+              </button>
+              <button
+                className="ats__download-btn ats__download-btn--secondary"
+                onClick={handleReset}
+              >
+                <i className="fas fa-redo"></i> Check New CV
+              </button>
+            </div>
 
             {/* CATEGORIES */}
             <div className="ats__categories">
