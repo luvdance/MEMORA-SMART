@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import "./ATSChecker.css";
 import { track } from "../utils/analytics";
 import { useEffect } from "react"; 
-import { track } from "../utils/analytics";
 import { useAuth } from "../context/AuthContext";
 
 export default function ATSChecker() {
