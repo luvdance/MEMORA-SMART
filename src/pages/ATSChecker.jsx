@@ -11,8 +11,20 @@ export default function ATSChecker() {
   const { user } = useAuth();
 
   const [inputMode, setInputMode] = useState("upload"); // "upload" | "paste"
-  const [cvText, setCvText] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
+  const [cvText, setCvText] = useState(() => {
+    try {
+      return localStorage.getItem("ats_last_cv") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [jobDescription, setJobDescription] = useState(() => {
+    try {
+      return localStorage.getItem("ats_last_jd") || "";
+    } catch {
+      return "";
+    }
+  });
   const [fileName, setFileName] = useState("");
   const [parsing, setParsing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -167,15 +179,25 @@ const parsePdfInBrowser = async (file) => {
   };
 
  //handle optimize
-  const handleOptimize = async () => {
-  if (!cvText || !result) return;
+ const handleOptimize = async () => {
+  // Use cvText OR savedCvText as fallback
+  const textToOptimize = cvText || savedCvText;
+
+  if (!textToOptimize) {
+    setOptimizeError("No CV text found. Please re-upload or paste your CV.");
+    return;
+  }
+  if (!result) {
+    setOptimizeError("No analysis result. Please run an ATS check first.");
+    return;
+  }
 
   // AUTH GATE — must be signed in
   if (!user) {
     track("ats_optimize_auth_gate_shown", { score: result.overallScore });
     // Save state so they can resume after login
     localStorage.setItem("pending_optimize", JSON.stringify({
-      cvText,
+      cvText: textToOptimize,   // ← was cvText
       improvements: result.topImprovements || [],
       atsScore: result.overallScore,
       jobDescription: jobDescription || "",
@@ -193,7 +215,7 @@ const parsePdfInBrowser = async (file) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        cvText,
+        cvText: textToOptimize,   // ← was cvText
         improvements: result.topImprovements || [],
         atsScore: result.overallScore,
         jobDescription: jobDescription || "",
