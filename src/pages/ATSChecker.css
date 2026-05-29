@@ -753,3 +753,188 @@
 .ats__saved-banner button:hover {
   background: #dbeafe;
 }
+
+.ats__cta-btn--optimize {
+  font-size: 0.95rem;
+  padding: 14px 26px;
+}
+
+.ats__cta-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ats__optimize-error {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 200, 200, 0.4);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ats__cta-hint {
+  margin-top: 16px !important;
+  font-size: 0.78rem !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+} 
+
+.ats__auth-gate {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  padding: 20px;
+  animation: ats-fade-in 0.2s ease;
+}
+
+.ats__auth-gate-box {
+  background: #fff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 460px;
+  padding: 36px 28px 28px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  animation: ats-scale-in 0.25s ease-out;
+}
+
+.ats__auth-gate-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(0,0,0,0.05);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+}
+
+.ats__auth-gate-close:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.ats__auth-gate-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #6699FF, #9D00FF);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 10px 30px rgba(157,0,255,0.35);
+}
+
+.ats__auth-gate-box h2 {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #111;
+  margin: 0 0 8px;
+}
+
+.ats__auth-gate-box > p {
+  font-size: 0.88rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 22px;
+}
+
+.ats__auth-gate-perks {
+  text-align: left;
+  background: #f8f9ff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 22px;
+}
+
+.ats__auth-gate-perk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #333;
+  padding: 5px 0;
+}
+
+.ats__auth-gate-perk i {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.ats__auth-gate-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(90deg, #6699FF, #9D00FF);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(157,0,255,0.35);
+  transition: 0.2s;
+}
+
+.ats__auth-gate-btn:hover {
+  transform: translateY(-2px);
+}
+
+.ats__auth-gate-login {
+  margin-top: 14px !important;
+  font-size: 0.82rem !important;
+  color: #888 !important;
+}
+
+.ats__auth-gate-login span {
+  color: #9D00FF;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ats__auth-gate-login span:hover {
+  text-decoration: underline;
+}
+
+@keyframes ats-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ats-scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}

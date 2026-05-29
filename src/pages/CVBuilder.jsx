@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import CVNavbar from "../cv-builder/components/CVNavbar";
 import CVForm from "../cv-builder/components/CVForm";
 import CVPreview from "../cv-builder/components/CVPreview";
@@ -21,6 +21,8 @@ export default function CVBuilder() {
   const { cvId: urlCvId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [showOptimizedBanner, setShowOptimizedBanner] = useState(false);
 
   // ── DRAFT RESTORE ──
   const getSavedDraft = () => {
@@ -101,6 +103,39 @@ export default function CVBuilder() {
   useEffect(() => {
     document.body.style.overflow = (showCustomizeSheet || showMoreMenu) ? "hidden" : "";
   }, [showCustomizeSheet, showMoreMenu]);
+
+  // ── LOAD OPTIMIZED CV FROM ATS CHECKER ──
+useEffect(() => {
+  const isOptimized = searchParams.get("optimized") === "true";
+  if (!isOptimized) return;
+
+  try {
+    const optimizedRaw = localStorage.getItem("optimized_cv");
+    if (!optimizedRaw) return;
+
+    const optimizedCV = JSON.parse(optimizedRaw);
+
+    setCV(prev => ({
+      ...prev,
+      ...optimizedCV,
+      experience: optimizedCV.experience?.length ? optimizedCV.experience : prev.experience,
+      education: optimizedCV.education?.length ? optimizedCV.education : prev.education,
+      certifications: optimizedCV.certifications?.length ? optimizedCV.certifications : prev.certifications,
+    }));
+
+    setShowOptimizedBanner(true);
+    track("optimized_cv_loaded");
+
+    // Clean up
+    localStorage.removeItem("optimized_cv");
+    localStorage.removeItem("optimized_cv_source");
+    window.history.replaceState({}, "", "/dashboard/cv-builder");
+
+    setTimeout(() => setShowOptimizedBanner(false), 8000);
+  } catch (err) {
+    console.error("Failed to load optimized CV:", err);
+  }
+}, [searchParams]);
 
   // ── PRINT ──
   const handlePrint = async () => {
@@ -310,6 +345,25 @@ const triggerPrint = () => {
         setTheme={setTheme}
         onOpenCustomize={openCustomize}
       />
+
+      {showOptimizedBanner && (
+      <div className="cv-optimized-banner">
+        <div className="cv-optimized-banner__icon">
+          <i className="fas fa-magic"></i>
+        </div>
+        <div className="cv-optimized-banner__text">
+          <strong>Your CV has been optimized by AI ✨</strong>
+          <p>Review the changes below — edit anything before downloading. Pick a template on the right.</p>
+        </div>
+        <button
+          className="cv-optimized-banner__close"
+          onClick={() => setShowOptimizedBanner(false)}
+          aria-label="Close"
+        >
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
+    )}
 
       <div className="cvb__body" data-active-tab={tab}>
 

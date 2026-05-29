@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import "./ATSChecker.css";
 import { track } from "../utils/analytics";
 import { useEffect } from "react"; 
+import { track } from "../utils/analytics";
+import { useAuth } from "../context/AuthContext";
 
 export default function ATSChecker() {
   const navigate = useNavigate();
   const fileInputRef = useRef();
+  const { user } = useAuth();
 
   const [inputMode, setInputMode] = useState("upload"); // "upload" | "paste"
   const [cvText, setCvText] = useState("");
@@ -15,6 +18,12 @@ export default function ATSChecker() {
   const [parsing, setParsing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
+  const [showAuthGate, setShowAuthGate] = useState(false);
+
+  //cv optimizer state
+  const [optimizing, setOptimizing] = useState(false);
+  const [optimizeError, setOptimizeError] = useState("");
+
   // Load saved result from localStorage on mount
 const [result, setResult] = useState(() => {
   try {
@@ -158,6 +167,63 @@ const parsePdfInBrowser = async (file) => {
     setAnalyzing(false);
   };
 
+ //handle optimize
+  const handleOptimize = async () => {
+  if (!cvText || !result) return;
+
+  // AUTH GATE — must be signed in
+  if (!user) {
+    track("ats_optimize_auth_gate_shown", { score: result.overallScore });
+    // Save state so they can resume after login
+    localStorage.setItem("pending_optimize", JSON.stringify({
+      cvText,
+      improvements: result.topImprovements || [],
+      atsScore: result.overallScore,
+      jobDescription: jobDescription || "",
+    }));
+    setShowAuthGate(true);
+    return;
+  }
+
+  track("ats_optimize_started", { score: result.overallScore });
+  setOptimizing(true);
+  setOptimizeError("");
+
+  try {
+    const res = await fetch("/api/optimize-cv", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cvText,
+        improvements: result.topImprovements || [],
+        atsScore: result.overallScore,
+        jobDescription: jobDescription || "",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success && data.cv) {
+      localStorage.setItem("optimized_cv", JSON.stringify(data.cv));
+      localStorage.setItem("optimized_cv_source", JSON.stringify({
+        previousScore: result.overallScore,
+        timestamp: new Date().toISOString(),
+      }));
+
+      track("ats_optimize_completed", { score: result.overallScore });
+      navigate("/dashboard/cv-builder?optimized=true");
+    } else {
+      setOptimizeError(data.error || "Optimization failed. Please try again.");
+      track("ats_optimize_failed");
+    }
+  } catch (err) {
+    setOptimizeError("Network error: " + err.message);
+    track("ats_optimize_failed");
+  }
+
+  setOptimizing(false);
+};
+
   const handleReset = () => {
   setResult(null);
   setCvText("");
@@ -203,6 +269,51 @@ const parsePdfInBrowser = async (file) => {
 useEffect(() => {
   track("ats_page_viewed");
 }, []);
+
+// Auto-resume optimization if user just signed in
+useEffect(() => {
+  if (!user) return;
+  
+  try {
+    const pendingRaw = localStorage.getItem("pending_optimize");
+    if (!pendingRaw) return;
+
+    const pending = JSON.parse(pendingRaw);
+    localStorage.removeItem("pending_optimize");
+
+    // Trigger optimization with saved data
+    setOptimizing(true);
+    setOptimizeError("");
+    track("ats_optimize_resumed_after_signup");
+
+    fetch("/api/optimize-cv", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pending),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.cv) {
+          localStorage.setItem("optimized_cv", JSON.stringify(data.cv));
+          localStorage.setItem("optimized_cv_source", JSON.stringify({
+            previousScore: pending.atsScore,
+            timestamp: new Date().toISOString(),
+          }));
+          track("ats_optimize_completed", { score: pending.atsScore, resumed: true });
+          navigate("/dashboard/cv-builder?optimized=true");
+        } else {
+          setOptimizeError(data.error || "Optimization failed. Please try again.");
+          setOptimizing(false);
+        }
+      })
+      .catch(err => {
+        setOptimizeError("Network error: " + err.message);
+        setOptimizing(false);
+      });
+  } catch (err) {
+    console.error("Resume optimization failed:", err);
+  }
+}, [user]);
 
   return (
     <div className="ats">
@@ -496,36 +607,117 @@ Responsibilities:
               </div>
             )}
 
-            {/* CTA */}
+            {/* CTA — OPTIMIZE */}
             <div className="ats__cta-card">
-              <h2>Fix all of this in 5 minutes</h2>
+              <h2>Fix all of this automatically in 30 seconds ⚡</h2>
               <p>
-                Use Memora Smart's AI builder to rewrite your CV with these 
-                improvements automatically applied. 5 ATS-friendly templates 
-                built for Nigerians.
+                Let AI apply every improvement above to your CV. We'll rewrite weak sections,
+                add quantified achievements, and structure it for ATS — then load it into the
+                Memora CV builder ready to download.
               </p>
+
+              {optimizeError && (
+                <div className="ats__optimize-error">
+                  <i className="fas fa-exclamation-circle"></i> {optimizeError}
+                </div>
+              )}
+
               <div className="ats__cta-actions">
                 <button
-                  className="ats__cta-btn ats__cta-btn--primary"
-                  onClick={() => {
-                    track("ats_build_cv_clicked", { score: result.overallScore });
-                    navigate("/cv-builder");
-                  }}
+                  className="ats__cta-btn ats__cta-btn--primary ats__cta-btn--optimize"
+                  onClick={handleOptimize}
+                  disabled={optimizing}
                 >
-                  <i className="fas fa-bolt"></i> Build My Optimized CV
+                  {optimizing ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin"></i> AI is rewriting your CV...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-magic"></i> Optimize My CV with AI
+                    </>
+                  )}
                 </button>
                 <button
                   className="ats__cta-btn ats__cta-btn--secondary"
-                  onClick={handleReset}
+                  onClick={() => {
+                    track("ats_build_manual_clicked");
+                    navigate("/cv-builder");
+                  }}
+                  disabled={optimizing}
                 >
-                  <i className="fas fa-redo"></i> Check Another CV
+                  <i className="fas fa-edit"></i> I'll Build Manually
                 </button>
               </div>
+
+              <p className="ats__cta-hint">
+                <i className="fas fa-info-circle"></i>
+                Your CV stays editable in the builder — review and adjust anything before downloading.
+              </p>
             </div>
 
           </div>
         )}
 
+      {/* AUTH GATE MODAL */}
+{showAuthGate && (
+  <div className="ats__auth-gate" onClick={() => setShowAuthGate(false)}>
+    <div className="ats__auth-gate-box" onClick={(e) => e.stopPropagation()}>
+      <button
+        className="ats__auth-gate-close"
+        onClick={() => setShowAuthGate(false)}
+        aria-label="Close"
+      >
+        <i className="fas fa-times"></i>
+      </button>
+
+      <div className="ats__auth-gate-icon">
+        <i className="fas fa-magic"></i>
+      </div>
+
+      <h2>Save your optimized CV ✨</h2>
+      <p>
+        Sign up free in 30 seconds and we'll rewrite your CV with all the 
+        improvements automatically. Your CV will be ready to download.
+      </p>
+
+      <div className="ats__auth-gate-perks">
+        <div className="ats__auth-gate-perk">
+          <i className="fas fa-check"></i> AI rewrites your weak sections
+        </div>
+        <div className="ats__auth-gate-perk">
+          <i className="fas fa-check"></i> 7 ATS-friendly templates
+        </div>
+        <div className="ats__auth-gate-perk">
+          <i className="fas fa-check"></i> First download free
+        </div>
+        <div className="ats__auth-gate-perk">
+          <i className="fas fa-check"></i> First 50 paying customers: 6 CVs for ₦3,500
+        </div>
+      </div>
+
+      <button
+        className="ats__auth-gate-btn"
+        onClick={() => {
+          track("ats_optimize_auth_gate_signup_clicked");
+          navigate("/auth", { state: { from: "/ats-check" } });
+        }}
+      >
+        <i className="fas fa-user-plus"></i> Create Free Account
+      </button>
+
+      <p className="ats__auth-gate-login">
+        Already have an account?{" "}
+        <span onClick={() => {
+          track("ats_optimize_auth_gate_login_clicked");
+          navigate("/auth", { state: { from: "/ats-check" } });
+        }}>
+          Log in
+        </span>
+      </p>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
