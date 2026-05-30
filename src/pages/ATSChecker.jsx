@@ -34,6 +34,7 @@ export default function ATSChecker() {
   //cv optimizer state
   const [optimizing, setOptimizing] = useState(false);
   const [optimizeError, setOptimizeError] = useState("");
+  const [optimizeProgress, setOptimizeProgress] = useState("");
 
   // Load saved result from localStorage on mount
 const [result, setResult] = useState(() => {
@@ -178,9 +179,33 @@ const parsePdfInBrowser = async (file) => {
     setAnalyzing(false);
   };
 
+// Rotate progress messages while AI is working
+const startProgressMessages = () => {
+  const messages = [
+    "Reading your CV carefully...",
+    "Identifying weak areas...",
+    "Rewriting your professional summary...",
+    "Strengthening experience bullets with action verbs...",
+    "Adding quantified achievements...",
+    "Optimizing keywords for ATS...",
+    "Reorganizing for maximum impact...",
+    "Polishing the final draft...",
+    "Almost done — finalizing structure...",
+  ];
+
+  let index = 0;
+  setOptimizeProgress(messages[0]);
+
+  const interval = setInterval(() => {
+    index = (index + 1) % messages.length;
+    setOptimizeProgress(messages[index]);
+  }, 3000); // change every 3 seconds
+
+  return interval;
+};
+
  //handle optimize
  const handleOptimize = async () => {
-  // Use cvText OR savedCvText as fallback
   const textToOptimize = cvText || savedCvText;
 
   if (!textToOptimize) {
@@ -192,12 +217,10 @@ const parsePdfInBrowser = async (file) => {
     return;
   }
 
-  // AUTH GATE — must be signed in
   if (!user) {
     track("ats_optimize_auth_gate_shown", { score: result.overallScore });
-    // Save state so they can resume after login
     localStorage.setItem("pending_optimize", JSON.stringify({
-      cvText: textToOptimize,   // ← was cvText
+      cvText: textToOptimize,
       improvements: result.topImprovements || [],
       atsScore: result.overallScore,
       jobDescription: jobDescription || "",
@@ -209,13 +232,14 @@ const parsePdfInBrowser = async (file) => {
   track("ats_optimize_started", { score: result.overallScore });
   setOptimizing(true);
   setOptimizeError("");
+  const progressInterval = startProgressMessages();   // ← START
 
   try {
     const res = await fetch("/api/optimize-cv", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        cvText: textToOptimize,   // ← was cvText
+        cvText: textToOptimize,
         improvements: result.topImprovements || [],
         atsScore: result.overallScore,
         jobDescription: jobDescription || "",
@@ -223,7 +247,7 @@ const parsePdfInBrowser = async (file) => {
     });
 
     const data = await res.json();
-    //data success
+
     if (data.success && data.cv) {
       localStorage.setItem("optimized_cv", JSON.stringify(data.cv));
       localStorage.setItem("optimized_cv_source", JSON.stringify({
@@ -232,7 +256,8 @@ const parsePdfInBrowser = async (file) => {
       }));
 
       track("ats_optimize_completed", { score: result.overallScore });
-      navigate("/dashboard/cv-builder?optimized=true");
+      setOptimizeProgress("Done! Loading the builder...");
+      setTimeout(() => navigate("/dashboard/cv-builder?optimized=true"), 600);
     } else {
       setOptimizeError(data.error || "Optimization failed. Please try again.");
       track("ats_optimize_failed");
@@ -242,7 +267,9 @@ const parsePdfInBrowser = async (file) => {
     track("ats_optimize_failed");
   }
 
+  clearInterval(progressInterval);   // ← STOP
   setOptimizing(false);
+  setOptimizeProgress("");
 };
 
   const handleReset = () => {
@@ -302,10 +329,10 @@ useEffect(() => {
     const pending = JSON.parse(pendingRaw);
     localStorage.removeItem("pending_optimize");
 
-    // Trigger optimization with saved data
     setOptimizing(true);
     setOptimizeError("");
     track("ats_optimize_resumed_after_signup");
+    const progressInterval = startProgressMessages();   // ← ADD
 
     fetch("/api/optimize-cv", {
       method: "POST",
@@ -314,6 +341,7 @@ useEffect(() => {
     })
       .then(res => res.json())
       .then(data => {
+        clearInterval(progressInterval);   // ← ADD
         if (data.success && data.cv) {
           localStorage.setItem("optimized_cv", JSON.stringify(data.cv));
           localStorage.setItem("optimized_cv_source", JSON.stringify({
@@ -321,15 +349,19 @@ useEffect(() => {
             timestamp: new Date().toISOString(),
           }));
           track("ats_optimize_completed", { score: pending.atsScore, resumed: true });
-          navigate("/dashboard/cv-builder?optimized=true");
+          setOptimizeProgress("Done! Loading the builder...");
+          setTimeout(() => navigate("/dashboard/cv-builder?optimized=true"), 600);
         } else {
           setOptimizeError(data.error || "Optimization failed. Please try again.");
           setOptimizing(false);
+          setOptimizeProgress("");
         }
       })
       .catch(err => {
+        clearInterval(progressInterval);   // ← ADD
         setOptimizeError("Network error: " + err.message);
         setOptimizing(false);
+        setOptimizeProgress("");
       });
   } catch (err) {
     console.error("Resume optimization failed:", err);
@@ -657,7 +689,7 @@ Responsibilities:
                 >
                   {optimizing ? (
                     <>
-                      <i className="fas fa-spinner fa-spin"></i> AI is rewriting your CV...
+                      <i className="fas fa-spinner fa-spin"></i> Optimizing...
                     </>
                   ) : (
                     <>
@@ -676,6 +708,20 @@ Responsibilities:
                   <i className="fas fa-edit"></i> I'll Build Manually
                 </button>
               </div>
+
+              {optimizing && optimizeProgress && (
+                <div className="ats__progress">
+                  <div className="ats__progress-bar">
+                    <div className="ats__progress-bar-fill"></div>
+                  </div>
+                  <div className="ats__progress-text">
+                    <i className="fas fa-sparkles"></i> {optimizeProgress}
+                  </div>
+                  <div className="ats__progress-sub">
+                    This takes about 20-30 seconds. Hang tight.
+                  </div>
+                </div>
+              )}
 
               <p className="ats__cta-hint">
                 <i className="fas fa-info-circle"></i>

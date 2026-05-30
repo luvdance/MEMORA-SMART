@@ -365,6 +365,30 @@ const triggerPrint = () => {
       </div>
     )}
 
+    {/* ATS QUICK ACTIONS */}
+    <div className="cvb__ats-actions">
+      <div className="cvb__ats-actions-label">
+        <i className="fas fa-bolt"></i>
+        <span>ATS Tools</span>
+      </div>
+      <div className="cvb__ats-actions-buttons">
+        <button
+          className="cvb__ats-btn"
+          onClick={() => navigate("/ats-check")}
+        >
+          <i className="fas fa-search"></i>
+          <span>Check ATS Score</span>
+        </button>
+        <button
+          className="cvb__ats-btn cvb__ats-btn--secondary"
+          onClick={() => navigate("/ats-check")}
+        >
+          <i className="fas fa-magic"></i>
+          <span>Optimize with AI</span>
+        </button>
+      </div>
+    </div>
+
       <div className="cvb__body" data-active-tab={tab}>
 
         {/* MOBILE-ONLY QUICK DESIGN PANEL */}
