@@ -35,6 +35,7 @@ export default function ATSChecker() {
   const [optimizing, setOptimizing] = useState(false);
   const [optimizeError, setOptimizeError] = useState("");
   const [optimizeProgress, setOptimizeProgress] = useState("");
+  const [analyzeProgress, setAnalyzeProgress] = useState("");
 
   // Load saved result from localStorage on mount
 const [result, setResult] = useState(() => {
@@ -130,58 +131,61 @@ const parsePdfInBrowser = async (file) => {
 };
 
   const handleAnalyze = async () => {
-    if (!cvText || cvText.trim().length < 100) {
-      setError("Please provide a complete CV (at least 100 characters)");
-      return;
+  if (!cvText || cvText.trim().length < 100) {
+    setError("Please provide a complete CV (at least 100 characters)");
+    return;
+  }
+
+  track("ats_check_started", { hasJobDescription: !!jobDescription.trim() });
+  setError("");
+  setAnalyzing(true);
+  setResult(null);
+  const progressInterval = startProgressMessages(setAnalyzeProgress, "analyze");
+
+  try {
+    const res = await fetch("/api/ats-score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cvText: cvText.trim(),
+        jobDescription: jobDescription.trim(),
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setResult(data);
+      track("ats_check_completed", { score: data.overallScore, rating: data.rating });
+      try {
+        localStorage.setItem("ats_last_result", JSON.stringify(data));
+        localStorage.setItem("ats_last_cv", cvText);
+        localStorage.setItem("ats_last_jd", jobDescription || "");
+        localStorage.setItem("ats_last_date", new Date().toISOString());
+        setSavedCvText(cvText);
+      } catch (e) {
+        console.warn("Could not save to localStorage:", e);
+      }
+
+      setAnalyzeProgress("Done! Showing your results...");
+      setTimeout(() => {
+        document.getElementById("ats-results")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      setError(data.error || "Analysis failed");
     }
+  } catch (err) {
+    setError("Network error: " + err.message);
+  }
 
-    track("ats_check_started", { hasJobDescription: !!jobDescription.trim() });
-    setError("");
-    setAnalyzing(true);
-    setResult(null);
-
-    try {
-      const res = await fetch("/api/ats-score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cvText: cvText.trim(),
-          jobDescription: jobDescription.trim(),
-        }),
-      });
-
-      const data = await res.json();
-
-        if (data.success) {
-        setResult(data);
-        track("ats_check_completed", { score: data.overallScore, rating: data.rating });
-        // Save to localStorage
-        try {
-            localStorage.setItem("ats_last_result", JSON.stringify(data));
-            localStorage.setItem("ats_last_cv", cvText);
-            localStorage.setItem("ats_last_jd", jobDescription || "");
-            localStorage.setItem("ats_last_date", new Date().toISOString());
-            setSavedCvText(cvText);
-        } catch (e) {
-            console.warn("Could not save to localStorage:", e);
-        }
-        
-        setTimeout(() => {
-            document.getElementById("ats-results")?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
-        } else {
-        setError(data.error || "Analysis failed");
-        }
-    } catch (err) {
-      setError("Network error: " + err.message);
-    }
-
-    setAnalyzing(false);
-  };
+  clearInterval(progressInterval);
+  setAnalyzing(false);
+  setAnalyzeProgress("");
+};
 
 // Rotate progress messages while AI is working
-const startProgressMessages = () => {
-  const messages = [
+const startProgressMessages = (setter, type = "optimize") => {
+  const optimizeMessages = [
     "Reading your CV carefully...",
     "Identifying weak areas...",
     "Rewriting your professional summary...",
@@ -193,13 +197,27 @@ const startProgressMessages = () => {
     "Almost done — finalizing structure...",
   ];
 
+  const analyzeMessages = [
+    "Reading your CV carefully...",
+    "Checking structure & formatting...",
+    "Scanning for relevant keywords...",
+    "Evaluating achievements & metrics...",
+    "Reviewing your professional summary...",
+    "Checking contact details...",
+    "Comparing against ATS standards...",
+    "Generating your top improvements...",
+    "Almost done — preparing your report...",
+  ];
+
+  const messages = type === "analyze" ? analyzeMessages : optimizeMessages;
+
   let index = 0;
-  setOptimizeProgress(messages[0]);
+  setter(messages[0]);
 
   const interval = setInterval(() => {
     index = (index + 1) % messages.length;
-    setOptimizeProgress(messages[index]);
-  }, 3000); // change every 3 seconds
+    setter(messages[index]);
+  }, 2500);
 
   return interval;
 };
@@ -232,7 +250,7 @@ const startProgressMessages = () => {
   track("ats_optimize_started", { score: result.overallScore });
   setOptimizing(true);
   setOptimizeError("");
-  const progressInterval = startProgressMessages();   // ← START
+  const progressInterval = startProgressMessages(setOptimizeProgress, "optimize");  // ← START
 
   try {
     const res = await fetch("/api/optimize-cv", {
@@ -332,7 +350,7 @@ useEffect(() => {
     setOptimizing(true);
     setOptimizeError("");
     track("ats_optimize_resumed_after_signup");
-    const progressInterval = startProgressMessages();   // ← ADD
+    const progressInterval = startProgressMessages(setOptimizeProgress, "optimize");   // ← ADD
 
     fetch("/api/optimize-cv", {
       method: "POST",
@@ -510,6 +528,21 @@ Responsibilities:
                 <><i className="fas fa-magic"></i> Get My ATS Score</>
               )}
             </button>
+
+            {/* ANALYZE PROGRESS */}
+            {analyzing && analyzeProgress && (
+              <div className="ats__progress ats__progress--light">
+                <div className="ats__progress-bar">
+                  <div className="ats__progress-bar-fill"></div>
+                </div>
+                <div className="ats__progress-text">
+                  <i className="fas fa-magic"></i> {analyzeProgress}
+                </div>
+                <div className="ats__progress-sub">
+                  This takes about 15-20 seconds. Hang tight.
+                </div>
+              </div>
+            )}
 
             <p className="ats__privacy">
               <i className="fas fa-lock"></i> Your CV is analyzed once and not stored.
@@ -715,7 +748,7 @@ Responsibilities:
                     <div className="ats__progress-bar-fill"></div>
                   </div>
                   <div className="ats__progress-text">
-                    <i className="fas fa-sparkles"></i> {optimizeProgress}
+                    <i className="fas fa-magic"></i> {optimizeProgress}
                   </div>
                   <div className="ats__progress-sub">
                     This takes about 20-30 seconds. Hang tight.

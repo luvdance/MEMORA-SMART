@@ -995,3 +995,27 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.75; }
 }
+
+/* LIGHT VARIANT for analyze button area (white/light background) */
+.ats__progress--light {
+  background: linear-gradient(135deg, #f8f9ff, #f0ebff);
+  border: 1px solid #d8c8ff;
+  margin-top: 14px;
+}
+
+.ats__progress--light .ats__progress-bar {
+  background: rgba(157, 0, 255, 0.1);
+}
+
+.ats__progress--light .ats__progress-text {
+  color: #111;
+  animation: none;
+}
+
+.ats__progress--light .ats__progress-text i {
+  color: #9D00FF;
+}
+
+.ats__progress--light .ats__progress-sub {
+  color: #666;
+}
