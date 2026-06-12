@@ -8,7 +8,7 @@ import { smartCase, liveTitleCase, liveCapitalizeSentences, liveCommaListTitleCa
 function Label({ children }) {
   return <label className="cv-label">{children}</label>;
 }
-
+//comment
 function Input({ value, onChange, onBlur, placeholder, type = "text" }) {
   return (
     <input
