@@ -3862,3 +3862,62 @@
     font-size: 0.74rem;
   }
 }
+
+/* ── CARD HEADER WITH ACTIONS ── */
+.cv-form__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cv-form__card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cv-form__card-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  transition: 0.15s;
+  background: #f1f5f9;
+  color: #555;
+}
+
+.cv-form__card-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #111;
+}
+
+.cv-form__card-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cv-form__card-btn--delete {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.cv-form__card-btn--delete:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.cv-form__card-btn--move {
+  background: #f8f9ff;
+  color: #6699FF;
+}
+
+.cv-form__card-btn--move:hover:not(:disabled) {
+  background: #ede9fe;
+  color: #9D00FF;
+}

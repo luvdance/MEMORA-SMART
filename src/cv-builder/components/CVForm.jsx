@@ -47,6 +47,41 @@ function AiBtn({ onClick, loading, label = "AI Suggest" }) {
   );
 }
 
+function CardActions({ index, total, onMoveUp, onMoveDown, onDelete, canDelete = true }) {
+  return (
+    <div className="cv-form__card-actions">
+      <button
+        className="cv-form__card-btn cv-form__card-btn--move"
+        onClick={() => onMoveUp(index)}
+        disabled={index === 0}
+        title="Move up"
+        type="button"
+      >
+        <i className="fas fa-arrow-up"></i>
+      </button>
+      <button
+        className="cv-form__card-btn cv-form__card-btn--move"
+        onClick={() => onMoveDown(index)}
+        disabled={index === total - 1}
+        title="Move down"
+        type="button"
+      >
+        <i className="fas fa-arrow-down"></i>
+      </button>
+      {canDelete && (
+        <button
+          className="cv-form__card-btn cv-form__card-btn--delete"
+          onClick={() => onDelete(index)}
+          title="Delete"
+          type="button"
+        >
+          <i className="fas fa-trash"></i>
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
   const [loading, setLoading] = useState({});
 
@@ -127,6 +162,38 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
       setCV(p => ({ ...p, [arrName]: arr }));
     });
   };
+
+  // ── DELETE HANDLERS ──
+const delExp = (i) => {
+  if (cv.experience.length <= 1) return; // keep at least 1
+  setCV(p => ({ ...p, experience: p.experience.filter((_, idx) => idx !== i) }));
+};
+
+const delEdu = (i) => {
+  if (cv.education.length <= 1) return;
+  setCV(p => ({ ...p, education: p.education.filter((_, idx) => idx !== i) }));
+};
+
+const delArr = (arrName, i) => {
+  setCV(p => ({ ...p, [arrName]: (p[arrName] || []).filter((_, idx) => idx !== i) }));
+};
+
+// ── REORDER HANDLERS ──
+const moveExp = (i, dir) => {
+  const arr = [...cv.experience];
+  const target = i + dir;
+  if (target < 0 || target >= arr.length) return;
+  [arr[i], arr[target]] = [arr[target], arr[i]];
+  setCV(p => ({ ...p, experience: arr }));
+};
+
+const moveEdu = (i, dir) => {
+  const arr = [...cv.education];
+  const target = i + dir;
+  if (target < 0 || target >= arr.length) return;
+  [arr[i], arr[target]] = [arr[target], arr[i]];
+  setCV(p => ({ ...p, education: arr }));
+};
 
   // ── CERTIFICATION MIGRATION ──
   useEffect(() => {
@@ -322,8 +389,18 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
       <div className="cv-form__section">
         <h2 className="cv-form__heading">Work Experience</h2>
         {cv.experience.map((e, i) => (
-          <div key={i} className="cv-form__card">
+        <div key={i} className="cv-form__card">
+          <div className="cv-form__card-header">
             <div className="cv-form__card-label">Experience {i + 1}</div>
+            <CardActions
+              index={i}
+              total={cv.experience.length}
+              onMoveUp={(idx) => moveExp(idx, -1)}
+              onMoveDown={(idx) => moveExp(idx, 1)}
+              onDelete={delExp}
+              canDelete={cv.experience.length > 1}
+            />
+          </div>
             {[["Company / Organization", "company"], ["Job Title / Role", "role"]].map(([lbl, key]) => (
               <div className="cv-form__field" key={key}>
                 <Label>{lbl}</Label>
@@ -382,8 +459,18 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
       <div className="cv-form__section">
         <h2 className="cv-form__heading">Education</h2>
         {cv.education.map((e, i) => (
-          <div key={i} className="cv-form__card">
+        <div key={i} className="cv-form__card">
+          <div className="cv-form__card-header">
             <div className="cv-form__card-label">Education {i + 1}</div>
+            <CardActions
+              index={i}
+              total={cv.education.length}
+              onMoveUp={(idx) => moveEdu(idx, -1)}
+              onMoveDown={(idx) => moveEdu(idx, 1)}
+              onDelete={delEdu}
+              canDelete={cv.education.length > 1}
+            />
+          </div>
             {[
               ["School / University", "school"],
               ["Degree / Qualification", "degree"],
@@ -591,7 +678,14 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           </div>
           {cv.achievements?.map((a, i) => (
             <div key={i} className="cv-form__card">
+              <div className="cv-form__card-header">
               <div className="cv-form__card-label">Achievement {i + 1}</div>
+              <button
+                className="cv-form__card-btn cv-form__card-btn--delete"
+                onClick={() => delArr("achievements", i)}
+                type="button"
+              ><i className="fas fa-trash"></i></button>
+            </div>
               <div className="cv-form__field">
                 <Label>Title / Award Name</Label>
                 <Input
@@ -652,7 +746,14 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           </div>
           {cv.volunteer?.map((v, i) => (
             <div key={i} className="cv-form__card">
-              <div className="cv-form__card-label">Volunteer {i + 1}</div>
+              <div className="cv-form__card-header">
+                <div className="cv-form__card-label">Volunteer {i + 1}</div>
+                <button
+                  className="cv-form__card-btn cv-form__card-btn--delete"
+                  onClick={() => delArr("volunteer", i)}
+                  type="button"
+                ><i className="fas fa-trash"></i></button>
+              </div>
               <div className="cv-form__field">
                 <Label>Organization</Label>
                 <Input
@@ -740,7 +841,14 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           </div>
           {cv.publications?.map((pub, i) => (
             <div key={i} className="cv-form__card">
-              <div className="cv-form__card-label">Publication {i + 1}</div>
+              <div className="cv-form__card-header">
+                <div className="cv-form__card-label">Publication {i + 1}</div>
+                <button
+                  className="cv-form__card-btn cv-form__card-btn--delete"
+                  onClick={() => delArr("publications", i)}
+                  type="button"
+                ><i className="fas fa-trash"></i></button>
+              </div>
               <div className="cv-form__field">
                 <Label>Title</Label>
                 <Input
@@ -814,7 +922,14 @@ export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
           </div>
           {cv.references?.map((r, i) => (
             <div key={i} className="cv-form__card">
-              <div className="cv-form__card-label">Reference {i + 1}</div>
+              <div className="cv-form__card-header">
+                <div className="cv-form__card-label">Reference {i + 1}</div>
+                <button
+                  className="cv-form__card-btn cv-form__card-btn--delete"
+                  onClick={() => delArr("references", i)}
+                  type="button"
+                ><i className="fas fa-trash"></i></button>
+              </div>
               <div className="cv-form__grid">
                 <div className="cv-form__field">
                   <Label>Full Name</Label>
