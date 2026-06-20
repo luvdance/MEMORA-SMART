@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import TemplateGallery from "./TemplateGallery";
 import "../CVBuilder.css";
 
 const features = [
   { icon: "fas fa-magic", title: "AI-Powered Writing", desc: "Let Claude AI write your summary, objectives and job responsibilities for you in seconds." },
-  { icon: "fas fa-paint-brush", title: "3 Pro Templates", desc: "Choose from Classic Pro, Modern Edge, or Executive Plus — each designed to impress." },
-  { icon: "fas fa-palette", title: "Custom Accent Colors", desc: "Personalize your CV with 5 accent color options to match your personal brand." },
+  { icon: "fas fa-bolt", title: "Free ATS Score Checker", desc: "Find out if your CV passes recruiter software — and get an AI rewrite of the weak parts." },
+  { icon: "fas fa-paint-brush", title: "7 Pro Templates", desc: "Classic Pro, Modern Edge, Executive Plus, Minimal Clean, Creative Side, Corporate Bold & Traditional Profile." },
+  { icon: "fas fa-palette", title: "Full Customization", desc: "Accent colors, fonts, spacing, section order — make it truly yours." },
   { icon: "fas fa-file-pdf", title: "PDF Export", desc: "Download a print-ready A4 PDF of your CV instantly with one click." },
   { icon: "fas fa-save", title: "Save & Retrieve", desc: "Create an account to save your CV to the cloud and update it anytime." },
-  { icon: "fas fa-mobile-alt", title: "Mobile Friendly", desc: "Build and preview your CV on any device — desktop, tablet, or phone." },
 ];
 
 export default function CVLanding() {
@@ -29,6 +30,11 @@ export default function CVLanding() {
     } else {
       navigate("/auth", { state: { from: "/dashboard/cv-builder" } });
     }
+  };
+
+  const handleSelectTemplate = () => {
+    // Templates are picked inside the builder; just route them there
+    handleBuildCV();
   };
 
   const handleCreateAccount = () => {
@@ -81,23 +87,24 @@ export default function CVLanding() {
   return (
     <div className="cvl">
 
-{/* SVG GRADIENT DEFS */}
-  <svg width="0" height="0" style={{ position: "absolute" }}>
-    <defs>
-      <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#22c55e" />
-        <stop offset="100%" stopColor="#4ade80" />
-      </linearGradient>
-    </defs>
-  </svg> 
+      {/* SVG GRADIENT DEFS */}
+      <svg width="0" height="0" style={{ position: "absolute" }}>
+        <defs>
+          <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#22c55e" />
+            <stop offset="100%" stopColor="#4ade80" />
+          </linearGradient>
+        </defs>
+      </svg>
 
       {/* NAVBAR */}
       <nav className="cvl__nav">
         <div className="cvl__nav-links">
+          <a href="#templates">Templates</a>
           <a href="#features">Features</a>
           <a href="#how">How it Works</a>
-          <button 
-            className="cvl__nav-ats-btn" 
+          <button
+            className="cvl__nav-ats-btn"
             onClick={() => navigate("/ats-check")}
           >
             <i className="fas fa-bolt"></i> ATS Checker
@@ -143,25 +150,26 @@ export default function CVLanding() {
             in Minutes
           </h1>
           <p>
-            Create stunning, recruiter-ready CVs with the help of AI. Choose from beautiful
-            templates, customize your colors, and download a perfect PDF — all in one place.
+            Create stunning, recruiter-ready CVs with the help of AI. Choose from 7 real
+            templates you can preview below, customize your colors, and download a perfect
+            PDF — all in one place.
           </p>
           <div className="cvl__hero-btns">
             <button className="cvl__btn-primary cvl__btn-lg" onClick={handleBuildCV}>
               <i className="fas fa-file-alt"></i>
               {user ? "Go to CV Builder" : "Build My CV Now"}
             </button>
-            <button className="cvl__btn-outline cvl__btn-lg" onClick={handleCreateAccount}>
-              <i className="fas fa-user-plus"></i>
-              {user ? "Go to Dashboard" : "Create Free Account"}
+            <button className="cvl__btn-outline cvl__btn-lg" onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}>
+              <i className="fas fa-eye"></i>
+              See the Templates
             </button>
           </div>
           <div className="cvl__hero-stats">
-            <div className="cvl__stat"><span>3</span><p>Templates</p></div>
+            <div className="cvl__stat"><span>7</span><p>Templates</p></div>
             <div className="cvl__stat-divider"></div>
             <div className="cvl__stat"><span>AI</span><p>Powered Writing</p></div>
             <div className="cvl__stat-divider"></div>
-            <div className="cvl__stat"><span>PDF</span><p>Instant Export</p></div>
+            <div className="cvl__stat"><span>Free</span><p>ATS Score Check</p></div>
           </div>
         </div>
         <div className="cvl__hero-visual">
@@ -193,12 +201,12 @@ export default function CVLanding() {
             <i className="fas fa-file-pdf"></i> PDF Ready
           </div>
           <div className="cvl__badge cvl__badge--templates">
-            <i className="fas fa-paint-brush"></i> 3 Templates
+            <i className="fas fa-paint-brush"></i> 7 Templates
           </div>
         </div>
       </section>
 
-{/* ATS SCORE CTA */}
+      {/* ATS SCORE CTA */}
       <section className="cvl__ats-cta">
         <div className="cvl__ats-cta-inner">
           <div className="cvl__ats-cta-content">
@@ -209,9 +217,9 @@ export default function CVLanding() {
               Is your CV <span className="cvl__gradient-text">invisible</span> to recruiters?
             </h2>
             <p>
-              <strong>75% of Nigerian companies</strong> use Applicant Tracking Systems. 
-              Your CV gets filtered by software <strong>before</strong> a human ever sees it. 
-              Find out your ATS score in 10 seconds — and fix what's blocking your interviews.
+              <strong>75% of Nigerian companies</strong> use Applicant Tracking Systems.
+              Your CV gets filtered by software <strong>before</strong> a human ever sees it.
+              Find out your ATS score in 10 seconds — then let AI rewrite the weak parts for you.
             </p>
             <div className="cvl__ats-features">
               <div className="cvl__ats-feature">
@@ -221,10 +229,10 @@ export default function CVLanding() {
                 <i className="fas fa-check"></i> Score 0-100 with detailed breakdown
               </div>
               <div className="cvl__ats-feature">
-                <i className="fas fa-check"></i> 5 specific improvements with examples
+                <i className="fas fa-check"></i> AI rewrites weak sections automatically
               </div>
               <div className="cvl__ats-feature">
-                <i className="fas fa-check"></i> No signup required
+                <i className="fas fa-check"></i> No signup required to check your score
               </div>
             </div>
             <button
@@ -260,6 +268,17 @@ export default function CVLanding() {
         </div>
       </section>
 
+      {/* TEMPLATE GALLERY — REAL PREVIEWS */}
+      <section className="cvl__gallery" id="templates">
+        <div className="cvl__section-label">See Before You Sign Up</div>
+        <h2>7 Real Templates — <span className="cvl__gradient-text">No Guesswork</span></h2>
+        <p className="cvl__section-sub">
+          These are the actual templates in the builder, rendered live with sample data.
+          Click any preview to see it full-size before you commit.
+        </p>
+        <TemplateGallery onSelectTemplate={handleSelectTemplate} />
+      </section>
+
       {/* FEATURES */}
       <section className="cvl__features" id="features">
         <div className="cvl__section-label">What You Get</div>
@@ -284,9 +303,9 @@ export default function CVLanding() {
         <h2>How It <span className="cvl__gradient-text">Works</span></h2>
         <div className="cvl__steps">
           {[
-            { num: "01", icon: "fas fa-user-plus", title: "Create Account", desc: "Sign up free to save and manage your CVs from anywhere." },
-            { num: "02", icon: "fas fa-paint-brush", title: "Pick a Template", desc: "Choose from 3 professional designs and customize your accent color." },
-            { num: "03", icon: "fas fa-magic", title: "Fill with AI Help", desc: "Use AI to generate summaries, objectives and job responsibilities." },
+            { num: "01", icon: "fas fa-bolt", title: "Check Your ATS Score", desc: "Upload your current CV (or skip this) to see exactly what's holding you back — free, no signup." },
+            { num: "02", icon: "fas fa-paint-brush", title: "Pick a Template", desc: "Choose from 7 professional designs, previewed live, and customize your accent color." },
+            { num: "03", icon: "fas fa-magic", title: "Let AI Fill It In", desc: "Use AI to write summaries, objectives and job responsibilities — or optimize your whole CV in one click." },
             { num: "04", icon: "fas fa-download", title: "Download PDF", desc: "Export a polished, print-ready PDF with one click." },
           ].map((s, i) => (
             <div className="cvl__step" key={i}>
@@ -329,35 +348,21 @@ export default function CVLanding() {
                 onChange={(e) => setPassword(e.target.value)}
               />
 
-              {/* ERROR */}
               {error && (
                 <div style={{
-                  background: "#fff1f1",
-                  border: "1px solid #fca5a5",
-                  color: "#dc2626",
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  fontSize: "0.82rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
+                  background: "#fff1f1", border: "1px solid #fca5a5", color: "#dc2626",
+                  padding: "10px 14px", borderRadius: "10px", fontSize: "0.82rem",
+                  display: "flex", alignItems: "center", gap: "8px",
                 }}>
                   <i className="fas fa-exclamation-circle"></i> {error}
                 </div>
               )}
 
-              {/* SUCCESS */}
               {success && (
                 <div style={{
-                  background: "#f0fdf4",
-                  border: "1px solid #86efac",
-                  color: "#16a34a",
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  fontSize: "0.82rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
+                  background: "#f0fdf4", border: "1px solid #86efac", color: "#16a34a",
+                  padding: "10px 14px", borderRadius: "10px", fontSize: "0.82rem",
+                  display: "flex", alignItems: "center", gap: "8px",
                 }}>
                   <i className="fas fa-check-circle"></i> Account created! Redirecting to CV Builder...
                 </div>
@@ -406,7 +411,7 @@ export default function CVLanding() {
 
       {/* FOOTER */}
       <footer className="cvl__footer">
-        <p>© 2025 CV Builder · <span className="cvl__gradient-text">Memora Smart Technologies</span></p>
+        <p>© 2026 CV Builder · <span className="cvl__gradient-text">Memora Smart Technologies</span></p>
         <button className="cvl__back-home" onClick={() => navigate("/")}>
           <i className="fas fa-home"></i> Back to Main Site
         </button>
