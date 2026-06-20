@@ -23,20 +23,25 @@ export default function TemplateGallery({ onSelectTemplate }) {
               <div
                 className="cvl__gallery-thumb"
                 onClick={() => setExpandedIndex(i)}
-              >
+                >
                 <div className="cvl__gallery-thumb-inner">
-                  <TemplateComp
-                    cv={SAMPLE_CV}
-                    accent={info.accent}
-                    format={SAMPLE_FORMAT}
-                    sectionOrder={SAMPLE_SECTION_ORDER}
-                    theme={info.theme}
-                  />
+                    <div
+                    className="cvl__gallery-page"
+                    style={{ background: info.theme.bg, width: "794px", minHeight: "1123px" }}
+                    >
+                    <TemplateComp
+                        cv={SAMPLE_CV}
+                        accent={info.accent}
+                        format={SAMPLE_FORMAT}
+                        sectionOrder={SAMPLE_SECTION_ORDER}
+                        theme={info.theme}
+                    />
+                    </div>
                 </div>
                 <div className="cvl__gallery-expand">
-                  <i className="fas fa-search-plus"></i> Click to preview
+                    <i className="fas fa-search-plus"></i> Click to preview
                 </div>
-              </div>
+                </div>
               <div className="cvl__gallery-footer">
                 <span className="cvl__gallery-name">{info.name}</span>
                 <button
@@ -62,19 +67,24 @@ export default function TemplateGallery({ onSelectTemplate }) {
               </button>
             </div>
             <div className="cvl__gallery-modal-body">
-              {(() => {
+            {(() => {
                 const TemplateComp = TEMPLATE_COMPONENTS[expandedIndex];
                 const info = TEMPLATE_INFO[expandedIndex];
                 return (
-                  <TemplateComp
+                <div
+                    className="cvl__gallery-page"
+                    style={{ background: info.theme.bg, width: "794px", minHeight: "1123px" }}
+                >
+                    <TemplateComp
                     cv={SAMPLE_CV}
                     accent={info.accent}
                     format={SAMPLE_FORMAT}
                     sectionOrder={SAMPLE_SECTION_ORDER}
                     theme={info.theme}
-                  />
+                    />
+                </div>
                 );
-              })()}
+            })()}
             </div>
             <div className="cvl__gallery-modal-footer">
               <button
