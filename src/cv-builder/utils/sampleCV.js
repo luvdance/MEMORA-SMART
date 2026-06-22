@@ -88,6 +88,6 @@ export const TEMPLATE_INFO = [
   { name: "Executive Plus", accent: "#6699FF", theme: { bg: "#ffffff", text: "#1a1a1a", sidebar: "#1e293b" } },
   { name: "Minimal Clean", accent: "#16a34a", theme: { bg: "#ffffff", text: "#1a1a1a" } },
   { name: "Creative Side", accent: "#9D00FF", theme: { bg: "#ffffff", text: "#1a1a1a" } },
-  { name: "Corporate Bold", accent: "#dc2626", theme: { bg: "#ffffff", text: "#1a1a1a", sidebar: "#1e293b" } },
+  { name: "Corporate Bold", accent: "#2563eb", theme: { bg: "#ffffff", text: "#1a1a1a", sidebar: "#0f1f3d" } },
   { name: "Traditional Profile", accent: "#0f172a", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 ];

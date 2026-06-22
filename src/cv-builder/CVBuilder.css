@@ -3968,6 +3968,7 @@
   transform: scale(0.34);
   transform-origin: top left;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .cvl__section-sub{
