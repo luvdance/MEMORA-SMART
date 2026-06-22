@@ -3926,6 +3926,7 @@
 .cvl__gallery {
   padding: 80px 24px;
   background: #fafbff;
+  text-align: center;
 }
 
 .cvl__gallery-grid {
@@ -3970,6 +3971,7 @@
   width: 794px;
   min-height: 1123px;
   box-sizing: border-box;
+  text-align: left;
 }
 
 .cvl__gallery-expand {
