@@ -3947,6 +3947,7 @@
   border: 1px solid rgba(0,0,0,0.06);
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   transition: 0.25s;
+  width: 100% !important;
 }
 
 .cvl__gallery-card:hover {
@@ -3975,7 +3976,7 @@ text-align: center;
 }
 
 .cvl__gallery-page {
-  width: 100% !important;
+  width: 794px;
   min-height: 1123px;
   box-sizing: border-box;
   text-align: left;
