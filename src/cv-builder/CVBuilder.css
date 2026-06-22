@@ -3975,7 +3975,7 @@ text-align: center;
 }
 
 .cvl__gallery-page {
-  width: 100%;
+  width: 794px;
   min-height: 1123px;
   box-sizing: border-box;
   text-align: left;
@@ -3996,6 +3996,7 @@ text-align: center;
   gap: 6px;
   opacity: 0;
   transition: 0.2s;
+  padding: 10px;
 }
 
 .cvl__gallery-thumb:hover .cvl__gallery-expand {
