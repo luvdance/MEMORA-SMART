@@ -3960,15 +3960,20 @@
   overflow: hidden;
   cursor: pointer;
   background: #f1f5f9;
+  display: flex;
+  justify-content: center;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
 .cvl__gallery-thumb-inner {
   width: 794px;
   height: 1123px;
   transform: scale(0.34);
-  transform-origin: top left;
+  transform-origin: top center;
   pointer-events: none;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .cvl__section-sub{
