@@ -3968,7 +3968,6 @@
   transform: scale(0.34);
   transform-origin: top left;
   pointer-events: none;
-
 }
 
 .cvl__section-sub{
@@ -3976,7 +3975,7 @@ text-align: center;
 }
 
 .cvl__gallery-page {
-  width: 794px;
+  width: 100%;
   min-height: 1123px;
   box-sizing: border-box;
   text-align: left;
