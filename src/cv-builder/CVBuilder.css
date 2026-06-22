@@ -3927,6 +3927,7 @@
   padding: 80px 24px;
   background: #fafbff;
   text-align: center;
+  align-items: center;
 }
 
 .cvl__gallery-grid {
