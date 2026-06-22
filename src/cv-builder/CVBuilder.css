@@ -3963,7 +3963,7 @@
 }
 
 .cvl__gallery-thumb-inner {
-  width: 100% !important;
+  width: 794px;
   height: 1123px;
   transform: scale(0.34);
   transform-origin: top left;
@@ -3975,7 +3975,7 @@ text-align: center;
 }
 
 .cvl__gallery-page {
-  width: 794px;
+  width: 100% !important;
   min-height: 1123px;
   box-sizing: border-box;
   text-align: left;
