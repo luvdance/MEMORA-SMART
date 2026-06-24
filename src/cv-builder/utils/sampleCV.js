@@ -1,3 +1,5 @@
+import thumbPhoto from "../../assets/thumbnail.png";
+
 export const SAMPLE_CV = {
   name: "Adaeze Okonkwo",
   jobTitle: "Senior Product Manager",
@@ -9,7 +11,7 @@ export const SAMPLE_CV = {
   github: "",
   summary: "Results-driven Product Manager with 6+ years leading cross-functional teams to deliver high-impact digital products. Increased user retention by 34% at a leading fintech startup.",
   objective: "Seeking to leverage data-driven product strategy and stakeholder leadership to drive growth at a high-scale technology company.",
-  photo: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2Njk5RkYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM5RDAwRkYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSIzNSIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjkiLz48cGF0aCBkPSJNNTAgMTcwIFEgNTAgMTIwIDEwMCAxMjAgUSAxNTAgMTIwIDE1MCAxNzAgWiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjkiLz48L3N2Zz4=",
+  photo: thumbPhoto,
   experience: [
     {
       company: "Paystack",

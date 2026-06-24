@@ -3922,7 +3922,7 @@
   color: #9D00FF;
 }
 
-/* ── TEMPLATE GALLERY ── */
+/* ── TEMPLATE GALLERY (now a carousel) ── */
 .cvl__gallery {
   padding: 80px 24px;
   background: #fafbff;
@@ -3933,49 +3933,11 @@
   flex-direction: column;
 }
 
-.cvl__gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-  gap: 24px;
-  max-width: 1200px;
-  margin: 40px auto 0;
-  justify-content: center;
+.cvl__section-sub {
+  text-align: center;
 }
 
-.cvl__gallery-card {
-  background: #fff;
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  transition: 0.25s;
-}
-
-.cvl__gallery-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.1);
-}
-
-.cvl__gallery-thumb {
-  position: relative;
-  height: 300px;
-  overflow: hidden;
-  cursor: pointer;
-  background: #f1f5f9;
-  width: 270px;
-}
-
-.cvl__gallery-thumb-inner {
-  width: 794px;
-  height: 1123px;
-  transform: scale(0.34);
-  transform-origin: top left;
-  pointer-events: none;
-}
-
-.cvl__section-sub{
-text-align: center;
-}
-
+/* Reused page wrapper (real A4 dimensions, unscaled) */
 .cvl__gallery-page {
   width: 794px;
   min-height: 1123px;
@@ -3983,40 +3945,6 @@ text-align: center;
   text-align: left;
   overflow: hidden;
   padding-right: 8px;
-}
-
-.cvl__gallery-expand {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.0);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  gap: 6px;
-  opacity: 0;
-  transition: 0.2s;
-}
-
-.cvl__gallery-thumb:hover .cvl__gallery-expand {
-  opacity: 1;
-  background: rgba(15, 23, 42, 0.55);
-}
-
-.cvl__gallery-footer {
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.cvl__gallery-name {
-  font-weight: 800;
-  font-size: 0.92rem;
-  color: #111;
 }
 
 .cvl__gallery-use-btn {
@@ -4039,7 +3967,180 @@ text-align: center;
   opacity: 0.9;
 }
 
-/* MODAL */
+/* ── CAROUSEL ── */
+.cvl__carousel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 40px auto 0;
+  padding: 0 70px;
+  box-sizing: border-box;
+}
+
+.cvl__carousel-track {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+.cvl__carousel-card {
+  position: absolute;
+  width: 230px;
+  cursor: pointer;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease;
+  transform:
+    translateX(calc(var(--offset) * 160px))
+    scale(calc(1 - min(abs(var(--offset)), 3) * 0.14))
+    rotateY(calc(var(--offset) * -8deg));
+  filter: blur(calc(min(abs(var(--offset)), 3) * 0.6px));
+  z-index: calc(10 - abs(var(--offset)));
+}
+
+.cvl__carousel-card--active {
+  width: 260px;
+  opacity: 1 !important;
+  filter: none !important;
+  z-index: 20;
+}
+
+.cvl__carousel-card-inner {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border: 3px solid transparent;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.cvl__carousel-card--active .cvl__carousel-card-inner {
+  border-color: #0000ff;
+  box-shadow: 0 20px 50px rgba(157, 0, 255, 0.35);
+}
+
+.cvl__carousel-thumb {
+  position: relative;
+  height: 290px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.cvl__carousel-card--active .cvl__carousel-thumb {
+  height: 320px;
+}
+
+/* Inner scaled CV page (carousel-specific scale, smaller than old grid) */
+.cvl__carousel-thumb .cvl__gallery-thumb-inner {
+  width: 794px;
+  height: 1123px;
+  transform: scale(0.29);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.cvl__carousel-card--active .cvl__gallery-thumb-inner {
+  transform: scale(0.328);
+}
+
+.cvl__carousel-expand-hint {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 6px;
+  opacity: 0;
+  transition: 0.2s;
+}
+
+.cvl__carousel-card--active:hover .cvl__carousel-expand-hint {
+  opacity: 1;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.cvl__carousel-card-footer {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #fff;
+}
+
+.cvl__carousel-card-name {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: #111;
+  white-space: nowrap;
+}
+
+/* Arrows */
+.cvl__carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #333;
+  z-index: 30;
+  transition: 0.2s;
+}
+
+.cvl__carousel-arrow:hover {
+  background: linear-gradient(90deg, #6699FF, #9D00FF);
+  color: #fff;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.cvl__carousel-arrow--left { left: 0; }
+.cvl__carousel-arrow--right { right: 0; }
+
+/* Dots */
+.cvl__carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.cvl__carousel-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: none;
+  background: #e2e8f0;
+  cursor: pointer;
+  padding: 0;
+  transition: 0.25s;
+}
+
+.cvl__carousel-dot--active {
+  width: 24px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #6699FF, #9D00FF);
+}
+
+/* ── MODAL (unchanged, reused on card click) ── */
 .cvl__gallery-modal {
   position: fixed;
   inset: 0;
@@ -4095,16 +4196,11 @@ text-align: center;
   justify-content: center;
 }
 
-.cvl__gallery-modal-body {
-  display: flex;
-  justify-content: center;
-}
-
 .cvl__gallery-modal-body .cvl__gallery-page {
   transform: scale(0.72);
   transform-origin: top center;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  margin-bottom: -300px; /* compensate for scaled height so modal doesn't have huge blank space */
+  margin-bottom: -300px;
 }
 
 .cvl__gallery-modal-footer {
@@ -4114,33 +4210,67 @@ text-align: center;
   justify-content: center;
 }
 
+/* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .cvl__gallery-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    justify-content: center;
+  .cvl__carousel {
+    padding: 0 50px;
   }
-  .cvl__gallery-thumb {
-    width: 206px;
-    height: 220px;
-    margin: 0 auto;
+  .cvl__carousel-track {
+    height: 300px;
   }
-  .cvl__gallery-thumb-inner {
-    transform: scale(0.26);
+  .cvl__carousel-card {
+    width: 170px;
+    transform:
+      translateX(calc(var(--offset) * 110px))
+      scale(calc(1 - min(abs(var(--offset)), 3) * 0.16))
+      rotateY(calc(var(--offset) * -6deg));
+  }
+  .cvl__carousel-card--active {
+    width: 195px;
+  }
+  .cvl__carousel-thumb {
+    height: 210px;
+  }
+  .cvl__carousel-card--active .cvl__carousel-thumb {
+    height: 235px;
+  }
+  .cvl__carousel-thumb .cvl__gallery-thumb-inner {
+    transform: scale(0.21);
+  }
+  .cvl__carousel-card--active .cvl__gallery-thumb-inner {
+    transform: scale(0.245);
+  }
+  .cvl__carousel-arrow {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
   }
 }
 
 @media (max-width: 480px) {
-  .cvl__gallery-grid {
-    grid-template-columns: 1fr;
-    justify-content: center;
+  .cvl__carousel {
+    padding: 0 40px;
   }
-  .cvl__gallery-thumb {
-    width: 270px;
-    height: 280px;
-    margin: 0 auto;
+  .cvl__carousel-card {
+    width: 140px;
+    transform:
+      translateX(calc(var(--offset) * 85px))
+      scale(calc(1 - min(abs(var(--offset)), 3) * 0.18))
+      rotateY(calc(var(--offset) * -5deg));
   }
-  .cvl__gallery-thumb-inner {
-    transform: scale(0.34);
+  .cvl__carousel-card--active {
+    width: 160px;
+  }
+  .cvl__carousel-thumb {
+    height: 165px;
+  }
+  .cvl__carousel-card--active .cvl__carousel-thumb {
+    height: 185px;
+  }
+  .cvl__carousel-thumb .cvl__gallery-thumb-inner {
+    transform: scale(0.176);
+  }
+  .cvl__carousel-card--active .cvl__gallery-thumb-inner {
+    transform: scale(0.2);
   }
 }
