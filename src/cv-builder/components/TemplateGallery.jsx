@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
   CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline,
 } from "./CVTemplates";
 import { SAMPLE_CV, SAMPLE_FORMAT, SAMPLE_SECTION_ORDER, TEMPLATE_INFO } from "../utils/sampleCV";
-import { useState, useEffect } from "react";
+
 
 
 const TEMPLATE_COMPONENTS = [
