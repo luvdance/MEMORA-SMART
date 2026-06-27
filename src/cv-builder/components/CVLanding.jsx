@@ -165,7 +165,7 @@ export default function CVLanding() {
             </button>
           </div>
           <div className="cvl__hero-stats">
-            <div className="cvl__stat"><span>7</span><p>Templates</p></div>
+            <div className="cvl__stat"><span>Modern</span><p>Templates</p></div>
             <div className="cvl__stat-divider"></div>
             <div className="cvl__stat"><span>AI</span><p>Powered Writing</p></div>
             <div className="cvl__stat-divider"></div>
