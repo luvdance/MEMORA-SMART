@@ -2692,6 +2692,11 @@
     margin: 0 !important;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
   }
+
+  .cv-preview__page-wrapper {
+  height: calc((100vw - 32px) * 1.414) !important;
+  overflow: hidden !important;
+}
 }
 
 @media screen and (max-width: 900px) {
@@ -4218,5 +4223,14 @@
 
   .cvl__gallery-modal-swipe-hint {
     display: inline-flex;
+  }
+}
+
+/*mobile modal scaling for small screens (e.g., iPhone SE) */
+@media (max-width: 600px) {
+  .cvl__gallery-modal-body .cvl__gallery-page {
+    transform: scale(calc((100vw - 60px) / 794));
+    transform-origin: top center;
+    margin-bottom: calc((100vw - 60px) / 794 * -1123px + 40px);
   }
 }
