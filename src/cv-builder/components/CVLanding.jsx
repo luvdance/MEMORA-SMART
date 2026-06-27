@@ -7,7 +7,7 @@ import "../CVBuilder.css";
 const features = [
   { icon: "fas fa-magic", title: "AI-Powered Writing", desc: "Let Claude AI write your summary, objectives and job responsibilities for you in seconds." },
   { icon: "fas fa-bolt", title: "Free ATS Score Checker", desc: "Find out if your CV passes recruiter software — and get an AI rewrite of the weak parts." },
-  { icon: "fas fa-paint-brush", title: "7 Pro Templates", desc: "Classic Pro, Modern Edge, Executive Plus, Minimal Clean, Creative Side, Corporate Bold & Traditional Profile." },
+  { icon: "fas fa-paint-brush", title: "9 Pro Templates", desc: "Classic Pro, Modern Edge, Executive Plus, Minimal Clean, Creative Side, Corporate Bold, Traditional Profile, Editorial Modern, Modern Timeline." },
   { icon: "fas fa-palette", title: "Full Customization", desc: "Accent colors, fonts, spacing, section order — make it truly yours." },
   { icon: "fas fa-file-pdf", title: "PDF Export", desc: "Download a print-ready A4 PDF of your CV instantly with one click." },
   { icon: "fas fa-save", title: "Save & Retrieve", desc: "Create an account to save your CV to the cloud and update it anytime." },
@@ -150,7 +150,7 @@ export default function CVLanding() {
             in Minutes
           </h1>
           <p>
-            Create stunning, recruiter-ready CVs with the help of AI. Choose from 7 real
+            Create stunning, recruiter-ready CVs with the help of AI. Choose from 9 real
             templates you can preview below, customize your colors, and download a perfect
             PDF — all in one place.
           </p>
@@ -304,7 +304,7 @@ export default function CVLanding() {
         <div className="cvl__steps">
           {[
             { num: "01", icon: "fas fa-bolt", title: "Check Your ATS Score", desc: "Upload your current CV (or skip this) to see exactly what's holding you back — free, no signup." },
-            { num: "02", icon: "fas fa-paint-brush", title: "Pick a Template", desc: "Choose from 7 professional designs, previewed live, and customize your accent color." },
+            { num: "02", icon: "fas fa-paint-brush", title: "Pick a Template", desc: "Choose from 9 professional designs, previewed live, and customize your accent color." },
             { num: "03", icon: "fas fa-magic", title: "Let AI Fill It In", desc: "Use AI to write summaries, objectives and job responsibilities — or optimize your whole CV in one click." },
             { num: "04", icon: "fas fa-download", title: "Download PDF", desc: "Export a polished, print-ready PDF with one click." },
           ].map((s, i) => (
