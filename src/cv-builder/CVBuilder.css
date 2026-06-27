@@ -2682,101 +2682,15 @@
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   FIX SIDEBAR TEMPLATES ON MOBILE
-══════════════════════════════════════════════════════════════ */
+/* Preview for Mobile Screens */
 @media screen and (max-width: 900px) {
-
-  /* The sidebar container in Executive Plus & Creative Side templates */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"],
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"] {
-    width: 30% !important;
-    min-width: 30% !important;
-    max-width: 30% !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* Sidebar profile photo — keep it round but smaller proportionally */
-  .cv-preview__page img[alt="profile"] {
-    max-width: 100% !important;
-    height: auto !important;
-  }
-
-  /* Main content area in sidebar templates — give it the rest */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="flex: 1"] {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   FIX SIDEBAR TEMPLATES — proper proportions on mobile
-══════════════════════════════════════════════════════════════ */
-@media screen and (max-width: 900px) {
-
-  /* SIDEBAR CONTAINER — keep it 30% of the page width */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"],
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"] {
-    width: 30% !important;
-    min-width: 30% !important;
-    max-width: 30% !important;
-    flex-shrink: 0 !important;
-    padding: 12px 8px !important;
-  }
-
-  /* Profile photo in sidebar — scale to fit container */
-  .cv-preview__page img[alt="profile"] {
-    width: 60px !important;
-    height: 60px !important;
-    object-fit: cover !important;
-  }
-
-  /* Sidebar text — let everything wrap and shrink */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"] *,
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"] * {
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    word-break: break-word !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  /* Sidebar contact items — wrap email/phone properly */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"] p,
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"] p,
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"] span,
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"] span {
-    font-size: 9px !important;
-    line-height: 1.3 !important;
-    word-break: break-all !important;
-  }
-
-  /* Sidebar name/title block */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"] > div,
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"] > div {
-    word-wrap: break-word !important;
-  }
-
-  /* Skill tags inside sidebar — smaller and wrap */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"] span[style*="border-radius"],
-  .cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"] span[style*="border-radius"] {
-    font-size: 8px !important;
-    padding: 1px 5px !important;
-  }
-
-  /* MAIN CONTENT AREA — gets the remaining 70%, allow shrinking */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="flex: 1"] {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-    padding: 12px !important;
-  }
-
-  /* Main content text wrapping */
-  .cv-preview__page > div[style*="display: flex"] > div[style*="flex: 1"] * {
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
+  .cv-preview__page {
+    width: 794px !important;
+    min-height: 1123px !important;
+    transform: scale(calc((100vw - 32px) / 794)) !important;
+    transform-origin: top left !important;
+    margin: 0 !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
   }
 }
 
