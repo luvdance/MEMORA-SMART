@@ -369,26 +369,25 @@ function renderMainSection(key, cv, accent, format, theme) {
         </Section>
       ) : null;
 
-    case "experience":
-    return cv.experience[0]?.company ? (
-      <Section key={key} title="Work Experience" accent={accent} format={format}>
-        {cv.experience.map((e, i) => (
-          <div key={i} className="cv-item" style={{ marginBottom: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <b style={{ fontSize: s, color: tc }}>{e.role}</b>
-              <span style={{ fontSize: s - 1, color: tc, opacity: 0.6 }}>
-                {e.start} – {e.current ? "Present" : e.end}
-              </span>
-            </div>
-            <div style={{ color: accent, fontSize: s - 1 }}>{e.company}</div>
-            <div style={{ whiteSpace: "pre-wrap", fontSize: s - 1, marginTop: 3, lineHeight: lh, color: tc, opacity: 0.85 }}>
-              {e.responsibilities}
-            </div>
+case "experience":
+  return cv.experience[0]?.company ? (
+    <Section key={key} title="Work Experience" accent={accent} format={format}>
+      {cv.experience.map((e, i) => (
+        <div key={i} className="cv-item" style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <b style={{ fontSize: s + 0.5, color: tc }}>{e.role}</b>
+            <span style={{ fontSize: s - 1, color: tc, opacity: 0.6 }}>
+              {e.start} – {e.current ? "Present" : e.end}
+            </span>
           </div>
-        ))}
-      </Section>
-    ) : null;
+          <div style={{ color: accent, fontSize: s, fontWeight: 600, marginBottom: 2 }}>{e.company}</div>
+          <BulletList text={e.responsibilities} fontSize={s} lineHeight={lh} color={tc} />
+        </div>
+      ))}
+    </Section>
+  ) : null;
 
+  
     case "education":
       return cv.education[0]?.school ? (
         <Section key={key} title="Education" accent={accent} format={format}>
