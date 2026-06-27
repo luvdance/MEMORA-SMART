@@ -91,5 +91,8 @@ export const TEMPLATE_INFO = [
   { name: "Minimal Clean", accent: "#16a34a", theme: { bg: "#ffffff", text: "#1a1a1a" } },
   { name: "Creative Side", accent: "#9D00FF", theme: { bg: "#ffffff", text: "#1a1a1a" } },
   { name: "Corporate Bold", accent: "#2563eb", theme: { bg: "#ffffff", text: "#1a1a1a", sidebar: "#0f1f3d" } },
-  { name: "Traditional Profile", accent: "#0f172a", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+  { name: "Traditional Profile", accent: "#0f172a", theme: { bg: "#ffffff", text: "#1a1a1a" }
+ },
+ { name: "Editorial Modern", accent: "#0f766e", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Modern Timeline", accent: "#7c3aed", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 ];

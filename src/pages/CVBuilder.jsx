@@ -445,6 +445,8 @@ const triggerPrint = () => {
               <option value={4}>Creative Side</option>
               <option value={5}>Corporate Bold</option>
               <option value={6}>Traditional Profile</option>
+              <option value={7}>Editorial Modern</option>
+              <option value={8}>Modern Timeline</option>
             </select>
           </div>
 

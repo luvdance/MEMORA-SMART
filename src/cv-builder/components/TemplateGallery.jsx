@@ -1,13 +1,14 @@
 import { useState } from "react";
 import {
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
-  CreativeSide, CorporateBold, TraditionalProfile,
+  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline,
 } from "./CVTemplates";
 import { SAMPLE_CV, SAMPLE_FORMAT, SAMPLE_SECTION_ORDER, TEMPLATE_INFO } from "../utils/sampleCV";
 
+
 const TEMPLATE_COMPONENTS = [
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
-  CreativeSide, CorporateBold, TraditionalProfile,
+  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline,
 ];
 
 export default function TemplateGallery({ onSelectTemplate }) {
