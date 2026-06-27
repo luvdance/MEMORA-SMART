@@ -2149,16 +2149,6 @@
     margin: 0 !important;
   }
 
-  /* The CV page — shrink to fit screen via transform + scale wrapper */
-  .cv-preview__page {
-    width: 100% !important;
-    display: flex;
-    min-height: 297mm !important;
-    transform: scale(calc((100vw - 32px) / 794)) !important;
-    transform-origin: top left !important;
-    margin: 0 !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
-  }
 
   /* Compensate for the scale by adjusting parent height */
   .cv-preview__page-wrapper {
