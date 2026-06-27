@@ -201,7 +201,7 @@ export default function CVLanding() {
             <i className="fas fa-file-pdf"></i> PDF Ready
           </div>
           <div className="cvl__badge cvl__badge--templates">
-            <i className="fas fa-paint-brush"></i> 7 Templates
+            <i className="fas fa-paint-brush"></i> 9 Templates
           </div>
         </div>
       </section>
@@ -271,7 +271,7 @@ export default function CVLanding() {
       {/* TEMPLATE GALLERY — REAL PREVIEWS */}
       <section className="cvl__gallery" id="templates">
         <div className="cvl__section-label">See Before You Sign Up</div>
-        <h2>7 Real Templates — <span className="cvl__gradient-text">No Guesswork</span></h2>
+        <h2>9 Real Templates — <span className="cvl__gradient-text">No Guesswork</span></h2>
         <p className="cvl__section-sub">
           These are the actual templates in the builder, rendered live with sample data.
           Click any preview to see it full-size before you commit.
