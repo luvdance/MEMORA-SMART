@@ -103,6 +103,59 @@ function ContactItem({ icon, text, color, fontSize }) {
   );
 }
 
+
+// ── BULLET LIST HELPER ──
+function BulletList({ text, fontSize, lineHeight, color }) {
+  if (!text) return null;
+
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const bulletLines = lines.filter(l => /^[-*•]\s*/.test(l));
+
+  // If most lines look like bullets, render as a real list
+  if (bulletLines.length >= Math.max(1, lines.length - 1)) {
+    return (
+      <ul style={{
+        margin: "4px 0 0",
+        paddingLeft: 18,
+        listStyleType: "disc",
+      }}>
+        {lines.map((line, i) => {
+          const cleaned = line.replace(/^[-*•]\s*/, "");
+          return (
+            <li
+              key={i}
+              style={{
+                fontSize,
+                lineHeight,
+                color,
+                opacity: 0.88,
+                marginBottom: 3,
+                paddingLeft: 2,
+              }}
+            >
+              {cleaned}
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+
+  // Fallback: plain paragraph (no bullet formatting detected)
+  return (
+    <p style={{
+      whiteSpace: "pre-wrap",
+      fontSize,
+      lineHeight,
+      color,
+      opacity: 0.88,
+      margin: "4px 0 0",
+    }}>
+      {text}
+    </p>
+  );
+}
+
 // ── HELPER COMPONENTS ──
 
 function Section({ title, accent, format, children, keepTogether = false }) {
@@ -317,24 +370,24 @@ function renderMainSection(key, cv, accent, format, theme) {
       ) : null;
 
     case "experience":
-      return cv.experience[0]?.company ? (
-        <Section key={key} title="Work Experience" accent={accent} format={format}>
-          {cv.experience.map((e, i) => (
-            <div key={i} className="cv-item" style={{ marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <b style={{ fontSize: s, color: tc }}>{e.role}</b>
-                <span style={{ fontSize: s - 1, color: tc, opacity: 0.6 }}>
-                  {e.start} – {e.current ? "Present" : e.end}
-                </span>
-              </div>
-              <div style={{ color: accent, fontSize: s - 1 }}>{e.company}</div>
-              <div style={{ whiteSpace: "pre-wrap", fontSize: s - 1, marginTop: 3, lineHeight: lh, color: tc, opacity: 0.85 }}>
-                {e.responsibilities}
-              </div>
+    return cv.experience[0]?.company ? (
+      <Section key={key} title="Work Experience" accent={accent} format={format}>
+        {cv.experience.map((e, i) => (
+          <div key={i} className="cv-item" style={{ marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <b style={{ fontSize: s, color: tc }}>{e.role}</b>
+              <span style={{ fontSize: s - 1, color: tc, opacity: 0.6 }}>
+                {e.start} – {e.current ? "Present" : e.end}
+              </span>
             </div>
-          ))}
-        </Section>
-      ) : null;
+            <div style={{ color: accent, fontSize: s - 1 }}>{e.company}</div>
+            <div style={{ whiteSpace: "pre-wrap", fontSize: s - 1, marginTop: 3, lineHeight: lh, color: tc, opacity: 0.85 }}>
+              {e.responsibilities}
+            </div>
+          </div>
+        ))}
+      </Section>
+    ) : null;
 
     case "education":
       return cv.education[0]?.school ? (
@@ -544,15 +597,13 @@ function renderMinimalSection(key, cv, accent, format, theme) {
           {cv.experience.map((e, i) => (
             <div key={i} className="cv-item" style={{ marginBottom: 10, paddingLeft: 10, borderLeft: `2px solid ${accent}` }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <b style={{ fontSize: s, color: tc }}>{e.role}</b>
+                <b style={{ fontSize: s + 0.5, color: tc }}>{e.role}</b>
                 <span style={{ fontSize: s - 1, color: tc, opacity: 0.55 }}>
                   {e.start} – {e.current ? "Present" : e.end}
                 </span>
               </div>
               <div style={{ fontSize: s - 1, color: accent, marginBottom: 2 }}>{e.company}</div>
-              <div style={{ whiteSpace: "pre-wrap", fontSize: s - 1, lineHeight: lh, color: tc, opacity: 0.8 }}>
-                {e.responsibilities}
-              </div>
+              <BulletList text={e.responsibilities} fontSize={s} lineHeight={lh} color={tc} />
             </div>
           ))}
         </MinimalSection>

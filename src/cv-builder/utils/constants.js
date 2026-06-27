@@ -27,11 +27,11 @@ export const defaultTheme = {
 
 export const defaultFormat = {
   fontFamily: "Georgia, serif",
-  nameFontSize: 22,
-  headingFontSize: 11,
-  bodyFontSize: 11,
+  nameFontSize: 28,
+  headingFontSize: 13,
+  bodyFontSize: 11.5,
   lineHeight: 1.5,
-  pagePadding: 24,
+  pagePadding: 26,
   nameBold: true,
   nameItalic: false,
   headingBold: true,
@@ -67,7 +67,7 @@ export const FONT_OPTIONS = [
 ];
 
 export const emptyCV = {
-  name: "", email: "", phone: "", address: "", linkedin: "", website: "",
+  name: "", email: "", phone: "", address: "", linkedin: "", website: "", github: "",
   jobTitle: "", summary: "", objective: "",
 
   // ── BIO DATA (all optional) ──

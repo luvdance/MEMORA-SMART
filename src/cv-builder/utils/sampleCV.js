@@ -67,11 +67,11 @@ export const SAMPLE_CV = {
 
 export const SAMPLE_FORMAT = {
   fontFamily: "'Helvetica Neue', Helvetica, 'Inter', sans-serif",
-  nameFontSize: 22,
-  bodyFontSize: 10.5,
-  headingFontSize: 12,
-  pagePadding: 24,
-  lineHeight: 1.4,
+  nameFontSize: 30,
+  bodyFontSize: 12,
+  headingFontSize: 14,
+  pagePadding: 28,
+  lineHeight: 1.5,
   headingBold: true,
   headingItalic: false,
   headingUppercase: true,
