@@ -4140,7 +4140,7 @@
   background: linear-gradient(90deg, #6699FF, #9D00FF);
 }
 
-/* ── MODAL (unchanged, reused on card click) ── */
+/* ── MODAL ── */
 .cvl__gallery-modal {
   position: fixed;
   inset: 0;
@@ -4158,6 +4158,7 @@
   border-radius: 18px;
   max-width: 720px;
   width: 100%;
+  height: 90vh;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -4171,15 +4172,6 @@
   gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid #eee;
-}
-
-.cvl__gallery-modal-counter {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #888;
-  background: #f1f5f9;
-  padding: 4px 10px;
-  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -4206,23 +4198,27 @@
   height: 32px;
   border-radius: 50%;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .cvl__gallery-modal-body-wrap {
   position: relative;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
-  touch-action: pan-y;
 }
 
 .cvl__gallery-modal-body {
-  height: 100%;
+  position: absolute;
+  inset: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 20px 56px;
   background: #f1f5f9;
   display: flex;
   justify-content: center;
   box-sizing: border-box;
+  touch-action: pan-y;
 }
 
 .cvl__gallery-modal-body .cvl__gallery-page {
@@ -4237,6 +4233,7 @@
   border-top: 1px solid #eee;
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .cvl__gallery-modal-nav {
@@ -4268,103 +4265,6 @@
 .cvl__gallery-modal-nav--left { left: 10px; }
 .cvl__gallery-modal-nav--right { right: 10px; }
 
-@media (max-width: 600px) {
-  .cvl__gallery-modal-nav {
-    width: 34px;
-    height: 34px;
-    font-size: 0.8rem;
-  }
-  .cvl__gallery-modal-nav--left { left: 6px; }
-  .cvl__gallery-modal-nav--right { right: 6px; }
-  .cvl__gallery-modal-header h3 {
-    font-size: 0.95rem;
-  }
-  .cvl__gallery-modal-counter {
-    font-size: 0.7rem;
-    padding: 3px 8px;
-  }
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 768px) {
-  .cvl__carousel {
-    padding: 0 50px;
-  }
-  .cvl__carousel-track {
-    height: 300px;
-  }
-  .cvl__carousel-card {
-    width: 170px;
-    transform:
-      translateX(calc(var(--offset) * 110px))
-      scale(calc(1 - min(abs(var(--offset)), 3) * 0.16))
-      rotateY(calc(var(--offset) * -6deg));
-  }
-  .cvl__carousel-card--active {
-    width: 195px;
-  }
-  .cvl__carousel-thumb {
-    height: 210px;
-  }
-  .cvl__carousel-card--active .cvl__carousel-thumb {
-    height: 235px;
-  }
-  .cvl__carousel-thumb .cvl__gallery-thumb-inner {
-    transform: scale(0.21);
-  }
-  .cvl__carousel-card--active .cvl__gallery-thumb-inner {
-    transform: scale(0.245);
-  }
-  .cvl__carousel-arrow {
-    width: 38px;
-    height: 38px;
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .cvl__carousel {
-    padding: 0 40px;
-  }
-  .cvl__carousel-card {
-    width: 140px;
-    transform:
-      translateX(calc(var(--offset) * 85px))
-      scale(calc(1 - min(abs(var(--offset)), 3) * 0.18))
-      rotateY(calc(var(--offset) * -5deg));
-  }
-  .cvl__carousel-card--active {
-    width: 160px;
-  }
-  .cvl__carousel-thumb {
-    height: 165px;
-  }
-  .cvl__carousel-card--active .cvl__carousel-thumb {
-    height: 185px;
-  }
-  .cvl__carousel-thumb .cvl__gallery-thumb-inner {
-    transform: scale(0.176);
-  }
-  .cvl__carousel-card--active .cvl__gallery-thumb-inner {
-    transform: scale(0.2);
-  }
-}
-
-@media (max-width: 600px) {
-  .cvl__gallery-modal-body {
-    padding: 16px 14px;
-  }
-  /* On phones, hide the click arrows — swipe is the primary interaction */
-  .cvl__gallery-modal-nav {
-    width: 30px;
-    height: 30px;
-    font-size: 0.75rem;
-    opacity: 0.85;
-  }
-  .cvl__gallery-modal-nav--left { left: 4px; }
-  .cvl__gallery-modal-nav--right { right: 4px; }
-}
-
 .cvl__gallery-modal-swipe-hint {
   display: none;
   font-size: 0.7rem;
@@ -4374,6 +4274,34 @@
 }
 
 @media (max-width: 600px) {
+  .cvl__gallery-modal-box {
+    height: 85vh;
+    max-height: 85vh;
+  }
+
+  .cvl__gallery-modal-body {
+    padding: 16px 14px;
+  }
+
+  .cvl__gallery-modal-nav {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+    opacity: 0.85;
+  }
+
+  .cvl__gallery-modal-nav--left { left: 4px; }
+  .cvl__gallery-modal-nav--right { right: 4px; }
+
+  .cvl__gallery-modal-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .cvl__gallery-modal-counter {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
   .cvl__gallery-modal-swipe-hint {
     display: inline-flex;
   }
