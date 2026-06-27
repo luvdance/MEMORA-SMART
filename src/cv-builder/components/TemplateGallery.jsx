@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
   CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline,
@@ -55,6 +55,32 @@ export default function TemplateGallery({ onSelectTemplate }) {
   return () => window.removeEventListener("keydown", handleKey);
 }, [expandedIndex]);
 
+//swipe gestures
+const touchStartX = useRef(0);
+const touchEndX = useRef(0);
+
+const handleTouchStart = (e) => {
+  touchStartX.current = e.touches[0].clientX;
+};
+
+const handleTouchMove = (e) => {
+  touchEndX.current = e.touches[0].clientX;
+};
+
+const handleTouchEnd = () => {
+  const swipeDistance = touchStartX.current - touchEndX.current;
+  const minSwipeDistance = 50;
+
+  if (swipeDistance > minSwipeDistance) {
+    modalNext(); // swiped left → next
+  } else if (swipeDistance < -minSwipeDistance) {
+    modalPrev(); // swiped right → previous
+  }
+
+  touchStartX.current = 0;
+  touchEndX.current = 0;
+};
+
   return (
     <>
       <div className="cvl__carousel">
@@ -69,7 +95,9 @@ export default function TemplateGallery({ onSelectTemplate }) {
             const isActive = offset === 0;
             // Only render cards within visual range for performance
             if (Math.abs(offset) > 3) return null;
-
+            <span className="cvl__gallery-modal-swipe-hint">
+            <i className="fas fa-hand-pointer"></i> Swipe to browse
+          </span>
             return (
               <div
                 key={i}
@@ -152,15 +180,12 @@ export default function TemplateGallery({ onSelectTemplate }) {
                 </button>
               </div>
 
-              <div className="cvl__gallery-modal-body-wrap">
-                <button
-                  className="cvl__gallery-modal-nav cvl__gallery-modal-nav--left"
-                  onClick={modalPrev}
-                  aria-label="Previous template"
-                >
-                  <i className="fas fa-chevron-left"></i>
-                </button>
-
+              <div
+                className="cvl__gallery-modal-body-wrap"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
                 <div className="cvl__gallery-modal-body">
                   {(() => {
                     const TemplateComp = TEMPLATE_COMPONENTS[expandedIndex];
@@ -181,6 +206,14 @@ export default function TemplateGallery({ onSelectTemplate }) {
                     );
                   })()}
                 </div>
+
+                <button
+                  className="cvl__gallery-modal-nav cvl__gallery-modal-nav--left"
+                  onClick={modalPrev}
+                  aria-label="Previous template"
+                >
+                  <i className="fas fa-chevron-left"></i>
+                </button>
 
                 <button
                   className="cvl__gallery-modal-nav cvl__gallery-modal-nav--right"
