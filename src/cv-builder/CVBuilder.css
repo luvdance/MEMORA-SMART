@@ -1786,9 +1786,9 @@
 }
 
 .cvl__badge i { color: #9D00FF; }
-.cvl__badge--ai { top: 10%; right: 5%; animation-delay: 0s; }
-.cvl__badge--pdf { bottom: 20%; right: 0%; animation-delay: 1s; }
-.cvl__badge--templates { top: 50%; left: 0%; animation-delay: 2s; }
+.cvl__badge--ai { top: 2%; right: 2%; }
+.cvl__badge--pdf { bottom: 8%; right: 4%; }
+.cvl__badge--templates { top: 42%; left: -4%; }
 
 @keyframes floatBadge {
   0%, 100% { transform: translateY(0); }
@@ -4418,4 +4418,128 @@
     margin-bottom: calc((100vw - 60px) * 1.414 - 1123px + 40px);
   }
 }
-/* ── TEMPLATE GALLERY (now a carousel) ── */
+/* ── HERO SLIDE IMAGES (now a carousel) ── */
+.cvl__hero-visual {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  min-height: 480px;
+}
+
+.cvl__hero-fan {
+  position: relative;
+  width: 320px;
+  height: 420px;
+}
+
+.cvl__hero-fan-card {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 230px;
+  height: 325px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s;
+}
+
+.cvl__hero-fan-inner {
+  width: 794px;
+  height: 1123px;
+  transform: scale(0.29);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+/* Fan positions — center card largest/sharpest, others rotated outward */
+.cvl__hero-fan-card--1 {
+  transform: translateX(-50%) translateX(-86px) translateY(18px) rotate(-14deg);
+  z-index: 1;
+  opacity: 0.85;
+}
+
+.cvl__hero-fan-card--2 {
+  transform: translateX(-50%) translateX(-34px) translateY(4px) rotate(-5deg);
+  z-index: 2;
+  opacity: 0.95;
+}
+
+.cvl__hero-fan-card--center {
+  transform: translateX(-50%) translateY(-6px) rotate(0deg) scale(1.06);
+  z-index: 4;
+  box-shadow: 0 28px 64px rgba(157, 0, 255, 0.28);
+  border: 1.5px solid rgba(157, 0, 255, 0.25);
+}
+
+.cvl__hero-fan-card--4 {
+  transform: translateX(-50%) translateX(56px) translateY(10px) rotate(11deg);
+  z-index: 3;
+  opacity: 0.9;
+}
+
+.cvl__hero-fan:hover .cvl__hero-fan-card--1 {
+  transform: translateX(-50%) translateX(-104px) translateY(8px) rotate(-18deg);
+}
+
+.cvl__hero-fan:hover .cvl__hero-fan-card--4 {
+  transform: translateX(-50%) translateX(74px) translateY(2px) rotate(15deg);
+}
+
+.cvl__hero-fan:hover .cvl__hero-fan-card--center {
+  transform: translateX(-50%) translateY(-14px) rotate(0deg) scale(1.1);
+}
+
+@media (max-width: 900px) {
+  .cvl__hero-visual {
+    min-height: 360px;
+  }
+  .cvl__hero-fan {
+    width: 260px;
+    height: 340px;
+  }
+  .cvl__hero-fan-card {
+    width: 190px;
+    height: 268px;
+  }
+  .cvl__hero-fan-card--1 {
+    transform: translateX(-50%) translateX(-66px) translateY(14px) rotate(-13deg);
+  }
+  .cvl__hero-fan-card--2 {
+    transform: translateX(-50%) translateX(-26px) translateY(2px) rotate(-5deg);
+  }
+  .cvl__hero-fan-card--center {
+    transform: translateX(-50%) translateY(-4px) scale(1.05);
+  }
+  .cvl__hero-fan-card--4 {
+    transform: translateX(-50%) translateX(44px) translateY(8px) rotate(10deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .cvl__hero-fan {
+    width: 220px;
+    height: 300px;
+  }
+  .cvl__hero-fan-card {
+    width: 160px;
+    height: 226px;
+  }
+  .cvl__hero-fan-card--1 {
+    transform: translateX(-50%) translateX(-52px) translateY(12px) rotate(-12deg);
+  }
+  .cvl__hero-fan-card--2 {
+    transform: translateX(-50%) translateX(-20px) translateY(2px) rotate(-4deg);
+  }
+  .cvl__hero-fan-card--center {
+    transform: translateX(-50%) translateY(-2px) scale(1.04);
+  }
+  .cvl__hero-fan-card--4 {
+    transform: translateX(-50%) translateX(36px) translateY(6px) rotate(9deg);
+  }
+}
