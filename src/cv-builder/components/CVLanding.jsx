@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import TemplateGallery from "./TemplateGallery";
 import "../CVBuilder.css";
+import {
+  ExecutivePlus, ModernTimeline, EditorialModern, TraditionalProfile
+} from "./CVTemplates";
+import { SAMPLE_CV, SAMPLE_FORMAT, SAMPLE_SECTION_ORDER, TEMPLATE_INFO } from "../utils/sampleCV";
 
 const features = [
   { icon: "fas fa-magic", title: "AI-Powered Writing", desc: "Let Claude AI write your summary, objectives and job responsibilities for you in seconds." },
