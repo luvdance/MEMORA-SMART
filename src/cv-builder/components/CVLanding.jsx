@@ -198,27 +198,53 @@ export default function CVLanding() {
           </div>
         </div>
         <div className="cvl__hero-visual">
-          <div className="cvl__cv-mockup">
-            <div className="cvl__mockup-header"></div>
-            <div className="cvl__mockup-line cvl__mockup-line--title"></div>
-            <div className="cvl__mockup-line cvl__mockup-line--sub"></div>
-            <div className="cvl__mockup-section">
-              <div className="cvl__mockup-label"></div>
-              <div className="cvl__mockup-line"></div>
-              <div className="cvl__mockup-line cvl__mockup-line--short"></div>
+          <div className="cvl__hero-fan">
+            <div className="cvl__hero-fan-card cvl__hero-fan-card--1">
+              <div className="cvl__hero-fan-inner">
+                <TraditionalProfile
+                  cv={SAMPLE_CV}
+                  accent={TEMPLATE_INFO[6].accent}
+                  format={SAMPLE_FORMAT}
+                  sectionOrder={SAMPLE_SECTION_ORDER}
+                  theme={TEMPLATE_INFO[6].theme}
+                />
+              </div>
             </div>
-            <div className="cvl__mockup-section">
-              <div className="cvl__mockup-label"></div>
-              <div className="cvl__mockup-line"></div>
-              <div className="cvl__mockup-line"></div>
-              <div className="cvl__mockup-line cvl__mockup-line--short"></div>
+            <div className="cvl__hero-fan-card cvl__hero-fan-card--2">
+              <div className="cvl__hero-fan-inner">
+                <EditorialModern
+                  cv={SAMPLE_CV}
+                  accent={TEMPLATE_INFO[7].accent}
+                  format={SAMPLE_FORMAT}
+                  sectionOrder={SAMPLE_SECTION_ORDER}
+                  theme={TEMPLATE_INFO[7].theme}
+                />
+              </div>
             </div>
-            <div className="cvl__mockup-skills">
-              <div className="cvl__mockup-skill"></div>
-              <div className="cvl__mockup-skill"></div>
-              <div className="cvl__mockup-skill"></div>
+            <div className="cvl__hero-fan-card cvl__hero-fan-card--3 cvl__hero-fan-card--center">
+              <div className="cvl__hero-fan-inner">
+                <ExecutivePlus
+                  cv={SAMPLE_CV}
+                  accent={TEMPLATE_INFO[2].accent}
+                  format={SAMPLE_FORMAT}
+                  sectionOrder={SAMPLE_SECTION_ORDER}
+                  theme={TEMPLATE_INFO[2].theme}
+                />
+              </div>
+            </div>
+            <div className="cvl__hero-fan-card cvl__hero-fan-card--4">
+              <div className="cvl__hero-fan-inner">
+                <ModernTimeline
+                  cv={SAMPLE_CV}
+                  accent={TEMPLATE_INFO[8].accent}
+                  format={SAMPLE_FORMAT}
+                  sectionOrder={SAMPLE_SECTION_ORDER}
+                  theme={TEMPLATE_INFO[8].theme}
+                />
+              </div>
             </div>
           </div>
+
           <div className="cvl__badge cvl__badge--ai">
             <i className="fas fa-magic"></i> AI Writing
           </div>

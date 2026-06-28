@@ -1283,10 +1283,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 8%;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: linear-gradient(180deg, rgba(255,253,250,0.94), rgba(250,248,255,0.9));
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid rgba(157, 0, 255, 0.08);
   gap: 24px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 4px 20px rgba(102,153,255,0.04);
 }
 
 .cvl__nav::after {
