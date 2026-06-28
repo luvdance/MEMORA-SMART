@@ -4221,6 +4221,6 @@
   .cvl__gallery-modal-body .cvl__gallery-page {
     transform: scale(calc((100vw - 60px) / 794));
     transform-origin: top center;
-    margin-bottom: calc((100vw - 60px) / 794 * -1123px + 40px);
+    margin-bottom: calc((100vw - 60px) * 1.414 - 1123px + 40px);
   }
 }
