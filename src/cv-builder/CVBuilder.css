@@ -1282,10 +1282,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 8%;
-  background: rgba(255,255,255,0.9);
+  padding: 14px 8%;
+  background: rgba(255,255,255,0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0,0,0,0.06);
+  gap: 24px;
 }
 
 .cvl__nav::after {
@@ -1298,43 +1299,243 @@
   background: linear-gradient(90deg, #6699FF, #9D00FF);
 }
 
-.cvl__nav-brand {
+.cvl__nav-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  color: #111;
-  transition: 0.3s;
-}
-
-.cvl__nav-brand:hover {
-  color: #9D00FF;
-  transform: translateX(-3px);
+  gap: 28px;
+  min-width: 0;
 }
 
 .cvl__nav-links {
   display: flex;
-  gap: 28px;
+  gap: 24px;
 }
 
 .cvl__nav-links a {
   text-decoration: none;
   color: #555;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  transition: 0.3s;
+  white-space: nowrap;
+  transition: 0.2s;
 }
 
 .cvl__nav-links a:hover {
   color: #9D00FF;
 }
 
-.cvl__nav-actions {
+.cvl__nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+/* ATS link — small, single-line, low visual weight */
+.cvl__nav-ats-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(22, 163, 74, 0.08);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.cvl__nav-ats-link:hover {
+  background: #16a34a;
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+.cvl__nav-ats-link i {
+  font-size: 0.78rem;
+}
+
+/* Primary buttons — small variant for navbar */
+.cvl__btn-sm {
+  padding: 8px 16px !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap;
+}
+
+.cvl__btn-text {
+  background: none;
+  border: none;
+  color: #555;
+  font-weight: 600;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 8px 4px;
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.cvl__btn-text:hover {
+  color: #9D00FF;
+}
+
+.cvl__nav-user,
+.cvl__nav-auth {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* Account dropdown trigger — avatar + chevron, replaces raw greeting text */
+.cvl__nav-account {
+  position: relative;
+}
+
+.cvl__nav-account-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f1f1;
+  border: none;
+  border-radius: 24px;
+  padding: 4px 10px 4px 4px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cvl__nav-account-trigger:hover {
+  background: #e5e5e5;
+}
+
+.cvl__nav-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6699FF, #9D00FF);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cvl__nav-chevron {
+  font-size: 0.65rem;
+  color: #777;
+  transition: transform 0.2s;
+}
+
+.cvl__nav-chevron--open {
+  transform: rotate(180deg);
+}
+
+.cvl__nav-account-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+}
+
+.cvl__nav-account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.06);
+  min-width: 200px;
+  z-index: 200;
+  overflow: hidden;
+  animation: cvlMenuIn 0.15s ease-out;
+}
+
+@keyframes cvlMenuIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cvl__nav-account-name {
+  padding: 14px 16px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111;
+  border-bottom: 1px solid #f1f1f1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cvl__nav-account-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  font-family: inherit;
+  transition: 0.15s;
+}
+
+.cvl__nav-account-menu button:hover {
+  background: rgba(157, 0, 255, 0.06);
+}
+
+.cvl__nav-account-menu button i {
+  color: #9D00FF;
+  width: 16px;
+}
+
+.cvl__nav-account-danger {
+  color: #ef4444 !important;
+  border-top: 1px solid #f1f1f1;
+}
+
+.cvl__nav-account-danger i {
+  color: #ef4444 !important;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .cvl__nav-links {
+    display: none;
+  }
+  .cvl__nav-ats-link span {
+    display: none;
+  }
+  .cvl__nav-ats-link {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cvl__nav {
+    padding: 10px 5%;
+    gap: 10px;
+  }
+  .cvl__nav-right {
+    gap: 8px;
+  }
+  .cvl__btn-sm {
+    padding: 7px 12px !important;
+    font-size: 0.78rem !important;
+  }
+  .cvl__btn-sm span,
+  .cvl__btn-sm i {
+    font-size: inherit;
+  }
 }
 
 .cvl__btn-primary {
