@@ -103,69 +103,80 @@ export default function CVLanding() {
       </svg>
 
       {/* NAVBAR */}
-<nav className="cvl__nav">
-  <div className="cvl__nav-left">
-    <div className="cvl__nav-links">
-      <a href="#templates">Templates</a>
-      <a href="#features">Features</a>
-      <a href="#how">How it Works</a>
-    </div>
-  </div>
-
-  <div className="cvl__nav-right">
-    <button
-      className="cvl__nav-ats-link"
-      onClick={() => navigate("/ats-check")}
-    >
-      <i className="fas fa-bolt"></i>
-      <span>Free ATS Check</span>
-    </button>
-
-    {user ? (
-      <div className="cvl__nav-user">
-        <button className="cvl__btn-primary cvl__btn-sm" onClick={handleBuildCV}>
-          Build CV <i className="fas fa-arrow-right"></i>
-        </button>
-
-        <div className="cvl__nav-account">
+      <nav className="cvl__nav">
+        <div className="cvl__nav-left">
+          <div className="cvl__nav-brand-mark" onClick={() => navigate("/")}>
+            <span className="cvl__nav-brand-icon">M</span>
+            <span className="cvl__nav-brand-text">Memora</span>
+          </div>
+          <div className="cvl__nav-links">
+            <a href="#templates">Templates</a>
+            <a href="#features">Features</a>
+            <a href="#how">How it Works</a>
+          </div>
           <button
-            className="cvl__nav-account-trigger"
-            onClick={() => setShowAccountMenu(!showAccountMenu)}
+            className="cvl__nav-menu-btn"
+            onClick={() => setShowMobileMenu(true)}
+            aria-label="Open menu"
           >
-            <span className="cvl__nav-avatar">
-              {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
-            </span>
-            <i className={`fas fa-chevron-down cvl__nav-chevron ${showAccountMenu ? "cvl__nav-chevron--open" : ""}`}></i>
+            <i className="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <div className="cvl__nav-right">
+          <button
+            className="cvl__nav-ats-link"
+            onClick={() => navigate("/ats-check")}
+          >
+            <i className="fas fa-bolt"></i>
+            <span>Free ATS Check</span>
           </button>
 
-          {showAccountMenu && (
-            <>
-              <div className="cvl__nav-account-backdrop" onClick={() => setShowAccountMenu(false)} />
-              <div className="cvl__nav-account-menu">
-                <div className="cvl__nav-account-name">
-                  {user.displayName || user.email}
-                </div>
-                <button onClick={() => { setShowAccountMenu(false); navigate("/dashboard"); }}>
-                  <i className="fas fa-th-large"></i> Dashboard
+          {user ? (
+            <div className="cvl__nav-user">
+              <button className="cvl__btn-primary cvl__btn-sm" onClick={handleBuildCV}>
+                Build CV <i className="fas fa-arrow-right"></i>
+              </button>
+
+              <div className="cvl__nav-account">
+                <button
+                  className="cvl__nav-account-trigger"
+                  onClick={() => setShowAccountMenu(!showAccountMenu)}
+                >
+                  <span className="cvl__nav-avatar">
+                    {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+                  </span>
+                  <i className={`fas fa-chevron-down cvl__nav-chevron ${showAccountMenu ? "cvl__nav-chevron--open" : ""}`}></i>
                 </button>
-                <button onClick={() => { setShowAccountMenu(false); handleLogout(); }} className="cvl__nav-account-danger">
-                  <i className="fas fa-sign-out-alt"></i> Log Out
-                </button>
+
+                {showAccountMenu && (
+                  <>
+                    <div className="cvl__nav-account-backdrop" onClick={() => setShowAccountMenu(false)} />
+                    <div className="cvl__nav-account-menu">
+                      <div className="cvl__nav-account-name">
+                        {user.displayName || user.email}
+                      </div>
+                      <button onClick={() => { setShowAccountMenu(false); navigate("/dashboard"); }}>
+                        <i className="fas fa-th-large"></i> Dashboard
+                      </button>
+                      <button onClick={() => { setShowAccountMenu(false); handleLogout(); }} className="cvl__nav-account-danger">
+                        <i className="fas fa-sign-out-alt"></i> Log Out
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-            </>
+            </div>
+          ) : (
+            <div className="cvl__nav-auth">
+              <button className="cvl__btn-text" onClick={handleLogin}>Log In</button>
+              <button className="cvl__btn-primary cvl__btn-sm" onClick={handleCreateAccount}>
+                Sign Up <i className="fas fa-arrow-right"></i>
+              </button>
+            </div>
           )}
         </div>
-      </div>
-    ) : (
-      <div className="cvl__nav-auth">
-        <button className="cvl__btn-text" onClick={handleLogin}>Log In</button>
-        <button className="cvl__btn-primary cvl__btn-sm" onClick={handleCreateAccount}>
-          Sign Up <i className="fas fa-arrow-right"></i>
-        </button>
-      </div>
-    )}
-  </div>
-</nav>
+      </nav>
 
       {/* HERO */}
       <section className="cvl__hero">
