@@ -23,6 +23,7 @@ export default function CVLanding() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
 
   const handleBuildCV = () => {
     if (user) {
