@@ -2677,7 +2677,7 @@
   .cv-preview__page {
     width: 794px !important;
     min-height: 1123px !important;
-    transform: scale(calc((100vw - 32px) / 794)) !important;
+    transform: scale(calc((100vw - 32px) / 794px)) !important;
     transform-origin: top left !important;
     margin: 0 !important;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
@@ -4219,10 +4219,9 @@
 /*mobile modal scaling for small screens (e.g., iPhone SE) */
 @media (max-width: 600px) {
   .cvl__gallery-modal-body .cvl__gallery-page {
-    transform: scale(calc((100vw - 60px) / 794));
+    transform: scale(calc((100vw - 60px) / 794px));
     transform-origin: top center;
     margin-bottom: calc((100vw - 60px) * 1.414 - 1123px + 40px);
   }
 }
-
 /* ── TEMPLATE GALLERY (now a carousel) ── */
