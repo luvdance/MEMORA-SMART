@@ -2674,17 +2674,10 @@
 
 /* Preview for Mobile Screens */
 @media screen and (max-width: 900px) {
-  .cv-preview__page-wrapper {
-    --page-scale: calc((100vw - 32px) / 794);
-  }
 
-  .cv-preview__page {
-    width: 794px !important;
-    min-height: 1123px !important;
-    transform: scale(var(--page-scale)) !important;
-    transform-origin: top left !important;
-    margin: 0 !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
+  .cv-preview__page-wrapper {
+    height: calc((100vw - 32px) * 1.414) !important;
+    overflow: hidden !important;
   }
 }
 

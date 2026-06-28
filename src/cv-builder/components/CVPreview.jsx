@@ -1,10 +1,11 @@
-import { useState } from "react";
-
+import { useState, useEffect, useRef } from "react";
 import {
   ClassicPro, ModernEdge, ExecutivePlus,
   MinimalClean, CreativeSide, CorporateBold, TraditionalProfile,
   EditorialModern, ModernTimeline
 } from "./CVTemplates";
+import FormatPanel from "./FormatPanel";
+import SectionOrderPanel from "./SectionOrderPanel";
 
 const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline];
 
@@ -15,20 +16,40 @@ export default function CVPreview({
   const TemplateComponent = templates[template];
   const [showFormat, setShowFormat] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
+  const [mobileScale, setMobileScale] = useState(1);
+  const wrapperRef = useRef();
+
+  // Compute mobile scale in JS — avoids unreliable CSS calc()-in-scale() across browsers
+  useEffect(() => {
+    const computeScale = () => {
+      const isMobile = window.innerWidth <= 900;
+      if (!isMobile) {
+        setMobileScale(1);
+        return;
+      }
+      const availableWidth = window.innerWidth - 32; // 16px padding each side
+      const ratio = availableWidth / 794;
+      setMobileScale(ratio);
+    };
+
+    computeScale();
+    window.addEventListener("resize", computeScale);
+    return () => window.removeEventListener("resize", computeScale);
+  }, []);
 
   const handleFormatToggle = () => {
     setShowFormat(!showFormat);
     setShowOrder(false);
   };
-
   const handleOrderToggle = () => {
     setShowOrder(!showOrder);
     setShowFormat(false);
   };
 
+  const isMobile = mobileScale !== 1;
+
   return (
     <div className={`cv-preview-panel ${tab === "form" ? "cv-preview-panel--hidden" : ""}`}>
-
       {/* TOOLBAR */}
       <div className="cv-preview__toolbar">
         <p className="cv-preview__label">
@@ -51,10 +72,8 @@ export default function CVPreview({
           </button>
         </div>
       </div>
-
       {/* WORKSPACE */}
       <div className="cv-preview__workspace">
-
         {/* SIDE PANEL */}
         <div className={`fmt-panel-wrapper ${(showFormat || showOrder) ? "fmt-panel-wrapper--open" : ""}`}>
           {showFormat && <FormatPanel format={format} setFormat={setFormat} />}
@@ -65,9 +84,12 @@ export default function CVPreview({
             />
           )}
         </div>
-
         {/* A4 PAGE */}
-        <div className="cv-preview__page-wrapper">
+        <div
+          className="cv-preview__page-wrapper"
+          ref={wrapperRef}
+          style={isMobile ? { height: `${1123 * mobileScale}px`, overflow: "hidden" } : undefined}
+        >
           <div
             className="cv-preview__page"
             ref={previewRef}
@@ -75,6 +97,8 @@ export default function CVPreview({
               background: theme.bg,
               width: "794px",
               minHeight: "1123px",
+              transform: isMobile ? `scale(${mobileScale})` : undefined,
+              transformOrigin: "top left",
             }}
           >
             <TemplateComponent
@@ -86,7 +110,6 @@ export default function CVPreview({
             />
           </div>
         </div>
-
       </div>
     </div>
   );
