@@ -451,8 +451,6 @@ const triggerPrint = () => {
               <option value={10}>Bold Statement</option>
             </select>
           </div>
-            </select>
-          </div>
 
           <div className="cv-fmt-group">
             <span className="cv-fmt-group-label">Accent Color</span>
