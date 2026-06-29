@@ -4163,6 +4163,12 @@
   transition: 0.2s;
 }
 
+@media (max-width: 600px) {
+  .cvl__carousel-expand-hint {
+    display: none;
+  }
+}
+
 .cvl__carousel-card--active:hover .cvl__carousel-expand-hint {
   opacity: 1;
   background: rgba(15, 23, 42, 0.5);
@@ -4784,3 +4790,4 @@
   margin: 6px 20px;
 }
 /*Ats button hidden for mobile views*/
+

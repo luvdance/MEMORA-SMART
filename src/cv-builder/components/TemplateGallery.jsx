@@ -126,7 +126,17 @@ useEffect(() => {
                 style={{
                   "--offset": offset,
                 }}
-                onClick={() => (isActive ? setExpandedIndex(i) : goTo(i))}
+                onClick={() => {
+                  if (isActive) {
+                    if (window.innerWidth > 600) {
+                      setExpandedIndex(i);
+                    }
+                    // On mobile: clicking the active card does nothing extra —
+                    // "Use This" button is still tappable separately
+                  } else {
+                    goTo(i);
+                  }
+                }}
               >
                 <div className="cvl__carousel-card-inner">
                   <div className="cvl__carousel-thumb">
