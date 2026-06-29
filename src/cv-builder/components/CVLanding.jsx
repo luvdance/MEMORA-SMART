@@ -28,6 +28,7 @@ export default function CVLanding() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleBuildCV = () => {
     if (user) {
@@ -105,22 +106,31 @@ export default function CVLanding() {
       {/* NAVBAR */}
       <nav className="cvl__nav">
         <div className="cvl__nav-left">
-          <div className="cvl__nav-brand-mark" onClick={() => navigate("/")}>
-            <span className="cvl__nav-brand-icon">M</span>
+          <button
+            className="cvl__nav-brand-mark"
+            onClick={() => {
+              if (window.innerWidth <= 900) {
+                setShowMobileMenu(true);
+              } else {
+                navigate("/");
+              }
+            }}
+            aria-label="Open menu"
+          >
+            <span className="cvl__nav-brand-icon">
+              M
+              <span className="cvl__nav-brand-indicator">
+                <i className="fas fa-chevron-down"></i>
+              </span>
+            </span>
             <span className="cvl__nav-brand-text">Memora</span>
-          </div>
+          </button>
+
           <div className="cvl__nav-links">
             <a href="#templates">Templates</a>
             <a href="#features">Features</a>
             <a href="#how">How it Works</a>
           </div>
-          <button
-            className="cvl__nav-menu-btn"
-            onClick={() => setShowMobileMenu(true)}
-            aria-label="Open menu"
-          >
-            <i className="fas fa-bars"></i>
-          </button>
         </div>
 
         <div className="cvl__nav-right">
@@ -482,6 +492,34 @@ export default function CVLanding() {
           <i className="fas fa-home"></i> Back to Main Site
         </button>
       </footer>
+
+      {/* MOBILE MENU DRAWER */}
+        {showMobileMenu && (
+          <>
+            <div className="cvl__mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
+            <div className="cvl__mobile-menu">
+              <div className="cvl__mobile-menu-header">
+                <span>Menu</span>
+                <button onClick={() => setShowMobileMenu(false)}>
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <a href="#templates" onClick={() => setShowMobileMenu(false)}>
+                <i className="fas fa-palette"></i> Templates
+              </a>
+              <a href="#features" onClick={() => setShowMobileMenu(false)}>
+                <i className="fas fa-star"></i> Features
+              </a>
+              <a href="#how" onClick={() => setShowMobileMenu(false)}>
+                <i className="fas fa-route"></i> How it Works
+              </a>
+              <button onClick={() => { setShowMobileMenu(false); navigate("/ats-check"); }}>
+                <i className="fas fa-bolt"></i> Free ATS Score Check
+                <span className="cvl__mobile-menu-badge">FREE</span>
+              </button>
+            </div>
+          </>
+        )}
     </div>
   );
 }

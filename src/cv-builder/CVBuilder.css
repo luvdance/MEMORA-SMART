@@ -1513,11 +1513,8 @@
   .cvl__nav-links {
     display: none;
   }
-  .cvl__nav-ats-link span {
-    display: none;
-  }
   .cvl__nav-ats-link {
-    padding: 8px 10px;
+    display: none;
   }
 }
 
@@ -4551,11 +4548,16 @@
   gap: 8px;
   cursor: pointer;
   flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
 }
 
 .cvl__nav-brand-icon {
-  width: 30px;
-  height: 30px;
+  position: relative;
+  width: 32px;
+  height: 32px;
   border-radius: 9px;
   background: linear-gradient(135deg, #6699FF, #9D00FF);
   color: #fff;
@@ -4574,35 +4576,37 @@
   white-space: nowrap;
 }
 
-.cvl__nav-menu-btn {
-  display: none;
-  background: #f1f1f1;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+/* The little "tap for menu" affordance — a small chevron badge
+   sitting on the bottom-right corner of the logo icon */
+.cvl__nav-brand-indicator {
+  display: none; /* hidden by default — only meaningful on mobile */
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  color: #9D00FF;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: #333;
-  font-size: 1rem;
-  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+  border: 1.5px solid #fff;
+}
+
+.cvl__nav-brand-indicator i {
+  font-size: 0.5rem;
 }
 
 @media (max-width: 900px) {
   .cvl__nav-brand-text {
-    display: none; /* icon only on small screens, saves space */
+    display: none; /* icon-only on small screens */
   }
-  .cvl__nav-menu-btn {
-    display: flex;
+  .cvl__nav-brand-indicator {
+    display: flex; /* show the "expand" cue only when it actually does something */
   }
 }
 
-@media (min-width: 901px) {
-  .cvl__nav-menu-btn {
-    display: none !important;
-  }
-}
 
 /* MOBILE MENU DRAWER */
 .cvl__mobile-menu-backdrop {
@@ -4705,3 +4709,5 @@
   gap: 28px;
   min-width: 0;
 }
+
+/*Ats button hidden for mobile views*/
