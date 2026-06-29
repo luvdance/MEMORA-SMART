@@ -447,6 +447,10 @@ const triggerPrint = () => {
               <option value={6}>Traditional Profile</option>
               <option value={7}>Editorial Modern</option>
               <option value={8}>Modern Timeline</option>
+              <option value={9}>Compact Pro</option>
+              <option value={10}>Bold Statement</option>
+            </select>
+          </div>
             </select>
           </div>
 
