@@ -102,6 +102,44 @@ useEffect(() => {
 }, []);
 
 
+// Swipe gestures for the main carousel (mobile)
+const carouselTouchStartX = useRef(0);
+const carouselTouchStartY = useRef(0);
+const carouselTouchEndX = useRef(0);
+const carouselTouchEndY = useRef(0);
+
+const handleCarouselTouchStart = (e) => {
+  carouselTouchStartX.current = e.touches[0].clientX;
+  carouselTouchStartY.current = e.touches[0].clientY;
+};
+
+const handleCarouselTouchMove = (e) => {
+  carouselTouchEndX.current = e.touches[0].clientX;
+  carouselTouchEndY.current = e.touches[0].clientY;
+};
+
+const handleCarouselTouchEnd = () => {
+  const deltaX = carouselTouchStartX.current - carouselTouchEndX.current;
+  const deltaY = carouselTouchStartY.current - carouselTouchEndY.current;
+  const minSwipeDistance = 40;
+
+  // Only treat as a horizontal swipe if X movement clearly dominates Y movement
+  const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * 1.5;
+
+  if (isHorizontalSwipe && Math.abs(deltaX) > minSwipeDistance) {
+    if (deltaX > 0) {
+      goNext(); // swiped left → next template
+    } else {
+      goPrev(); // swiped right → previous template
+    }
+  }
+
+  carouselTouchStartX.current = 0;
+  carouselTouchStartY.current = 0;
+  carouselTouchEndX.current = 0;
+  carouselTouchEndY.current = 0;
+};
+
   return (
     <>
       <div className="cvl__carousel">
@@ -109,7 +147,12 @@ useEffect(() => {
           <i className="fas fa-chevron-left"></i>
         </button>
 
-        <div className="cvl__carousel-track">
+        <div
+          className="cvl__carousel-track"
+          onTouchStart={handleCarouselTouchStart}
+          onTouchMove={handleCarouselTouchMove}
+          onTouchEnd={handleCarouselTouchEnd}
+        >
           {TEMPLATE_COMPONENTS.map((TemplateComp, i) => {
             const info = TEMPLATE_INFO[i];
             const offset = getOffset(i);
