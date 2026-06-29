@@ -8,6 +8,8 @@ export const TEMPLATES = [
   "Traditional",
   "Editorial Modern",
   "Modern Timeline",
+  "Compact Pro", 
+  "Bold Statement",
 ];
 
 export const ACCENT = ["#2563eb", "#0f766e", "#7c3aed", "#dc2626", "#d97706"];

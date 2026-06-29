@@ -2018,3 +2018,468 @@ export function ModernTimeline({ cv, accent, format, sectionOrder, theme }) {
     </div>
   );
 }
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 10: COMPACT PRO (high-density, senior CVs) ──
+// ══════════════════════════════════════════════
+function CompactLabel({ children, accent }) {
+  return (
+    <div style={{
+      fontSize: "0.68rem",
+      fontWeight: 800,
+      textTransform: "uppercase",
+      letterSpacing: 1.2,
+      color: accent,
+      marginBottom: 4,
+      paddingBottom: 3,
+      borderBottom: `1.5px solid ${accent}40`,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+export function CompactPro({ cv, accent, format, sectionOrder, theme }) {
+  const s = Math.min(format.bodyFontSize, 10.5); // cap size — density is the point
+  const lh = Math.min(format.lineHeight, 1.32);
+  const tc = theme.text;
+
+  const sideKeys = ["skills", "languages", "certifications", "hobbies"];
+  const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
+  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+
+  const renderMain = (key) => {
+    switch (key) {
+      case "biodata": {
+        const has = cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin;
+        if (!has) return null;
+        return (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>Personal Details</CompactLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 12px", fontSize: s - 0.5 }}>
+              {[["DOB", formatDate(cv.dateOfBirth)], ["Gender", cv.gender], ["Marital", cv.maritalStatus], ["Nationality", cv.nationality], ["State", cv.stateOfOrigin], ["LGA", cv.lga], ["Religion", cv.religion], ["NIN", cv.nin]]
+                .filter(([, v]) => v).map(([l, v]) => (
+                  <div key={l} style={{ color: tc, opacity: 0.75 }}><b style={{ opacity: 0.6 }}>{l}:</b> {v}</div>
+                ))}
+            </div>
+          </div>
+        );
+      }
+      case "summary":
+        return cv.summary ? (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>Profile</CompactLabel>
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc }}>{cv.summary}</p>
+          </div>
+        ) : null;
+      case "objective":
+        return cv.objective ? (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>Objective</CompactLabel>
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc }}>{cv.objective}</p>
+          </div>
+        ) : null;
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <CompactLabel accent={accent}>Experience</CompactLabel>
+            {cv.experience.map((e, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <b style={{ fontSize: s + 0.5, color: tc }}>{e.role}</b>
+                  <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700, whiteSpace: "nowrap", marginLeft: 8 }}>
+                    {e.start}–{e.current ? "Now" : e.end}
+                  </span>
+                </div>
+                <div style={{ fontSize: s - 0.5, color: tc, opacity: 0.65, marginBottom: 2 }}>{e.company}</div>
+                <BulletList text={e.responsibilities} fontSize={s - 0.5} lineHeight={lh} color={tc} />
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "education":
+        return cv.education[0]?.school ? (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <CompactLabel accent={accent}>Education</CompactLabel>
+            {cv.education.map((e, i) => (
+              <div key={i} style={{ marginBottom: 4, fontSize: s - 0.5 }}>
+                <b style={{ color: tc }}>{e.degree} {e.field && `– ${e.field}`}</b>
+                <span style={{ color: tc, opacity: 0.6 }}> · {e.school} · {e.start}–{e.end}</span>
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <CompactLabel accent={accent}>Achievements</CompactLabel>
+            {cv.achievements.map((a, i) => (
+              <div key={i} style={{ marginBottom: 4, fontSize: s - 0.5 }}>
+                <b style={{ color: tc }}>{a.title}</b>
+                {a.date && <span style={{ color: accent, fontWeight: 700 }}> · {a.date}</span>}
+                {a.description && <div style={{ color: tc, opacity: 0.7 }}>{a.description}</div>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <CompactLabel accent={accent}>Volunteer Work</CompactLabel>
+            {cv.volunteer.map((v, i) => (
+              <div key={i} style={{ marginBottom: 4, fontSize: s - 0.5 }}>
+                <b style={{ color: tc }}>{v.role}</b> <span style={{ color: accent }}>· {v.organization}</span>
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <CompactLabel accent={accent}>Publications</CompactLabel>
+            {cv.publications.map((p, i) => (
+              <div key={i} style={{ marginBottom: 3, fontSize: s - 0.5, color: tc }}>{p.title}</div>
+            ))}
+          </div>
+        ) : null;
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>References</CompactLabel>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: s - 0.5 }}>
+              {cv.references.map((r, i) => (
+                <div key={i}><b style={{ color: tc }}>{r.name}</b> <span style={{ color: tc, opacity: 0.6 }}>– {r.title}</span></div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  const renderSide = (key) => {
+    switch (key) {
+      case "skills":
+        return cv.skills ? (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>Skills</CompactLabel>
+            <p style={{ fontSize: s - 0.5, lineHeight: 1.5, margin: 0, color: tc }}>
+              {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).join("  •  ")}
+            </p>
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>Languages</CompactLabel>
+            <p style={{ fontSize: s - 0.5, margin: 0, color: tc }}>{cv.languages}</p>
+          </div>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        const certs = normalizeCertifications(cv.certifications);
+        return (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>Certifications</CompactLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 10px" }}>
+              {certs.map((c, i) => (
+                <div key={i} style={{ fontSize: s - 1, color: tc }}>
+                  <b style={{ display: "block" }}>{c.name}</b>
+                  {c.issuer && <span style={{ opacity: 0.6 }}>{c.issuer}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "hobbies":
+        return cv.hobbies ? (
+          <div key={key} style={{ marginBottom: 10 }} className="cv-section-keep">
+            <CompactLabel accent={accent}>Interests</CompactLabel>
+            <p style={{ fontSize: s - 0.5, margin: 0, color: tc }}>{cv.hobbies}</p>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  return (
+    <div style={{
+      fontFamily: format.fontFamily,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+    }}>
+      {/* SLIM HEADER */}
+      <div style={{
+        display: "flex",
+        alignItems: "baseline",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 8,
+        padding: `${format.pagePadding - 6}px ${format.pagePadding}px 8px`,
+        borderBottom: `2.5px solid ${accent}`,
+      }}>
+        <div>
+          <span style={{ fontSize: format.nameFontSize - 4, fontWeight: 800, color: tc }}>{cv.name || "Your Name"}</span>
+          <span style={{ fontSize: s, color: accent, fontWeight: 700, marginLeft: 10 }}>{cv.jobTitle}</span>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: s - 1.5, color: tc, opacity: 0.65 }}>
+          {cv.email && <span>{cv.email}</span>}
+          {cv.phone && <span>{cv.phone}</span>}
+          {cv.address && <span>{cv.address}</span>}
+          {cv.linkedin && <span>{cv.linkedin}</span>}
+          {cv.website && <span>{cv.website}</span>}
+          {cv.github && <span>{cv.github}</span>}
+        </div>
+      </div>
+
+      {/* DENSE TWO-COL BODY */}
+      <div style={{ display: "flex", gap: 22, padding: `12px ${format.pagePadding}px ${format.pagePadding}px` }}>
+        <div style={{ flex: 1.85 }}>{mainSections.map(renderMain)}</div>
+        <div style={{ flex: 1, borderLeft: `1px solid ${tc}1a`, paddingLeft: 18 }}>{sideSections.map(renderSide)}</div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 11: BOLD STATEMENT (high-contrast, fearless) ──
+// ══════════════════════════════════════════════
+function BoldSection({ num, title, accent, format, children, keepTogether = false }) {
+  return (
+    <div className={keepTogether ? "cv-section cv-section-keep" : "cv-section"} style={{ marginBottom: 22 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
+        <span style={{ fontSize: format.headingFontSize + 10, fontWeight: 900, color: accent, opacity: 0.18, lineHeight: 1 }}>
+          {num}
+        </span>
+        <span style={{
+          fontSize: format.headingFontSize + 1,
+          fontWeight: 800,
+          textTransform: "uppercase",
+          letterSpacing: 1.5,
+          color: "#111",
+        }}>
+          {title}
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export function BoldStatement({ cv, accent, format, sectionOrder, theme }) {
+  const s = format.bodyFontSize;
+  const lh = format.lineHeight;
+  const tc = "#1a1a1a";
+
+  const sideKeys = ["skills", "languages", "certifications", "hobbies"];
+  const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
+  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+  let n = 0;
+  const nextNum = () => String(++n).padStart(2, "0");
+
+  const renderMain = (key) => {
+    switch (key) {
+      case "biodata": {
+        const has = cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin;
+        if (!has) return null;
+        return (
+          <BoldSection key={key} num={nextNum()} title="Personal Details" accent={accent} format={format} keepTogether>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px", fontSize: s }}>
+              {[["Date of Birth", formatDate(cv.dateOfBirth)], ["Gender", cv.gender], ["Marital Status", cv.maritalStatus], ["Nationality", cv.nationality], ["State of Origin", cv.stateOfOrigin], ["LGA", cv.lga], ["Religion", cv.religion], ["NIN", cv.nin]]
+                .filter(([, v]) => v).map(([l, v]) => (
+                  <div key={l}><b style={{ color: "#111" }}>{l}:</b> <span style={{ opacity: 0.7 }}>{v}</span></div>
+                ))}
+            </div>
+          </BoldSection>
+        );
+      }
+      case "summary":
+        return cv.summary ? (
+          <BoldSection key={key} num={nextNum()} title="Profile" accent={accent} format={format} keepTogether>
+            <p style={{ fontSize: s + 1, lineHeight: lh + 0.15, margin: 0, color: tc, fontWeight: 500 }}>{cv.summary}</p>
+          </BoldSection>
+        ) : null;
+      case "objective":
+        return cv.objective ? (
+          <BoldSection key={key} num={nextNum()} title="Objective" accent={accent} format={format} keepTogether>
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc }}>{cv.objective}</p>
+          </BoldSection>
+        ) : null;
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <BoldSection key={key} num={nextNum()} title="Experience" accent={accent} format={format}>
+            {cv.experience.map((e, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 14, paddingLeft: 14, borderLeft: `3px solid ${accent}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap" }}>
+                  <b style={{ fontSize: s + 1.5, color: "#111" }}>{e.role}</b>
+                  <span style={{ fontSize: s - 1, color: "#fff", background: accent, padding: "2px 9px", borderRadius: 3, fontWeight: 700 }}>
+                    {e.start} – {e.current ? "Present" : e.end}
+                  </span>
+                </div>
+                <div style={{ fontSize: s, color: tc, opacity: 0.6, fontWeight: 700, marginBottom: 4 }}>{e.company}</div>
+                <BulletList text={e.responsibilities} fontSize={s} lineHeight={lh} color={tc} />
+              </div>
+            ))}
+          </BoldSection>
+        ) : null;
+      case "education":
+        return cv.education[0]?.school ? (
+          <BoldSection key={key} num={nextNum()} title="Education" accent={accent} format={format}>
+            {cv.education.map((e, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <b style={{ fontSize: s + 0.5, color: "#111" }}>{e.degree} {e.field && `in ${e.field}`}</b>
+                <div style={{ fontSize: s - 0.5, opacity: 0.65 }}>{e.school} · {e.start}–{e.end}</div>
+              </div>
+            ))}
+          </BoldSection>
+        ) : null;
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <BoldSection key={key} num={nextNum()} title="Achievements" accent={accent} format={format}>
+            {cv.achievements.map((a, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <b style={{ fontSize: s, color: "#111" }}>{a.title}</b>
+                {a.date && <span style={{ color: accent, fontWeight: 700 }}> — {a.date}</span>}
+                {a.description && <div style={{ fontSize: s - 0.5, opacity: 0.7, marginTop: 2 }}>{a.description}</div>}
+              </div>
+            ))}
+          </BoldSection>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <BoldSection key={key} num={nextNum()} title="Volunteer" accent={accent} format={format}>
+            {cv.volunteer.map((v, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <b>{v.role}</b> <span style={{ color: accent }}>· {v.organization}</span>
+              </div>
+            ))}
+          </BoldSection>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <BoldSection key={key} num={nextNum()} title="Publications" accent={accent} format={format}>
+            {cv.publications.map((p, i) => <div key={i} style={{ marginBottom: 6 }}>{p.title}</div>)}
+          </BoldSection>
+        ) : null;
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <BoldSection key={key} num={nextNum()} title="References" accent={accent} format={format} keepTogether>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+              {cv.references.map((r, i) => (
+                <div key={i}><b>{r.name}</b> <span style={{ opacity: 0.6 }}>– {r.title}</span></div>
+              ))}
+            </div>
+          </BoldSection>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  const renderSide = (key) => {
+    switch (key) {
+      case "skills":
+        return cv.skills ? (
+          <div style={{ marginBottom: 18 }} key={key}>
+            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 8 }}>Skills</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} style={{ background: accent, color: "#111", fontWeight: 700, fontSize: s - 1, padding: "4px 10px", borderRadius: 3 }}>{sk}</span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div style={{ marginBottom: 18 }} key={key}>
+            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 6 }}>Languages</div>
+            <p style={{ fontSize: s, color: "rgba(255,255,255,0.85)", margin: 0 }}>{cv.languages}</p>
+          </div>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        const certs = normalizeCertifications(cv.certifications);
+        return (
+          <div style={{ marginBottom: 18 }} key={key}>
+            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 8 }}>Certifications</div>
+            {certs.map((c, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: s - 0.5, fontWeight: 700, color: "#fff" }}>{c.name}</div>
+                {c.issuer && <div style={{ fontSize: s - 1.5, color: accent }}>{c.issuer}</div>}
+              </div>
+            ))}
+          </div>
+        );
+      }
+      case "hobbies":
+        return cv.hobbies ? (
+          <div style={{ marginBottom: 18 }} key={key}>
+            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 6 }}>Interests</div>
+            <p style={{ fontSize: s, color: "rgba(255,255,255,0.85)", margin: 0 }}>{cv.hobbies}</p>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  return (
+    <div style={{
+      fontFamily: format.fontFamily,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+      display: "flex",
+    }}>
+      {/* DARK SIDEBAR */}
+      <div style={{ width: 210, background: "#111", padding: format.pagePadding, flexShrink: 0 }}>
+        {cv.photo && (
+          <img src={cv.photo} alt="profile" style={{ width: 86, height: 86, borderRadius: "50%", objectFit: "cover", border: `3px solid ${accent}`, marginBottom: 16 }} />
+        )}
+        <div style={{
+          fontSize: format.nameFontSize - 6,
+          fontWeight: 900,
+          color: "#fff",
+          lineHeight: 1.05,
+          marginBottom: 6,
+        }}>
+          {cv.name || "Your Name"}
+        </div>
+        <div style={{
+          display: "inline-block",
+          background: accent,
+          color: "#111",
+          fontWeight: 800,
+          fontSize: s - 1,
+          padding: "4px 10px",
+          borderRadius: 3,
+          marginBottom: 20,
+        }}>
+          {cv.jobTitle}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: s - 1.5, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>
+          {cv.email && <span>{cv.email}</span>}
+          {cv.phone && <span>{cv.phone}</span>}
+          {cv.address && <span>{cv.address}</span>}
+          {cv.linkedin && <span>{cv.linkedin}</span>}
+          {cv.website && <span>{cv.website}</span>}
+          {cv.github && <span>{cv.github}</span>}
+        </div>
+
+        {sideSections.map(renderSide)}
+      </div>
+
+      {/* MAIN CONTENT — generous whitespace */}
+      <div style={{ flex: 1, padding: `${format.pagePadding + 8}px ${format.pagePadding + 4}px` }}>
+        {mainSections.map(renderMain)}
+      </div>
+    </div>
+  );
+}

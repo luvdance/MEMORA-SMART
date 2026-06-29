@@ -95,4 +95,6 @@ export const TEMPLATE_INFO = [
  },
  { name: "Editorial Modern", accent: "#0f766e", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Modern Timeline", accent: "#7c3aed", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Compact Pro", accent: "#1e40af", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Bold Statement", accent: "#facc15", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 ];
