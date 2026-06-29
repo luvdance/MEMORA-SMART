@@ -4550,8 +4550,10 @@
   flex-shrink: 0;
   background: none;
   border: none;
-  padding: 0;
+  padding: 4px 8px 4px 4px;
   font-family: inherit;
+  border-radius: 24px;
+  transition: 0.2s;
 }
 
 .cvl__nav-brand-icon {
@@ -4569,11 +4571,49 @@
   flex-shrink: 0;
 }
 
+.cvl__nav-brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
 .cvl__nav-brand-text {
   font-weight: 800;
   font-size: 0.95rem;
   color: #111;
   white-space: nowrap;
+}
+
+.cvl__nav-brand-chevron {
+  font-size: 0.65rem;
+  color: #9D00FF;
+  margin-left: 2px;
+  transition: transform 0.2s;
+}
+
+/* Same visual language as the account dropdown chevron */
+.cvl__nav-brand-mark:active .cvl__nav-brand-chevron,
+.cvl__nav-brand-mark[aria-expanded="true"] .cvl__nav-brand-chevron {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 900px) {
+  .cvl__nav-brand-text {
+    display: none; /* icon + chevron only on small screens */
+  }
+}
+
+@media (min-width: 901px) {
+  .cvl__nav-brand-chevron {
+    display: none; /* desktop: pure logo+wordmark, no menu affordance needed since links are visible */
+  }
+}
+
+.cvl__nav-brand-chevron--open {
+  transform: rotate(180deg);
 }
 
 /* The little "tap for menu" affordance — a small chevron badge

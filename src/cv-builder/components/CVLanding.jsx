@@ -108,6 +108,7 @@ export default function CVLanding() {
         <div className="cvl__nav-left">
           <button
             className="cvl__nav-brand-mark"
+            aria-expanded={showMobileMenu}
             onClick={() => {
               if (window.innerWidth <= 900) {
                 setShowMobileMenu(true);
@@ -117,13 +118,13 @@ export default function CVLanding() {
             }}
             aria-label="Open menu"
           >
-            <span className="cvl__nav-brand-icon">
-              M
-              <span className="cvl__nav-brand-indicator">
-                <i className="fas fa-chevron-down"></i>
-              </span>
-            </span>
+            <img
+              src="/memora logo.PNG"
+              alt="Memora"
+              className="cvl__nav-brand-logo"
+            />
             <span className="cvl__nav-brand-text">Memora</span>
+            <i className={`fas fa-chevron-down cvl__nav-brand-chevron ${showMobileMenu ? "cvl__nav-brand-chevron--open" : ""}`}></i>
           </button>
 
           <div className="cvl__nav-links">
