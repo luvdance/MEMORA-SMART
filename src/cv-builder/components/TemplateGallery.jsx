@@ -81,6 +81,27 @@ const handleTouchEnd = () => {
   touchEndX.current = 0;
 };
 
+//scale down use effect for modal preview
+const [modalScale, setModalScale] = useState(0.72);
+
+useEffect(() => {
+  const computeModalScale = () => {
+    const isMobile = window.innerWidth <= 600;
+    if (!isMobile) {
+      setModalScale(0.72);
+      return;
+    }
+    const modalPadding = 32; // matches the modal body's horizontal padding
+    const availableWidth = window.innerWidth - modalPadding;
+    setModalScale(availableWidth / 794);
+  };
+
+  computeModalScale();
+  window.addEventListener("resize", computeModalScale);
+  return () => window.removeEventListener("resize", computeModalScale);
+}, []);
+
+
   return (
     <>
       <div className="cvl__carousel">
@@ -193,7 +214,14 @@ const handleTouchEnd = () => {
                     return (
                       <div
                         className="cvl__gallery-page"
-                        style={{ background: info.theme.bg, width: "794px", minHeight: "1123px" }}
+                        style={{
+                          background: info.theme.bg,
+                          width: "794px",
+                          minHeight: "1123px",
+                          transform: `scale(${modalScale})`,
+                          transformOrigin: "top center",
+                          marginBottom: `${1123 * modalScale - 1123 + 40}px`,
+                        }}
                       >
                         <TemplateComp
                           cv={SAMPLE_CV}
