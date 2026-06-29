@@ -4750,4 +4750,36 @@
   min-width: 0;
 }
 
+
+.cvl__mobile-menu-home {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #9D00FF;
+  background: rgba(157, 0, 255, 0.05);
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Highlight the "Home" button in the mobile menu with a subtle background on hover */
+.cvl__mobile-menu-home:hover {
+  background: rgba(157, 0, 255, 0.1);
+}
+
+.cvl__mobile-menu-home i {
+  color: #9D00FF;
+  width: 18px;
+}
+
+.cvl__mobile-menu-divider {
+  height: 1px;
+  background: #f1f1f1;
+  margin: 6px 20px;
+}
 /*Ats button hidden for mobile views*/

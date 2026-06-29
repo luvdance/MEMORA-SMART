@@ -505,6 +505,16 @@ export default function CVLanding() {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
+
+              <button
+                className="cvl__mobile-menu-home"
+                onClick={() => { setShowMobileMenu(false); navigate("/"); }}
+              >
+                <i className="fas fa-home"></i> Home
+              </button>
+
+              <div className="cvl__mobile-menu-divider"></div>
+
               <a href="#templates" onClick={() => setShowMobileMenu(false)}>
                 <i className="fas fa-palette"></i> Templates
               </a>
