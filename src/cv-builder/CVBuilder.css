@@ -4789,5 +4789,22 @@
   background: #f1f1f1;
   margin: 6px 20px;
 }
-/*Ats button hidden for mobile views*/
 
+/* Justify all CV body paragraph text (summary, objective, descriptions, bullets) */
+.cv-preview__page p,
+.cv-preview__page .cv-item div,
+.cvl__gallery-page p,
+.cvl__gallery-page .cv-item div,
+.cvl__carousel-thumb p,
+.cvl__hero-fan-inner p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* But NOT headings, names, labels, dates, or section titles — those should stay left/as-is */
+.cv-preview__page .cv-section-heading,
+.cvl__gallery-page .cv-section-heading {
+  text-align: left;
+}
+
+/*additional spacing for the CV body text to make it more readable */
