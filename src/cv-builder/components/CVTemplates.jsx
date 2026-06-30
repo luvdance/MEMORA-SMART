@@ -2271,28 +2271,60 @@ function BoldSection({ num, title, accent, format, children, keepTogether = fals
   );
 }
 
+// ══════════════════════════════════════════════
+// ── TEMPLATE 11 (REBUILT): BOLD STATEMENT — single column, no sidebar ──
+// ══════════════════════════════════════════════
+function BoldRule({ accent }) {
+  return <div style={{ height: 4, width: 64, background: accent, marginBottom: 18 }} />;
+}
+
+function BoldSection({ num, title, accent, format, theme, children, keepTogether = false }) {
+  return (
+    <div className={keepTogether ? "cv-section cv-section-keep" : "cv-section"} style={{ marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
+        <span style={{
+          fontSize: format.headingFontSize + 8,
+          fontWeight: 900,
+          color: accent,
+          opacity: 0.22,
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
+        }}>
+          {num}
+        </span>
+        <span style={{
+          fontSize: format.headingFontSize + 2,
+          fontWeight: 800,
+          textTransform: "uppercase",
+          letterSpacing: 2,
+          color: theme.text,
+        }}>
+          {title}
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export function BoldStatement({ cv, accent, format, sectionOrder, theme }) {
   const s = format.bodyFontSize;
   const lh = format.lineHeight;
-  const tc = "#1a1a1a";
-
-  const sideKeys = ["skills", "languages", "certifications", "hobbies"];
-  const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
-  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+  const tc = theme.text;
   let n = 0;
   const nextNum = () => String(++n).padStart(2, "0");
 
-  const renderMain = (key) => {
+  const renderSection = (key) => {
     switch (key) {
       case "biodata": {
         const has = cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin;
         if (!has) return null;
         return (
-          <BoldSection key={key} num={nextNum()} title="Personal Details" accent={accent} format={format} keepTogether>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px", fontSize: s }}>
+          <BoldSection key={key} num={nextNum()} title="Personal Details" accent={accent} format={format} theme={theme} keepTogether>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 20px", fontSize: s }}>
               {[["Date of Birth", formatDate(cv.dateOfBirth)], ["Gender", cv.gender], ["Marital Status", cv.maritalStatus], ["Nationality", cv.nationality], ["State of Origin", cv.stateOfOrigin], ["LGA", cv.lga], ["Religion", cv.religion], ["NIN", cv.nin]]
                 .filter(([, v]) => v).map(([l, v]) => (
-                  <div key={l}><b style={{ color: "#111" }}>{l}:</b> <span style={{ opacity: 0.7 }}>{v}</span></div>
+                  <div key={l} style={{ color: tc }}><b style={{ opacity: 0.55 }}>{l}: </b>{v}</div>
                 ))}
             </div>
           </BoldSection>
@@ -2300,51 +2332,94 @@ export function BoldStatement({ cv, accent, format, sectionOrder, theme }) {
       }
       case "summary":
         return cv.summary ? (
-          <BoldSection key={key} num={nextNum()} title="Profile" accent={accent} format={format} keepTogether>
-            <p style={{ fontSize: s + 1, lineHeight: lh + 0.15, margin: 0, color: tc, fontWeight: 500 }}>{cv.summary}</p>
+          <BoldSection key={key} num={nextNum()} title="Profile" accent={accent} format={format} theme={theme} keepTogether>
+            <p style={{ fontSize: s + 1.5, lineHeight: lh + 0.2, margin: 0, color: tc, fontWeight: 450 }}>{cv.summary}</p>
           </BoldSection>
         ) : null;
       case "objective":
         return cv.objective ? (
-          <BoldSection key={key} num={nextNum()} title="Objective" accent={accent} format={format} keepTogether>
+          <BoldSection key={key} num={nextNum()} title="Objective" accent={accent} format={format} theme={theme} keepTogether>
             <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc }}>{cv.objective}</p>
           </BoldSection>
         ) : null;
       case "experience":
         return cv.experience[0]?.company ? (
-          <BoldSection key={key} num={nextNum()} title="Experience" accent={accent} format={format}>
+          <BoldSection key={key} num={nextNum()} title="Experience" accent={accent} format={format} theme={theme}>
             {cv.experience.map((e, i) => (
-              <div key={i} className="cv-item" style={{ marginBottom: 14, paddingLeft: 14, borderLeft: `3px solid ${accent}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap" }}>
-                  <b style={{ fontSize: s + 1.5, color: "#111" }}>{e.role}</b>
-                  <span style={{ fontSize: s - 1, color: "#fff", background: accent, padding: "2px 9px", borderRadius: 3, fontWeight: 700 }}>
-                    {e.start} – {e.current ? "Present" : e.end}
+              <div key={i} className="cv-item" style={{ marginBottom: 18 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
+                  <b style={{ fontSize: s + 2, color: tc }}>{e.role}</b>
+                  <span style={{ fontSize: s - 1, color: accent, fontWeight: 800, whiteSpace: "nowrap" }}>
+                    {e.start} — {e.current ? "Present" : e.end}
                   </span>
                 </div>
-                <div style={{ fontSize: s, color: tc, opacity: 0.6, fontWeight: 700, marginBottom: 4 }}>{e.company}</div>
-                <BulletList text={e.responsibilities} fontSize={s} lineHeight={lh} color={tc} />
+                <div style={{ fontSize: s + 0.5, color: tc, opacity: 0.6, fontWeight: 600, marginBottom: 5 }}>{e.company}</div>
+                <BulletList text={e.responsibilities} fontSize={s} lineHeight={lh} color={tc} accent={accent} />
               </div>
             ))}
           </BoldSection>
         ) : null;
       case "education":
         return cv.education[0]?.school ? (
-          <BoldSection key={key} num={nextNum()} title="Education" accent={accent} format={format}>
+          <BoldSection key={key} num={nextNum()} title="Education" accent={accent} format={format} theme={theme}>
             {cv.education.map((e, i) => (
-              <div key={i} style={{ marginBottom: 8 }}>
-                <b style={{ fontSize: s + 0.5, color: "#111" }}>{e.degree} {e.field && `in ${e.field}`}</b>
-                <div style={{ fontSize: s - 0.5, opacity: 0.65 }}>{e.school} · {e.start}–{e.end}</div>
+              <div key={i} style={{ marginBottom: 10 }}>
+                <b style={{ fontSize: s + 1, color: tc }}>{e.degree} {e.field && `in ${e.field}`}</b>
+                <div style={{ fontSize: s, opacity: 0.6, marginTop: 1 }}>{e.school} · {e.start}–{e.end}</div>
               </div>
             ))}
           </BoldSection>
         ) : null;
+      case "skills":
+        return cv.skills ? (
+          <BoldSection key={key} num={nextNum()} title="Skills" accent={accent} format={format} theme={theme} keepTogether>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} style={{
+                  border: `1.5px solid ${accent}`,
+                  color: tc,
+                  fontWeight: 700,
+                  fontSize: s - 0.5,
+                  padding: "5px 12px",
+                  borderRadius: 4,
+                }}>
+                  {sk}
+                </span>
+              ))}
+            </div>
+          </BoldSection>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <BoldSection key={key} num={nextNum()} title="Languages" accent={accent} format={format} theme={theme} keepTogether>
+            <p style={{ fontSize: s, margin: 0, color: tc }}>{cv.languages}</p>
+          </BoldSection>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        const certs = normalizeCertifications(cv.certifications);
+        return (
+          <BoldSection key={key} num={nextNum()} title="Certifications" accent={accent} format={format} theme={theme} keepTogether>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 20px" }}>
+              {certs.map((c, i) => (
+                <div key={i}>
+                  <b style={{ fontSize: s, color: tc }}>{c.name}</b>
+                  {c.issuer && <div style={{ fontSize: s - 1, color: accent, fontWeight: 700 }}>{c.issuer}</div>}
+                </div>
+              ))}
+            </div>
+          </BoldSection>
+        );
+      }
       case "achievements":
         return cv.achievements?.[0]?.title ? (
-          <BoldSection key={key} num={nextNum()} title="Achievements" accent={accent} format={format}>
+          <BoldSection key={key} num={nextNum()} title="Achievements" accent={accent} format={format} theme={theme}>
             {cv.achievements.map((a, i) => (
-              <div key={i} style={{ marginBottom: 8 }}>
-                <b style={{ fontSize: s, color: "#111" }}>{a.title}</b>
-                {a.date && <span style={{ color: accent, fontWeight: 700 }}> — {a.date}</span>}
+              <div key={i} style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <b style={{ fontSize: s, color: tc }}>{a.title}</b>
+                  <span style={{ fontSize: s - 1, color: accent, fontWeight: 700 }}>{a.date}</span>
+                </div>
                 {a.description && <div style={{ fontSize: s - 0.5, opacity: 0.7, marginTop: 2 }}>{a.description}</div>}
               </div>
             ))}
@@ -2352,75 +2427,35 @@ export function BoldStatement({ cv, accent, format, sectionOrder, theme }) {
         ) : null;
       case "volunteer":
         return cv.volunteer?.[0]?.organization ? (
-          <BoldSection key={key} num={nextNum()} title="Volunteer" accent={accent} format={format}>
+          <BoldSection key={key} num={nextNum()} title="Volunteer" accent={accent} format={format} theme={theme}>
             {cv.volunteer.map((v, i) => (
-              <div key={i} style={{ marginBottom: 6 }}>
-                <b>{v.role}</b> <span style={{ color: accent }}>· {v.organization}</span>
+              <div key={i} style={{ marginBottom: 8 }}>
+                <b style={{ color: tc }}>{v.role}</b> <span style={{ color: accent, fontWeight: 700 }}>· {v.organization}</span>
               </div>
             ))}
           </BoldSection>
         ) : null;
       case "publications":
         return cv.publications?.[0]?.title ? (
-          <BoldSection key={key} num={nextNum()} title="Publications" accent={accent} format={format}>
-            {cv.publications.map((p, i) => <div key={i} style={{ marginBottom: 6 }}>{p.title}</div>)}
+          <BoldSection key={key} num={nextNum()} title="Publications" accent={accent} format={format} theme={theme}>
+            {cv.publications.map((p, i) => <div key={i} style={{ marginBottom: 6, color: tc }}>{p.title}</div>)}
+          </BoldSection>
+        ) : null;
+      case "hobbies":
+        return cv.hobbies ? (
+          <BoldSection key={key} num={nextNum()} title="Interests" accent={accent} format={format} theme={theme} keepTogether>
+            <p style={{ fontSize: s, margin: 0, color: tc }}>{cv.hobbies}</p>
           </BoldSection>
         ) : null;
       case "references":
         return cv.references?.[0]?.name ? (
-          <BoldSection key={key} num={nextNum()} title="References" accent={accent} format={format} keepTogether>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+          <BoldSection key={key} num={nextNum()} title="References" accent={accent} format={format} theme={theme} keepTogether>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>
               {cv.references.map((r, i) => (
-                <div key={i}><b>{r.name}</b> <span style={{ opacity: 0.6 }}>– {r.title}</span></div>
+                <div key={i}><b style={{ color: tc }}>{r.name}</b> <span style={{ opacity: 0.6 }}>– {r.title}</span></div>
               ))}
             </div>
           </BoldSection>
-        ) : null;
-      default: return null;
-    }
-  };
-
-  const renderSide = (key) => {
-    switch (key) {
-      case "skills":
-        return cv.skills ? (
-          <div style={{ marginBottom: 18 }} key={key}>
-            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 8 }}>Skills</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
-                <span key={i} style={{ background: accent, color: "#111", fontWeight: 700, fontSize: s - 1, padding: "4px 10px", borderRadius: 3 }}>{sk}</span>
-              ))}
-            </div>
-          </div>
-        ) : null;
-      case "languages":
-        return cv.languages ? (
-          <div style={{ marginBottom: 18 }} key={key}>
-            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 6 }}>Languages</div>
-            <p style={{ fontSize: s, color: "rgba(255,255,255,0.85)", margin: 0 }}>{cv.languages}</p>
-          </div>
-        ) : null;
-      case "certifications": {
-        if (!hasCertifications(cv)) return null;
-        const certs = normalizeCertifications(cv.certifications);
-        return (
-          <div style={{ marginBottom: 18 }} key={key}>
-            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 8 }}>Certifications</div>
-            {certs.map((c, i) => (
-              <div key={i} style={{ marginBottom: 8 }}>
-                <div style={{ fontSize: s - 0.5, fontWeight: 700, color: "#fff" }}>{c.name}</div>
-                {c.issuer && <div style={{ fontSize: s - 1.5, color: accent }}>{c.issuer}</div>}
-              </div>
-            ))}
-          </div>
-        );
-      }
-      case "hobbies":
-        return cv.hobbies ? (
-          <div style={{ marginBottom: 18 }} key={key}>
-            <div style={{ fontSize: s - 1, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, color: "#fff", opacity: 0.55, marginBottom: 6 }}>Interests</div>
-            <p style={{ fontSize: s, color: "rgba(255,255,255,0.85)", margin: 0 }}>{cv.hobbies}</p>
-          </div>
         ) : null;
       default: return null;
     }
@@ -2435,51 +2470,46 @@ export function BoldStatement({ cv, accent, format, sectionOrder, theme }) {
       background: theme.bg,
       minHeight: "100%",
       boxSizing: "border-box",
-      display: "flex",
+      padding: `${format.pagePadding + 10}px ${format.pagePadding + 6}px`,
     }}>
-      {/* DARK SIDEBAR */}
-      <div style={{ width: 210, background: "#111", padding: format.pagePadding, flexShrink: 0 }}>
-        {cv.photo && (
-          <img src={cv.photo} alt="profile" style={{ width: 86, height: 86, borderRadius: "50%", objectFit: "cover", border: `3px solid ${accent}`, marginBottom: 16 }} />
-        )}
+      {/* BOLD HEADER — name dominates, no photo, no sidebar */}
+      <div style={{ marginBottom: 8 }}>
         <div style={{
-          fontSize: format.nameFontSize - 6,
+          fontSize: format.nameFontSize + 10,
           fontWeight: 900,
-          color: "#fff",
-          lineHeight: 1.05,
-          marginBottom: 6,
+          letterSpacing: -1,
+          lineHeight: 0.98,
+          color: tc,
         }}>
           {cv.name || "Your Name"}
         </div>
         <div style={{
-          display: "inline-block",
-          background: accent,
-          color: "#111",
-          fontWeight: 800,
-          fontSize: s - 1,
-          padding: "4px 10px",
-          borderRadius: 3,
-          marginBottom: 20,
+          fontSize: format.bodyFontSize + 3,
+          fontWeight: 700,
+          color: accent,
+          marginTop: 6,
+          textTransform: "uppercase",
+          letterSpacing: 1,
         }}>
           {cv.jobTitle}
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: s - 1.5, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>
-          {cv.email && <span>{cv.email}</span>}
-          {cv.phone && <span>{cv.phone}</span>}
-          {cv.address && <span>{cv.address}</span>}
-          {cv.linkedin && <span>{cv.linkedin}</span>}
-          {cv.website && <span>{cv.website}</span>}
-          {cv.github && <span>{cv.github}</span>}
-        </div>
-
-        {sideSections.map(renderSide)}
       </div>
 
-      {/* MAIN CONTENT — generous whitespace */}
-      <div style={{ flex: 1, padding: `${format.pagePadding + 8}px ${format.pagePadding + 4}px` }}>
-        {mainSections.map(renderMain)}
+      <BoldRule accent={accent} />
+
+      <div style={{
+        display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 26,
+        fontSize: s - 0.5, color: tc, opacity: 0.7,
+      }}>
+        {cv.email && <span>{cv.email}</span>}
+        {cv.phone && <span>{cv.phone}</span>}
+        {cv.address && <span>{cv.address}</span>}
+        {cv.linkedin && <span>{cv.linkedin}</span>}
+        {cv.website && <span>{cv.website}</span>}
+        {cv.github && <span>{cv.github}</span>}
       </div>
+
+      {sectionOrder.map(renderSection)}
     </div>
   );
 }
