@@ -2246,31 +2246,8 @@ export function CompactPro({ cv, accent, format, sectionOrder, theme }) {
   );
 }
 
-// ══════════════════════════════════════════════
-// ── TEMPLATE 11: BOLD STATEMENT (high-contrast, fearless) ──
-// ══════════════════════════════════════════════
-function BoldSection({ num, title, accent, format, children, keepTogether = false }) {
-  return (
-    <div className={keepTogether ? "cv-section cv-section-keep" : "cv-section"} style={{ marginBottom: 22 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
-        <span style={{ fontSize: format.headingFontSize + 10, fontWeight: 900, color: accent, opacity: 0.18, lineHeight: 1 }}>
-          {num}
-        </span>
-        <span style={{
-          fontSize: format.headingFontSize + 1,
-          fontWeight: 800,
-          textTransform: "uppercase",
-          letterSpacing: 1.5,
-          color: "#111",
-        }}>
-          {title}
-        </span>
-      </div>
-      {children}
-    </div>
-  );
-}
 
+//new template
 // ══════════════════════════════════════════════
 // ── TEMPLATE 11 (REBUILT): BOLD STATEMENT — single column, no sidebar ──
 // ══════════════════════════════════════════════
