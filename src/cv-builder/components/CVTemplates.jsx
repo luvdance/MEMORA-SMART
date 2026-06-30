@@ -114,32 +114,33 @@ function BulletList({ text, fontSize, lineHeight, color }) {
   // If most lines look like bullets, render as a real list
   if (bulletLines.length >= Math.max(1, lines.length - 1)) {
     return (
-      <ul style={{
-        margin: "4px 0 0",
-        paddingLeft: 18,
-        listStyleType: "disc",
-      }}>
-        {lines.map((line, i) => {
-          const cleaned = line.replace(/^[-*•]\s*/, "");
-          return (
-            <li
-              key={i}
-              style={{
-                fontSize,
-                lineHeight,
-                color,
-                opacity: 0.88,
-                marginBottom: 3,
-                paddingLeft: 2,
-              }}
-            >
-              {cleaned}
-            </li>
-          );
-        })}
-      </ul>
-    );
-  }
+    <ul style={{
+      margin: "4px 0 0",
+      paddingLeft: 18,
+      listStyleType: "disc",
+    }}>
+      {lines.map((line, i) => {
+        const cleaned = line.replace(/^[-*•]\s*/, "");
+        return (
+          <li
+            key={i}
+            style={{
+              fontSize,
+              lineHeight,
+              color,
+              opacity: 0.88,
+              marginBottom: 3,
+              paddingLeft: 2,
+              textAlign: "justify",
+            }}
+          >
+            {cleaned}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
   // Fallback: plain paragraph (no bullet formatting detected)
   return (
@@ -1491,21 +1492,21 @@ function FineBullets({ text, fontSize, lineHeight, color, accent }) {
 
   if (bulletLines.length >= Math.max(1, lines.length - 1)) {
     return (
-      <div style={{ marginTop: 5 }}>
-        {lines.map((line, i) => {
-          const cleaned = line.replace(/^[-*•]\s*/, "");
-          return (
-            <div key={i} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
-              <span style={{ color: accent, fontSize: fontSize - 1, lineHeight: lineHeight, flexShrink: 0, fontWeight: 700 }}>
-                ▸
-              </span>
-              <span style={{ fontSize, lineHeight, color, opacity: 0.85 }}>{cleaned}</span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+    <div style={{ marginTop: 5 }}>
+      {lines.map((line, i) => {
+        const cleaned = line.replace(/^[-*•]\s*/, "");
+        return (
+          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+            <span style={{ color: accent, fontSize: fontSize - 1, lineHeight: lineHeight, flexShrink: 0, fontWeight: 700 }}>
+              ▸
+            </span>
+            <span style={{ fontSize, lineHeight, color, opacity: 0.85, textAlign: "justify" }}>{cleaned}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
   return (
     <p style={{ whiteSpace: "pre-wrap", fontSize, lineHeight, color, opacity: 0.85, margin: "4px 0 0" }}>
