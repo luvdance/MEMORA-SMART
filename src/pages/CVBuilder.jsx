@@ -14,6 +14,7 @@ import { printCV } from "../cv-builder/utils/printEngine";
 import { downloadCVPdf } from "../cv-builder/utils/pdfEngine";
 import PaymentRequery from "../components/PaymentRequery";
 import { track } from "../utils/analytics";
+import { TEMPLATE_INFO } from "../cv-builder/utils/sampleCV";
 
 const LOCAL_KEY = "memora_cv_draft";
 
@@ -70,6 +71,15 @@ export default function CVBuilder() {
   const [showRequery, setShowRequery] = useState(false);
 
   const previewRef = useRef();
+
+  //ACCENT FIRE
+  // ── SYNC ACCENT TO TEMPLATE DEFAULT WHEN TEMPLATE CHANGES ──
+useEffect(() => {
+  const templateDefault = TEMPLATE_INFO[template]?.accent;
+  if (templateDefault) {
+    setAccent(templateDefault);
+  }
+}, [template]);
 
   // ── AUTO-SAVE TO LOCALSTORAGE ──
   useEffect(() => {
