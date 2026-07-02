@@ -97,4 +97,6 @@ export const TEMPLATE_INFO = [
 { name: "Modern Timeline", accent: "#7c3aed", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Compact Pro", accent: "#1e40af", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Bold Statement", accent: "#facc15", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Horizon", accent: "#0ea5e9", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Refined", accent: "#b45309", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 ];

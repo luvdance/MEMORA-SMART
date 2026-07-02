@@ -10,6 +10,8 @@ export const TEMPLATES = [
   "Modern Timeline",
   "Compact Pro", 
   "Bold Statement",
+  "Horizon", 
+  "Refined",
 ];
 
 export const ACCENT = ["#2563eb", "#0f766e", "#7c3aed", "#dc2626", "#d97706"];

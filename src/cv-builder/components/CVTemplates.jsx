@@ -2491,3 +2491,723 @@ export function BoldStatement({ cv, accent, format, sectionOrder, theme }) {
     </div>
   );
 }
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 12: HORIZON (full-width banner header) ──
+// ══════════════════════════════════════════════
+export function Horizon({ cv, accent, format, sectionOrder, theme }) {
+  const s = format.bodyFontSize;
+  const lh = format.lineHeight;
+  const tc = theme.text;
+  const p = format.pagePadding;
+
+  const renderSection = (key) => {
+    switch (key) {
+      case "biodata": {
+        const has = cv.dateOfBirth || cv.gender || cv.maritalStatus ||
+          cv.nationality || cv.stateOfOrigin || cv.lga ||
+          cv.placeOfBirth || cv.religion || cv.nin;
+        if (!has) return null;
+        return (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="Personal Details" accent={accent} format={format} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 20px", fontSize: s - 0.5 }}>
+              {[
+                ["Date of Birth", formatDate(cv.dateOfBirth)],
+                ["Place of Birth", cv.placeOfBirth],
+                ["Gender", cv.gender],
+                ["Marital Status", cv.maritalStatus],
+                ["Nationality", cv.nationality],
+                ["State of Origin", cv.stateOfOrigin],
+                ["LGA", cv.lga],
+                ["Religion", cv.religion],
+                ["NIN", cv.nin],
+              ].filter(([, v]) => v).map(([l, v]) => (
+                <div key={l} style={{ color: tc }}>
+                  <b style={{ opacity: 0.55 }}>{l}: </b>{v}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "summary":
+        return cv.summary ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="Professional Summary" accent={accent} format={format} />
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.summary}</p>
+          </div>
+        ) : null;
+      case "objective":
+        return cv.objective ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="Career Objective" accent={accent} format={format} />
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.objective}</p>
+          </div>
+        ) : null;
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <div key={key} style={{ marginBottom: 16 }}>
+            <HorizonLabel title="Work Experience" accent={accent} format={format} />
+            {cv.experience.map((e, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 4 }}>
+                  <b style={{ fontSize: s + 1, color: tc }}>{e.role}</b>
+                  <span style={{
+                    fontSize: s - 1.5,
+                    background: `${accent}18`,
+                    color: accent,
+                    fontWeight: 800,
+                    padding: "3px 10px",
+                    borderRadius: 4,
+                    whiteSpace: "nowrap",
+                  }}>
+                    {e.start} – {e.current ? "Present" : e.end}
+                  </span>
+                </div>
+                <div style={{ fontSize: s, color: accent, fontWeight: 700, marginBottom: 4 }}>{e.company}</div>
+                <BulletList text={e.responsibilities} fontSize={s} lineHeight={lh} color={tc} />
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "education":
+        return cv.education[0]?.school ? (
+          <div key={key} style={{ marginBottom: 16 }}>
+            <HorizonLabel title="Education" accent={accent} format={format} />
+            {cv.education.map((e, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap" }}>
+                  <b style={{ fontSize: s + 0.5, color: tc }}>{e.degree} {e.field && `in ${e.field}`}</b>
+                  <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{e.start}–{e.end}</span>
+                </div>
+                <div style={{ fontSize: s - 0.5, color: tc, opacity: 0.65 }}>{e.school}</div>
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "skills":
+        return cv.skills ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="Skills" accent={accent} format={format} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} style={{
+                  background: `${accent}14`,
+                  color: tc,
+                  border: `1px solid ${accent}40`,
+                  fontSize: s - 1,
+                  fontWeight: 600,
+                  padding: "4px 11px",
+                  borderRadius: 20,
+                }}>
+                  {sk}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="Languages" accent={accent} format={format} />
+            <p style={{ fontSize: s, margin: 0, color: tc }}>{cv.languages}</p>
+          </div>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        const certs = normalizeCertifications(cv.certifications);
+        return (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="Certifications" accent={accent} format={format} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px" }}>
+              {certs.map((c, i) => (
+                <div key={i}>
+                  <b style={{ fontSize: s - 0.5, color: tc, display: "block" }}>{c.name}</b>
+                  {c.issuer && <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{c.issuer}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 16 }}>
+            <HorizonLabel title="Achievements" accent={accent} format={format} />
+            {cv.achievements.map((a, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <b style={{ fontSize: s, color: tc }}>{a.title}</b>
+                  <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{a.date}</span>
+                </div>
+                {a.description && <p style={{ fontSize: s - 0.5, margin: "2px 0 0", opacity: 0.75, textAlign: "justify" }}>{a.description}</p>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "hobbies":
+        return cv.hobbies ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="Interests" accent={accent} format={format} />
+            <p style={{ fontSize: s, margin: 0, color: tc }}>{cv.hobbies}</p>
+          </div>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <div key={key} style={{ marginBottom: 16 }}>
+            <HorizonLabel title="Volunteer Work" accent={accent} format={format} />
+            {cv.volunteer.map((v, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <b style={{ color: tc }}>{v.role}</b>
+                <span style={{ color: accent, fontWeight: 700 }}> · {v.organization}</span>
+                {v.description && <p style={{ fontSize: s - 0.5, margin: "2px 0 0", opacity: 0.75 }}>{v.description}</p>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 16 }}>
+            <HorizonLabel title="Publications" accent={accent} format={format} />
+            {cv.publications.map((p, i) => (
+              <div key={i} style={{ marginBottom: 6, color: tc }}>{p.title}</div>
+            ))}
+          </div>
+        ) : null;
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <HorizonLabel title="References" accent={accent} format={format} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+              {cv.references.map((r, i) => (
+                <div key={i}>
+                  <b style={{ color: tc }}>{r.name}</b>
+                  <div style={{ fontSize: s - 1, opacity: 0.65 }}>{r.title}{r.company && ` — ${r.company}`}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div style={{
+      fontFamily: format.fontFamily,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+    }}>
+      {/* FULL-WIDTH BANNER HEADER */}
+      <div style={{
+        background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+        padding: `${p + 10}px ${p}px ${p + 6}px`,
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        {/* Decorative geometric accent shapes in the banner */}
+        <div style={{
+          position: "absolute",
+          top: -20,
+          right: -20,
+          width: 120,
+          height: 120,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.07)",
+        }} />
+        <div style={{
+          position: "absolute",
+          bottom: -30,
+          right: 60,
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.05)",
+        }} />
+
+        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 20 }}>
+          {cv.photo && (
+            <img
+              src={cv.photo}
+              alt="profile"
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "3px solid rgba(255,255,255,0.6)",
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{
+              fontSize: format.nameFontSize + 2,
+              fontWeight: format.nameBold ? 900 : 400,
+              fontStyle: format.nameItalic ? "italic" : "normal",
+              color: "#fff",
+              lineHeight: 1.1,
+              marginBottom: 4,
+            }}>
+              {cv.name || "Your Name"}
+            </div>
+            <div style={{
+              fontSize: s + 2,
+              fontWeight: 600,
+              color: "rgba(255,255,255,0.82)",
+              marginBottom: 12,
+              letterSpacing: 0.3,
+            }}>
+              {cv.jobTitle}
+            </div>
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "4px 16px",
+              fontSize: s - 1.5,
+              color: "rgba(255,255,255,0.75)",
+            }}>
+              {cv.email && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <i className="fas fa-envelope" style={{ fontSize: s - 2 }}></i> {cv.email}
+                </span>
+              )}
+              {cv.phone && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <i className="fas fa-phone" style={{ fontSize: s - 2 }}></i> {cv.phone}
+                </span>
+              )}
+              {cv.address && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <i className="fas fa-map-marker-alt" style={{ fontSize: s - 2 }}></i> {cv.address}
+                </span>
+              )}
+              {cv.linkedin && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <i className="fab fa-linkedin" style={{ fontSize: s - 2 }}></i> {cv.linkedin}
+                </span>
+              )}
+              {cv.website && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <i className="fas fa-globe" style={{ fontSize: s - 2 }}></i> {cv.website}
+                </span>
+              )}
+              {cv.github && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <i className="fab fa-github" style={{ fontSize: s - 2 }}></i> {cv.github}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BODY */}
+      <div style={{ padding: `${p}px ${p}px` }}>
+        {sectionOrder.map(renderSection)}
+      </div>
+    </div>
+  );
+}
+
+function HorizonLabel({ title, accent, format }) {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 8,
+    }}>
+      <div style={{
+        width: 28,
+        height: 3,
+        background: accent,
+        borderRadius: 2,
+        flexShrink: 0,
+      }} />
+      <div style={{
+        fontSize: format.headingFontSize,
+        fontWeight: format.headingBold ? 800 : 400,
+        textTransform: format.headingUppercase ? "uppercase" : "none",
+        letterSpacing: 1.5,
+        color: "#111",
+      }}>
+        {title}
+      </div>
+      <div style={{
+        flex: 1,
+        height: 1,
+        background: "#e5e7eb",
+      }} />
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 13: REFINED (two-tone name, border system) ──
+// ══════════════════════════════════════════════
+function RefinedLabel({ title, accent, format }) {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "stretch",
+      gap: 12,
+      marginBottom: 10,
+    }}>
+      <div style={{
+        width: 4,
+        background: accent,
+        borderRadius: 2,
+        flexShrink: 0,
+        alignSelf: "stretch",
+        minHeight: 18,
+      }} />
+      <div style={{
+        fontSize: format.headingFontSize,
+        fontWeight: format.headingBold ? 800 : 400,
+        textTransform: format.headingUppercase ? "uppercase" : "none",
+        letterSpacing: 2,
+        color: "#111",
+        paddingTop: 1,
+      }}>
+        {title}
+      </div>
+    </div>
+  );
+}
+
+export function Refined({ cv, accent, format, sectionOrder, theme }) {
+  const s = format.bodyFontSize;
+  const lh = format.lineHeight;
+  const tc = theme.text;
+  const p = format.pagePadding;
+
+  // Split the name into first + rest for two-tone treatment
+  const nameParts = (cv.name || "Your Name").trim().split(" ");
+  const firstName = nameParts[0];
+  const restOfName = nameParts.slice(1).join(" ");
+
+  const renderSection = (key) => {
+    switch (key) {
+      case "biodata": {
+        const has = cv.dateOfBirth || cv.gender || cv.maritalStatus ||
+          cv.nationality || cv.stateOfOrigin || cv.lga ||
+          cv.placeOfBirth || cv.religion || cv.nin;
+        if (!has) return null;
+        return (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="Personal Details" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 20px", fontSize: s - 0.5 }}>
+              {[
+                ["Date of Birth", formatDate(cv.dateOfBirth)],
+                ["Place of Birth", cv.placeOfBirth],
+                ["Gender", cv.gender],
+                ["Marital Status", cv.maritalStatus],
+                ["Nationality", cv.nationality],
+                ["State of Origin", cv.stateOfOrigin],
+                ["LGA", cv.lga],
+                ["Religion", cv.religion],
+                ["NIN", cv.nin],
+              ].filter(([, v]) => v).map(([l, v]) => (
+                <div key={l} style={{ color: tc }}>
+                  <b style={{ color: accent }}>{l}: </b>{v}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "summary":
+        return cv.summary ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="Profile" accent={accent} format={format} />
+            <p style={{
+              fontSize: s,
+              lineHeight: lh,
+              margin: "0 0 0 16px",
+              color: tc,
+              textAlign: "justify",
+            }}>
+              {cv.summary}
+            </p>
+          </div>
+        ) : null;
+      case "objective":
+        return cv.objective ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="Objective" accent={accent} format={format} />
+            <p style={{ fontSize: s, lineHeight: lh, margin: "0 0 0 16px", color: tc, textAlign: "justify" }}>
+              {cv.objective}
+            </p>
+          </div>
+        ) : null;
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <RefinedLabel title="Work Experience" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16 }}>
+              {cv.experience.map((e, i) => (
+                <div key={i} className="cv-item" style={{ marginBottom: 14, position: "relative" }}>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}>
+                    <b style={{ fontSize: s + 1.5, color: tc, fontWeight: 800 }}>{e.role}</b>
+                    <span style={{
+                      fontSize: s - 1,
+                      color: tc,
+                      opacity: 0.55,
+                      fontStyle: "italic",
+                      whiteSpace: "nowrap",
+                    }}>
+                      {e.start} – {e.current ? "Present" : e.end}
+                    </span>
+                  </div>
+                  <div style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    marginBottom: 5,
+                  }}>
+                    <div style={{ width: 16, height: 1.5, background: accent }} />
+                    <span style={{ fontSize: s - 0.5, color: accent, fontWeight: 700 }}>{e.company}</span>
+                  </div>
+                  <BulletList text={e.responsibilities} fontSize={s} lineHeight={lh} color={tc} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "education":
+        return cv.education[0]?.school ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <RefinedLabel title="Education" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16 }}>
+              {cv.education.map((e, i) => (
+                <div key={i} style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
+                    <b style={{ fontSize: s + 0.5, color: tc }}>{e.degree} {e.field && `in ${e.field}`}</b>
+                    <span style={{ fontSize: s - 1.5, color: tc, opacity: 0.55, fontStyle: "italic" }}>{e.start}–{e.end}</span>
+                  </div>
+                  <div style={{ fontSize: s - 0.5, color: tc, opacity: 0.7 }}>{e.school}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "skills":
+        return cv.skills ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="Skills" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} style={{
+                  fontSize: s - 0.5,
+                  color: tc,
+                  fontWeight: 600,
+                  padding: "4px 0",
+                  paddingRight: 12,
+                  borderRight: i % 3 !== 2 ? `1px solid ${accent}50` : "none",
+                  paddingLeft: i % 3 !== 0 ? 12 : 0,
+                }}>
+                  {sk}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="Languages" accent={accent} format={format} />
+            <p style={{ fontSize: s, margin: "0 0 0 16px", color: tc }}>{cv.languages}</p>
+          </div>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        const certs = normalizeCertifications(cv.certifications);
+        return (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="Certifications" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px" }}>
+              {certs.map((c, i) => (
+                <div key={i}>
+                  <b style={{ fontSize: s - 0.5, color: tc, display: "block" }}>{c.name}</b>
+                  {c.issuer && <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{c.issuer}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <RefinedLabel title="Achievements" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16 }}>
+              {cv.achievements.map((a, i) => (
+                <div key={i} style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <b style={{ fontSize: s, color: tc }}>{a.title}</b>
+                    <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{a.date}</span>
+                  </div>
+                  {a.description && (
+                    <p style={{ fontSize: s - 0.5, margin: "2px 0 0", opacity: 0.75, textAlign: "justify" }}>{a.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "hobbies":
+        return cv.hobbies ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="Interests" accent={accent} format={format} />
+            <p style={{ fontSize: s, margin: "0 0 0 16px", color: tc }}>{cv.hobbies}</p>
+          </div>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <RefinedLabel title="Volunteer" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16 }}>
+              {cv.volunteer.map((v, i) => (
+                <div key={i} style={{ marginBottom: 6 }}>
+                  <b style={{ color: tc }}>{v.role}</b>
+                  <span style={{ color: accent, fontWeight: 700 }}> · {v.organization}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <RefinedLabel title="Publications" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16 }}>
+              {cv.publications.map((p, i) => (
+                <div key={i} style={{ marginBottom: 5, color: tc }}>{p.title}</div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <RefinedLabel title="References" accent={accent} format={format} />
+            <div style={{ paddingLeft: 16, display: "flex", flexWrap: "wrap", gap: 20 }}>
+              {cv.references.map((r, i) => (
+                <div key={i}>
+                  <b style={{ color: tc }}>{r.name}</b>
+                  <div style={{ fontSize: s - 1, opacity: 0.65 }}>{r.title}{r.company && ` — ${r.company}`}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div style={{
+      fontFamily: format.fontFamily,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+      padding: `${p + 8}px ${p}px`,
+    }}>
+      {/* TWO-TONE NAME HEADER */}
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ lineHeight: 1.05, marginBottom: 6 }}>
+          <span style={{
+            fontSize: format.nameFontSize + 6,
+            fontWeight: 300,
+            color: tc,
+            letterSpacing: -0.5,
+          }}>
+            {firstName}{" "}
+          </span>
+          <span style={{
+            fontSize: format.nameFontSize + 6,
+            fontWeight: 900,
+            color: tc,
+            letterSpacing: -0.5,
+          }}>
+            {restOfName}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <div style={{ width: 40, height: 3, background: accent, borderRadius: 2 }} />
+          <span style={{
+            fontSize: s + 1.5,
+            fontWeight: 600,
+            color: accent,
+            letterSpacing: 0.5,
+          }}>
+            {cv.jobTitle}
+          </span>
+        </div>
+
+        <div style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "4px 18px",
+          fontSize: s - 1,
+          color: tc,
+          opacity: 0.65,
+          paddingBottom: 14,
+          borderBottom: `1px solid #e5e7eb`,
+          marginBottom: 20,
+        }}>
+          {cv.email && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fas fa-envelope" style={{ color: accent, fontSize: s - 2 }}></i> {cv.email}
+            </span>
+          )}
+          {cv.phone && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fas fa-phone" style={{ color: accent, fontSize: s - 2 }}></i> {cv.phone}
+            </span>
+          )}
+          {cv.address && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fas fa-map-marker-alt" style={{ color: accent, fontSize: s - 2 }}></i> {cv.address}
+            </span>
+          )}
+          {cv.linkedin && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fab fa-linkedin" style={{ color: accent, fontSize: s - 2 }}></i> {cv.linkedin}
+            </span>
+          )}
+          {cv.website && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fas fa-globe" style={{ color: accent, fontSize: s - 2 }}></i> {cv.website}
+            </span>
+          )}
+          {cv.github && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i className="fab fa-github" style={{ color: accent, fontSize: s - 2 }}></i> {cv.github}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {sectionOrder.map(renderSection)}
+    </div>
+  );
+}
