@@ -43,6 +43,15 @@ export default function CVNavbar({
   const currentTemplateName = TEMPLATES[template] || "Select Template";
   const currentAccent = TEMPLATE_INFO[template]?.accent || accent;
 
+  // Detect if the screen width is mobile size
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
+
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth <= 900);
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+
   return (
     <>
       <nav className="cvnav">
@@ -79,7 +88,7 @@ export default function CVNavbar({
               <i className={`fas fa-chevron-down cvnav__chevron ${showTemplateDropdown ? "cvnav__chevron--open" : ""}`}></i>
             </button>
 
-            {showTemplateDropdown && (
+            {showTemplateDropdown && !isMobile && (
               <div className="cvnav__template-dropdown" role="listbox">
                 <div className="cvnav__template-grid">
                   {TEMPLATE_GROUPS.map((group) => (
@@ -142,7 +151,6 @@ export default function CVNavbar({
         {/* ── RIGHT — Output actions ── */}
         <div className="cvnav__right">
 
-          {/* Save status */}
           {saveStatus && (
             <span className={`cvnav__save-status ${saveStatus === "saved" ? "cvnav__save-status--saved" : saveStatus === "error" ? "cvnav__save-status--error" : ""}`}>
               {saveStatus === "saving" && <><i className="fas fa-circle-notch fa-spin"></i> Saving</>}
@@ -151,44 +159,34 @@ export default function CVNavbar({
             </span>
           )}
 
-          {/* Save */}
           {isOwner && (
-            <button
-              className="cvnav__action-btn"
-              onClick={onSave}
-              disabled={saving}
-              title="Save CV"
-            >
+            <button className="cvnav__action-btn" onClick={onSave} disabled={saving}>
               <i className="fas fa-save"></i>
               <span>Save</span>
             </button>
           )}
 
-          {/* Share */}
-          <button
-            className="cvnav__action-btn"
-            onClick={onShare}
-            title="Share CV"
-          >
+          <button className="cvnav__action-btn" onClick={onShare}>
             <i className="fas fa-share-alt"></i>
             <span>Share</span>
           </button>
 
-          {/* Download — primary CTA */}
-          <button
-            className="cvnav__download-btn"
-            onClick={onDownload}
-            disabled={pdfLoading}
-            title="Download PDF"
-          >
-            {pdfLoading ? (
-              <><i className="fas fa-circle-notch fa-spin"></i> <span>Generating...</span></>
-            ) : (
-              <><i className="fas fa-download"></i> <span>Download</span></>
-            )}
+          {/* Back to dashboard */}
+          <button className="cvnav__action-btn" onClick={() => navigate("/dashboard")}>
+            <i className="fas fa-th-large"></i>
+            <span>Dashboard</span>
           </button>
 
-          {/* ⋯ More — Print, About, Clear */}
+          {/* Print — primary visible action on desktop */}
+          <button
+            className="cvnav__download-btn"
+            onClick={onPrint}
+          >
+            <i className="fas fa-print"></i>
+            <span>Print / Save PDF</span>
+          </button>
+
+          {/* ⋯ More — Download PDF, About, Clear */}
           <div className="cvnav__dropdown-wrap" onBlur={(e) => {
             if (!e.currentTarget.contains(e.relatedTarget)) setShowMoreDropdown(false);
           }}>
@@ -196,8 +194,6 @@ export default function CVNavbar({
               className="cvnav__more-btn"
               onClick={() => { setShowMoreDropdown(v => !v); setShowTemplateDropdown(false); }}
               aria-label="More options"
-              aria-expanded={showMoreDropdown}
-              aria-haspopup="menu"
             >
               <i className="fas fa-ellipsis-h"></i>
             </button>
@@ -206,15 +202,13 @@ export default function CVNavbar({
               <div className="cvnav__more-dropdown" role="menu">
                 <button
                   className="cvnav__more-item"
-                  onClick={() => { onPrint(); setShowMoreDropdown(false); }}
-                  role="menuitem"
+                  onClick={() => { onDownload(); setShowMoreDropdown(false); }}
                 >
-                  <i className="fas fa-print"></i> Print
+                  <i className="fas fa-download"></i> Download PDF
                 </button>
                 <button
                   className="cvnav__more-item"
                   onClick={() => { navigate("/"); setShowMoreDropdown(false); }}
-                  role="menuitem"
                 >
                   <i className="fas fa-info-circle"></i> About
                 </button>
@@ -222,7 +216,6 @@ export default function CVNavbar({
                 <button
                   className="cvnav__more-item cvnav__more-item--danger"
                   onClick={() => { onClear(); setShowMoreDropdown(false); }}
-                  role="menuitem"
                 >
                   <i className="fas fa-trash"></i> Clear CV
                 </button>
@@ -301,7 +294,7 @@ export default function CVNavbar({
       </nav>
 
       {/* Mobile template dropdown (full-width sheet) */}
-      {showTemplateDropdown && (
+      {showTemplateDropdown && isMobile && (
         <div className="cvnav__mobile-template-sheet">
           <div className="cvnav__mobile-sheet-header">
             <span>Choose Template</span>
