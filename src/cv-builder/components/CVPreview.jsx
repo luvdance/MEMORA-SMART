@@ -16,7 +16,6 @@ export default function CVPreview({
   showOrder, setShowOrder,
 }) {
   const TemplateComponent = templates[template];
-  const [showOrder, setShowOrder] = useState(false);
   const [mobileScale, setMobileScale] = useState(1);
   const wrapperRef = useRef();
 
