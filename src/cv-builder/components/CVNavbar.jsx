@@ -25,7 +25,9 @@ export default function CVNavbar({
   tab, setTab, onPrint, onDownload, pdfLoading,
   onSave, onShare, onClear,
   saving, saveStatus, isOwner, user,
-  format, setFormat, theme, setTheme, onOpenCustomize,
+  format, setFormat, theme, setTheme,
+  showFormat, setShowFormat,
+  showOrder, setShowOrder,
 }) {
   const navigate = useNavigate();
   const upd = (key, val) => setFormat((f) => ({ ...f, [key]: val }));
@@ -139,8 +141,11 @@ useEffect(() => {
 
           {/* Format */}
           <button
-            className={`cvnav__tool-btn ${showFormatPanel ? "cvnav__tool-btn--active" : ""}`}
-            onClick={() => { onOpenCustomize(); closeAll(); }}
+            className={`cvnav__tool-btn ${showFormat ? "cvnav__tool-btn--active" : ""}`}
+            onClick={() => {
+              setShowFormat(v => !v);
+              setShowOrder(false);
+            }}
           >
             <i className="fas fa-sliders-h"></i>
             <span>Format</span>

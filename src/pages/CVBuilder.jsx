@@ -47,6 +47,10 @@ export default function CVBuilder() {
   const [cvId, setCvId] = useState(urlCvId || null);
   const [isOwner, setIsOwner] = useState(true);
 
+  //format button
+  const [showFormat, setShowFormat] = useState(false);
+  const [showOrder, setShowOrder] = useState(false);
+
   // ── SAVE STATE ──
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
@@ -353,7 +357,6 @@ const triggerPrint = () => {
         setFormat={setFormat}
         theme={theme}
         setTheme={setTheme}
-        onOpenCustomize={openCustomize}
       />
 
       {showOptimizedBanner && (
@@ -427,6 +430,10 @@ const triggerPrint = () => {
           sectionOrder={sectionOrder}
           setSectionOrder={setSectionOrder}
           theme={theme}
+          showFormat={showFormat}
+          setShowFormat={setShowFormat}
+          showOrder={showOrder}
+          setShowOrder={setShowOrder}
         />
 
       </div>

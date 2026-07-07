@@ -11,10 +11,11 @@ const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, Creative
 
 export default function CVPreview({
   cv, accent, template, previewRef, tab,
-  format, setFormat, sectionOrder, setSectionOrder, theme
+  format, setFormat, sectionOrder, setSectionOrder, theme,
+  showFormat, setShowFormat,
+  showOrder, setShowOrder,
 }) {
   const TemplateComponent = templates[template];
-  const [showFormat, setShowFormat] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
   const [mobileScale, setMobileScale] = useState(1);
   const wrapperRef = useRef();
@@ -38,13 +39,14 @@ export default function CVPreview({
   }, []);
 
   const handleFormatToggle = () => {
-    setShowFormat(!showFormat);
-    setShowOrder(false);
-  };
-  const handleOrderToggle = () => {
-    setShowOrder(!showOrder);
-    setShowFormat(false);
-  };
+  setShowFormat(v => !v);
+  setShowOrder(false);
+};
+
+const handleOrderToggle = () => {
+  setShowOrder(v => !v);
+  setShowFormat(false);
+};
 
   const isMobile = mobileScale !== 1;
 
