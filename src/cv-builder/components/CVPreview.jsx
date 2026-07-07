@@ -9,6 +9,7 @@ import SectionOrderPanel from "./SectionOrderPanel";
 
 const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined,];
 
+//cv preview component
 export default function CVPreview({
   cv, accent, template, previewRef, tab,
   format, setFormat, sectionOrder, setSectionOrder, theme,
