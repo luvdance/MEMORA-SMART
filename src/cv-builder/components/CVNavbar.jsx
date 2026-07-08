@@ -230,7 +230,7 @@ useEffect(() => {
                 </button>
                 <button
                   className="cvnav__more-item"
-                  onClick={() => { navigate("/"); setShowMoreDropdown(false); }}
+                  onClick={() => { navigate("/cv-builder"); setShowMoreDropdown(false); }}
                 >
                   <i className="fas fa-info-circle"></i> About
                 </button>
