@@ -357,6 +357,10 @@ const triggerPrint = () => {
         setFormat={setFormat}
         theme={theme}
         setTheme={setTheme}
+        showFormat={showFormat}
+        setShowFormat={setShowFormat}
+        showOrder={showOrder}
+        setShowOrder={setShowOrder}
       />
 
       {showOptimizedBanner && (
