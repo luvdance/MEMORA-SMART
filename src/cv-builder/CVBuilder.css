@@ -5268,4 +5268,179 @@
   text-align: left;
 }
 
-/*additional spacing for the CV body text to make it more readable */
+/* ── NAVBAR LEFT BRAND ── */
+.cvnav__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: 0.15s;
+  text-align: left;
+}
+
+.cvnav__brand:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.cvnav__logo {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.cvnav__brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.1;
+}
+
+.cvnav__brand-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #111;
+  white-space: nowrap;
+}
+
+.cvnav__brand-sub {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: #9D00FF;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+/* User identity pill */
+.cvnav__user-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 3px;
+  border-radius: 20px;
+  background: rgba(157, 0, 255, 0.06);
+  border: 1px solid rgba(157, 0, 255, 0.12);
+  margin-left: 6px;
+}
+
+.cvnav__user-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6699FF, #9D00FF);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cvnav__user-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9D00FF;
+  white-space: nowrap;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hide brand text + user identity on very small screens */
+@media (max-width: 480px) {
+  .cvnav__brand-text {
+    display: none;
+  }
+  .cvnav__user-identity {
+    display: none;
+  }
+}
+
+/* ── FOOTER ── */
+.cvnav__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(180deg, #fafbff, #f5f3ff);
+  border-top: 1px solid rgba(157, 0, 255, 0.08);
+  font-size: 0.75rem;
+}
+
+.cvnav__footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cvnav__footer-logo {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.7;
+}
+
+.cvnav__footer-brand {
+  font-weight: 700;
+  background: linear-gradient(90deg, #6699FF, #9D00FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cvnav__footer-dot {
+  color: #ccc;
+}
+
+.cvnav__footer-copy {
+  color: #aaa;
+}
+
+.cvnav__footer-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cvnav__footer-saved {
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.cvnav__footer-saving {
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cvnav__footer-hint {
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cvnav__footer-hint i {
+  color: #9D00FF;
+  opacity: 0.5;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 768px) {
+  .cvnav__footer {
+    display: none; /* hide footer on mobile — bottom tabs take that space */
+  }
+}

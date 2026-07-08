@@ -58,7 +58,7 @@ useEffect(() => {
     <>
       <nav className="cvnav">
 
-        {/* ── LEFT — Brand ── */}
+        {/* ── LEFT — Brand + User ── */}
         <div className="cvnav__left">
           <button
             className="cvnav__brand"
@@ -66,7 +66,24 @@ useEffect(() => {
             aria-label="Back to CV Builder home"
           >
             <img src={cvLogo} alt="Memora" className="cvnav__logo" />
+            <div className="cvnav__brand-text">
+              <span className="cvnav__brand-name">Memora</span>
+              <span className="cvnav__brand-sub">CV Builder</span>
+            </div>
           </button>
+
+          {user && (
+            <div className="cvnav__user-identity">
+              <div className="cvnav__user-avatar">
+                {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+              </div>
+              <span className="cvnav__user-name">
+                {user.displayName
+                  ? user.displayName.split(" ")[0]
+                  : user.email?.split("@")[0]}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* ── CENTER — Design tools ── */}

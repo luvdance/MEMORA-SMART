@@ -15,6 +15,7 @@ import { downloadCVPdf } from "../cv-builder/utils/pdfEngine";
 import PaymentRequery from "../components/PaymentRequery";
 import { track } from "../utils/analytics";
 import { TEMPLATE_INFO } from "../cv-builder/utils/sampleCV";
+import cvLogo from "../assets/cv logo.png";
 
 const LOCAL_KEY = "memora_cv_draft";
 
@@ -556,6 +557,31 @@ const triggerPrint = () => {
 
         </div>
       </div>
+
+      {/* ── FOOTER ── */}
+      <footer className="cvnav__footer">
+        <div className="cvnav__footer-left">
+          <img src={cvLogo} alt="Memora" className="cvnav__footer-logo" />
+          <span className="cvnav__footer-brand">Memora Smart CV</span>
+          <span className="cvnav__footer-dot">·</span>
+          <span className="cvnav__footer-copy">© {new Date().getFullYear()} Memora Smart Technologies</span>
+        </div>
+        <div className="cvnav__footer-right">
+          {saveStatus === "saved" && (
+            <span className="cvnav__footer-saved">
+              <i className="fas fa-check-circle"></i> All changes saved
+            </span>
+          )}
+          {saveStatus === "saving" && (
+            <span className="cvnav__footer-saving">
+              <i className="fas fa-circle-notch fa-spin"></i> Saving...
+            </span>
+          )}
+          <span className="cvnav__footer-hint">
+            <i className="fas fa-lock"></i> Your CV is private and secure
+          </span>
+        </div>
+      </footer>
 
       {/* ── CLEAR MODAL ── */}
       {showClearModal && (
