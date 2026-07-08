@@ -53,7 +53,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 16px 16px;
   height: 50px;
   background: rgba(255, 253, 250, 0.95);
   backdrop-filter: blur(12px);
