@@ -3213,30 +3213,24 @@ export function Refined({ cv, accent, format, sectionOrder, theme }) {
 }
 
 // ══════════════════════════════════════════════
-// ── TEMPLATE 14: SIGNATURE EDGE ──
+// ── TEMPLATE 14: SIGNATURE EDGE (rebuilt) ──
 // ══════════════════════════════════════════════
 function EdgeLabel({ title, accent, format }) {
   return (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 0,
-      marginBottom: 10,
-    }}>
+    <div style={{ marginBottom: 8 }}>
       <span style={{
-        fontSize: format.headingFontSize + 1,
-        fontWeight: format.headingBold ? 800 : 400,
-        textTransform: format.headingUppercase ? "uppercase" : "none",
-        letterSpacing: 1,
+        fontSize: format.headingFontSize,
+        fontWeight: 800,
+        textTransform: "uppercase",
+        letterSpacing: 1.5,
         color: "#111",
       }}>
         {title}
       </span>
       <span style={{
-        fontSize: format.headingFontSize + 1,
-        fontWeight: 800,
+        fontSize: format.headingFontSize,
+        fontWeight: 900,
         color: accent,
-        marginLeft: 1,
       }}>_</span>
     </div>
   );
@@ -3244,10 +3238,10 @@ function EdgeLabel({ title, accent, format }) {
 
 function StarRating({ value = 3, max = 5, accent }) {
   return (
-    <div style={{ display: "flex", gap: 3 }}>
+    <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
       {Array.from({ length: max }).map((_, i) => (
         <span key={i} style={{
-          fontSize: "0.6rem",
+          fontSize: "0.55rem",
           color: i < value ? accent : "#ddd",
         }}>★</span>
       ))}
@@ -3256,74 +3250,73 @@ function StarRating({ value = 3, max = 5, accent }) {
 }
 
 export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
-  const s = format.bodyFontSize;
-  const lh = format.lineHeight;
+  const s = Math.min(format.bodyFontSize, 10.5);
+  const lh = Math.min(format.lineHeight, 1.35);
   const tc = theme.text;
-  const p = format.pagePadding;
+  const p = 20;
 
   const nameParts = (cv.name || "Your Name").trim().split(" ");
   const firstName = nameParts[0];
   const lastName = nameParts.slice(1).join(" ");
 
-  const sideKeys = ["skills", "languages", "certifications", "hobbies", "references", "education"];
-  const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
-  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+  // Strict section lists — keeps layout tight, avoids overflow
+  const MAIN_KEYS = ["summary", "objective", "experience", "achievements", "volunteer", "publications"];
+  const SIDE_KEYS = ["education", "skills", "languages", "certifications", "references", "hobbies"];
+
+  const mainSections = sectionOrder.filter(k => MAIN_KEYS.includes(k));
+  const sideSections = sectionOrder.filter(k => SIDE_KEYS.includes(k));
+
+  // Parse skill ratings deterministically (not random — avoids re-render flicker)
+  const getSkillLevel = (skill, index) => {
+    const levels = [5, 4, 5, 3, 4, 5, 4, 3, 5, 4];
+    return levels[index % levels.length];
+  };
 
   const renderMain = (key) => {
     switch (key) {
-      case "biodata": {
-        const has = cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin;
-        if (!has) return null;
-        return (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
-            <EdgeLabel title="Personal Details" accent={accent} format={format} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 16px", fontSize: s - 0.5 }}>
-              {[["Date of Birth", formatDate(cv.dateOfBirth)], ["Gender", cv.gender], ["Marital Status", cv.maritalStatus], ["Nationality", cv.nationality], ["State of Origin", cv.stateOfOrigin], ["LGA", cv.lga], ["Religion", cv.religion], ["NIN", cv.nin]]
-                .filter(([, v]) => v).map(([l, v]) => (
-                  <div key={l} style={{ color: tc }}><b style={{ opacity: 0.55 }}>{l}: </b>{v}</div>
-                ))}
-            </div>
-          </div>
-        );
-      }
       case "summary":
         return cv.summary ? (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+          <div key={key} style={{ marginBottom: 14 }} className="cv-section-keep">
             <EdgeLabel title="Profile" accent={accent} format={format} />
             <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.summary}</p>
           </div>
         ) : null;
       case "objective":
         return cv.objective ? (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+          <div key={key} style={{ marginBottom: 14 }} className="cv-section-keep">
             <EdgeLabel title="Objective" accent={accent} format={format} />
             <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.objective}</p>
           </div>
         ) : null;
       case "experience":
         return cv.experience[0]?.company ? (
-          <div key={key} style={{ marginBottom: 18 }}>
+          <div key={key} style={{ marginBottom: 14 }}>
             <EdgeLabel title="Job Experience" accent={accent} format={format} />
             {cv.experience.map((e, i) => (
-              <div key={i} className="cv-item" style={{ marginBottom: 14, paddingLeft: 10, borderLeft: `2px solid ${accent}30` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap" }}>
-                  <b style={{ fontSize: s + 0.5, color: tc }}>{e.role}</b>
-                  <span style={{ fontSize: s - 1.5, color: "#888", fontStyle: "italic" }}>
+              <div key={i} className="cv-item" style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <span style={{ fontSize: s - 0.5, color: "#888", fontStyle: "italic" }}>
                     {e.start} – {e.current ? "Present" : e.end}
                   </span>
                 </div>
-                <div style={{ fontSize: s - 0.5, color: accent, fontWeight: 700, marginBottom: 4 }}>{e.company}</div>
-                <BulletList text={e.responsibilities} fontSize={s - 0.5} lineHeight={lh} color={tc} />
+                <b style={{ fontSize: s + 0.5, color: tc, display: "block" }}>{e.role}</b>
+                <div style={{ fontSize: s - 0.5, color: accent, fontWeight: 700, marginBottom: 3 }}>{e.company}</div>
+                <div style={{
+                  paddingLeft: 8,
+                  borderLeft: `2px solid ${accent}`,
+                }}>
+                  <BulletList text={e.responsibilities} fontSize={s - 0.5} lineHeight={lh} color={tc} />
+                </div>
               </div>
             ))}
           </div>
         ) : null;
       case "achievements":
         return cv.achievements?.[0]?.title ? (
-          <div key={key} style={{ marginBottom: 18 }}>
+          <div key={key} style={{ marginBottom: 14 }}>
             <EdgeLabel title="Achievements" accent={accent} format={format} />
             {cv.achievements.map((a, i) => (
-              <div key={i} style={{ marginBottom: 8 }}>
+              <div key={i} style={{ marginBottom: 6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <b style={{ fontSize: s, color: tc }}>{a.title}</b>
                   <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{a.date}</span>
@@ -3335,10 +3328,10 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
         ) : null;
       case "volunteer":
         return cv.volunteer?.[0]?.organization ? (
-          <div key={key} style={{ marginBottom: 18 }}>
+          <div key={key} style={{ marginBottom: 14 }}>
             <EdgeLabel title="Volunteer" accent={accent} format={format} />
             {cv.volunteer.map((v, i) => (
-              <div key={i} style={{ marginBottom: 6 }}>
+              <div key={i} style={{ marginBottom: 5 }}>
                 <b style={{ color: tc }}>{v.role}</b>
                 <span style={{ color: accent }}> · {v.organization}</span>
               </div>
@@ -3347,10 +3340,10 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
         ) : null;
       case "publications":
         return cv.publications?.[0]?.title ? (
-          <div key={key} style={{ marginBottom: 18 }}>
+          <div key={key} style={{ marginBottom: 14 }}>
             <EdgeLabel title="Publications" accent={accent} format={format} />
             {cv.publications.map((p, i) => (
-              <div key={i} style={{ marginBottom: 6, color: tc }}>{p.title}</div>
+              <div key={i} style={{ marginBottom: 4, color: tc, fontSize: s }}>{p.title}</div>
             ))}
           </div>
         ) : null;
@@ -3362,26 +3355,28 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
     switch (key) {
       case "education":
         return cv.education[0]?.school ? (
-          <div key={key} style={{ marginBottom: 18 }}>
+          <div key={key} style={{ marginBottom: 14 }}>
             <EdgeLabel title="Education" accent={accent} format={format} />
             {cv.education.map((e, i) => (
-              <div key={i} style={{ marginBottom: 8 }}>
-                <b style={{ fontSize: s - 0.5, color: tc, display: "block" }}>{e.degree} {e.field && `in ${e.field}`}</b>
+              <div key={i} style={{ marginBottom: 7 }}>
+                <b style={{ fontSize: s - 0.5, color: tc, display: "block", lineHeight: 1.2 }}>
+                  {e.degree} {e.field && `in ${e.field}`}
+                </b>
                 <div style={{ fontSize: s - 1, color: tc, opacity: 0.7 }}>{e.school}</div>
-                <div style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{e.start}–{e.end}</div>
+                <div style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{e.start} – {e.end}</div>
               </div>
             ))}
           </div>
         ) : null;
       case "skills":
         return cv.skills ? (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+          <div key={key} style={{ marginBottom: 14 }} className="cv-section-keep">
             <EdgeLabel title="Skills" accent={accent} format={format} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 10px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 8px" }}>
               {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
                 <div key={i}>
-                  <div style={{ fontSize: s - 1, color: tc, marginBottom: 2 }}>{sk}</div>
-                  <StarRating value={Math.floor(Math.random() * 2) + 3} accent={accent} />
+                  <div style={{ fontSize: s - 1, color: tc, lineHeight: 1.2 }}>{sk}</div>
+                  <StarRating value={getSkillLevel(sk, i)} accent={accent} />
                 </div>
               ))}
             </div>
@@ -3389,20 +3384,20 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
         ) : null;
       case "languages":
         return cv.languages ? (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+          <div key={key} style={{ marginBottom: 14 }} className="cv-section-keep">
             <EdgeLabel title="Languages" accent={accent} format={format} />
-            <p style={{ fontSize: s - 0.5, margin: 0, color: tc }}>{cv.languages}</p>
+            <p style={{ fontSize: s - 0.5, margin: 0, color: tc, lineHeight: lh }}>{cv.languages}</p>
           </div>
         ) : null;
       case "certifications": {
         if (!hasCertifications(cv)) return null;
         const certs = normalizeCertifications(cv.certifications);
         return (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+          <div key={key} style={{ marginBottom: 14 }} className="cv-section-keep">
             <EdgeLabel title="Certifications" accent={accent} format={format} />
             {certs.map((c, i) => (
-              <div key={i} style={{ marginBottom: 6 }}>
-                <b style={{ fontSize: s - 0.5, color: tc }}>{c.name}</b>
+              <div key={i} style={{ marginBottom: 5 }}>
+                <b style={{ fontSize: s - 1, color: tc }}>{c.name}</b>
                 {c.issuer && <div style={{ fontSize: s - 1.5, color: accent }}>{c.issuer}</div>}
               </div>
             ))}
@@ -3411,28 +3406,53 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
       }
       case "references":
         return cv.references?.[0]?.name ? (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
-            <EdgeLabel title="References" accent={accent} format={format} />
+          <div key={key} style={{ marginBottom: 14 }} className="cv-section-keep">
+            <EdgeLabel title="Reference" accent={accent} format={format} />
             {cv.references.map((r, i) => (
-              <div key={i} style={{ marginBottom: 8 }}>
-                <b style={{ fontSize: s - 0.5, color: tc, display: "block" }}>{r.name}</b>
-                <div style={{ fontSize: s - 1, color: tc, opacity: 0.65 }}>{r.title}</div>
-                {r.company && <div style={{ fontSize: s - 1, color: accent }}>{r.company}</div>}
+              <div key={i} style={{ marginBottom: 7 }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginBottom: 1,
+                }}>
+                  <div style={{
+                    width: 6,
+                    height: 6,
+                    background: accent,
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                  }} />
+                  <b style={{ fontSize: s - 0.5, color: tc }}>{r.name}</b>
+                </div>
+                <div style={{ fontSize: s - 1, color: tc, opacity: 0.65, paddingLeft: 12 }}>{r.title}</div>
+                {r.company && <div style={{ fontSize: s - 1, color: accent, paddingLeft: 12 }}>{r.company}</div>}
               </div>
             ))}
           </div>
         ) : null;
       case "hobbies":
         return cv.hobbies ? (
-          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+          <div key={key} style={{ marginBottom: 14 }} className="cv-section-keep">
             <EdgeLabel title="Interests" accent={accent} format={format} />
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px" }}>
               {cv.hobbies.split(/[,\n]+/).map(h => h.trim()).filter(Boolean).map((h, i) => (
                 <span key={i} style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  fontSize: s - 1, color: tc,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: s - 0.5,
+                  color: tc,
                 }}>
-                  <span style={{ color: accent, fontSize: "0.6rem" }}>✦</span> {h}
+                  <span style={{
+                    width: 5,
+                    height: 5,
+                    background: accent,
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                    display: "inline-block",
+                  }} />
+                  {h}
                 </span>
               ))}
             </div>
@@ -3448,50 +3468,102 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
       fontSize: s,
       color: tc,
       lineHeight: lh,
-      background: theme.bg,
+      background: "#fff",
       minHeight: "100%",
       boxSizing: "border-box",
       display: "flex",
+      position: "relative",
     }}>
-      {/* LEFT ACCENT BORDER STRIP */}
-      <div style={{ width: 8, background: accent, flexShrink: 0 }} />
-
-      {/* LEFT SIDEBAR */}
+      {/* FAR LEFT ACCENT STRIP — full height */}
       <div style={{
-        width: 200,
-        background: "#fafafa",
-        borderRight: "1px solid #f0f0f0",
-        padding: `${p + 40}px ${p - 6}px ${p}px`,
+        width: 8,
+        background: accent,
+        flexShrink: 0,
+        minHeight: "100%",
+      }} />
+
+      {/* SIDEBAR — pure white, tight padding */}
+      <div style={{
+        width: 185,
+        background: "#fff",
+        borderRight: "1px solid #eeeeee",
+        padding: `${p + 50}px ${p - 2}px ${p}px ${p - 4}px`,
         flexShrink: 0,
         position: "relative",
       }}>
-        {/* Photo overlapping the accent strip */}
-        {cv.photo && (
-          <div style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            overflow: "hidden",
-            border: `3px solid ${accent}`,
-            position: "absolute",
-            top: p - 8,
-            left: -16,
-            flexShrink: 0,
-          }}>
-            <img src={cv.photo} alt="profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </div>
-        )}
+        {/* Photo — overlaps the accent strip boundary */}
+        <div style={{
+          position: "absolute",
+          top: p - 10,
+          left: -18,
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          overflow: "hidden",
+          border: `3px solid ${accent}`,
+          background: `${accent}22`,
+          flexShrink: 0,
+          zIndex: 2,
+        }}>
+          {cv.photo ? (
+            <img
+              src={cv.photo}
+              alt="profile"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <div style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <i className="fas fa-user" style={{ fontSize: "1.8rem", color: accent, opacity: 0.4 }}></i>
+            </div>
+          )}
+        </div>
 
         {/* Contact */}
-        <div style={{ marginBottom: 18 }}>
+        <div style={{ marginBottom: 14 }}>
           <EdgeLabel title="Contact" accent={accent} format={format} />
-          <div style={{ display: "flex", flexDirection: "column", gap: 5, fontSize: s - 1 }}>
-            {cv.email && <span style={{ display: "flex", alignItems: "flex-start", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fas fa-envelope" style={{ color: accent, marginTop: 1, flexShrink: 0 }}></i>{cv.email}</span>}
-            {cv.phone && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8 }}><i className="fas fa-phone" style={{ color: accent }}></i>{cv.phone}</span>}
-            {cv.address && <span style={{ display: "flex", alignItems: "flex-start", gap: 6, color: tc, opacity: 0.8 }}><i className="fas fa-map-marker-alt" style={{ color: accent, marginTop: 1, flexShrink: 0 }}></i>{cv.address}</span>}
-            {cv.linkedin && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fab fa-linkedin" style={{ color: accent }}></i>{cv.linkedin}</span>}
-            {cv.website && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fas fa-globe" style={{ color: accent }}></i>{cv.website}</span>}
-            {cv.github && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fab fa-github" style={{ color: accent }}></i>{cv.github}</span>}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: s - 1 }}>
+            {cv.email && (
+              <span style={{ display: "flex", alignItems: "flex-start", gap: 5, color: tc, opacity: 0.8, wordBreak: "break-all" }}>
+                <i className="fas fa-envelope" style={{ color: accent, fontSize: s - 2, marginTop: 1, flexShrink: 0 }}></i>
+                {cv.email}
+              </span>
+            )}
+            {cv.phone && (
+              <span style={{ display: "flex", alignItems: "center", gap: 5, color: tc, opacity: 0.8 }}>
+                <i className="fas fa-phone" style={{ color: accent, fontSize: s - 2 }}></i>
+                {cv.phone}
+              </span>
+            )}
+            {cv.address && (
+              <span style={{ display: "flex", alignItems: "flex-start", gap: 5, color: tc, opacity: 0.8 }}>
+                <i className="fas fa-map-marker-alt" style={{ color: accent, fontSize: s - 2, marginTop: 1, flexShrink: 0 }}></i>
+                {cv.address}
+              </span>
+            )}
+            {cv.linkedin && (
+              <span style={{ display: "flex", alignItems: "center", gap: 5, color: tc, opacity: 0.8, wordBreak: "break-all" }}>
+                <i className="fab fa-linkedin" style={{ color: accent, fontSize: s - 2 }}></i>
+                {cv.linkedin}
+              </span>
+            )}
+            {cv.website && (
+              <span style={{ display: "flex", alignItems: "center", gap: 5, color: tc, opacity: 0.8, wordBreak: "break-all" }}>
+                <i className="fas fa-globe" style={{ color: accent, fontSize: s - 2 }}></i>
+                {cv.website}
+              </span>
+            )}
+            {cv.github && (
+              <span style={{ display: "flex", alignItems: "center", gap: 5, color: tc, opacity: 0.8, wordBreak: "break-all" }}>
+                <i className="fab fa-github" style={{ color: accent, fontSize: s - 2 }}></i>
+                {cv.github}
+              </span>
+            )}
           </div>
         </div>
 
@@ -3499,18 +3571,38 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
       </div>
 
       {/* MAIN CONTENT */}
-      <div style={{ flex: 1, padding: `${p}px ${p}px ${p}px ${p - 4}px` }}>
-        {/* NAME — two-tone */}
-        <div style={{ marginBottom: 16, borderBottom: `2px solid ${accent}`, paddingBottom: 12 }}>
-          <div style={{ lineHeight: 1.05 }}>
-            <span style={{ fontSize: format.nameFontSize + 4, fontWeight: 300, color: tc, display: "block", letterSpacing: 2, textTransform: "uppercase" }}>
+      <div style={{ flex: 1, padding: `${p}px ${p}px ${p}px ${p - 2}px` }}>
+
+        {/* TWO-TONE NAME — exactly matching reference */}
+        <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: `1px solid #eee` }}>
+          <div style={{ textTransform: "uppercase", lineHeight: 1.0 }}>
+            <span style={{
+              display: "block",
+              fontSize: format.nameFontSize + 2,
+              fontWeight: 300,
+              color: tc,
+              letterSpacing: 3,
+            }}>
               {firstName}
             </span>
-            <span style={{ fontSize: format.nameFontSize + 4, fontWeight: 900, color: tc, display: "block", letterSpacing: 2, textTransform: "uppercase" }}>
+            <span style={{
+              display: "block",
+              fontSize: format.nameFontSize + 2,
+              fontWeight: 900,
+              color: tc,
+              letterSpacing: 3,
+            }}>
               {lastName || firstName}
             </span>
           </div>
-          <div style={{ fontSize: s + 1, color: "#666", fontWeight: 500, marginTop: 4, letterSpacing: 1, textTransform: "uppercase" }}>
+          <div style={{
+            fontSize: s + 0.5,
+            color: "#777",
+            fontWeight: 500,
+            marginTop: 5,
+            textTransform: "uppercase",
+            letterSpacing: 1,
+          }}>
             {cv.jobTitle}
           </div>
         </div>
