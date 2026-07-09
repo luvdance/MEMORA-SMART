@@ -99,4 +99,6 @@ export const TEMPLATE_INFO = [
 { name: "Bold Statement", accent: "#facc15", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Horizon", accent: "#0ea5e9", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Refined", accent: "#b45309", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Signature Edge", accent: "#d4a017", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Dark Geo", accent: "#f59e0b", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 ];

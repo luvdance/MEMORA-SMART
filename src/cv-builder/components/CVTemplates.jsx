@@ -3211,3 +3211,633 @@ export function Refined({ cv, accent, format, sectionOrder, theme }) {
     </div>
   );
 }
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 14: SIGNATURE EDGE ──
+// ══════════════════════════════════════════════
+function EdgeLabel({ title, accent, format }) {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 0,
+      marginBottom: 10,
+    }}>
+      <span style={{
+        fontSize: format.headingFontSize + 1,
+        fontWeight: format.headingBold ? 800 : 400,
+        textTransform: format.headingUppercase ? "uppercase" : "none",
+        letterSpacing: 1,
+        color: "#111",
+      }}>
+        {title}
+      </span>
+      <span style={{
+        fontSize: format.headingFontSize + 1,
+        fontWeight: 800,
+        color: accent,
+        marginLeft: 1,
+      }}>_</span>
+    </div>
+  );
+}
+
+function StarRating({ value = 3, max = 5, accent }) {
+  return (
+    <div style={{ display: "flex", gap: 3 }}>
+      {Array.from({ length: max }).map((_, i) => (
+        <span key={i} style={{
+          fontSize: "0.6rem",
+          color: i < value ? accent : "#ddd",
+        }}>★</span>
+      ))}
+    </div>
+  );
+}
+
+export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
+  const s = format.bodyFontSize;
+  const lh = format.lineHeight;
+  const tc = theme.text;
+  const p = format.pagePadding;
+
+  const nameParts = (cv.name || "Your Name").trim().split(" ");
+  const firstName = nameParts[0];
+  const lastName = nameParts.slice(1).join(" ");
+
+  const sideKeys = ["skills", "languages", "certifications", "hobbies", "references", "education"];
+  const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
+  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+
+  const renderMain = (key) => {
+    switch (key) {
+      case "biodata": {
+        const has = cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin;
+        if (!has) return null;
+        return (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="Personal Details" accent={accent} format={format} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 16px", fontSize: s - 0.5 }}>
+              {[["Date of Birth", formatDate(cv.dateOfBirth)], ["Gender", cv.gender], ["Marital Status", cv.maritalStatus], ["Nationality", cv.nationality], ["State of Origin", cv.stateOfOrigin], ["LGA", cv.lga], ["Religion", cv.religion], ["NIN", cv.nin]]
+                .filter(([, v]) => v).map(([l, v]) => (
+                  <div key={l} style={{ color: tc }}><b style={{ opacity: 0.55 }}>{l}: </b>{v}</div>
+                ))}
+            </div>
+          </div>
+        );
+      }
+      case "summary":
+        return cv.summary ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="Profile" accent={accent} format={format} />
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.summary}</p>
+          </div>
+        ) : null;
+      case "objective":
+        return cv.objective ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="Objective" accent={accent} format={format} />
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.objective}</p>
+          </div>
+        ) : null;
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <EdgeLabel title="Job Experience" accent={accent} format={format} />
+            {cv.experience.map((e, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 14, paddingLeft: 10, borderLeft: `2px solid ${accent}30` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap" }}>
+                  <b style={{ fontSize: s + 0.5, color: tc }}>{e.role}</b>
+                  <span style={{ fontSize: s - 1.5, color: "#888", fontStyle: "italic" }}>
+                    {e.start} – {e.current ? "Present" : e.end}
+                  </span>
+                </div>
+                <div style={{ fontSize: s - 0.5, color: accent, fontWeight: 700, marginBottom: 4 }}>{e.company}</div>
+                <BulletList text={e.responsibilities} fontSize={s - 0.5} lineHeight={lh} color={tc} />
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <EdgeLabel title="Achievements" accent={accent} format={format} />
+            {cv.achievements.map((a, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <b style={{ fontSize: s, color: tc }}>{a.title}</b>
+                  <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{a.date}</span>
+                </div>
+                {a.description && <p style={{ fontSize: s - 0.5, margin: "2px 0 0", opacity: 0.7, textAlign: "justify" }}>{a.description}</p>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <EdgeLabel title="Volunteer" accent={accent} format={format} />
+            {cv.volunteer.map((v, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <b style={{ color: tc }}>{v.role}</b>
+                <span style={{ color: accent }}> · {v.organization}</span>
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <EdgeLabel title="Publications" accent={accent} format={format} />
+            {cv.publications.map((p, i) => (
+              <div key={i} style={{ marginBottom: 6, color: tc }}>{p.title}</div>
+            ))}
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  const renderSide = (key) => {
+    switch (key) {
+      case "education":
+        return cv.education[0]?.school ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <EdgeLabel title="Education" accent={accent} format={format} />
+            {cv.education.map((e, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <b style={{ fontSize: s - 0.5, color: tc, display: "block" }}>{e.degree} {e.field && `in ${e.field}`}</b>
+                <div style={{ fontSize: s - 1, color: tc, opacity: 0.7 }}>{e.school}</div>
+                <div style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{e.start}–{e.end}</div>
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "skills":
+        return cv.skills ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="Skills" accent={accent} format={format} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 10px" }}>
+              {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
+                <div key={i}>
+                  <div style={{ fontSize: s - 1, color: tc, marginBottom: 2 }}>{sk}</div>
+                  <StarRating value={Math.floor(Math.random() * 2) + 3} accent={accent} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="Languages" accent={accent} format={format} />
+            <p style={{ fontSize: s - 0.5, margin: 0, color: tc }}>{cv.languages}</p>
+          </div>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        const certs = normalizeCertifications(cv.certifications);
+        return (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="Certifications" accent={accent} format={format} />
+            {certs.map((c, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <b style={{ fontSize: s - 0.5, color: tc }}>{c.name}</b>
+                {c.issuer && <div style={{ fontSize: s - 1.5, color: accent }}>{c.issuer}</div>}
+              </div>
+            ))}
+          </div>
+        );
+      }
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="References" accent={accent} format={format} />
+            {cv.references.map((r, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <b style={{ fontSize: s - 0.5, color: tc, display: "block" }}>{r.name}</b>
+                <div style={{ fontSize: s - 1, color: tc, opacity: 0.65 }}>{r.title}</div>
+                {r.company && <div style={{ fontSize: s - 1, color: accent }}>{r.company}</div>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "hobbies":
+        return cv.hobbies ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <EdgeLabel title="Interests" accent={accent} format={format} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {cv.hobbies.split(/[,\n]+/).map(h => h.trim()).filter(Boolean).map((h, i) => (
+                <span key={i} style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  fontSize: s - 1, color: tc,
+                }}>
+                  <span style={{ color: accent, fontSize: "0.6rem" }}>✦</span> {h}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  return (
+    <div style={{
+      fontFamily: format.fontFamily,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+      display: "flex",
+    }}>
+      {/* LEFT ACCENT BORDER STRIP */}
+      <div style={{ width: 8, background: accent, flexShrink: 0 }} />
+
+      {/* LEFT SIDEBAR */}
+      <div style={{
+        width: 200,
+        background: "#fafafa",
+        borderRight: "1px solid #f0f0f0",
+        padding: `${p + 40}px ${p - 6}px ${p}px`,
+        flexShrink: 0,
+        position: "relative",
+      }}>
+        {/* Photo overlapping the accent strip */}
+        {cv.photo && (
+          <div style={{
+            width: 80,
+            height: 80,
+            borderRadius: "50%",
+            overflow: "hidden",
+            border: `3px solid ${accent}`,
+            position: "absolute",
+            top: p - 8,
+            left: -16,
+            flexShrink: 0,
+          }}>
+            <img src={cv.photo} alt="profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        )}
+
+        {/* Contact */}
+        <div style={{ marginBottom: 18 }}>
+          <EdgeLabel title="Contact" accent={accent} format={format} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 5, fontSize: s - 1 }}>
+            {cv.email && <span style={{ display: "flex", alignItems: "flex-start", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fas fa-envelope" style={{ color: accent, marginTop: 1, flexShrink: 0 }}></i>{cv.email}</span>}
+            {cv.phone && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8 }}><i className="fas fa-phone" style={{ color: accent }}></i>{cv.phone}</span>}
+            {cv.address && <span style={{ display: "flex", alignItems: "flex-start", gap: 6, color: tc, opacity: 0.8 }}><i className="fas fa-map-marker-alt" style={{ color: accent, marginTop: 1, flexShrink: 0 }}></i>{cv.address}</span>}
+            {cv.linkedin && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fab fa-linkedin" style={{ color: accent }}></i>{cv.linkedin}</span>}
+            {cv.website && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fas fa-globe" style={{ color: accent }}></i>{cv.website}</span>}
+            {cv.github && <span style={{ display: "flex", alignItems: "center", gap: 6, color: tc, opacity: 0.8, wordBreak: "break-all" }}><i className="fab fa-github" style={{ color: accent }}></i>{cv.github}</span>}
+          </div>
+        </div>
+
+        {sideSections.map(renderSide)}
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div style={{ flex: 1, padding: `${p}px ${p}px ${p}px ${p - 4}px` }}>
+        {/* NAME — two-tone */}
+        <div style={{ marginBottom: 16, borderBottom: `2px solid ${accent}`, paddingBottom: 12 }}>
+          <div style={{ lineHeight: 1.05 }}>
+            <span style={{ fontSize: format.nameFontSize + 4, fontWeight: 300, color: tc, display: "block", letterSpacing: 2, textTransform: "uppercase" }}>
+              {firstName}
+            </span>
+            <span style={{ fontSize: format.nameFontSize + 4, fontWeight: 900, color: tc, display: "block", letterSpacing: 2, textTransform: "uppercase" }}>
+              {lastName || firstName}
+            </span>
+          </div>
+          <div style={{ fontSize: s + 1, color: "#666", fontWeight: 500, marginTop: 4, letterSpacing: 1, textTransform: "uppercase" }}>
+            {cv.jobTitle}
+          </div>
+        </div>
+
+        {mainSections.map(renderMain)}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 15: DARK GEO ──
+// ══════════════════════════════════════════════
+function GeoLabel({ title, accent, format, dark = false }) {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 10,
+    }}>
+      {/* Diamond marker */}
+      <div style={{
+        width: 12,
+        height: 12,
+        background: accent,
+        transform: "rotate(45deg)",
+        flexShrink: 0,
+      }} />
+      <span style={{
+        fontSize: format.headingFontSize,
+        fontWeight: format.headingBold ? 800 : 400,
+        textTransform: format.headingUppercase ? "uppercase" : "none",
+        letterSpacing: 1.5,
+        color: dark ? "rgba(255,255,255,0.9)" : "#111",
+      }}>
+        {title}
+      </span>
+    </div>
+  );
+}
+
+function GeoSkillBar({ skill, accent }) {
+  const level = Math.floor(Math.random() * 3) + 3;
+  const pct = (level / 5) * 100;
+  return (
+    <div style={{ marginBottom: 6 }}>
+      <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.8)", marginBottom: 3 }}>{skill}</div>
+      <div style={{ height: 4, background: "rgba(255,255,255,0.12)", borderRadius: 2, overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: accent, borderRadius: 2 }} />
+      </div>
+    </div>
+  );
+}
+
+export function DarkGeo({ cv, accent, format, sectionOrder, theme }) {
+  const s = format.bodyFontSize;
+  const lh = format.lineHeight;
+  const tc = theme.text;
+  const p = format.pagePadding;
+
+  const sideKeys = ["skills", "languages", "certifications", "hobbies", "references", "education"];
+  const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
+  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+
+  const renderMain = (key) => {
+    switch (key) {
+      case "biodata": {
+        const has = cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin;
+        if (!has) return null;
+        return (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="Personal Details" accent={accent} format={format} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 16px", fontSize: s - 0.5 }}>
+              {[["Date of Birth", formatDate(cv.dateOfBirth)], ["Gender", cv.gender], ["Marital Status", cv.maritalStatus], ["Nationality", cv.nationality], ["State of Origin", cv.stateOfOrigin], ["LGA", cv.lga], ["Religion", cv.religion], ["NIN", cv.nin]]
+                .filter(([, v]) => v).map(([l, v]) => (
+                  <div key={l} style={{ color: tc }}><b style={{ opacity: 0.55 }}>{l}: </b>{v}</div>
+                ))}
+            </div>
+          </div>
+        );
+      }
+      case "summary":
+        return cv.summary ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="About Me" accent={accent} format={format} />
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.summary}</p>
+          </div>
+        ) : null;
+      case "objective":
+        return cv.objective ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="Objective" accent={accent} format={format} />
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.objective}</p>
+          </div>
+        ) : null;
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <GeoLabel title="Job Experience" accent={accent} format={format} />
+            {cv.experience.map((e, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 4 }}>
+                  <b style={{ fontSize: s + 1, color: tc }}>{e.role}</b>
+                  <span style={{ fontSize: s - 1.5, color: "#fff", background: accent, padding: "2px 8px", borderRadius: 2, fontWeight: 700, whiteSpace: "nowrap" }}>
+                    {e.start} – {e.current ? "Present" : e.end}
+                  </span>
+                </div>
+                <div style={{ fontSize: s - 0.5, color: accent, fontWeight: 700, marginBottom: 4 }}>{e.company}</div>
+                <BulletList text={e.responsibilities} fontSize={s - 0.5} lineHeight={lh} color={tc} />
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <GeoLabel title="Achievements" accent={accent} format={format} />
+            {cv.achievements.map((a, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <b style={{ color: tc }}>{a.title}</b>
+                  <span style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{a.date}</span>
+                </div>
+                {a.description && <p style={{ fontSize: s - 0.5, margin: "2px 0 0", opacity: 0.7, textAlign: "justify" }}>{a.description}</p>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <GeoLabel title="Volunteer" accent={accent} format={format} />
+            {cv.volunteer.map((v, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <b style={{ color: tc }}>{v.role}</b>
+                <span style={{ color: accent }}> · {v.organization}</span>
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <GeoLabel title="Publications" accent={accent} format={format} />
+            {cv.publications.map((p, i) => (
+              <div key={i} style={{ marginBottom: 6, color: tc }}>{p.title}</div>
+            ))}
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  const renderSide = (key) => {
+    switch (key) {
+      case "education":
+        return cv.education[0]?.school ? (
+          <div key={key} style={{ marginBottom: 18 }}>
+            <GeoLabel title="Education" accent={accent} format={format} dark />
+            {cv.education.map((e, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <b style={{ fontSize: s - 0.5, color: "#fff", display: "block" }}>{e.degree} {e.field && `in ${e.field}`}</b>
+                <div style={{ fontSize: s - 1, color: "rgba(255,255,255,0.65)" }}>{e.school}</div>
+                <div style={{ fontSize: s - 1.5, color: accent, fontWeight: 700 }}>{e.start}–{e.end}</div>
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "skills":
+        return cv.skills ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="Skills" accent={accent} format={format} dark />
+            {cv.skills.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).map((sk, i) => (
+              <GeoSkillBar key={i} skill={sk} accent={accent} />
+            ))}
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="Languages" accent={accent} format={format} dark />
+            <p style={{ fontSize: s - 0.5, margin: 0, color: "rgba(255,255,255,0.8)" }}>{cv.languages}</p>
+          </div>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        const certs = normalizeCertifications(cv.certifications);
+        return (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="Certifications" accent={accent} format={format} dark />
+            {certs.map((c, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <b style={{ fontSize: s - 0.5, color: "#fff" }}>{c.name}</b>
+                {c.issuer && <div style={{ fontSize: s - 1.5, color: accent }}>{c.issuer}</div>}
+              </div>
+            ))}
+          </div>
+        );
+      }
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="References" accent={accent} format={format} dark />
+            {cv.references.map((r, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <b style={{ fontSize: s - 0.5, color: "#fff", display: "block" }}>{r.name}</b>
+                <div style={{ fontSize: s - 1, color: "rgba(255,255,255,0.65)" }}>{r.title}</div>
+                {r.company && <div style={{ fontSize: s - 1, color: accent }}>{r.company}</div>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "hobbies":
+        return cv.hobbies ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <GeoLabel title="Interests" accent={accent} format={format} dark />
+            <p style={{ fontSize: s - 0.5, margin: 0, color: "rgba(255,255,255,0.8)" }}>{cv.hobbies}</p>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  return (
+    <div style={{
+      fontFamily: format.fontFamily,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+      display: "flex",
+    }}>
+      {/* DARK SIDEBAR */}
+      <div style={{
+        width: 220,
+        background: "#1e2124",
+        padding: `${p}px ${p - 4}px`,
+        flexShrink: 0,
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+      }}>
+        {/* Geometric accent shape top-right of sidebar */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: 0,
+          height: 0,
+          borderStyle: "solid",
+          borderWidth: `0 60px 60px 0`,
+          borderColor: `transparent ${accent} transparent transparent`,
+        }} />
+
+        {/* Photo */}
+        {cv.photo ? (
+          <div style={{
+            width: 90,
+            height: 90,
+            borderRadius: "50%",
+            overflow: "hidden",
+            border: `3px solid ${accent}`,
+            marginBottom: 14,
+            flexShrink: 0,
+          }}>
+            <img src={cv.photo} alt="profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        ) : (
+          <div style={{
+            width: 90,
+            height: 90,
+            borderRadius: "50%",
+            background: `${accent}22`,
+            border: `3px solid ${accent}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 14,
+            flexShrink: 0,
+          }}>
+            <i className="fas fa-user" style={{ fontSize: "2rem", color: accent, opacity: 0.5 }}></i>
+          </div>
+        )}
+
+        {/* Contact */}
+        <div style={{ marginBottom: 18 }}>
+          <GeoLabel title="Contact Me" accent={accent} format={format} dark />
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: s - 1 }}>
+            {cv.phone && <span style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.75)" }}><i className="fas fa-phone" style={{ color: accent, fontSize: s - 2, width: 12 }}></i>{cv.phone}</span>}
+            {cv.email && <span style={{ display: "flex", alignItems: "flex-start", gap: 6, color: "rgba(255,255,255,0.75)", wordBreak: "break-all" }}><i className="fas fa-envelope" style={{ color: accent, fontSize: s - 2, marginTop: 1, flexShrink: 0, width: 12 }}></i>{cv.email}</span>}
+            {cv.address && <span style={{ display: "flex", alignItems: "flex-start", gap: 6, color: "rgba(255,255,255,0.75)" }}><i className="fas fa-map-marker-alt" style={{ color: accent, fontSize: s - 2, marginTop: 1, flexShrink: 0, width: 12 }}></i>{cv.address}</span>}
+            {cv.linkedin && <span style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.75)", wordBreak: "break-all" }}><i className="fab fa-linkedin" style={{ color: accent, fontSize: s - 2, width: 12 }}></i>{cv.linkedin}</span>}
+            {cv.website && <span style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.75)", wordBreak: "break-all" }}><i className="fas fa-globe" style={{ color: accent, fontSize: s - 2, width: 12 }}></i>{cv.website}</span>}
+            {cv.github && <span style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.75)", wordBreak: "break-all" }}><i className="fab fa-github" style={{ color: accent, fontSize: s - 2, width: 12 }}></i>{cv.github}</span>}
+          </div>
+        </div>
+
+        {sideSections.map(renderSide)}
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div style={{ flex: 1, padding: `${p}px ${p}px` }}>
+        {/* NAME HEADER */}
+        <div style={{ marginBottom: 20, paddingBottom: 14, borderBottom: `3px solid ${accent}` }}>
+          <div style={{ lineHeight: 1.1, marginBottom: 6 }}>
+            <span style={{ fontSize: format.nameFontSize + 4, fontWeight: 900, color: "#1e2124", display: "block" }}>
+              {cv.name || "Your Name"}
+            </span>
+          </div>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: s + 1,
+            color: "#555",
+            fontWeight: 500,
+          }}>
+            <div style={{ width: 12, height: 3, background: accent, borderRadius: 2 }} />
+            {cv.jobTitle}
+          </div>
+        </div>
+
+        {mainSections.map(renderMain)}
+      </div>
+    </div>
+  );
+}

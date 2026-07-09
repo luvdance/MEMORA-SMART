@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import {
   ClassicPro, ModernEdge, ExecutivePlus,
   MinimalClean, CreativeSide, CorporateBold, TraditionalProfile,
-  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined,
+  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo,
 } from "./CVTemplates";
 import FormatPanel from "./FormatPanel";
 import SectionOrderPanel from "./SectionOrderPanel";
 
-const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined,];
+const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo,];
 
 //cv preview component
 export default function CVPreview({

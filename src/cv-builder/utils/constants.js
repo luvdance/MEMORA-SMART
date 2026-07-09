@@ -12,6 +12,8 @@ export const TEMPLATES = [
   "Bold Statement",
   "Horizon", 
   "Refined",
+  "Signature Edge", 
+  "Dark Geo",
 ];
 
 export const ACCENT = ["#2563eb", "#0f766e", "#7c3aed", "#dc2626", "#d97706"];

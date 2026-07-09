@@ -16,7 +16,7 @@ const TEMPLATE_GROUPS = [
   },
   {
     label: "Signature",
-    templates: [3, 4, 10, 12], // Minimal Clean, Creative Side, Bold Statement, Refined
+    templates: [3, 4, 10, 12, 13, 14], // Minimal Clean, Creative Side, Bold Statement, Refined
   },
 ];
 
