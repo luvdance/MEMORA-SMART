@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
-  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement
+  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, SignatureEdge, DarkGeo
 } from "./CVTemplates";
 import { SAMPLE_CV, SAMPLE_FORMAT, SAMPLE_SECTION_ORDER, TEMPLATE_INFO } from "../utils/sampleCV";
 
@@ -9,7 +9,7 @@ import { SAMPLE_CV, SAMPLE_FORMAT, SAMPLE_SECTION_ORDER, TEMPLATE_INFO } from ".
 
 const TEMPLATE_COMPONENTS = [
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
-  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement,
+  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, SignatureEdge, DarkGeo
 ];
 
 export default function TemplateGallery({ onSelectTemplate }) {
