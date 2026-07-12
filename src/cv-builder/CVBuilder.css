@@ -2570,167 +2570,6 @@
 ───────────────────────────────────── */
 @media screen and (max-width: 900px) {
 
-  /* ── NAVBAR LAYOUT — 2 ROWS ── */
-  .cv-navbar {
-    padding: 0 !important;
-  }
-
-  .cv-navbar__top {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 10px 12px !important;
-    gap: 8px !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Brand on the left — let it shrink */
-  .cv-navbar__brand {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    max-width: calc(100% - 220px) !important;
-    overflow: hidden !important;
-    gap: 8px !important;
-  }
-
-  .cv-navbar__brand .cv-navbar__back {
-    flex-shrink: 0 !important;
-    padding: 6px 10px !important;
-    font-size: 0.75rem !important;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .cv-navbar__brand .cv-navbar__back span {
-    display: none !important;
-  }
-
-  .cv-navbar__divider {
-    display: none !important;
-  }
-
-  .cv-navbar__brand-text,
-  .cv-navbar__brand > div:not(.cv-navbar__back):not(.cv-navbar__divider) {
-    overflow: hidden !important;
-    min-width: 0 !important;
-  }
-
-  .cv-navbar__title {
-    font-size: 0.9rem !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .cv-navbar__subtitle {
-    display: none !important;
-  }
-
-  /* Action group on the right — icon-only, never wraps */
-  .cv-navbar__actions {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    flex-wrap: nowrap !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* All action buttons → uniform compact icon-only */
-  .cv-navbar__actions button {
-    padding: 0 !important;
-    font-size: 0 !important;
-    border-radius: 50% !important;
-    width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
-    min-width: 36px !important;
-    flex-shrink: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: none !important;
-  }
-
-  .cv-navbar__actions button i {
-    font-size: 0.9rem !important;
-    margin: 0 !important;
-  }
-
-  .cv-navbar__actions button span {
-    display: none !important;
-  }
-
-  /* Save status — show as small dot indicator only */
-  .cv-navbar__save-status {
-    padding: 4px 8px !important;
-    font-size: 0.65rem !important;
-    border-radius: 10px !important;
-  }
-
-  .cv-navbar__save-status span {
-    display: none !important;
-  }
-
-  /* Download stays gradient (still circle) */
-  .cv-navbar__download {
-    background: linear-gradient(90deg, #6699FF, #9D00FF) !important;
-    color: #fff !important;
-  }
-
-  .cv-navbar__clear {
-    background: #fff1f1 !important;
-    color: #ef4444 !important;
-  }
-
-  /* ── TABBAR ROW — Form/Preview pills + Customize button ── */
-  .cv-navbar__tabbar {
-    display: flex !important;
-    align-items: stretch !important;
-    width: 100% !important;
-    padding: 8px 12px !important;
-    gap: 8px !important;
-    border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
-    box-sizing: border-box !important;
-  }
-
-  .cv-navbar__tabs {
-    flex: 1 !important;
-    display: flex !important;
-    background: #f5f5f5 !important;
-    border-radius: 10px !important;
-    padding: 4px !important;
-    gap: 0 !important;
-  }
-
-  .cv-navbar__tab {
-    flex: 1 !important;
-    padding: 9px 10px !important;
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 8px !important;
-    color: #555 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    white-space: nowrap !important;
-  }
-
-  .cv-navbar__tab--active {
-    background: #fff !important;
-    color: #9D00FF !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
-  }
-
   /* Customize button — compact gradient pill */
   .cvb-mobile-customize-btn {
     display: inline-flex !important;
@@ -2966,56 +2805,6 @@
 ───────────────────────────────────── */
 @media (max-width: 600px) {
 
-  .cv-navbar__top {
-    padding: 8px 10px !important;
-    gap: 6px !important;
-  }
-
-  .cv-navbar__brand {
-    max-width: calc(100% - 200px) !important;
-    gap: 6px !important;
-  }
-
-  .cv-navbar__title {
-    font-size: 0.85rem !important;
-  }
-
-  .cv-navbar__actions {
-    gap: 3px !important;
-  }
-
-  .cv-navbar__actions button {
-    width: 32px !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    min-width: 32px !important;
-  }
-
-  .cv-navbar__actions button i {
-    font-size: 0.8rem !important;
-  }
-
-  .cv-navbar__save-status {
-    width: 32px !important;
-    height: 32px !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-    justify-content: center !important;
-  }
-
-  .cv-navbar__save-status i {
-    font-size: 0.8rem !important;
-  }
-
-  .cv-navbar__tabbar {
-    padding: 6px 10px !important;
-    gap: 6px !important;
-  }
-
-  .cv-navbar__tab {
-    padding: 8px 8px !important;
-    font-size: 0.78rem !important;
-  }
 
   .cvb-mobile-customize-btn {
     padding: 8px 12px !important;
@@ -3041,54 +2830,7 @@
 ───────────────────────────────────── */
 @media (max-width: 414px) {
 
-  .cv-navbar__brand {
-    max-width: calc(100% - 175px) !important;
-  }
 
-  .cv-navbar__brand .cv-navbar__back {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-  }
-
-  .cv-navbar__brand .cv-navbar__back i {
-    margin: 0 !important;
-  }
-
-  .cv-navbar__title {
-    font-size: 0.8rem !important;
-  }
-
-  .cv-navbar__title i {
-    display: none !important;
-  }
-
-  .cv-navbar__actions button {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    min-height: 30px !important;
-  }
-
-  .cv-navbar__actions button i {
-    font-size: 0.75rem !important;
-  }
-
-  .cv-navbar__tabs {
-    padding: 3px !important;
-  }
-
-  .cv-navbar__tab {
-    padding: 7px 6px !important;
-    font-size: 0.72rem !important;
-    gap: 4px !important;
-  }
-
-  .cv-navbar__tab i {
-    display: none !important;
-  }
 
   .cvb-mobile-customize-btn {
     padding: 7px 10px !important;
@@ -3429,28 +3171,7 @@
 ══════════════════════════════════════════════════════════════ */
 @media screen and (max-width: 900px) {
 
-  /* ── TOP BAR: only brand + back, no actions ── */
-  .cv-navbar__top {
-    padding: 10px 12px !important;
-    justify-content: flex-start !important;
-    gap: 10px !important;
-  }
-
-  /* HIDE all action buttons from top bar — they go to bottom nav */
-  .cv-navbar__actions {
-    display: none !important;
-  }
-
-  /* HIDE the old tab bar — bottom nav replaces it */
-  .cv-navbar__tabbar {
-    display: none !important;
-  }
-
-  /* Brand stretches full width since actions are gone */
-  .cv-navbar__brand {
-    flex: 1 !important;
-    max-width: 100% !important;
-  }
+  
 
   /* ══════════════════════════════════════════════════════════
      BOTTOM NAVIGATION BAR
@@ -3770,35 +3491,6 @@
   }
 }
 
-.cv-navbar__brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.cv-navbar__logo {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  background-color: #fff;
-}
-
-.cv-navbar__title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.cv-navbar__subtitle {
-  font-size: 0.75rem;
-  opacity: 0.7;
-  margin: 0;
-  display: block !important;
-}
-
-.cv-navbar__logo--large {
-  height: 45px;
-}
 
 /* ── CERTIFICATION CARD HEADER WITH DELETE BUTTON ── */
 .cv-form__card-header {
