@@ -5136,3 +5136,52 @@
     display: none; /* hide footer on mobile — bottom tabs take that space */
   }
 }
+
+/* Mobile top nav — show logo + user + dashboard button only */
+@media (max-width: 900px) {
+  .cvnav {
+    padding: 0 12px;
+    height: 46px;
+    justify-content: space-between;
+  }
+
+  .cvnav__center {
+    display: none; /* hidden — controlled via mobile bottom More menu */
+  }
+
+  .cvnav__right {
+    display: none; /* hidden — controlled via mobile bottom tabs */
+  }
+
+  /* Show a compact dashboard back button on mobile top nav */
+  .cvnav__mobile-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #555;
+    font-family: inherit;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: 0.15s;
+  }
+
+  .cvnav__mobile-back:hover {
+    background: rgba(0,0,0,0.04);
+    color: #9D00FF;
+  }
+
+  .cvnav__mobile-back i {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 901px) {
+  .cvnav__mobile-back {
+    display: none; /* only on mobile */
+  }
+}
