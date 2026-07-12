@@ -5185,3 +5185,36 @@
     display: none; /* only on mobile */
   }
 }
+
+/* Mobile back button — top nav only */
+.cvnav__mobile-back {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .cvnav__mobile-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(157, 0, 255, 0.06);
+    border: 1px solid rgba(157, 0, 255, 0.15);
+    border-radius: 20px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #9D00FF;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .cvnav__mobile-back i {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .cvb {
+    padding-bottom: 70px; /* height of bottom tabs */
+  }
+}
