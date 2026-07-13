@@ -4,8 +4,28 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
     throw new Error("Preview not ready");
   }
 
+  // ── RESET mobile scale transform before capturing HTML ──
+  const savedTransform = content.style.transform;
+  const savedTransformOrigin = content.style.transformOrigin;
+  const savedWidth = content.style.width;
+  const savedMinHeight = content.style.minHeight;
+
+  content.style.transform = "none";
+  content.style.transformOrigin = "top left";
+  content.style.width = "794px";
+  content.style.minHeight = "1123px";
+
+  // Small delay so browser repaints with reset styles before we capture
+  await new Promise(r => setTimeout(r, 60));
+
   const allStyles = await collectAllStyles();
   const clonedHTML = content.outerHTML;
+
+  // ── RESTORE original styles immediately after capture ──
+  content.style.transform = savedTransform;
+  content.style.transformOrigin = savedTransformOrigin;
+  content.style.width = savedWidth;
+  content.style.minHeight = savedMinHeight;
 
   // Convert pagePadding (px) → mm
   const verticalMargin = Math.round((format?.pagePadding || 24) / 3.78);
@@ -45,6 +65,7 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
       width: 210mm;
     }
 
+    /* Force correct A4 dimensions — override any inline scale */
     .cv-preview__page {
       width: 210mm !important;
       min-height: 297mm !important;
@@ -54,6 +75,7 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
       overflow: visible !important;
       margin: 0 !important;
       padding: 0 !important;
+      transform: none !important;
     }
 
     .cv-item {

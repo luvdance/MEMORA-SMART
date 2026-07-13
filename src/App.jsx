@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
 import ATSChecker from "./pages/ATSChecker";
+import DanielNwankwo from "./pages/Daniel-nwankwo";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Dashboard />
         </ProtectedRoute>
       } />
+      <Route path="/daniel-nwankwo" element={<DanielNwankwo />} />
     </Routes>
   );
 }
