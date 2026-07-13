@@ -5,7 +5,7 @@ import profilePic from "../assets/profile pic2.jpg";
 // ---- Personalize these ----
 const NAME = "DANIEL EWEZUGACHI NWANKWO";
 const INITIALS = "ND";
-const ROLE = "Web Developer";
+const ROLE = "Full Stack Software Engineer";
 const PHOTO_SRC = profilePic;
 const STATUS = "Available for work";
 const EMAIL = "danielnwankwo@memorasmart.com";
