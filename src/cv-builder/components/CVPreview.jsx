@@ -90,7 +90,10 @@ const handleOrderToggle = () => {
         <div
           className="cv-preview__page-wrapper"
           ref={wrapperRef}
-          style={isMobile ? { height: `${1123 * mobileScale}px`, overflow: "hidden" } : undefined}
+          style={isMobile ? {
+            width: `${794 * mobileScale}px`,
+            overflow: "visible",
+          } : undefined}
         >
           <div
             className="cv-preview__page"

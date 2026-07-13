@@ -3079,7 +3079,7 @@
 
   .cv-preview__page-wrapper {
     height: calc((100vw - 32px) * 1.414) !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 }
 
