@@ -39,7 +39,7 @@ const projects = [
     sub: "Fashion and Clothing Brand",
     desc: "An online Fashion store based in Port Harcourt",
     tags: ["Bootstrap", "JavaScript", "Google Firebase"],
-    href: "#",
+    href: "https://mercyscloset.vercel.app/",
   },
   {
     id: "02",
