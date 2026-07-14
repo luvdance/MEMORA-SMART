@@ -188,7 +188,7 @@ export default function Portfolio() {
                     </span>
                   ))}
                 </div>
-                <a href={p.href} className="pf-work-link">
+                <a href={p.href} className="pf-work-link" target="_blank">
                   View project →
                 </a>
               </div>
