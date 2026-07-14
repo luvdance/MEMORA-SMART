@@ -10,8 +10,8 @@ const PHOTO_SRC = profilePic;
 const STATUS = "Available for work";
 const EMAIL = "danielnwankwo@memorasmart.com";
 const FIVERR_URL = "https://fiverr.com/your-username";
-const GITHUB_URL = "https://github.com/your-username";
-const LINKEDIN_URL = "https://linkedin.com/in/your-username";
+const GITHUB_URL = "https://github.com/luvdance";
+const LINKEDIN_URL = "www.linkedin.com/in/daniel-nwankwo-baa26b149";
 // ----------------------------
 
 const chapters = [
@@ -44,16 +44,16 @@ const projects = [
   {
     id: "02",
     title: "Project Two",
-    sub: "Replace with your next build",
-    desc: "One line on the problem this solved and how.",
+    sub: "Memora Smart Integrated Web App",
+    desc: "SaaS Website built with Javascript, React, Tailwind, Node.js and Vercel Serverless functions for the backend, AI Integration with Claude, Payment Integration and More...",
     tags: ["React"],
-    href: "#",
+    href: "https://www.memorasmart.com",
   },
   {
     id: "03",
     title: "Project Three",
-    sub: "Replace with your next build",
-    desc: "One line on the problem this solved and how.",
+    sub: "Sports Oracle",
+    desc: "The platform was built to transform raw sports data into actionable insights by combining predictive algorithms with an easy-to-use interface. Users can compare model probabilities against market odds and identify value opportunities. Built with React.js, Javascript, Node.js, Claude API, Vercel Serverless functions and more..",
     tags: ["JavaScript"],
     href: "#",
   },
