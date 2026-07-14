@@ -37,8 +37,8 @@ const projects = [
     id: "01",
     title: "Mercy's Closet Luxe",
     sub: "Fashion and Clothing Brand",
-    desc: "An online Fashion store based in Port Harcourt",
-    tags: ["Bootstrap", "JavaScript", "Google Firebase"],
+    desc: "A full-stack fashion e-commerce platform built for a clothing boutique, featuring a modern, visually rich UI with a dark theme toggle for an elevated shopping experience.",
+    tags: ["Bootstrap", "JavaScript", "Node.js", "Firebase Firestore", "Whatsapp Business API"],
     href: "https://mercyscloset.vercel.app/",
   },
   {
