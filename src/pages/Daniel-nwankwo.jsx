@@ -35,27 +35,27 @@ const chapters = [
 const projects = [
   {
     id: "01",
-    title: "Care & Cure Clinics",
-    sub: "Website + Hospital Management System",
-    desc: "A clinic website built with Bootstrap and JavaScript, paired with a simulated Hospital Management System for patient registration, scheduling, and records across admin, doctor, and patient roles.",
-    tags: ["Bootstrap", "JavaScript"],
+    title: "Mercy's Closet Luxe",
+    sub: "Fashion and Clothing Brand",
+    desc: "An online Fashion store based in Port Harcourt",
+    tags: ["Bootstrap", "JavaScript", "Google Firebase"],
     href: "#",
   },
   {
     id: "02",
-    title: "Project Two",
+    title: "Memora Smart Technologies",
     sub: "Memora Smart Integrated Web App",
     desc: "SaaS Website built with Javascript, React, Tailwind, Node.js and Vercel Serverless functions for the backend, AI Integration with Claude, Payment Integration and More...",
-    tags: ["React"],
+    tags: ["React", "Javascript", "Tailwind", "Node.js", "Vercel Serverless", "Claude API", "Firebase"],
     href: "https://www.memorasmart.com",
   },
   {
     id: "03",
-    title: "Project Three",
+    title: "Sports Oracle",
     sub: "Sports Oracle",
     desc: "The platform was built to transform raw sports data into actionable insights by combining predictive algorithms with an easy-to-use interface. Users can compare model probabilities against market odds and identify value opportunities. Built with React.js, Javascript, Node.js, Claude API, Vercel Serverless functions and more..",
-    tags: ["JavaScript"],
-    href: "#",
+    tags: ["React", "Javascript", "Node.js", "Vercel Serverless", "Claude API", "Firebase"],
+    href: "https://sports-oracle-sigma.vercel.app/",
   },
 ];
 
