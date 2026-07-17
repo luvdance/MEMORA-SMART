@@ -74,6 +74,33 @@ const projects = [
     tags: ["React", "Javascript", "Tailwind", "Node.js", "Vercel Serverless", "Claude API", "Firebase"],
     href: "https://www.memorasmart.com/cv-builder",
   },
+
+        {
+    id: "06",
+    title: "ATS Checker and Resume Optimizer",
+    sub: "Memora Smart ATS Checker",
+    desc: "A web application that allows users to check their resumes against Applicant Tracking Systems (ATS) and optimize them for better chances of getting noticed by employers. Built with React.js, Javascript, Node.js, Vercel Serverless functions and more..",
+    tags: ["React", "Javascript", "Tailwind", "Node.js", "Vercel Serverless", "Claude API", "Firebase"],
+    href: "https://www.memorasmart.com/ats-checker",
+  },
+
+          {
+    id: "07",
+    title: "Authentication and Authorization System",
+    sub: "Memora Smart Login System",
+    desc: "A web application that allows users to securely log in and access their accounts. Built with React.js, Javascript, Node.js, Vercel Serverless functions and more..",
+    tags: ["React", "Javascript", "Tailwind", "Node.js", "Vercel Serverless", "Firebase"],
+    href: "https://www.memorasmart.com/auth",
+  },
+
+            {
+    id: "08",
+    title: "Integrated Dashboard and Analytics System",
+    sub: "Memora Smart Dashboard",
+    desc: "A web application that provides an integrated dashboard for accessing Memora SaaS features. Built with React.js, Javascript, Node.js, Vercel Serverless functions and more..",
+    tags: ["React", "Javascript", "Tailwind", "Node.js", "Vercel Serverless", "Firebase"],
+    href: "https://www.memorasmart.com/dashboard",
+  },
 ];
 
 function useReveal() {
