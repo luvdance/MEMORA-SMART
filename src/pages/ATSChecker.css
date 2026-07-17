@@ -1019,3 +1019,14 @@
 .ats__progress--light .ats__progress-sub {
   color: #666;
 }
+
+.ats__parsing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #9D00FF;
+  font-weight: 600;
+  margin-top: 10px;
+  justify-content: center;
+}

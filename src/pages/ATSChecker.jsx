@@ -37,6 +37,9 @@ export default function ATSChecker() {
   const [optimizeProgress, setOptimizeProgress] = useState("");
   const [analyzeProgress, setAnalyzeProgress] = useState("");
 
+  //parse-progress state
+  const [parseProgress, setParseProgress] = useState("");
+  
   // Load saved result from localStorage on mount
 const [result, setResult] = useState(() => {
   try {
@@ -60,9 +63,9 @@ const [savedCvText, setSavedCvText] = useState(() => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const maxSize = 5 * 1024 * 1024;
+  const maxSize = 10 * 1024 * 1024; // 10MB
   if (file.size > maxSize) {
-    setError("File too large. Max 5MB.");
+    setError("File too large. Max 10MB.");
     return;
   }
 
@@ -75,9 +78,15 @@ const [savedCvText, setSavedCvText] = useState(() => {
     let text = "";
 
     if (ext === "pdf") {
+      // Browser-side PDF parsing (existing)
       text = await parsePdfInBrowser(file);
+
+    } else if (["jpg", "jpeg", "png", "webp"].includes(ext)) {
+      // Image OCR via Claude Vision (NEW)
+      text = await parseImageFile(file);
+
     } else if (ext === "docx" || ext === "doc") {
-      // Send DOCX to server (mammoth works fine on Vercel)
+      // Server-side DOCX parsing (existing)
       const formData = new FormData();
       formData.append("cv", file);
       const res = await fetch("/api/parse-cv", {
@@ -87,18 +96,22 @@ const [savedCvText, setSavedCvText] = useState(() => {
       const data = await res.json();
       if (data.success) text = data.text;
       else throw new Error(data.error || "Failed to parse DOCX");
+
     } else if (ext === "txt") {
       text = await file.text();
+
     } else {
-      throw new Error("Unsupported file type. Upload PDF, DOCX, or TXT.");
+      throw new Error("Unsupported file type. Upload PDF, DOCX, TXT, JPG, or PNG.");
     }
 
-    if (!text || text.trim().length < 100) {
-      throw new Error("Could not extract enough text. Is your CV image-only or scanned?");
+    if (!text || text.trim().length < 50) {
+      throw new Error("Could not extract enough text. If this is a scanned image, ensure it's clear and well-lit.");
     }
 
     setCvText(text);
+    setSavedCvText(text);
     setInputMode("paste");
+
   } catch (err) {
     setError(err.message);
     setFileName("");
@@ -128,6 +141,25 @@ const parsePdfInBrowser = async (file) => {
   }
   
   return fullText.trim();
+};
+
+const parseImageFile = async (file) => {
+  setParseProgress("Reading image...");
+  const formData = new FormData();
+  formData.append("cv", file);
+
+  const res = await fetch("/api/parse-cv", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json();
+  setParseProgress("");
+
+  if (!data.success) {
+    throw new Error(data.error || "Could not extract text from image");
+  }
+  return data.text;
 };
 
   const handleAnalyze = async () => {
@@ -427,38 +459,49 @@ useEffect(() => {
             </div>
 
             {/* UPLOAD MODE */}
-            {inputMode === "upload" && (
-              <div className="ats__upload-zone">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.docx,.doc,.txt"
-                  onChange={handleFileUpload}
-                  style={{ display: "none" }}
-                />
-                {parsing ? (
-                  <div className="ats__upload-state">
-                    <i className="fas fa-spinner fa-spin"></i>
-                    <p>Reading your CV...</p>
-                  </div>
-                ) : fileName ? (
-                  <div className="ats__upload-state">
-                    <i className="fas fa-file-check" style={{ color: "#16a34a" }}></i>
-                    <p><strong>{fileName}</strong></p>
-                    <span>Successfully loaded</span>
-                  </div>
-                ) : (
-                  <div
-                    className="ats__upload-state"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <i className="fas fa-cloud-upload-alt"></i>
-                    <p>Click to upload your CV</p>
-                    <span>PDF, DOCX, or TXT • Max 5MB</span>
-                  </div>
-                )}
-              </div>
-            )}
+              {inputMode === "upload" && (
+                <div className="ats__upload-zone">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp"
+                    onChange={handleFileUpload}
+                    style={{ display: "none" }}
+                  />
+                  {parsing ? (
+                    <div className="ats__upload-state">
+                      <i className="fas fa-spinner fa-spin"></i>
+                      <p>Reading your CV...</p>
+
+                      {/* Parsing progress */}
+                      <div className="ats__parsing-indicator">
+                        <i className="fas fa-circle-notch fa-spin"></i>
+                        <span>{parseProgress || "Parsing your CV..."}</span>
+                      </div>
+                    </div>
+                  ) : fileName ? (
+                    <div className="ats__upload-state">
+                      <i
+                        className="fas fa-file-check"
+                        style={{ color: "#16a34a" }}
+                      ></i>
+                      <p>
+                        <strong>{fileName}</strong>
+                      </p>
+                      <span>Successfully loaded</span>
+                    </div>
+                  ) : (
+                    <div
+                      className="ats__upload-state"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <i className="fas fa-cloud-upload-alt"></i>
+                      <p>Click to upload your CV</p>
+                      <span>PDF, DOCX, TXT, JPG, PNG — including scanned documents</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
             {/* PASTE MODE */}
             {inputMode === "paste" && (
