@@ -57,6 +57,14 @@ const projects = [
     tags: ["React", "Javascript", "Node.js", "Vercel Serverless", "Claude API", "Firebase"],
     href: "https://sports-oracle-sigma.vercel.app/",
   },
+    {
+    id: "04",
+    title: "Pre-Retirement Web Portal",
+    sub: "Plan your Retirement",
+    desc: "A web portal built to help users plan for retirement by providing tools and resources to calculate retirement savings, track progress, and make informed financial decisions. Built with React.js, Javascript, Node.js, Vercel Serverless functions and more..",
+    tags: ["Bootstrap", "Javascript", "Node.js", "Firebase"],
+    href: "https://pre-retirement-portal.vercel.app/",
+  },
 ];
 
 function useReveal() {
