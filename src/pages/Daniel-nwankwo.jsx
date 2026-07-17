@@ -65,6 +65,15 @@ const projects = [
     tags: ["Bootstrap", "Javascript", "Node.js", "Firebase"],
     href: "https://pre-retirement-portal.vercel.app/",
   },
+
+      {
+    id: "05",
+    title: "CV Builder Web App",
+    sub: "Memora Smart CV",
+    desc: "A web application that allows users to create and customize their CVs online. Built with React.js, Javascript, Node.js, Vercel Serverless functions and more..",
+    tags: ["React", "Javascript", "Tailwind", "Node.js", "Vercel Serverless", "Claude API", "Firebase"],
+    href: "https://www.memorasmart.com/cv-builder",
+  },
 ];
 
 function useReveal() {
