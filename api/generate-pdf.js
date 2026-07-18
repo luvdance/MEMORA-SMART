@@ -24,49 +24,61 @@ export default async function handler(req, res) {
 
     console.log("HTML length:", html.length);
 
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: { width: 794, height: 1123, deviceScaleFactor: 2 },
-      executablePath: await chromium.executablePath(),
-      headless: true,
-    });
+browser = await puppeteer.launch({
+  args: chromium.args,
+  defaultViewport: {
+    width: 794,
+    height: 1123, // initial viewport — Puppeteer expands beyond this for PDF
+    deviceScaleFactor: 2,
+  },
+  executablePath: await chromium.executablePath(),
+  headless: true,
+});
 
-    const page = await browser.newPage();
+const page = await browser.newPage();
 
-    await page.setContent(html, {
-      waitUntil: ["networkidle0", "domcontentloaded", "load"],
-      timeout: 25000,
-    });
+await page.setContent(html, {
+  waitUntil: ["networkidle0", "domcontentloaded", "load"],
+  timeout: 25000,
+});
 
-    await page.evaluate(async () => {
-      await document.fonts.ready;
+// ── Let page expand to full content height before PDF capture ──
+await page.evaluate(() => {
+  // Remove any height constraints that could clip multi-page content
+  document.body.style.height = "auto";
+  document.body.style.overflow = "visible";
+  document.documentElement.style.height = "auto";
+  document.documentElement.style.overflow = "visible";
+});
 
-      const families = [
-        "Raleway", "Source Serif 4", "Inter", "Source Sans 3",
-        "EB Garamond", "Cormorant Garamond", "DM Sans", "Manrope", "Lora",
-        "Font Awesome 6 Free",
-        "Font Awesome 6 Brands",
-      ];
+await page.evaluate(async () => {
+  await document.fonts.ready;
+  const families = [
+    "Raleway", "Source Serif 4", "Inter", "Source Sans 3",
+    "EB Garamond", "Cormorant Garamond", "DM Sans", "Manrope",
+    "Lora", "Georgia", "Font Awesome 6 Free", "Font Awesome 6 Brands",
+  ];
+  for (const family of families) {
+    try {
+      await document.fonts.load(`400 16px "${family}"`);
+      await document.fonts.load(`700 16px "${family}"`);
+      await document.fonts.load(`900 16px "${family}"`);
+    } catch (e) {}
+  }
+  await document.fonts.ready;
+});
 
-      for (const family of families) {
-        try {
-          await document.fonts.load(`400 16px "${family}"`);
-          await document.fonts.load(`700 16px "${family}"`);
-          await document.fonts.load(`900 16px "${family}"`);
-        } catch (e) {}
-      }
+// Extra wait for complex templates with many elements
+await new Promise(r => setTimeout(r, 1500));
 
-      await document.fonts.ready;
-    });
-
-    await new Promise(r => setTimeout(r, 1500));
-
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-      preferCSSPageSize: true,
-    });
+const pdfBuffer = await page.pdf({
+  format: "A4",
+  printBackground: true,
+  margin: { top: 0, right: 0, bottom: 0, left: 0 },
+  preferCSSPageSize: true,
+  // This is key — don't clip to viewport height
+  height: undefined,
+});
 
     await browser.close();
     browser = null;
