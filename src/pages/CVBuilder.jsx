@@ -16,6 +16,8 @@ import PaymentRequery from "../components/PaymentRequery";
 import { track } from "../utils/analytics";
 import { TEMPLATE_INFO } from "../cv-builder/utils/sampleCV";
 import cvLogo from "../assets/cv logo.png";
+import FormatPanel from "../cv-builder/components/FormatPanel";
+import SectionOrderPanel from "../cv-builder/components/SectionOrderPanel";
 
 const LOCAL_KEY = "memora_cv_draft";
 
@@ -67,6 +69,8 @@ export default function CVBuilder() {
   const [showDownloadGate, setShowDownloadGate] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
 
+  //isMobile state
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
   // ── MOBILE UI STATE ──
   const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -85,6 +89,14 @@ useEffect(() => {
     setAccent(templateDefault);
   }
 }, [template]);
+
+//isMobile useEffect
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth <= 900);
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+
 
   // ── AUTO-SAVE TO LOCALSTORAGE ──
   useEffect(() => {
@@ -846,6 +858,62 @@ const triggerPrint = () => {
         </div>
       </div>
 
+{/* Mobile Format Sheet */}
+{showFormat && isMobile && (
+  <>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.4)",
+        zIndex: 490,
+        backdropFilter: "blur(2px)",
+      }}
+      onClick={() => setShowFormat(false)}
+    />
+    <div className="cvb__mobile-panel-sheet">
+      <div className="cvb__mobile-panel-header">
+        <span><i className="fas fa-sliders-h"></i> Format</span>
+        <button onClick={() => setShowFormat(false)}>
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
+      <div className="cvb__mobile-panel-body">
+        <FormatPanel format={format} setFormat={setFormat} />
+      </div>
+    </div>
+  </>
+)}
+
+{/* Mobile Reorder Sheet */}
+{showOrder && isMobile && (
+  <>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.4)",
+        zIndex: 490,
+        backdropFilter: "blur(2px)",
+      }}
+      onClick={() => setShowOrder(false)}
+    />
+    <div className="cvb__mobile-panel-sheet">
+      <div className="cvb__mobile-panel-header">
+        <span><i className="fas fa-arrows-alt-v"></i> Reorder Sections</span>
+        <button onClick={() => setShowOrder(false)}>
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
+      <div className="cvb__mobile-panel-body">
+        <SectionOrderPanel
+          sectionOrder={sectionOrder}
+          setSectionOrder={setSectionOrder}
+        />
+      </div>
+    </div>
+  </>
+)}
     </div>
   );
 }
