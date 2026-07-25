@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, sendPasswordResetEmail, } from "firebase/auth";
 import { auth } from "../../firebase";
 import DashboardLayout from "../../components/DashboardLayout";
 import { getUserDoc } from "../../utils/userService";
@@ -20,6 +20,9 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [planData, setPlanData] = useState(null);
+  const [passwordResetSent, setPasswordResetSent] = useState(false);
+  const [passwordResetError, setPasswordResetError] = useState("");
+  const [sendingReset, setSendingReset] = useState(false);
 
   const handlePhoto = (e) => {
     const file = e.target.files[0];
@@ -46,6 +49,27 @@ export default function Profile() {
   };
 
   const initial = name?.charAt(0).toUpperCase() || "U";
+
+  //password reset handler
+  const handlePasswordReset = async () => {
+  if (!user?.email) return;
+  setSendingReset(true);
+  setPasswordResetError("");
+  setPasswordResetSent(false);
+  try {
+    await sendPasswordResetEmail(auth, user.email, {
+      url: `${window.location.origin}/auth`,
+    });
+    setPasswordResetSent(true);
+  } catch (err) {
+    setPasswordResetError(
+      err.code === "auth/too-many-requests"
+        ? "Too many attempts. Please wait a few minutes and try again."
+        : "Failed to send reset email. Please try again."
+    );
+  }
+  setSendingReset(false);
+};
 
   useEffect(() => {
     if (user?.uid) {
@@ -207,9 +231,57 @@ export default function Profile() {
               <input className="dash-profile__input" type="password" placeholder="••••••••" />
             </div>
           </div>
-          <button className="dash-profile__save" style={{ marginTop: 16 }}>
-            <i className="fas fa-key"></i> Update Password
-          </button>
+          {/* Password reset */}
+          <div style={{ marginTop: 16 }}>
+            <button
+              className="dash-profile__save"
+              onClick={handlePasswordReset}
+              disabled={sendingReset}
+              style={{ opacity: sendingReset ? 0.7 : 1 }}
+            >
+              {sendingReset ? (
+                <><i className="fas fa-circle-notch fa-spin"></i> Sending...</>
+              ) : (
+                <><i className="fas fa-key"></i> Reset Password via Email</>
+              )}
+            </button>
+
+            {passwordResetSent && (
+              <div style={{
+                marginTop: 10,
+                padding: "10px 14px",
+                background: "#f0fdf4",
+                border: "1px solid #86efac",
+                borderRadius: 10,
+                fontSize: "0.82rem",
+                color: "#16a34a",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}>
+                <i className="fas fa-check-circle"></i>
+                Password reset email sent to <b>{user?.email}</b>. Check your inbox.
+              </div>
+            )}
+
+            {passwordResetError && (
+              <div style={{
+                marginTop: 10,
+                padding: "10px 14px",
+                background: "#fef2f2",
+                border: "1px solid #fca5a5",
+                borderRadius: 10,
+                fontSize: "0.82rem",
+                color: "#dc2626",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}>
+                <i className="fas fa-exclamation-circle"></i>
+                {passwordResetError}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </DashboardLayout>
