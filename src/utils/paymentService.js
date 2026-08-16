@@ -77,6 +77,53 @@ export function subscribePro({ email, onSuccess, onClose }) {
 }
 
 /**
+ * Open Paystack popup for a full book purchase.
+ * `book` is one entry from src/data/books.js (paidBooks array) —
+ * needs at least { slug, title, price } where price is in Naira.
+ */
+export function buyBook({ email, book, onSuccess, onClose }) {
+  if (!window.PaystackPop) {
+    alert("Payment system not loaded. Please refresh the page and try again.");
+    return;
+  }
+
+  const reference = "book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+
+  const handler = window.PaystackPop.setup({
+    key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+    email: email,
+    amount: book.price * 100,
+    currency: "NGN",
+    ref: reference,
+    metadata: {
+      purchase_type: "book_purchase",
+      book_slug: book.slug,
+      book_title: book.title,
+      custom_fields: [
+        {
+          display_name: "Purchase Type",
+          variable_name: "purchase_type",
+          value: "Book Purchase",
+        },
+        {
+          display_name: "Book",
+          variable_name: "book_title",
+          value: book.title,
+        },
+      ],
+    },
+    callback: function(response) {
+      verifyAndNotify(response.reference, onSuccess);
+    },
+    onClose: function() {
+      if (typeof onClose === "function") onClose();
+    },
+  });
+
+  handler.openIframe();
+}
+
+/**
  * Internal: verify payment server-side then notify caller.
  * Separated from callback so Paystack gets a plain sync function.
  */

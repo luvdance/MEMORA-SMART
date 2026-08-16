@@ -9,6 +9,12 @@ import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
 import ATSChecker from "./pages/ATSChecker";
 import DanielNwankwo from "./pages/Daniel-nwankwo";
+import LeadMagnetExcel from "./pages/LeadMagnetExcel";
+import LeadMagnetRemoteJobs from "./pages/LeadMagnetRemoteJobs";
+import LeadMagnetAISideHustles from "./pages/LeadMagnetAISideHustles";
+import LeadMagnetContentCreation from "./pages/LeadMagnetContentCreation";
+import LeadMagnetComputerSkills from "./pages/LeadMagnetComputerSkills";
+import Library from "./pages/Library";
 
 function App() {
   return (
@@ -27,6 +33,12 @@ function App() {
         </ProtectedRoute>
       } />
       <Route path="/daniel-nwankwo" element={<DanielNwankwo />} />
+      <Route path="/excel-masterclass" element={<LeadMagnetExcel />} />
+      <Route path="/remote-jobs-guide" element={<LeadMagnetRemoteJobs />} />
+      <Route path="/ai-side-hustles" element={<LeadMagnetAISideHustles />} />
+      <Route path="/content-creation" element={<LeadMagnetContentCreation />} />
+      <Route path="/digital-skills" element={<LeadMagnetComputerSkills />} />
+      <Route path="/library" element={<Library />} />
     </Routes>
   );
 }

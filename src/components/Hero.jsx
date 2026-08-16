@@ -12,6 +12,7 @@ const services = [
   { icon: "fas fa-calculator", label: "Learn Elementary Mathematics" },
   { icon: "fas fa-atom", label: "Learn Physics" },
   { icon: "fas fa-flask", label: "Learn Chemistry" },
+  { icon: "fas fa-book", label: "Read & Buy E-books", path: "/library" },
   { icon: "fas fa-ellipsis-h", label: "More" },
 ];
 
