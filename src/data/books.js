@@ -90,7 +90,7 @@ export const paidBooks = [
     title: "Excel Master Class — Beginner to Pro",
     description:
       "Go from total beginner to confident, capable Excel user — formulas, pivot tables, dashboards, and automation, taught step by step.",
-    price: 8000,
+    price: 6500,
     icon: "fa-solid fa-table-cells",
     cover: excelCover,
     features: [
@@ -108,7 +108,7 @@ export const paidBooks = [
     title: "The Nigerian's Guide to Remote Jobs",
     description:
       "How to find, apply for, and land international remote jobs from Nigeria — platforms, CVs, interviews, and getting paid.",
-    price: 6000,
+    price: 12000,
     icon: "fa-solid fa-earth-africa",
     cover: remoteJobsCover,
     features: [
@@ -126,7 +126,7 @@ export const paidBooks = [
     title: "AI Side Hustles in Nigeria",
     description:
       "10 practical, low-cost ways to use AI to start earning online — with tools, steps, and where to find paying clients.",
-    price: 6000,
+    price: 12000,
     icon: "fa-solid fa-robot",
     cover: aiSideHustlesCover,
     features: [
@@ -144,7 +144,7 @@ export const paidBooks = [
     title: "Content Creation",
     description:
       "The complete system for planning, writing, filming, and growing an audience — for Instagram, TikTok, LinkedIn and more.",
-    price: 6000,
+    price: 8000,
     icon: "fa-solid fa-photo-film",
     cover: contentCreationCover,
     features: [
@@ -162,7 +162,7 @@ export const paidBooks = [
     title: "Complete Computer and Digital Skills Handbook",
     description:
       "From total beginner to confident, capable computer user — shortcuts, terms, file management, and where to go next.",
-    price: 5000,
+    price: 25000,
     icon: "fa-solid fa-computer",
     cover: computerSkillsCover,
     features: [
