@@ -276,30 +276,29 @@
 .lib-hero-covers {
   flex: 1;
   position: relative;
-  min-height: 340px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 380px;
+  width: 100%;
+  max-width: 420px;
 }
 
 .lib-hero-covers .bcv--lg {
   position: absolute;
-  top: 10px;
-  left: 30%;
+  top: 0;
+  right: 40px;
   z-index: 3;
 }
 
 .lib-hero-covers .bcv--md {
   position: absolute;
-  bottom: 30px;
-  left: 0;
+  top: 130px;
+  right: 200px;
   z-index: 2;
 }
 
 .lib-hero-covers .bcv--sm {
   position: absolute;
-  top: 60px;
-  right: 0;
+  top: 220px;
+  right: -10px;
   z-index: 1;
 }
 
@@ -1016,34 +1015,10 @@
     justify-content: center;
   }
 
- .lib-hero-covers {
-  flex: 1;
-  position: relative;
-  min-height: 380px;
-  width: 100%;
-  max-width: 420px;
-}
-
-.lib-hero-covers .bcv--lg {
-  position: absolute;
-  top: 0;
-  right: 40px;
-  z-index: 3;
-}
-
-.lib-hero-covers .bcv--md {
-  position: absolute;
-  top: 130px;
-  right: 200px;
-  z-index: 2;
-}
-
-.lib-hero-covers .bcv--sm {
-  position: absolute;
-  top: 220px;
-  right: -10px;
-  z-index: 1;
-}
+  .lib-hero-covers {
+    min-height: 280px;
+    margin-top: 20px;
+  }
 
   .lib-spotlight {
     flex-direction: column;
