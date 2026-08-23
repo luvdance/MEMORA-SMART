@@ -13,6 +13,7 @@ const STAGES = {
   IDLE: "idle",
   UPLOADING: "uploading",
   CLASSIFYING: "classifying",
+  RENDERING: "rendering",
   DONE: "done",
   ERROR: "error",
 };
@@ -36,6 +37,7 @@ export default function ProjectFormatter() {
   const [filename, setFilename] = useState(null);
   const [paragraphs, setParagraphs] = useState([]);
   const [classifications, setClassifications] = useState([]);
+  const [downloadUrl, setDownloadUrl] = useState(null);
 
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -74,6 +76,25 @@ export default function ProjectFormatter() {
       }
 
       setClassifications(classifyData.classifications);
+      setStage(STAGES.RENDERING);
+
+      const renderRes = await fetch("/api/project-formatter/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paragraphs: uploadData.paragraphs,
+          classifications: classifyData.classifications,
+          filename: file.name,
+        }),
+      });
+
+      if (!renderRes.ok) {
+        const errData = await renderRes.json().catch(() => ({}));
+        throw new Error(errData.error || "Formatting failed");
+      }
+
+      const blob = await renderRes.blob();
+      setDownloadUrl(URL.createObjectURL(blob));
       setStage(STAGES.DONE);
     } catch (err) {
       console.error(err);
@@ -88,6 +109,8 @@ export default function ProjectFormatter() {
     setFilename(null);
     setParagraphs([]);
     setClassifications([]);
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    setDownloadUrl(null);
   }
 
   const roleByIndex = new Map(classifications.map((c) => [c.index, c.role]));
@@ -130,13 +153,15 @@ export default function ProjectFormatter() {
         </div>
       )}
 
-      {(stage === STAGES.UPLOADING || stage === STAGES.CLASSIFYING) && (
+      {(stage === STAGES.UPLOADING || stage === STAGES.CLASSIFYING || stage === STAGES.RENDERING) && (
         <div className="dash-stat-card" style={{ padding: "2rem", textAlign: "center" }}>
           <i className="fas fa-spinner fa-spin" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}></i>
           <p>
             {stage === STAGES.UPLOADING
               ? `Reading ${filename}...`
-              : `Analyzing document structure — this can take a moment for longer documents...`}
+              : stage === STAGES.CLASSIFYING
+              ? `Analyzing document structure — this can take a moment for longer documents...`
+              : `Building your formatted document...`}
           </p>
         </div>
       )}
@@ -152,6 +177,25 @@ export default function ProjectFormatter() {
 
       {stage === STAGES.DONE && (
         <>
+          {downloadUrl && (
+            <div className="dash-stat-card" style={{ padding: "1.5rem", textAlign: "center", marginBottom: "1.5rem" }}>
+              <a
+                href={downloadUrl}
+                download={filename ? filename.replace(/\.docx$/i, "") + "-formatted.docx" : "formatted.docx"}
+                className="dash-app-card__tag"
+                style={{ display: "inline-block", padding: "0.7rem 1.4rem" }}
+              >
+                <i className="fas fa-download" style={{ marginRight: "0.5rem" }}></i>
+                Download formatted document
+              </a>
+              <p style={{ marginTop: "0.75rem", fontSize: "0.85rem", opacity: 0.7 }}>
+                Open in Word, then press Ctrl+A followed by F9 (or right-click the
+                Table of Contents and choose "Update Field") so all page numbers
+                display correctly before printing.
+              </p>
+            </div>
+          )}
+
           <div className="dash-stats">
             {Object.entries(roleCounts)
               .filter(([role]) => ROLE_LABELS[role])
@@ -184,8 +228,8 @@ export default function ProjectFormatter() {
           </div>
 
           <p style={{ marginTop: "1.5rem", opacity: 0.7 }}>
-            Formatting and download coming soon — this preview shows what the
-            AI detected in your document.
+            Structure detected by the AI — full list above shows headings,
+            captions, and references it found and reformatted.
           </p>
           <button className="dash-app-card__tag" onClick={reset}>
             Upload another document
