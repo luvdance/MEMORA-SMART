@@ -45,6 +45,13 @@ const apps = [
     tag: "Coming Soon",
     path: null,
   },
+  {
+  icon: "fas fa-file-word",
+  name: "Project Formatter",
+  desc: "Upload your raw project write-up and get it correctly arranged, numbered, and referenced — ready to print.",
+  tag: "Live",
+  path: "/dashboard/project-formatter",
+},
 ];
 
 const stats = [

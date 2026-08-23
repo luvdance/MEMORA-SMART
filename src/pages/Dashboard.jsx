@@ -5,6 +5,8 @@ import CVBuilder from "./CVBuilder";
 import DashboardLayout from "../components/DashboardLayout";
 import MyWorks from "./dashboard/MyWorks";
 import Payments from "./dashboard/Payments";
+import ProjectFormatter from "./dashboard/ProjectFormatter";
+
 
 
 
@@ -27,6 +29,7 @@ export default function Dashboard() {
       <Route path="my-works" element={<MyWorks />} />
       <Route path="profile" element={<Profile />} />
       <Route path="cv-builder" element={<CVBuilder />} />
+      <Route path="project-formatter" element={<ProjectFormatter />} />
       <Route path="web-builder" element={<ComingSoon name="Website Builder" />} />
       <Route path="app-builder" element={<ComingSoon name="Mobile App Builder" />} />
       <Route path="data-analysis" element={<ComingSoon name="Data Analysis" />} />
