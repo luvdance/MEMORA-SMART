@@ -1,6 +1,20 @@
+// pages/api/project-formatter/upload.js
+//
+// Accepts a raw .docx upload and returns the extracted paragraph array.
+// MVP scope: .docx only (matches your CV parser's docx path). PDFs and
+// scanned images are intentionally out of scope for this feature — this
+// tool needs to produce an EDITABLE, correctly-formatted .docx output, and
+// starting from a PDF/image loses the editable structure we'd need to
+// rebuild reliably. Word-native input keeps the pipeline honest.
+//
+// Response shape:
+//   { success: true, filename: string, paragraphs: [...] }
+// The client holds `paragraphs` and passes it straight to
+// /api/project-formatter/classify next. No server-side state.
+
 import formidable from "formidable";
 import { readFile } from "fs/promises";
-import { extractParagraphs } from "../../lib/docxExtractor";
+import { extractParagraphs } from "../../lib/docxExtractor.js";
 
 export const config = {
   api: {

@@ -14,7 +14,7 @@
 // known chapter, so the model doesn't lose track of "which chapter are we
 // in" across the split.
 
-import { SYSTEM_PROMPT } from "../../lib/classifySchema";
+import { SYSTEM_PROMPT } from "../../lib/classifySchema.js";
 
 const BATCH_SIZE = 120;
 
