@@ -38,6 +38,7 @@ export default function ProjectFormatter() {
   const [paragraphs, setParagraphs] = useState([]);
   const [classifications, setClassifications] = useState([]);
   const [downloadUrl, setDownloadUrl] = useState(null);
+  const [rawFile, setRawFile] = useState(null);
 
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -46,6 +47,7 @@ export default function ProjectFormatter() {
     setError(null);
     setStage(STAGES.UPLOADING);
     setFilename(file.name);
+    setRawFile(file);
 
     try {
       const formData = new FormData();
@@ -78,14 +80,14 @@ export default function ProjectFormatter() {
       setClassifications(classifyData.classifications);
       setStage(STAGES.RENDERING);
 
+      const renderFormData = new FormData();
+      renderFormData.append("document", file);
+      renderFormData.append("classifications", JSON.stringify(classifyData.classifications));
+      renderFormData.append("filename", file.name);
+
       const renderRes = await fetch("/api/project-formatter/render", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paragraphs: uploadData.paragraphs,
-          classifications: classifyData.classifications,
-          filename: file.name,
-        }),
+        body: renderFormData,
       });
 
       if (!renderRes.ok) {
@@ -109,6 +111,7 @@ export default function ProjectFormatter() {
     setFilename(null);
     setParagraphs([]);
     setClassifications([]);
+    setRawFile(null);
     if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     setDownloadUrl(null);
   }
