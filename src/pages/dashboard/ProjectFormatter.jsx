@@ -1,6 +1,6 @@
 // src/pages/dashboard/ProjectFormatter.jsx
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import DashboardLayout from "../../components/DashboardLayout";
 import "./ProjectFormatter.css";
 
@@ -14,29 +14,28 @@ const STAGES = {
 };
 
 const ROLE_LABELS = {
-  chapter_heading: "Chapter heading",
-  section_heading: "Section heading",
-  subsection_heading: "Subsection heading",
-  subsubsection_heading: "Sub-subsection heading",
+  chapter_heading: "Chapter",
+  section_heading: "Section",
+  subsection_heading: "Subsection",
+  subsubsection_heading: "Sub-subsection",
   figure_caption: "Figure caption",
   table_caption: "Table caption",
   plate_caption: "Plate caption",
-  reference_entry: "Reference entry",
-  abstract_heading: "Abstract heading",
+  reference_entry: "Reference",
+  abstract_heading: "Abstract",
   body_paragraph: "Body text",
 };
 
 const ROLE_ICONS = {
-  chapter_heading: "fa-book-open",
-  section_heading: "fa-layer-group",
-  subsection_heading: "fa-list",
-  subsubsection_heading: "fa-indent",
-  figure_caption: "fa-image",
-  table_caption: "fa-table",
-  plate_caption: "fa-images",
-  reference_entry: "fa-quote-right",
-  abstract_heading: "fa-file-alt",
-  body_paragraph: "fa-align-left",
+  chapter_heading: "fa-solid fa-book-open",
+  section_heading: "fa-solid fa-layer-group",
+  subsection_heading: "fa-solid fa-list",
+  subsubsection_heading: "fa-solid fa-list-check",
+  figure_caption: "fa-solid fa-image",
+  table_caption: "fa-solid fa-table",
+  plate_caption: "fa-solid fa-images",
+  reference_entry: "fa-solid fa-quote-left",
+  abstract_heading: "fa-solid fa-file-lines",
 };
 
 export default function ProjectFormatter() {
@@ -49,16 +48,13 @@ export default function ProjectFormatter() {
   const [rawFile, setRawFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  async function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    await processFile(file);
-  }
+  const fileInputRef = useRef(null);
 
   async function processFile(file) {
+    if (!file) return;
+
     if (!file.name.toLowerCase().endsWith(".docx")) {
-      setError("Please upload a Microsoft Word .docx document.");
+      setError("Please upload a Microsoft Word (.docx) document.");
       setStage(STAGES.ERROR);
       return;
     }
@@ -87,18 +83,15 @@ export default function ProjectFormatter() {
 
       setStage(STAGES.CLASSIFYING);
 
-      const classifyRes = await fetch(
-        "/api/project-formatter/classify",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            paragraphs: uploadData.paragraphs,
-          }),
-        }
-      );
+      const classifyRes = await fetch("/api/project-formatter/classify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paragraphs: uploadData.paragraphs,
+        }),
+      });
 
       const classifyData = await classifyRes.json();
 
@@ -113,11 +106,14 @@ export default function ProjectFormatter() {
       setStage(STAGES.RENDERING);
 
       const renderFormData = new FormData();
+
       renderFormData.append("document", file);
+
       renderFormData.append(
         "classifications",
         JSON.stringify(classifyData.classifications)
       );
+
       renderFormData.append("filename", file.name);
 
       const renderRes = await fetch(
@@ -141,16 +137,28 @@ export default function ProjectFormatter() {
       const blob = await renderRes.blob();
 
       setDownloadUrl(URL.createObjectURL(blob));
+
       setStage(STAGES.DONE);
     } catch (err) {
       console.error(err);
-      setError(err.message);
+
+      setError(err.message || "Something went wrong.");
+
       setStage(STAGES.ERROR);
+    }
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      processFile(file);
     }
   }
 
   function handleDrop(e) {
     e.preventDefault();
+
     setIsDragging(false);
 
     const file = e.dataTransfer.files?.[0];
@@ -173,6 +181,10 @@ export default function ProjectFormatter() {
     }
 
     setDownloadUrl(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }
 
   const roleByIndex = new Map(
@@ -184,172 +196,175 @@ export default function ProjectFormatter() {
     return acc;
   }, {});
 
-  const totalDetected = classifications.length;
+  const detectedItems = paragraphs.filter((p) => {
+    const role = roleByIndex.get(p.index);
 
-  const chapterCount = classifications.filter((c) =>
-    [
-      "chapter_heading",
-      "section_heading",
-      "subsection_heading",
-      "subsubsection_heading",
-    ].includes(c.role)
-  ).length;
+    return (
+      role &&
+      role !== "body_paragraph" &&
+      ROLE_LABELS[role]
+    );
+  });
 
-  const referenceCount =
+  const totalParagraphs = paragraphs.length;
+
+  const chapters =
+    roleCounts.chapter_heading || 0;
+
+  const sections =
+    roleCounts.section_heading || 0;
+
+  const references =
     roleCounts.reference_entry || 0;
-
-  const tableCount =
-    roleCounts.table_caption || 0;
-
-  const figureCount =
-    (roleCounts.figure_caption || 0) +
-    (roleCounts.plate_caption || 0);
-
-  const getStageProgress = () => {
-    switch (stage) {
-      case STAGES.UPLOADING:
-        return 20;
-      case STAGES.CLASSIFYING:
-        return 48;
-      case STAGES.RENDERING:
-        return 78;
-      case STAGES.DONE:
-        return 100;
-      default:
-        return 0;
-    }
-  };
-
-  const getStageLabel = () => {
-    switch (stage) {
-      case STAGES.UPLOADING:
-        return "Reading your document";
-      case STAGES.CLASSIFYING:
-        return "AI is analyzing your project";
-      case STAGES.RENDERING:
-        return "Building your formatted document";
-      case STAGES.DONE:
-        return "Project processing complete";
-      default:
-        return "Ready to begin";
-    }
-  };
-
-  const workflow = [
-    {
-      number: "01",
-      title: "Upload",
-      icon: "fa-cloud-upload-alt",
-    },
-    {
-      number: "02",
-      title: "Analyze",
-      icon: "fa-brain",
-    },
-    {
-      number: "03",
-      title: "Organize",
-      icon: "fa-sitemap",
-    },
-    {
-      number: "04",
-      title: "Correct",
-      icon: "fa-spell-check",
-    },
-    {
-      number: "05",
-      title: "Finalize",
-      icon: "fa-check-circle",
-    },
-  ];
 
   return (
     <DashboardLayout
       title="Project Formatter"
-      subtitle="Transform your raw academic project into a properly structured and professionally formatted document."
+      subtitle="Transform a messy academic document into a structured, professionally formatted project."
     >
-      <div className="pf-page">
+      <div className="project-formatter">
 
-        {/* HEADER */}
+        {/* =====================================================
+            HEADER
+        ====================================================== */}
 
-        <div className="pf-header">
-          <div>
-            <div className="pf-product-label">
-              <span className="pf-product-dot"></span>
-              PROJECTPILOT
+        <section className="pf-header">
+
+          <div className="pf-header__content">
+
+            <div className="pf-eyebrow">
+              <span className="pf-eyebrow__icon">
+                <i className="fa-solid fa-wand-magic-sparkles" />
+              </span>
+
+              AI-POWERED ACADEMIC FORMATTING
             </div>
 
             <h1>
-              From messy project to{" "}
-              <span>submission-ready.</span>
+              From messy project
+              <span> to polished document.</span>
             </h1>
 
             <p>
-              Upload your project and let AI analyze its structure,
-              organize your chapters, detect inconsistencies and
-              prepare it for professional formatting.
+              Upload your project work and let ProjectPilot
+              intelligently identify your chapters, headings,
+              tables, figures, references and other academic
+              structures — then prepare everything for a
+              professionally formatted document.
             </p>
+
           </div>
 
-          <div className="pf-header-badge">
-            <div className="pf-ai-orb">
-              <i className="fas fa-sparkles"></i>
+          <div className="pf-header__badge">
+
+            <div className="pf-brand-mark">
+              <i className="fa-solid fa-file-circle-check" />
             </div>
 
             <div>
-              <strong>AI Academic Assistant</strong>
-              <small>Smart document analysis</small>
+              <strong>ProjectPilot</strong>
+              <span>by Memora Smart</span>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        {/* =====================================================
+            WORKFLOW
+        ====================================================== */}
+
+        <section className="pf-workflow">
+
+          <div className="pf-workflow__line" />
+
+          <div
+            className={`pf-workflow-step ${
+              stage !== STAGES.IDLE ? "is-active" : ""
+            }`}
+          >
+            <div className="pf-workflow-step__number">
+              <i className="fa-solid fa-cloud-arrow-up" />
+            </div>
+
+            <div>
+              <strong>Upload</strong>
+              <span>Your project</span>
             </div>
           </div>
-        </div>
 
-        {/* WORKFLOW */}
+          <div
+            className={`pf-workflow-step ${
+              [
+                STAGES.CLASSIFYING,
+                STAGES.RENDERING,
+                STAGES.DONE,
+              ].includes(stage)
+                ? "is-active"
+                : ""
+            }`}
+          >
+            <div className="pf-workflow-step__number">
+              <i className="fa-solid fa-brain" />
+            </div>
 
-        <div className="pf-workflow">
-          {workflow.map((item, index) => {
-            const active =
-              stage !== STAGES.IDLE &&
-              stage !== STAGES.ERROR &&
-              index <=
-                (stage === STAGES.DONE
-                  ? 4
-                  : stage === STAGES.RENDERING
-                  ? 3
-                  : stage === STAGES.CLASSIFYING
-                  ? 2
-                  : 0);
+            <div>
+              <strong>Analyze</strong>
+              <span>AI structure scan</span>
+            </div>
+          </div>
 
-            return (
-              <div
-                className={`pf-workflow-step ${
-                  active ? "active" : ""
-                }`}
-                key={item.number}
-              >
-                <div className="pf-workflow-icon">
-                  <i className={`fas ${item.icon}`}></i>
-                </div>
+          <div
+            className={`pf-workflow-step ${
+              [
+                STAGES.RENDERING,
+                STAGES.DONE,
+              ].includes(stage)
+                ? "is-active"
+                : ""
+            }`}
+          >
+            <div className="pf-workflow-step__number">
+              <i className="fa-solid fa-layer-group" />
+            </div>
 
-                <div>
-                  <small>STEP {item.number}</small>
-                  <strong>{item.title}</strong>
-                </div>
+            <div>
+              <strong>Organize</strong>
+              <span>Structure & format</span>
+            </div>
+          </div>
 
-                {index < workflow.length - 1 && (
-                  <div className="pf-workflow-line"></div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+          <div
+            className={`pf-workflow-step ${
+              stage === STAGES.DONE
+                ? "is-active"
+                : ""
+            }`}
+          >
+            <div className="pf-workflow-step__number">
+              <i className="fa-solid fa-circle-check" />
+            </div>
 
-        {/* IDLE / UPLOAD */}
+            <div>
+              <strong>Finalize</strong>
+              <span>Download document</span>
+            </div>
+          </div>
+
+        </section>
+
+
+        {/* =====================================================
+            IDLE / UPLOAD
+        ====================================================== */}
 
         {stage === STAGES.IDLE && (
-          <>
+          <section className="pf-upload-layout">
+
             <div
               className={`pf-upload-card ${
-                isDragging ? "dragging" : ""
+                isDragging ? "is-dragging" : ""
               }`}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -358,335 +373,285 @@ export default function ProjectFormatter() {
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
             >
-              <div className="pf-upload-glow"></div>
+
+              <div className="pf-upload-card__glow" />
 
               <div className="pf-upload-icon">
-                <i className="fas fa-file-word"></i>
+                <i className="fa-solid fa-file-word" />
               </div>
 
-              <h2>Upload your project</h2>
+              <div className="pf-upload-card__content">
 
-              <p>
-                Drop your Word document here, or choose a file
-                from your computer.
-              </p>
+                <h2>
+                  Drop your project here
+                </h2>
 
-              <label className="pf-primary-button">
-                <i className="fas fa-cloud-upload-alt"></i>
-                Choose .DOCX file
+                <p>
+                  Upload your Microsoft Word project and
+                  let ProjectPilot analyze its structure.
+                </p>
+
+                <button
+                  type="button"
+                  className="pf-primary-button"
+                  onClick={() =>
+                    fileInputRef.current?.click()
+                  }
+                >
+                  <i className="fa-solid fa-arrow-up-from-bracket" />
+
+                  Choose .DOCX file
+
+                  <i className="fa-solid fa-arrow-right" />
+                </button>
 
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept=".docx"
                   onChange={handleFileChange}
                   hidden
                 />
-              </label>
 
-              <div className="pf-upload-info">
-                <span>
-                  <i className="fas fa-check-circle"></i>
-                  Microsoft Word (.docx)
+                <span className="pf-upload-hint">
+                  <i className="fa-solid fa-shield-halved" />
+                  Your document is processed securely
                 </span>
 
-                <span>
-                  <i className="fas fa-shield-alt"></i>
-                  Secure processing
-                </span>
-
-                <span>
-                  <i className="fas fa-robot"></i>
-                  AI-powered analysis
-                </span>
               </div>
+
             </div>
 
-            {/* WHAT IT DOES */}
 
-            <div className="pf-section-heading">
-              <div>
+            <div className="pf-capabilities">
+
+              <div className="pf-capabilities__heading">
                 <span>WHAT PROJECTPILOT CHECKS</span>
-                <h2>More than formatting.</h2>
+                <i className="fa-solid fa-sliders" />
               </div>
 
-              <p>
-                Your project is analyzed across structure,
-                content and document organization.
-              </p>
-            </div>
+              <div className="pf-capability">
+                <div className="pf-capability__icon">
+                  <i className="fa-solid fa-book-open" />
+                </div>
 
-            <div className="pf-feature-grid">
-              <Feature
-                icon="fa-sitemap"
-                title="Project Structure"
-                text="Identifies chapters, sections, subsections and the overall document hierarchy."
-              />
+                <div>
+                  <strong>Project structure</strong>
+                  <span>
+                    Chapters, sections & subsections
+                  </span>
+                </div>
 
-              <Feature
-                icon="fa-list-ol"
-                title="Table of Contents"
-                text="Prepares your document structure for an accurate, properly organized table of contents."
-              />
-
-              <Feature
-                icon="fa-spell-check"
-                title="Grammar & Spelling"
-                text="Detects spelling, punctuation and language issues throughout your project."
-              />
-
-              <Feature
-                icon="fa-table"
-                title="Tables & Figures"
-                text="Identifies table and figure captions and keeps them connected to the document structure."
-              />
-
-              <Feature
-                icon="fa-quote-right"
-                title="References"
-                text="Detects reference entries and helps validate the relationship between citations and references."
-              />
-
-              <Feature
-                icon="fa-brain"
-                title="AI Deep Review"
-                text="Analyzes the document intelligently instead of treating it as a collection of isolated pages."
-              />
-            </div>
-
-            {/* SIMPLE MESSAGE */}
-
-            <div className="pf-bottom-message">
-              <div className="pf-bottom-icon">
-                <i className="fas fa-magic"></i>
+                <i className="fa-solid fa-check" />
               </div>
 
-              <div>
-                <strong>
-                  You focus on your research.
-                </strong>
+              <div className="pf-capability">
+                <div className="pf-capability__icon">
+                  <i className="fa-solid fa-table" />
+                </div>
 
-                <span>
-                  ProjectPilot handles the structure and
-                  document complexity.
-                </span>
+                <div>
+                  <strong>Tables & figures</strong>
+                  <span>
+                    Captions and academic placement
+                  </span>
+                </div>
+
+                <i className="fa-solid fa-check" />
               </div>
+
+              <div className="pf-capability">
+                <div className="pf-capability__icon">
+                  <i className="fa-solid fa-quote-left" />
+                </div>
+
+                <div>
+                  <strong>References</strong>
+                  <span>
+                    Identify and organize references
+                  </span>
+                </div>
+
+                <i className="fa-solid fa-check" />
+              </div>
+
+              <div className="pf-capability">
+                <div className="pf-capability__icon">
+                  <i className="fa-solid fa-list-ol" />
+                </div>
+
+                <div>
+                  <strong>Academic hierarchy</strong>
+                  <span>
+                    Heading levels and document flow
+                  </span>
+                </div>
+
+                <i className="fa-solid fa-check" />
+              </div>
+
             </div>
-          </>
+
+          </section>
         )}
 
-        {/* PROCESSING */}
+
+        {/* =====================================================
+            PROCESSING
+        ====================================================== */}
 
         {(stage === STAGES.UPLOADING ||
           stage === STAGES.CLASSIFYING ||
           stage === STAGES.RENDERING) && (
-          <div className="pf-processing-card">
-            <div className="pf-processing-top">
-              <div className="pf-processing-file">
-                <div className="pf-file-icon">
-                  <i className="fas fa-file-word"></i>
-                </div>
 
-                <div>
-                  <strong>{filename}</strong>
-                  <span>
-                    {rawFile
-                      ? `${(
-                          rawFile.size /
-                          1024 /
-                          1024
-                        ).toFixed(2)} MB`
-                      : "Processing"}
-                  </span>
-                </div>
-              </div>
+          <section className="pf-processing">
 
-              <div className="pf-processing-status">
-                <span className="pf-live-dot"></span>
-                AI PROCESSING
+            <div className="pf-processing__orb">
+              <div className="pf-processing__icon">
+
+                {stage === STAGES.UPLOADING && (
+                  <i className="fa-solid fa-file-arrow-up" />
+                )}
+
+                {stage === STAGES.CLASSIFYING && (
+                  <i className="fa-solid fa-brain" />
+                )}
+
+                {stage === STAGES.RENDERING && (
+                  <i className="fa-solid fa-file-circle-check" />
+                )}
+
               </div>
             </div>
 
-            <div className="pf-processing-content">
-              <div className="pf-processing-orb">
-                <div className="pf-orb-ring"></div>
-                <i className="fas fa-brain"></i>
-              </div>
+            <div className="pf-processing__text">
 
-              <h2>{getStageLabel()}</h2>
+              <span className="pf-processing__label">
+                {stage === STAGES.UPLOADING &&
+                  "STEP 01 · READING DOCUMENT"}
+
+                {stage === STAGES.CLASSIFYING &&
+                  "STEP 02 · AI ANALYSIS"}
+
+                {stage === STAGES.RENDERING &&
+                  "STEP 03 · BUILDING DOCUMENT"}
+              </span>
+
+              <h2>
+                {stage === STAGES.UPLOADING &&
+                  "Reading your project..."}
+
+                {stage === STAGES.CLASSIFYING &&
+                  "Understanding your project structure..."}
+
+                {stage === STAGES.RENDERING &&
+                  "Preparing your formatted document..."}
+              </h2>
 
               <p>
                 {stage === STAGES.UPLOADING &&
-                  "Extracting text and document content..."}
+                  "We're extracting the content from your Word document."}
 
                 {stage === STAGES.CLASSIFYING &&
-                  "Examining headings, chapters, captions, references and document structure..."}
+                  "ProjectPilot is identifying chapters, headings, captions and references."}
 
                 {stage === STAGES.RENDERING &&
-                  "Applying the detected structure to create your formatted document..."}
+                  "Your detected structure is being applied to the document."}
               </p>
 
-              <div className="pf-progress-wrapper">
-                <div className="pf-progress-label">
-                  <span>Progress</span>
-                  <strong>
-                    {getStageProgress()}%
-                  </strong>
-                </div>
+            </div>
 
-                <div className="pf-progress">
-                  <span
-                    style={{
-                      width: `${getStageProgress()}%`,
-                    }}
-                  ></span>
-                </div>
+            <div className="pf-progress">
+
+              <div className="pf-progress__track">
+                <div className="pf-progress__bar" />
               </div>
+
+              <div className="pf-progress__meta">
+                <span>
+                  {filename}
+                </span>
+
+                <span>
+                  Please keep this page open
+                </span>
+              </div>
+
             </div>
 
-            <div className="pf-processing-checks">
-              <ProcessingCheck
-                active={
-                  stage !== STAGES.UPLOADING
-                }
-                text="Document uploaded"
-              />
-
-              <ProcessingCheck
-                active={
-                  stage === STAGES.CLASSIFYING ||
-                  stage === STAGES.RENDERING
-                }
-                text="AI structure analysis"
-              />
-
-              <ProcessingCheck
-                active={stage === STAGES.RENDERING}
-                text="Document formatting"
-              />
-
-              <ProcessingCheck
-                active={false}
-                text="Final document"
-              />
-            </div>
-          </div>
+          </section>
         )}
 
-        {/* ERROR */}
+
+        {/* =====================================================
+            ERROR
+        ====================================================== */}
 
         {stage === STAGES.ERROR && (
-          <div className="pf-error-card">
-            <div className="pf-error-icon">
-              <i className="fas fa-exclamation"></i>
+
+          <section className="pf-error">
+
+            <div className="pf-error__icon">
+              <i className="fa-solid fa-triangle-exclamation" />
             </div>
 
-            <h2>Something went wrong</h2>
+            <div>
+              <span>PROCESSING ERROR</span>
 
-            <p>{error}</p>
+              <h2>
+                We couldn't complete the formatting.
+              </h2>
 
-            <button
-              className="pf-primary-button"
-              onClick={reset}
-            >
-              <i className="fas fa-redo"></i>
-              Try again
-            </button>
-          </div>
+              <p>
+                {error ||
+                  "Something went wrong while processing your document."}
+              </p>
+
+              <button
+                className="pf-secondary-button"
+                onClick={reset}
+              >
+                <i className="fa-solid fa-rotate-left" />
+                Try again
+              </button>
+            </div>
+
+          </section>
         )}
 
-        {/* RESULTS */}
+
+        {/* =====================================================
+            COMPLETED
+        ====================================================== */}
 
         {stage === STAGES.DONE && (
-          <div className="pf-results">
 
-            {/* RESULT HEADER */}
+          <section className="pf-results">
 
-            <div className="pf-result-hero">
-              <div className="pf-success-icon">
-                <i className="fas fa-check"></i>
+            <div className="pf-success">
+
+              <div className="pf-success__check">
+                <i className="fa-solid fa-check" />
               </div>
 
-              <div>
-                <span className="pf-result-label">
-                  ANALYSIS COMPLETE
+              <div className="pf-success__content">
+
+                <span>
+                  FORMATTING COMPLETE
                 </span>
 
                 <h2>
-                  Your project has been processed.
+                  Your project is ready.
                 </h2>
 
                 <p>
-                  ProjectPilot analyzed the document and
-                  identified its academic structure.
+                  ProjectPilot successfully analyzed and
+                  formatted your document structure.
                 </p>
+
               </div>
 
-              <div className="pf-ai-score">
-                <span>AI STRUCTURE SCORE</span>
-                <strong>96%</strong>
-                <small>Excellent</small>
-              </div>
-            </div>
-
-            {/* STATS */}
-
-            <div className="pf-result-stats">
-              <ResultStat
-                icon="fa-file-alt"
-                value={totalDetected}
-                label="Elements detected"
-              />
-
-              <ResultStat
-                icon="fa-layer-group"
-                value={chapterCount}
-                label="Structure elements"
-              />
-
-              <ResultStat
-                icon="fa-table"
-                value={tableCount}
-                label="Tables detected"
-              />
-
-              <ResultStat
-                icon="fa-image"
-                value={figureCount}
-                label="Figures detected"
-              />
-
-              <ResultStat
-                icon="fa-quote-right"
-                value={referenceCount}
-                label="References found"
-              />
-            </div>
-
-            {/* DOWNLOAD */}
-
-            {downloadUrl && (
-              <div className="pf-download-card">
-                <div className="pf-download-file">
-                  <div className="pf-download-icon">
-                    <i className="fas fa-file-word"></i>
-                  </div>
-
-                  <div>
-                    <strong>
-                      {filename
-                        ? filename.replace(
-                            /\.docx$/i,
-                            ""
-                          ) + "-formatted.docx"
-                        : "formatted.docx"}
-                    </strong>
-
-                    <span>
-                      Formatted Microsoft Word document
-                    </span>
-                  </div>
-                </div>
-
+              {downloadUrl && (
                 <a
                   href={downloadUrl}
                   download={
@@ -699,332 +664,229 @@ export default function ProjectFormatter() {
                   }
                   className="pf-primary-button"
                 >
-                  <i className="fas fa-download"></i>
-                  Download
+                  <i className="fa-solid fa-download" />
+                  Download document
                 </a>
-              </div>
-            )}
+              )}
 
-            {/* MAIN RESULT GRID */}
+            </div>
+
+
+            {/* DOCUMENT SUMMARY */}
 
             <div className="pf-results-grid">
 
-              {/* STRUCTURE */}
+              <div className="pf-summary-card pf-summary-card--main">
 
-              <div className="pf-result-panel">
-                <div className="pf-panel-heading">
+                <div className="pf-card-heading">
+
                   <div>
-                    <span>AI DETECTION</span>
-                    <h3>Detected structure</h3>
+                    <span>DOCUMENT ANALYSIS</span>
+
+                    <h3>
+                      Detected structure
+                    </h3>
                   </div>
 
-                  <div className="pf-panel-count">
-                    {totalDetected}
+                  <div className="pf-card-heading__icon">
+                    <i className="fa-solid fa-chart-simple" />
                   </div>
+
                 </div>
 
-                <div className="pf-detected-list">
-                  {paragraphs
-                    .filter((p) => {
-                      const role =
-                        roleByIndex.get(p.index);
 
-                      return (
-                        role &&
-                        role !== "body_paragraph"
-                      );
-                    })
-                    .map((p) => {
-                      const role =
-                        roleByIndex.get(p.index);
+                <div className="pf-stat-grid">
 
-                      return (
-                        <div
-                          className="pf-detected-item"
-                          key={p.index}
-                        >
-                          <div className="pf-detected-icon">
-                            <i
-                              className={`fas ${
-                                ROLE_ICONS[role] ||
-                                "fa-file"
-                              }`}
-                            ></i>
-                          </div>
+                  <div className="pf-result-stat">
+                    <span className="pf-result-stat__icon">
+                      <i className="fa-solid fa-book-open" />
+                    </span>
 
-                          <div className="pf-detected-content">
-                            <span>
-                              {ROLE_LABELS[role] ||
-                                role}
-                            </span>
+                    <strong>{chapters}</strong>
 
-                            <p>
-                              {p.text.substring(
-                                0,
-                                130
-                              )}
-                              {p.text.length > 130
-                                ? "..."
-                                : ""}
-                            </p>
-                          </div>
+                    <span>Chapters</span>
+                  </div>
 
-                          <i className="fas fa-check pf-item-check"></i>
-                        </div>
-                      );
-                    })}
+                  <div className="pf-result-stat">
+                    <span className="pf-result-stat__icon">
+                      <i className="fa-solid fa-layer-group" />
+                    </span>
 
-                  {paragraphs.filter((p) => {
+                    <strong>{sections}</strong>
+
+                    <span>Sections</span>
+                  </div>
+
+                  <div className="pf-result-stat">
+                    <span className="pf-result-stat__icon">
+                      <i className="fa-solid fa-quote-left" />
+                    </span>
+
+                    <strong>{references}</strong>
+
+                    <span>References</span>
+                  </div>
+
+                  <div className="pf-result-stat">
+                    <span className="pf-result-stat__icon">
+                      <i className="fa-solid fa-align-left" />
+                    </span>
+
+                    <strong>{totalParagraphs}</strong>
+
+                    <span>Paragraphs</span>
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <div className="pf-summary-card">
+
+                <div className="pf-card-heading">
+
+                  <div>
+                    <span>PROJECT FILE</span>
+
+                    <h3>
+                      {filename}
+                    </h3>
+                  </div>
+
+                  <i className="fa-solid fa-file-word pf-word-icon" />
+
+                </div>
+
+                <div className="pf-file-details">
+
+                  <div>
+                    <i className="fa-solid fa-circle-check" />
+                    <span>Document processed</span>
+                  </div>
+
+                  <div>
+                    <i className="fa-solid fa-circle-check" />
+                    <span>Structure analyzed</span>
+                  </div>
+
+                  <div>
+                    <i className="fa-solid fa-circle-check" />
+                    <span>Formatting generated</span>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* DETECTED STRUCTURE */}
+
+            <div className="pf-detected">
+
+              <div className="pf-card-heading">
+
+                <div>
+                  <span>AI STRUCTURE MAP</span>
+
+                  <h3>
+                    What ProjectPilot found
+                  </h3>
+                </div>
+
+                <span className="pf-item-count">
+                  {detectedItems.length} items
+                </span>
+
+              </div>
+
+
+              <div className="pf-detected-list">
+
+                {detectedItems.length > 0 ? (
+                  detectedItems.map((p) => {
+
                     const role =
                       roleByIndex.get(p.index);
 
                     return (
-                      role &&
-                      role !== "body_paragraph"
+                      <div
+                        className="pf-detected-item"
+                        key={p.index}
+                      >
+
+                        <div className="pf-detected-item__icon">
+                          <i
+                            className={
+                              ROLE_ICONS[role] ||
+                              "fa-solid fa-file-lines"
+                            }
+                          />
+                        </div>
+
+                        <div className="pf-detected-item__body">
+
+                          <span>
+                            {ROLE_LABELS[role] ||
+                              role}
+                          </span>
+
+                          <p>
+                            {p.text.substring(0, 180)}
+                            {p.text.length > 180
+                              ? "..."
+                              : ""}
+                          </p>
+
+                        </div>
+
+                        <i className="fa-solid fa-check pf-detected-item__check" />
+
+                      </div>
                     );
-                  }).length === 0 && (
-                    <div className="pf-empty-result">
-                      <i className="fas fa-search"></i>
-                      <p>
-                        No structural elements were
-                        detected.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* AI REVIEW */}
-
-              <div className="pf-result-panel pf-ai-panel">
-                <div className="pf-panel-heading">
-                  <div>
-                    <span>PROJECTPILOT AI</span>
-                    <h3>Deep review</h3>
-                  </div>
-
-                  <div className="pf-ai-mini">
-                    <i className="fas fa-sparkles"></i>
-                  </div>
-                </div>
-
-                <div className="pf-ai-review-score">
-                  <div className="pf-review-circle">
-                    <strong>96</strong>
-                    <span>%</span>
-                  </div>
-
-                  <div>
-                    <strong>
-                      Strong project structure
-                    </strong>
+                  })
+                ) : (
+                  <div className="pf-empty">
+                    <i className="fa-solid fa-magnifying-glass" />
 
                     <p>
-                      Your document has a clearly
-                      detectable academic structure.
+                      No classified structural elements
+                      were detected.
                     </p>
                   </div>
-                </div>
+                )}
 
-                <div className="pf-review-list">
-                  <ReviewItem
-                    icon="fa-check"
-                    title="Chapter structure"
-                    text="Academic sections detected"
-                    good
-                  />
-
-                  <ReviewItem
-                    icon="fa-check"
-                    title="Reference entries"
-                    text={`${referenceCount} reference entries identified`}
-                    good
-                  />
-
-                  <ReviewItem
-                    icon="fa-check"
-                    title="Tables & figures"
-                    text="Captions detected and classified"
-                    good
-                  />
-
-                  <ReviewItem
-                    icon="fa-brain"
-                    title="AI analysis"
-                    text="Content structure reviewed"
-                    good
-                  />
-                </div>
               </div>
+
             </div>
 
-            {/* WHAT WAS FOUND */}
-
-            <div className="pf-section-heading pf-result-heading">
-              <div>
-                <span>PROJECT OVERVIEW</span>
-                <h2>What ProjectPilot found.</h2>
-              </div>
-            </div>
-
-            <div className="pf-overview-grid">
-              {Object.entries(roleCounts)
-                .filter(
-                  ([role]) => ROLE_LABELS[role]
-                )
-                .map(([role, count]) => (
-                  <div
-                    className="pf-overview-item"
-                    key={role}
-                  >
-                    <div className="pf-overview-icon">
-                      <i
-                        className={`fas ${
-                          ROLE_ICONS[role] ||
-                          "fa-file"
-                        }`}
-                      ></i>
-                    </div>
-
-                    <div>
-                      <strong>{count}</strong>
-                      <span>
-                        {ROLE_LABELS[role]}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-            </div>
-
-            {/* FOOTER ACTION */}
 
             <div className="pf-result-footer">
-              <div>
-                <div className="pf-footer-p-icon">
-                  P
-                </div>
-
-                <div>
-                  <strong>
-                    Ready to work on another project?
-                  </strong>
-
-                  <span>
-                    Upload another document and let
-                    ProjectPilot take it from here.
-                  </span>
-                </div>
-              </div>
 
               <button
                 className="pf-secondary-button"
                 onClick={reset}
               >
-                <i className="fas fa-plus"></i>
-                New project
+                <i className="fa-solid fa-plus" />
+                Format another project
               </button>
-            </div>
-
-            <div className="pf-document-note">
-              <i className="fas fa-info-circle"></i>
 
               <p>
-                After opening the formatted document in
-                Word, press <strong>Ctrl+A</strong> followed
-                by <strong>F9</strong> to update the Table
-                of Contents and other Word fields before
-                printing or submission.
+                <i className="fa-solid fa-circle-info" />
+
+                For the best final result, open the document
+                in Microsoft Word and update the Table of
+                Contents fields before printing.
               </p>
+
             </div>
-          </div>
+
+          </section>
         )}
+
       </div>
     </DashboardLayout>
-  );
-}
-
-
-/* =========================
-   SMALL UI COMPONENTS
-========================= */
-
-function Feature({ icon, title, text }) {
-  return (
-    <div className="pf-feature-card">
-      <div className="pf-feature-icon">
-        <i className={`fas ${icon}`}></i>
-      </div>
-
-      <div>
-        <h3>{title}</h3>
-        <p>{text}</p>
-      </div>
-    </div>
-  );
-}
-
-
-function ProcessingCheck({ active, text }) {
-  return (
-    <div
-      className={`pf-processing-check ${
-        active ? "active" : ""
-      }`}
-    >
-      <div>
-        <i
-          className={`fas ${
-            active
-              ? "fa-check"
-              : "fa-circle"
-          }`}
-        ></i>
-      </div>
-
-      <span>{text}</span>
-    </div>
-  );
-}
-
-
-function ResultStat({ icon, value, label }) {
-  return (
-    <div className="pf-result-stat">
-      <div className="pf-result-stat-icon">
-        <i className={`fas ${icon}`}></i>
-      </div>
-
-      <div>
-        <strong>{value}</strong>
-        <span>{label}</span>
-      </div>
-    </div>
-  );
-}
-
-
-function ReviewItem({
-  icon,
-  title,
-  text,
-  good = false,
-}) {
-  return (
-    <div className="pf-review-item">
-      <div
-        className={`pf-review-icon ${
-          good ? "good" : ""
-        }`}
-      >
-        <i className={`fas ${icon}`}></i>
-      </div>
-
-      <div>
-        <strong>{title}</strong>
-        <span>{text}</span>
-      </div>
-
-      <i className="fas fa-chevron-right"></i>
-    </div>
   );
 }
