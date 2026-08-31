@@ -39,6 +39,7 @@ from copy import deepcopy
 from docx import Document
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
@@ -62,6 +63,45 @@ HEADING_NUMBER_PREFIX_RE = re.compile(r"^\d+(\.\d+)*\.?\s*")
 # ---------------------------------------------------------------------------
 def strip_caption_prefix(text):
     return CAPTION_PREFIX_RE.sub("", text).strip()
+
+
+def get_or_create_style(doc, name, style_type):
+    """Returns the named style, creating it from scratch if the document
+    doesn't already define it. Real-world documents — especially ones
+    exported from Google Docs, stripped-down templates, or heavily "cleaned"
+    files — often don't define Heading 1-4 at all, which used to crash the
+    renderer outright. This is exactly the kind of poorly-formatted document
+    the tool needs to handle, not an edge case to avoid."""
+    try:
+        return doc.styles[name]
+    except KeyError:
+        return doc.styles.add_style(name, style_type)
+
+
+def set_outline_level(paragraph, level):
+    """Sets <w:outlineLvl w:val="level"/> directly on the paragraph (0-based:
+    0=Heading 1, 1=Heading 2...). python-docx has no high-level API for this.
+    Done explicitly on every heading paragraph — not just relied upon via the
+    style — so the native Word TOC field (which scans by outline level) works
+    correctly even when a freshly-created style doesn't carry the outline
+    level Word's own built-in Heading styles normally carry automatically."""
+    pPr = paragraph._p.get_or_add_pPr()
+    existing = pPr.find(qn("w:outlineLvl"))
+    if existing is not None:
+        pPr.remove(existing)
+    outline_el = OxmlElement("w:outlineLvl")
+    outline_el.set(qn("w:val"), str(level))
+    pPr.append(outline_el)
+
+
+def apply_heading_style(doc, paragraph, level):
+    """Applies both the named Heading style AND an explicit outline level —
+    belt and suspenders, so the TOC field works regardless of whether the
+    style itself behaves the way Word's real built-in Heading styles do."""
+    style_name = f"Heading {level}"
+    style = get_or_create_style(doc, style_name, WD_STYLE_TYPE.PARAGRAPH)
+    paragraph.style = style
+    set_outline_level(paragraph, level - 1)
 
 
 def strip_heading_number_prefix(text):
@@ -166,7 +206,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         return role_by_index.get(idx, "body_paragraph")
 
     # --- Configure base styles once, document-wide -------------------------
-    normal = doc.styles["Normal"]
+    normal = get_or_create_style(doc, "Normal", WD_STYLE_TYPE.PARAGRAPH)
     normal.font.name = FONT
     normal.font.size = Pt(BODY_PT)
     normal.paragraph_format.line_spacing = 2.0  # double
@@ -174,7 +214,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
 
     for level, pt_size in [(1, CHAPTER_HEADING_PT), (2, SECTION_HEADING_PT),
                             (3, SECTION_HEADING_PT), (4, SECTION_HEADING_PT)]:
-        style = doc.styles[f"Heading {level}"]
+        style = get_or_create_style(doc, f"Heading {level}", WD_STYLE_TYPE.PARAGRAPH)
         style.font.name = FONT
         style.font.size = Pt(pt_size)
         style.font.bold = True
@@ -268,11 +308,11 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         # accidentally styled "Heading 2" would show up as a bogus entry in
         # the native Word TOC field, which scans by style, not content.
         if role not in HEADING_ROLES and p.style is not None and p.style.name.startswith("Heading"):
-            p.style = doc.styles["Normal"]
+            p.style = get_or_create_style(doc, "Normal", WD_STYLE_TYPE.PARAGRAPH)
 
         if role == "chapter_heading":
             set_paragraph_text_single_run(p, heading_labels[idx], bold=True, size_pt=CHAPTER_HEADING_PT)
-            p.style = doc.styles["Heading 1"]
+            apply_heading_style(doc, p, 1)
             p.paragraph_format.page_break_before = True
             p.paragraph_format.keep_with_next = True
             p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -282,7 +322,8 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         elif role in ("section_heading", "subsection_heading", "subsubsection_heading"):
             level = {"section_heading": 2, "subsection_heading": 3, "subsubsection_heading": 4}[role]
             set_paragraph_text_single_run(p, heading_labels[idx], bold=True, size_pt=SECTION_HEADING_PT)
-            p.style = doc.styles[f"Heading {level}"]
+            p.style = get_or_create_style(doc, f"Heading {level}", WD_STYLE_TYPE.PARAGRAPH)
+            set_outline_level(p, level - 1)
             p.paragraph_format.keep_with_next = True
 
         elif role in ("figure_caption", "table_caption", "plate_caption"):
@@ -298,7 +339,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
 
         elif role == "references_heading":
             set_paragraph_text_single_run(p, "REFERENCES", bold=True, size_pt=CHAPTER_HEADING_PT)
-            p.style = doc.styles["Heading 1"]
+            apply_heading_style(doc, p, 1)
             p.paragraph_format.page_break_before = True
             anchor = p
             for ref_text in cleaned_references:
@@ -314,12 +355,12 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
 
         elif role == "appendix_heading":
             set_paragraph_text_single_run(p, p.text.strip().upper(), bold=True, size_pt=CHAPTER_HEADING_PT)
-            p.style = doc.styles["Heading 1"]
+            apply_heading_style(doc, p, 1)
             p.paragraph_format.page_break_before = True
 
         elif role == "toc_heading":
             set_paragraph_text_single_run(p, "TABLE OF CONTENTS", bold=True, size_pt=CHAPTER_HEADING_PT)
-            p.style = doc.styles["Heading 1"]
+            apply_heading_style(doc, p, 1)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.page_break_before = True
             anchor = insert_paragraph_after(p, doc)
@@ -329,7 +370,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         elif role == "list_of_tables_heading":
             if toc_table_entries:
                 set_paragraph_text_single_run(p, "LIST OF TABLES", bold=True, size_pt=CHAPTER_HEADING_PT)
-                p.style = doc.styles["Heading 1"]
+                apply_heading_style(doc, p, 1)
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 p.paragraph_format.page_break_before = True
                 anchor = p
@@ -347,7 +388,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         elif role == "list_of_figures_heading":
             if toc_figure_entries:
                 set_paragraph_text_single_run(p, "LIST OF FIGURES", bold=True, size_pt=CHAPTER_HEADING_PT)
-                p.style = doc.styles["Heading 1"]
+                apply_heading_style(doc, p, 1)
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 p.paragraph_format.page_break_before = True
                 anchor = p
@@ -363,7 +404,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         elif role == "list_of_plates_heading":
             if toc_plate_entries:
                 set_paragraph_text_single_run(p, "LIST OF PLATES", bold=True, size_pt=CHAPTER_HEADING_PT)
-                p.style = doc.styles["Heading 1"]
+                apply_heading_style(doc, p, 1)
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 p.paragraph_format.page_break_before = True
                 anchor = p
@@ -378,13 +419,13 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
 
         elif role in ("abstract_heading",):
             set_paragraph_text_single_run(p, p.text.strip(), bold=True, size_pt=CHAPTER_HEADING_PT)
-            p.style = doc.styles["Heading 1"]
+            apply_heading_style(doc, p, 1)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.page_break_before = True
 
         elif role == "prelim_label":
             set_paragraph_text_single_run(p, p.text.strip().upper(), bold=True, size_pt=CHAPTER_HEADING_PT)
-            p.style = doc.styles["Heading 1"]
+            apply_heading_style(doc, p, 1)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.page_break_before = True
 
@@ -501,7 +542,7 @@ def _insert_new_list_section(doc, anchor, title, entries):
         return anchor
     heading_p = insert_paragraph_after(anchor, doc)
     set_paragraph_text_single_run(heading_p, title, bold=True, size_pt=CHAPTER_HEADING_PT)
-    heading_p.style = doc.styles["Heading 1"]
+    apply_heading_style(doc, heading_p, 1)
     heading_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     heading_p.paragraph_format.page_break_before = True
     current = heading_p
