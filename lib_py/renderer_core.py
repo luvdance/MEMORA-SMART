@@ -237,17 +237,40 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     reference_indices = []
     reference_texts = []
     first_chapter_index = None
+    chapter_continuation_indices = set()  # paragraphs merged into the
+    # previous chapter_heading rather than treated as a new chapter — see
+    # prev_role handling below.
+    prev_role = None
+    current_chapter_anchor_idx = None
 
     for idx, p in iter_indexed_paragraphs(doc):
         role = get_role(idx)
         text = p.text.strip()
 
         if role == "chapter_heading":
+            if prev_role == "chapter_heading":
+                # Continuation of the SAME chapter heading, not a new
+                # chapter — very common real-world pattern: student put the
+                # chapter number ("CHAPTER ONE") and the chapter title
+                # ("INTRODUCTION") on two separate paragraphs. Merge into
+                # the anchor paragraph's label instead of incrementing.
+                extra = strip_heading_number_prefix(text)
+                extra = re.sub(r"^CHAPTER\s+(\w+|\d+)\s*[:.\-]?\s*", "", extra, flags=re.IGNORECASE)
+                if extra:
+                    separator = "" if heading_labels[current_chapter_anchor_idx].endswith(":") else ": "
+                    if ":" in heading_labels[current_chapter_anchor_idx]:
+                        separator = " "
+                    heading_labels[current_chapter_anchor_idx] += f"{separator}{extra.upper()}"
+                chapter_continuation_indices.add(idx)
+                prev_role = role
+                continue
+
             chapter_ctr += 1
             section_ctr = subsection_ctr = subsubsection_ctr = 0
             figure_ctr = table_ctr = plate_ctr = 0
             if first_chapter_index is None:
                 first_chapter_index = idx
+            current_chapter_anchor_idx = idx
             word = CHAPTER_WORDS[chapter_ctr - 1] if chapter_ctr <= len(CHAPTER_WORDS) else str(chapter_ctr)
             title_part = strip_heading_number_prefix(text)
             title_part = re.sub(r"^CHAPTER\s+(\w+|\d+)\s*[:.\-]?\s*", "", title_part, flags=re.IGNORECASE)
@@ -285,6 +308,8 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             reference_indices.append(idx)
             reference_texts.append(text)
 
+        prev_role = role
+
     cleaned_references = clean_and_sort_references(reference_texts)
 
     # --- PASS B: mutate the real document -----------------------------------
@@ -310,7 +335,12 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         if role not in HEADING_ROLES and p.style is not None and p.style.name.startswith("Heading"):
             p.style = get_or_create_style(doc, "Normal", WD_STYLE_TYPE.PARAGRAPH)
 
-        if role == "chapter_heading":
+        if role == "chapter_heading" and idx in chapter_continuation_indices:
+            # Merged into the previous chapter_heading's label already —
+            # this physical paragraph is no longer needed.
+            p._p.getparent().remove(p._p)
+
+        elif role == "chapter_heading":
             set_paragraph_text_single_run(p, heading_labels[idx], bold=True, size_pt=CHAPTER_HEADING_PT)
             apply_heading_style(doc, p, 1)
             p.paragraph_format.page_break_before = True
@@ -476,8 +506,11 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         while prev_p_element is not None and prev_p_element.tag != qn("w:p"):
             prev_p_element = prev_p_element.getprevious()
 
+        final_sectPr = doc.sections[-1]._sectPr
+
         if prev_p_element is not None:
-            final_sectPr = doc.sections[-1]._sectPr
+            # There IS preliminary content before Chapter One — split it
+            # into its own roman-numbered section.
             prelim_sectPr = deepcopy(final_sectPr)
             pPr = prev_p_element.find(qn("w:pPr"))
             if pPr is None:
@@ -485,19 +518,15 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                 prev_p_element.insert(0, pPr)
             pPr.append(prelim_sectPr)
             set_page_numbering(prelim_sectPr, "lowerRoman", 1)
-
-            # Final section (Chapter One onward): decimal, restart at 1.
-            set_page_numbering(final_sectPr, "decimal", 1)
-
-            # Both sections need a visible footer with the page number field
-            # for the numbering to actually show. We add one simple centered
-            # footer, shared by both — python-docx's default_footer covers
-            # this since we're not doing a distinct title-page-hidden-number
-            # page in this version (see README: Pass 1 cover-page templating
-            # is deferred, so title page currently shows "i" like the rest
-            # of the prelim section rather than being hidden).
             _ensure_page_number_footer(doc.sections[0])
-            _ensure_page_number_footer(doc.sections[-1])
+
+        # The body section (Chapter One onward) ALWAYS gets decimal numbering
+        # restarting at 1 — this must happen even when there's no preliminary
+        # content at all (e.g. a document that starts directly at Chapter
+        # One with nothing before it), which previously left the whole
+        # document with no page numbering configured at all.
+        set_page_numbering(final_sectPr, "decimal", 1)
+        _ensure_page_number_footer(doc.sections[-1])
 
     out_stream = io.BytesIO()
     doc.save(out_stream)
