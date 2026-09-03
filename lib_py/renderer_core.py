@@ -37,7 +37,7 @@ import re
 from copy import deepcopy
 
 from docx import Document
-from docx.shared import Pt, Inches
+from docx.shared import Pt, Inches, Emu
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
@@ -284,6 +284,71 @@ def apply_academic_borders_to_all_tables(doc):
 
 
 # ---------------------------------------------------------------------------
+# Blank-page cleanup
+# ---------------------------------------------------------------------------
+def _paragraph_is_empty(paragraph):
+    """True if a paragraph has no visible content at all — no text, and no
+    image/object either (so an image-only caption-less paragraph, which
+    legitimately has empty .text, is never mistaken for blank filler)."""
+    if paragraph.text.strip():
+        return False
+    xml = paragraph._p.xml
+    return "<w:drawing" not in xml and "<w:pict" not in xml and "<w:object" not in xml
+
+
+def remove_manual_page_breaks_and_blank_pages(doc):
+    """Real student documents very commonly use manual page breaks
+    (Word's Ctrl+Enter, a <w:br w:type="page"/> run character) between
+    prelim sections — Declaration, Certification, Table of Contents, List
+    of Tables, etc. This renderer inserts its OWN page_break_before flag
+    on exactly the headings that need one; a leftover manual break from
+    the original file is redundant at best, and produces a genuine BLANK
+    PAGE at worst — e.g. a manual break immediately followed by a heading
+    that ALSO carries page_break_before doubles up, leaving an empty page
+    between them. This is exactly what real-world testing found.
+
+    Two passes:
+      1. Strip every manual page-break run in the document. If that break
+         was a paragraph's ONLY content, remove the now-empty paragraph
+         entirely rather than leaving a stray blank line behind.
+      2. Collapse any remaining fully-empty paragraph (no text, no image)
+         that sits immediately before a paragraph carrying
+         page_break_before=True — that heading's own break already starts
+         a fresh page, so the blank spacer before it does nothing but add
+         risk of an extra blank page.
+    """
+    for p in list(doc.paragraphs):
+        changed = False
+        for run in list(p.runs):
+            for br in run._r.findall(qn("w:br")):
+                if br.get(qn("w:type")) == "page":
+                    run._r.remove(br)
+                    changed = True
+        if changed and _paragraph_is_empty(p):
+            parent = p._p.getparent()
+            if parent is not None:
+                parent.remove(p._p)
+
+    for p in list(doc.paragraphs):
+        if not _paragraph_is_empty(p):
+            continue
+        p_el = p._p
+        if p_el.getparent() is None:
+            continue  # already removed above in this same sweep
+        next_el = p_el.getnext()
+        while next_el is not None and next_el.tag != qn("w:p"):
+            next_el = next_el.getnext()
+        if next_el is None:
+            continue
+        from docx.text.paragraph import Paragraph
+        next_p = Paragraph(next_el, p._parent)
+        if next_p.paragraph_format.page_break_before:
+            parent = p_el.getparent()
+            if parent is not None:
+                parent.remove(p_el)
+
+
+# ---------------------------------------------------------------------------
 # Reference cleanup
 # ---------------------------------------------------------------------------
 def _normalize_for_dedupe(text):
@@ -366,6 +431,9 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     figure_ctr = table_ctr = plate_ctr = 0
 
     heading_labels = {}   # index -> new text
+    heading_levels = {}   # index -> effective Heading level (2/3/4) — see
+    # the orphan-heading promotion in the section/subsection/subsubsection
+    # branches below; this can differ from the role's "natural" level.
     caption_labels = {}   # index -> new text
     toc_figure_entries = []
     toc_table_entries = []
@@ -415,16 +483,52 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             section_ctr += 1
             subsection_ctr = subsubsection_ctr = 0
             heading_labels[idx] = f"{chapter_ctr}.{section_ctr} {strip_heading_number_prefix(text)}"
+            heading_levels[idx] = 2
         elif role == "subsection_heading":
-            subsection_ctr += 1
-            subsubsection_ctr = 0
-            heading_labels[idx] = f"{chapter_ctr}.{section_ctr}.{subsection_ctr} {strip_heading_number_prefix(text)}"
+            if section_ctr == 0:
+                # "Alien" heading: a subsection with no section ancestor
+                # yet in this chapter — a real pattern found in testing
+                # (the classifier tagged "2.5.1 Common Extraction Methods"
+                # as a subsection right after "CHAPTER TWO", with no
+                # "2.x" section heading between them). Numbering it
+                # normally would produce a broken "2.0.1" label. It's
+                # structurally the first grouping heading in the chapter,
+                # so promote it to behave as a section instead — both the
+                # numbering AND the actual Heading-level style/outline
+                # level applied in PASS B (see heading_levels) reflect
+                # the promotion, so the native TOC field nests it
+                # correctly too.
+                section_ctr += 1
+                subsection_ctr = subsubsection_ctr = 0
+                heading_labels[idx] = f"{chapter_ctr}.{section_ctr} {strip_heading_number_prefix(text)}"
+                heading_levels[idx] = 2
+            else:
+                subsection_ctr += 1
+                subsubsection_ctr = 0
+                heading_labels[idx] = f"{chapter_ctr}.{section_ctr}.{subsection_ctr} {strip_heading_number_prefix(text)}"
+                heading_levels[idx] = 3
         elif role == "subsubsection_heading":
-            subsubsection_ctr += 1
-            heading_labels[idx] = (
-                f"{chapter_ctr}.{section_ctr}.{subsection_ctr}.{subsubsection_ctr} "
-                f"{strip_heading_number_prefix(text)}"
-            )
+            if section_ctr == 0:
+                # Same orphan situation, two levels deep — promote all
+                # the way to section level.
+                section_ctr += 1
+                subsection_ctr = subsubsection_ctr = 0
+                heading_labels[idx] = f"{chapter_ctr}.{section_ctr} {strip_heading_number_prefix(text)}"
+                heading_levels[idx] = 2
+            elif subsection_ctr == 0:
+                # Has a section ancestor but no subsection ancestor —
+                # promote to subsection level.
+                subsection_ctr += 1
+                subsubsection_ctr = 0
+                heading_labels[idx] = f"{chapter_ctr}.{section_ctr}.{subsection_ctr} {strip_heading_number_prefix(text)}"
+                heading_levels[idx] = 3
+            else:
+                subsubsection_ctr += 1
+                heading_labels[idx] = (
+                    f"{chapter_ctr}.{section_ctr}.{subsection_ctr}.{subsubsection_ctr} "
+                    f"{strip_heading_number_prefix(text)}"
+                )
+                heading_levels[idx] = 4
         elif role == "figure_caption":
             figure_ctr += 1
             label = f"Figure {chapter_ctr}.{figure_ctr}: {strip_caption_prefix(text)}"
@@ -489,7 +593,15 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                 first_chapter_paragraph = p
 
         elif role in ("section_heading", "subsection_heading", "subsubsection_heading"):
-            level = {"section_heading": 2, "subsection_heading": 3, "subsubsection_heading": 4}[role]
+            # heading_levels holds the EFFECTIVE level computed in PASS A,
+            # which can differ from the role's natural level when an
+            # orphan heading (no section/subsection ancestor yet in this
+            # chapter) was promoted — keeps the Heading-style/outline
+            # level consistent with the numbering actually printed, so
+            # the native TOC field nests it correctly.
+            level = heading_levels.get(
+                idx, {"section_heading": 2, "subsection_heading": 3, "subsubsection_heading": 4}[role]
+            )
             set_paragraph_text_single_run(p, heading_labels[idx], bold=True, size_pt=SECTION_HEADING_PT)
             p.style = get_or_create_style(doc, f"Heading {level}", WD_STYLE_TYPE.PARAGRAPH)
             set_outline_level(p, level - 1)
@@ -703,6 +815,13 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         has_dedication=has_dedication, has_acknowledgement=has_acknowledgement,
     )
 
+    # --- Blank-page cleanup ---------------------------------------------
+    # Must run AFTER Pass B and generate_prelim_pages, since those are
+    # what determine the final set of page_break_before headings this
+    # checks against; must run BEFORE Pass C's section-break normalization
+    # so that pass sees the final, cleaned-up paragraph sequence.
+    remove_manual_page_breaks_and_blank_pages(doc)
+
     # --- PASS C: section break at the prelim / Chapter One boundary --------
     # First, normalize away any section breaks the ORIGINAL document already
     # had (common — e.g. many students already split off an unnumbered cover
@@ -856,6 +975,135 @@ def _full_name(personal):
     return " ".join(p.strip() for p in parts if p and p.strip()).upper()
 
 
+# ---------------------------------------------------------------------------
+# Full-page-height layout table (Cover Page / Title Page)
+# ---------------------------------------------------------------------------
+# A real Nigerian project cover/title page reads: title/BY/name/matric
+# (and, on a Title Page, the submission sentence + supervisor) starting
+# near the TOP of the page, then the submission month/year sitting near
+# the BOTTOM margin — with nothing in between. A naive "just add
+# paragraphs in order" approach leaves everything bunched at the top,
+# since Word only pushes content down as far as the content itself
+# requires; a "prepend N blank paragraphs" hack (the previous approach
+# here) is fragile — too few and the date isn't pushed down enough, too
+# many (combined with a long topic) and it overflows onto a second page.
+#
+# The reliable fix real templates use: a borderless, two-row, one-column
+# table sized to span the section's full usable page height. The top row
+# (vertically top-aligned, height "atLeast" so it grows for an unusually
+# long title without clipping) holds the title/BY/name/matric block; the
+# bottom row (vertically bottom-aligned, fixed height) holds the
+# month/year line, landing right at the bottom margin regardless of how
+# much text is above it, without overflowing for any normal-length title.
+def _insert_in_tblPr_order(tblPr, new_el):
+    for tag in _TBLPR_TAIL_TAGS:
+        tail_el = tblPr.find(qn(tag))
+        if tail_el is not None:
+            tail_el.addprevious(new_el)
+            return
+    tblPr.append(new_el)
+
+
+def _strip_table_borders(table):
+    tbl = table._tbl
+    tblPr = tbl.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        tbl.insert(0, tblPr)
+    existing = tblPr.find(qn("w:tblBorders"))
+    if existing is not None:
+        tblPr.remove(existing)
+    borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        borders.append(_border_edge(edge, "nil"))
+    _insert_in_tblPr_order(tblPr, borders)
+
+
+def _set_row_height(row, height, rule):
+    tr = row._tr
+    trPr = tr.find(qn("w:trPr"))
+    if trPr is None:
+        trPr = OxmlElement("w:trPr")
+        tr.insert(0, trPr)
+    existing = trPr.find(qn("w:trHeight"))
+    if existing is not None:
+        trPr.remove(existing)
+    trHeight = OxmlElement("w:trHeight")
+    trHeight.set(qn("w:val"), str(Emu(height).twips))
+    trHeight.set(qn("w:hRule"), rule)
+    trPr.append(trHeight)
+
+
+def _set_cell_vertical_alignment(cell, align):
+    tcPr = cell._tc.get_or_add_tcPr()
+    existing = tcPr.find(qn("w:vAlign"))
+    if existing is not None:
+        tcPr.remove(existing)
+    vAlign = OxmlElement("w:vAlign")
+    vAlign.set(qn("w:val"), align)
+    tcPr.append(vAlign)
+
+
+def _fill_cell_lines(cell, lines):
+    """lines: list of (text, bold, size_pt) tuples. Reuses the cell's own
+    default empty paragraph for the first line instead of leaving a
+    stray blank line above the content."""
+    first = True
+    for text, bold, size_pt in lines:
+        p = cell.paragraphs[0] if first else cell.add_paragraph()
+        first = False
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.space_after = Pt(10)
+        run = p.add_run(text)
+        run.font.name = FONT
+        run.font.size = Pt(size_pt or BODY_PT)
+        run.font.bold = bold
+
+
+def build_full_height_layout_table(doc, anchor_element, top_lines, bottom_lines,
+                                     bottom_row_height_in=1.3, page_break_before=False):
+    """Inserts a borderless 2-row layout table immediately before
+    anchor_element: top_lines top-aligned in the first row (grows if the
+    content is unusually long), bottom_lines bottom-aligned in the second
+    (fixed height, landing at the page's bottom margin). Together the two
+    rows span the section's full usable page height."""
+    section = doc.sections[0]
+    usable_height = Emu(section.page_height - section.top_margin - section.bottom_margin)
+    bottom_height = Inches(bottom_row_height_in)
+    top_height = Emu(usable_height - bottom_height)
+    if top_height < Inches(1):
+        top_height = Emu(usable_height - Inches(0.8))
+        bottom_height = Inches(0.8)
+
+    table = doc.add_table(rows=2, cols=1)
+    anchor_element.addprevious(table._tbl)
+    table.autofit = False
+    usable_width = section.page_width - section.left_margin - section.right_margin
+    table.columns[0].width = usable_width
+    for row in table.rows:
+        row.cells[0].width = usable_width
+
+    _strip_table_borders(table)
+
+    top_cell, bottom_cell = table.cell(0, 0), table.cell(1, 0)
+    _set_row_height(table.rows[0], top_height, "atLeast")
+    _set_row_height(table.rows[1], bottom_height, "exact")
+    _set_cell_vertical_alignment(top_cell, "top")
+    _set_cell_vertical_alignment(bottom_cell, "bottom")
+
+    _fill_cell_lines(top_cell, top_lines)
+    _fill_cell_lines(bottom_cell, bottom_lines)
+
+    if page_break_before:
+        # A table can't carry page_break_before itself (that's a
+        # paragraph-level property) — Word honors a break placed on the
+        # FIRST paragraph inside the table's first cell instead.
+        top_cell.paragraphs[0].paragraph_format.page_break_before = True
+
+    return table
+
+
 def _new_prepended_paragraph(doc, anchor_element):
     """Creates a new paragraph and places it immediately before
     anchor_element, which stays FIXED across repeated calls — each new
@@ -938,36 +1186,45 @@ def generate_prelim_pages(doc, prelim_toggles, personal, ai_content, has_dedicat
     examiner = (personal.get("externalExaminerName") or "").strip()
 
     # --- Cover Page ----------------------------------------------------
+    # Full-page-height layout table (see build_full_height_layout_table):
+    # title/BY/name/matric top-anchored, month/year bottom-anchored at the
+    # page's bottom margin — spread across the whole page without
+    # overflowing, instead of bunching at the top like a plain sequence
+    # of paragraphs does.
     if prelim_toggles.get("coverPage"):
-        _add_centered_line(doc, anchor, topic, bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=20)
-        _add_centered_line(doc, anchor, "BY", space_after_pt=10)
-        _add_centered_line(doc, anchor, full_name, bold=True, space_after_pt=5)
-        _add_centered_line(doc, anchor, matric, space_after_pt=20)
-        # Push the date toward the bottom of the cover page. Exact "anchored
-        # to the bottom" positioning depends on how much content precedes it
-        # (varies by topic length), so this uses generous spacing rather than
-        # a fixed-position hack that could overlap on a longer title.
-        for _ in range(6):
-            _new_prepended_paragraph(doc, anchor)
-        _add_centered_line(doc, anchor, f"{month.upper()}, {year}".strip(", "), bold=True)
+        build_full_height_layout_table(
+            doc, anchor,
+            top_lines=[
+                (topic, True, CHAPTER_HEADING_PT),
+                ("BY", False, None),
+                (full_name, True, None),
+                (matric, False, None),
+            ],
+            bottom_lines=[(f"{month.upper()}, {year}".strip(", "), True, None)],
+        )
 
     # --- Title Page ------------------------------------------------------
     if prelim_toggles.get("titlePage"):
-        first = _add_centered_line(doc, anchor, topic, bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=15)
-        if prelim_toggles.get("coverPage"):
-            first.paragraph_format.page_break_before = True
-        _add_centered_line(doc, anchor, "BY", space_after_pt=10)
-        _add_centered_line(doc, anchor, full_name, bold=True, space_after_pt=5)
-        _add_centered_line(doc, anchor, matric, space_after_pt=20)
+        top_lines = [
+            (topic, True, CHAPTER_HEADING_PT),
+            ("BY", False, None),
+            (full_name, True, None),
+            (matric, False, None),
+        ]
         submission_line = (
             f"A PROJECT SUBMITTED TO THE DEPARTMENT OF {department.upper()}, "
             f"FACULTY OF {faculty.upper()}, {university.upper()}, IN PARTIAL "
             f"FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF {degree.upper()}"
         ).strip()
-        _add_centered_line(doc, anchor, submission_line, space_after_pt=15)
+        top_lines.append((submission_line, False, None))
         if supervisor:
-            _add_centered_line(doc, anchor, supervisor.upper(), bold=True, space_after_pt=10)
-        _add_centered_line(doc, anchor, f"{month.upper()}, {year}".strip(", "), bold=True)
+            top_lines.append((supervisor.upper(), True, None))
+        build_full_height_layout_table(
+            doc, anchor,
+            top_lines=top_lines,
+            bottom_lines=[(f"{month.upper()}, {year}".strip(", "), True, None)],
+            page_break_before=bool(prelim_toggles.get("coverPage")),
+        )
 
     # --- Declaration -------------------------------------------------------
     if prelim_toggles.get("declaration"):

@@ -25,6 +25,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import {
   PRELIM_CHECKLIST_ITEMS,
   detectPrelimSections,
+  defaultPrelimToggles,
   guessPersonalDetails,
 } from "./projectFormatterUtils";
 import "./ProjectFormatter.css";
@@ -224,7 +225,13 @@ export default function ProjectFormatter() {
 
       const detected = detectPrelimSections(cls);
       setDetectedPrelim(detected);
-      setPrelimToggles(detected);
+      // NOT the same object as `detected` — Cover/Title/Declaration/
+      // Certification default CHECKED only when missing (offering to
+      // generate them), the opposite of every other item, because
+      // checking one of these when already present would silently
+      // replace the student's real original page. See
+      // defaultPrelimToggles in projectFormatterUtils.js.
+      setPrelimToggles(defaultPrelimToggles(cls));
 
       const guessed = guessPersonalDetails(paragraphs, cls);
       setPersonalDetails((prev) => {
