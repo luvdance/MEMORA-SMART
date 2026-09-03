@@ -45,7 +45,7 @@ from docx.oxml import OxmlElement
 
 from paragraph_indexing import iter_indexed_paragraphs
 
-FONT = "Times New Roman"
+FONT = "Times New Roman"  # module-level defaults, overridden per-call by options.formatting
 BODY_PT = 12
 CHAPTER_HEADING_PT = 14
 SECTION_HEADING_PT = 12
@@ -174,6 +174,116 @@ def set_page_numbering(sectPr_element, fmt, start):
 
 
 # ---------------------------------------------------------------------------
+# Table borders ("open"/academic style)
+# ---------------------------------------------------------------------------
+_TBLPR_TAIL_TAGS = (
+    "w:shd", "w:tblLayout", "w:tblCellMar", "w:tblLook",
+    "w:tblCaption", "w:tblDescription",
+)
+
+
+def _insert_in_tblPr_order(tblPr, new_el):
+    """tblPr's children have a required schema order; w:tblBorders must
+    come before w:shd/w:tblLayout/w:tblCellMar/w:tblLook/etc if present.
+    Insert before the first such tail element, or append if none exist."""
+    for tag in _TBLPR_TAIL_TAGS:
+        tail_el = tblPr.find(qn(tag))
+        if tail_el is not None:
+            tail_el.addprevious(new_el)
+            return
+    tblPr.append(new_el)
+
+
+def _border_edge(tag, val, sz=4, color="000000"):
+    el = OxmlElement(f"w:{tag}")
+    el.set(qn("w:val"), val)
+    if val != "nil":
+        el.set(qn("w:sz"), str(sz))
+        el.set(qn("w:space"), "0")
+        el.set(qn("w:color"), color)
+    return el
+
+
+def apply_academic_table_borders(table):
+    """Academic 'open' table style: a single line above the header row
+    (table top), a single line below the header row, a single line
+    closing the bottom of the table, and NO other borders — no outer box
+    sides, no vertical lines, no lines between body rows.
+
+    Table-level tblBorders top/bottom only ever affect the outer boundary
+    of the whole table (top of the first row, bottom of the last row) —
+    NOT every row — so setting top=single/bottom=single there already
+    gives two of the three required lines for free. insideH/insideV/left/
+    right are all set to "nil" so no other line appears anywhere. The
+    third line (below the header row specifically) needs a per-cell
+    tcBorders override on row 0 only, since insideH governs ALL inter-row
+    lines uniformly and can't target just one row boundary.
+
+    Any pre-existing per-cell tcBorders overrides (e.g. leftover from a
+    "Table Grid"-style table, which is exactly the messy starting point
+    real student documents have) are stripped first, so they can't
+    reintroduce lines the table-wide setting just removed.
+    """
+    tbl = table._tbl
+    tblPr = tbl.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        tbl.insert(0, tblPr)
+
+    existing_borders = tblPr.find(qn("w:tblBorders"))
+    if existing_borders is not None:
+        tblPr.remove(existing_borders)
+
+    borders = OxmlElement("w:tblBorders")
+    borders.append(_border_edge("top", "single"))
+    borders.append(_border_edge("bottom", "single"))
+    borders.append(_border_edge("left", "nil"))
+    borders.append(_border_edge("right", "nil"))
+    borders.append(_border_edge("insideH", "nil"))
+    borders.append(_border_edge("insideV", "nil"))
+    _insert_in_tblPr_order(tblPr, borders)
+
+    rows = table.rows
+    for r_idx, row in enumerate(rows):
+        for cell in row.cells:
+            tc = cell._tc
+            tcPr = tc.find(qn("w:tcPr"))
+            if tcPr is None:
+                tcPr = OxmlElement("w:tcPr")
+                tc.insert(0, tcPr)
+            existing_tc_borders = tcPr.find(qn("w:tcBorders"))
+            if existing_tc_borders is not None:
+                tcPr.remove(existing_tc_borders)
+
+            if r_idx == 0:
+                # Header row: explicit bottom line. Every other edge is
+                # left unset so it falls through to the table-wide
+                # tblBorders above (which already gives the correct
+                # top/nil-everything-else behavior).
+                tc_borders = OxmlElement("w:tcBorders")
+                tc_borders.append(_border_edge("bottom", "single"))
+                # tcPr child order: tcBorders comes early (after tcW,
+                # before shd/tcMar/etc) — insert at the front is safe
+                # since tcW (if present) is python-docx-managed and this
+                # mirrors the tblPr helper's approach at cell scope.
+                first_child = tcPr.find(qn("w:tcW"))
+                if first_child is not None:
+                    first_child.addnext(tc_borders)
+                else:
+                    tcPr.insert(0, tc_borders)
+
+
+def apply_academic_borders_to_all_tables(doc):
+    """Applies the open academic border style to every table in the
+    document, including tables nested inside table cells (doc.tables only
+    lists top-level tables)."""
+    from docx.table import Table
+
+    for tbl_element in doc.element.body.iter(qn("w:tbl")):
+        apply_academic_table_borders(Table(tbl_element, doc))
+
+
+# ---------------------------------------------------------------------------
 # Reference cleanup
 # ---------------------------------------------------------------------------
 def _normalize_for_dedupe(text):
@@ -202,6 +312,27 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     doc = Document(io.BytesIO(file_bytes))
     role_by_index = {c["index"]: c["role"] for c in classifications}
 
+    # --- Apply formatting overrides for this call ---------------------------
+    # Simplification: these helpers read FONT/BODY_PT/etc as module globals
+    # rather than taking a config parameter each. Reassigning them here makes
+    # a single render() call fully configurable without threading a config
+    # object through every helper function. Trade-off: not safe for two
+    # concurrent renders in the same warm process — acceptable for now since
+    # each Vercel invocation completes before the next starts; would need a
+    # proper refactor (pass config explicitly) if that ever changes.
+    global FONT, BODY_PT, CHAPTER_HEADING_PT, SECTION_HEADING_PT
+    fmt_opts = options.get("formatting", {})
+    FONT = fmt_opts.get("fontFamily", "Times New Roman")
+    BODY_PT = fmt_opts.get("fontSizePt", 12)
+    CHAPTER_HEADING_PT = BODY_PT + 2
+    SECTION_HEADING_PT = BODY_PT
+    body_line_spacing = fmt_opts.get("lineSpacing", 2.0)
+
+    prelim_toggles = options.get("prelimToggles", {})
+    personal = options.get("personalDetails", {})
+    ai_content = options.get("aiDraftedContent", {})
+    directives = options.get("directives", {})
+
     def get_role(idx):
         return role_by_index.get(idx, "body_paragraph")
 
@@ -209,7 +340,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     normal = get_or_create_style(doc, "Normal", WD_STYLE_TYPE.PARAGRAPH)
     normal.font.name = FONT
     normal.font.size = Pt(BODY_PT)
-    normal.paragraph_format.line_spacing = 2.0  # double
+    normal.paragraph_format.line_spacing = body_line_spacing
     normal.paragraph_format.space_after = Pt(0)
 
     for level, pt_size in [(1, CHAPTER_HEADING_PT), (2, SECTION_HEADING_PT),
@@ -221,6 +352,11 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         style.paragraph_format.keep_with_next = True
         if level == 1:
             style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # --- Table borders: academic "open" style on every table -----------------
+    # Independent of paragraph indices (tables are never part of
+    # iter_indexed_paragraphs), so safe to run at any point in render().
+    apply_academic_borders_to_all_tables(doc)
 
     # --- PASS A: compute all renumbering labels + collect list entries -----
     # (read-only pass — we need to know EVERY caption's final label before
@@ -312,6 +448,9 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
 
     cleaned_references = clean_and_sort_references(reference_texts)
 
+    has_dedication = any(get_role(idx) == "dedication_body" for idx, _ in iter_indexed_paragraphs(doc))
+    has_acknowledgement = any(get_role(idx) == "acknowledgement_body" for idx, _ in iter_indexed_paragraphs(doc))
+
     # --- PASS B: mutate the real document -----------------------------------
     first_chapter_paragraph = None
     prelim_list_anchor = None  # tracks insertion point for TOC/List-of-X
@@ -389,16 +528,22 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             p.paragraph_format.page_break_before = True
 
         elif role == "toc_heading":
-            set_paragraph_text_single_run(p, "TABLE OF CONTENTS", bold=True, size_pt=CHAPTER_HEADING_PT)
-            apply_heading_style(doc, p, 1)
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.paragraph_format.page_break_before = True
-            anchor = insert_paragraph_after(p, doc)
-            _insert_toc_field(anchor)
-            prelim_list_anchor = anchor
+            # Toggle defaults to True when the caller doesn't specify it,
+            # so callers that don't pass prelimToggles at all (existing
+            # tests, older callers) keep the original always-on behavior.
+            if prelim_toggles.get("tableOfContents", True):
+                set_paragraph_text_single_run(p, "TABLE OF CONTENTS", bold=True, size_pt=CHAPTER_HEADING_PT)
+                apply_heading_style(doc, p, 1)
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.paragraph_format.page_break_before = True
+                anchor = insert_paragraph_after(p, doc)
+                _insert_toc_field(anchor)
+                prelim_list_anchor = anchor
+            else:
+                p._p.getparent().remove(p._p)
 
         elif role == "list_of_tables_heading":
-            if toc_table_entries:
+            if toc_table_entries and prelim_toggles.get("listOfTables", True):
                 set_paragraph_text_single_run(p, "LIST OF TABLES", bold=True, size_pt=CHAPTER_HEADING_PT)
                 apply_heading_style(doc, p, 1)
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -411,12 +556,13 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                     run.font.size = Pt(BODY_PT)
                 prelim_list_anchor = anchor
             else:
-                # No tables were actually found in this document — remove
-                # the stray heading entirely rather than leave an empty list.
+                # No tables were actually found in this document, or the
+                # user unchecked "List of Tables" — remove the stray
+                # heading entirely rather than leave an empty/unwanted list.
                 p._p.getparent().remove(p._p)
 
         elif role == "list_of_figures_heading":
-            if toc_figure_entries:
+            if toc_figure_entries and prelim_toggles.get("listOfFigures", True):
                 set_paragraph_text_single_run(p, "LIST OF FIGURES", bold=True, size_pt=CHAPTER_HEADING_PT)
                 apply_heading_style(doc, p, 1)
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -432,7 +578,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                 p._p.getparent().remove(p._p)
 
         elif role == "list_of_plates_heading":
-            if toc_plate_entries:
+            if toc_plate_entries and prelim_toggles.get("listOfPlates", True):
                 set_paragraph_text_single_run(p, "LIST OF PLATES", bold=True, size_pt=CHAPTER_HEADING_PT)
                 apply_heading_style(doc, p, 1)
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -448,35 +594,114 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                 p._p.getparent().remove(p._p)
 
         elif role in ("abstract_heading",):
-            set_paragraph_text_single_run(p, p.text.strip(), bold=True, size_pt=CHAPTER_HEADING_PT)
-            apply_heading_style(doc, p, 1)
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.paragraph_format.page_break_before = True
+            # Toggle off preserves the original abstract as ordinary
+            # content rather than deleting it — it's substantive student
+            # writing, not a derived listing, so "not wanted as its own
+            # styled prelim page" must never mean "destroyed".
+            if prelim_toggles.get("abstract", True):
+                set_paragraph_text_single_run(p, p.text.strip(), bold=True, size_pt=CHAPTER_HEADING_PT)
+                apply_heading_style(doc, p, 1)
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.paragraph_format.page_break_before = True
+            else:
+                enforce_run_fonts(p)
+
+        elif role == "cover_title" and (prelim_toggles.get("coverPage") or prelim_toggles.get("titlePage")):
+            p._p.getparent().remove(p._p)  # replaced by fresh template below
+
+        elif role == "declaration_body" and prelim_toggles.get("declaration"):
+            p._p.getparent().remove(p._p)
+
+        elif role == "certification_body" and prelim_toggles.get("certification"):
+            p._p.getparent().remove(p._p)
 
         elif role == "prelim_label":
-            set_paragraph_text_single_run(p, p.text.strip().upper(), bold=True, size_pt=CHAPTER_HEADING_PT)
-            apply_heading_style(doc, p, 1)
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.paragraph_format.page_break_before = True
+            label_upper = p.text.strip().upper()
+            should_delete = (
+                ("DECLARATION" in label_upper and prelim_toggles.get("declaration"))
+                or ("CERTIFICATION" in label_upper and prelim_toggles.get("certification"))
+                # Dedication/Acknowledgement labels are NOT deleted here even
+                # if toggled on — original personal writing is preserved
+                # when present; AI drafting only fills in when it's ABSENT
+                # (handled separately in generate_prelim_pages).
+            )
+            if should_delete:
+                p._p.getparent().remove(p._p)
+            else:
+                set_paragraph_text_single_run(p, p.text.strip().upper(), bold=True, size_pt=CHAPTER_HEADING_PT)
+                apply_heading_style(doc, p, 1)
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.paragraph_format.page_break_before = True
+
+        elif role == "abstract_body":
+            enforce_run_fonts(p)
+            p.paragraph_format.line_spacing = 1.0  # ALWAYS single, regardless
+            # of whatever body line spacing the user configured — a fixed
+            # convention, not user-adjustable.
+
+        elif role in ("body_paragraph", "appendix_body"):
+            # Flowing body prose. Force consistent double-spacing (or
+            # whatever the user configured) and justification EXPLICITLY at
+            # the paragraph level — not just via the Normal style — because
+            # direct paragraph-level formatting (whatever line_spacing/
+            # alignment the student's original paragraph happened to carry)
+            # always wins over style-derived formatting in Word. Relying on
+            # the Normal style alone left chapters that had their own
+            # conflicting direct formatting (e.g. pasted in from another
+            # document) inconsistent with the rest of the document — a real
+            # bug found in testing.
+            enforce_run_fonts(p)
+            p.paragraph_format.line_spacing = body_line_spacing
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
         else:
-            # body_paragraph, abstract_body, declaration_body,
-            # certification_body, dedication_body, acknowledgement_body,
-            # appendix_body, prelim_label, cover_title, table_data, etc.
+            # declaration_body, certification_body, dedication_body,
+            # acknowledgement_body, cover_title, table_data, etc.
             # Content untouched — just force consistent font/size. This is
             # also what protects tab+underscore signature lines on the
             # Certification page: we never touch paragraph structure/tabs,
             # only the run-level font, so hand-built layouts survive intact.
+            # These roles deliberately do NOT get the body_paragraph
+            # spacing/justify treatment above — declaration/certification/
+            # dedication/acknowledgement pages follow their own prelim-page
+            # conventions (see generate_prelim_pages), and cover_title/
+            # table_data layouts must not be reflowed.
             enforce_run_fonts(p)
+
 
     # --- Fallback: create missing List-of-X headings if entries exist but
     # no heading paragraph was found in the original document at all. -------
-    if toc_table_entries and not any(get_role(i) == "list_of_tables_heading" for i, _ in iter_indexed_paragraphs(doc)):
-        prelim_list_anchor = _insert_new_list_section(doc, prelim_list_anchor, "LIST OF TABLES", toc_table_entries)
-    if toc_figure_entries and not any(get_role(i) == "list_of_figures_heading" for i, _ in iter_indexed_paragraphs(doc)):
-        prelim_list_anchor = _insert_new_list_section(doc, prelim_list_anchor, "LIST OF FIGURES", toc_figure_entries)
-    if toc_plate_entries and not any(get_role(i) == "list_of_plates_heading" for i, _ in iter_indexed_paragraphs(doc)):
-        prelim_list_anchor = _insert_new_list_section(doc, prelim_list_anchor, "LIST OF PLATES", toc_plate_entries)
+    # If prelim_list_anchor is still None here (no TOC/earlier List-of-X
+    # heading existed or got generated to chain onto), fall back to
+    # inserting right before Chapter One's own paragraph, so real captions
+    # still get their List page instead of silently producing nothing.
+    _list_fallback_element = first_chapter_paragraph._p if first_chapter_paragraph is not None else None
+    if (toc_table_entries and prelim_toggles.get("listOfTables", True)
+            and not any(get_role(i) == "list_of_tables_heading" for i, _ in iter_indexed_paragraphs(doc))):
+        prelim_list_anchor = _insert_new_list_section(
+            doc, prelim_list_anchor, "LIST OF TABLES", toc_table_entries,
+            fallback_before_element=_list_fallback_element)
+    if (toc_figure_entries and prelim_toggles.get("listOfFigures", True)
+            and not any(get_role(i) == "list_of_figures_heading" for i, _ in iter_indexed_paragraphs(doc))):
+        prelim_list_anchor = _insert_new_list_section(
+            doc, prelim_list_anchor, "LIST OF FIGURES", toc_figure_entries,
+            fallback_before_element=_list_fallback_element)
+    if (toc_plate_entries and prelim_toggles.get("listOfPlates", True)
+            and not any(get_role(i) == "list_of_plates_heading" for i, _ in iter_indexed_paragraphs(doc))):
+        prelim_list_anchor = _insert_new_list_section(
+            doc, prelim_list_anchor, "LIST OF PLATES", toc_plate_entries,
+            fallback_before_element=_list_fallback_element)
+
+    # --- Generate boilerplate/AI-drafted prelim pages -----------------------
+    # Must happen AFTER Pass B (which depends on stable original-document
+    # indices) but BEFORE Pass C (section break), so newly-inserted content
+    # correctly ends up inside the roman-numbered prelim section — Pass C
+    # anchors on the first_chapter_paragraph OBJECT reference, which stays
+    # valid regardless of what gets inserted elsewhere in the tree.
+    generate_prelim_pages(
+        doc, prelim_toggles, personal, ai_content,
+        has_dedication=has_dedication, has_acknowledgement=has_acknowledgement,
+    )
 
     # --- PASS C: section break at the prelim / Chapter One boundary --------
     # First, normalize away any section breaks the ORIGINAL document already
@@ -528,6 +753,11 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         set_page_numbering(final_sectPr, "decimal", 1)
         _ensure_page_number_footer(doc.sections[-1])
 
+
+    if directives.get("italicizeEtAl"):
+        apply_italicize_phrase(doc, "et al")
+
+
     out_stream = io.BytesIO()
     doc.save(out_stream)
     return out_stream.getvalue()
@@ -566,10 +796,22 @@ def _insert_toc_field(paragraph):
     r_element.append(fld_end)
 
 
-def _insert_new_list_section(doc, anchor, title, entries):
-    if anchor is None:
+def _insert_new_list_section(doc, anchor, title, entries, fallback_before_element=None):
+    """Inserts a new heading+entries section right after `anchor`. If
+    `anchor` is None — meaning nothing earlier in the prelim area (no TOC,
+    no List of Tables) ended up creating any content to anchor onto, which
+    happens for a document with zero prelim listing headings at all, or
+    with those toggled off — falls back to inserting immediately before
+    `fallback_before_element` (typically the first chapter heading's own
+    element), so real captions still get their List page even when there's
+    nothing else in the prelim section to chain off of."""
+    if anchor is not None:
+        heading_p = insert_paragraph_after(anchor, doc)
+    elif fallback_before_element is not None:
+        heading_p = doc.add_paragraph()
+        fallback_before_element.addprevious(heading_p._p)
+    else:
         return anchor
-    heading_p = insert_paragraph_after(anchor, doc)
     set_paragraph_text_single_run(heading_p, title, bold=True, size_pt=CHAPTER_HEADING_PT)
     apply_heading_style(doc, heading_p, 1)
     heading_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -603,3 +845,271 @@ def _ensure_page_number_footer(section):
     run._r.append(fld_end)
     run.font.name = FONT
     run.font.size = Pt(BODY_PT)
+
+
+# ---------------------------------------------------------------------------
+# Prelim page template generation (Cover/Title/Declaration/Certification)
+# and AI-drafted content insertion (Dedication/Acknowledgement)
+# ---------------------------------------------------------------------------
+def _full_name(personal):
+    parts = [personal.get("firstName", ""), personal.get("middleName", ""), personal.get("surname", "")]
+    return " ".join(p.strip() for p in parts if p and p.strip()).upper()
+
+
+def _new_prepended_paragraph(doc, anchor_element):
+    """Creates a new paragraph and places it immediately before
+    anchor_element, which stays FIXED across repeated calls — each new
+    paragraph lands right before the anchor, so calling this in the desired
+    reading order naturally builds the block in correct order."""
+    new_p = doc.add_paragraph()
+    anchor_element.addprevious(new_p._p)
+    return new_p
+
+
+def _add_centered_line(doc, anchor, text, bold=False, size_pt=None, space_after_pt=10):
+    p = _new_prepended_paragraph(doc, anchor)
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.line_spacing = 1.5
+    p.paragraph_format.space_after = Pt(space_after_pt)
+    run = p.add_run(text)
+    run.font.name = FONT
+    run.font.size = Pt(size_pt or BODY_PT)
+    run.font.bold = bold
+    return p
+
+
+def _add_signature_block(doc, anchor, name_line, role_label):
+    """Standard Nigerian project signature block, matching the layout
+    confirmed in real sample documents:
+        {Name}                    ________________    ________________
+        ({Role})                  Signature            Date
+    """
+    line1 = _new_prepended_paragraph(doc, anchor)
+    line1.paragraph_format.tab_stops.add_tab_stop(Inches(3.5))
+    line1.paragraph_format.tab_stops.add_tab_stop(Inches(5.5))
+    r1 = line1.add_run(f"{name_line}\t________________\t________________")
+    r1.font.name = FONT
+    r1.font.size = Pt(BODY_PT)
+
+    line2 = _new_prepended_paragraph(doc, anchor)
+    line2.paragraph_format.tab_stops.add_tab_stop(Inches(3.5))
+    line2.paragraph_format.tab_stops.add_tab_stop(Inches(5.5))
+    r2 = line2.add_run(f"({role_label})\tSignature\tDate")
+    r2.font.name = FONT
+    r2.font.size = Pt(max(BODY_PT - 1, 8))
+    line2.paragraph_format.space_after = Pt(10)
+
+
+def _add_blank_examiner_line(doc, anchor):
+    """Fallback when no External Examiner name is supplied: a blank
+    underscore line with just the role label beneath — per explicit
+    requirement, no invented name or signature/date columns."""
+    line1 = _new_prepended_paragraph(doc, anchor)
+    r1 = line1.add_run("________________")
+    r1.font.name = FONT
+    r1.font.size = Pt(BODY_PT)
+
+    line2 = _new_prepended_paragraph(doc, anchor)
+    r2 = line2.add_run("External Examiner")
+    r2.font.name = FONT
+    r2.font.size = Pt(max(BODY_PT - 1, 8))
+    line2.paragraph_format.space_after = Pt(10)
+
+
+def generate_prelim_pages(doc, prelim_toggles, personal, ai_content, has_dedication, has_acknowledgement):
+    if not doc.paragraphs:
+        return
+    anchor = doc.paragraphs[0]._p  # fixed reference — everything new is
+    # inserted immediately before this, in the order calls happen below,
+    # which naturally produces correct final reading order.
+
+    full_name = _full_name(personal)
+    topic = (personal.get("projectTopic") or "").strip().upper()
+    matric = personal.get("matricNumber", "")
+    month = personal.get("submissionMonth", "")
+    year = personal.get("submissionYear", "")
+    department = personal.get("department", "")
+    faculty = personal.get("faculty", "")
+    university = personal.get("university", "")
+    degree = personal.get("degreeAwarded", "")
+    supervisor = personal.get("supervisorName", "")
+    hod = personal.get("hodName", "")
+    dean = personal.get("deanName", "")
+    examiner = (personal.get("externalExaminerName") or "").strip()
+
+    # --- Cover Page ----------------------------------------------------
+    if prelim_toggles.get("coverPage"):
+        _add_centered_line(doc, anchor, topic, bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=20)
+        _add_centered_line(doc, anchor, "BY", space_after_pt=10)
+        _add_centered_line(doc, anchor, full_name, bold=True, space_after_pt=5)
+        _add_centered_line(doc, anchor, matric, space_after_pt=20)
+        # Push the date toward the bottom of the cover page. Exact "anchored
+        # to the bottom" positioning depends on how much content precedes it
+        # (varies by topic length), so this uses generous spacing rather than
+        # a fixed-position hack that could overlap on a longer title.
+        for _ in range(6):
+            _new_prepended_paragraph(doc, anchor)
+        _add_centered_line(doc, anchor, f"{month.upper()}, {year}".strip(", "), bold=True)
+
+    # --- Title Page ------------------------------------------------------
+    if prelim_toggles.get("titlePage"):
+        first = _add_centered_line(doc, anchor, topic, bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=15)
+        if prelim_toggles.get("coverPage"):
+            first.paragraph_format.page_break_before = True
+        _add_centered_line(doc, anchor, "BY", space_after_pt=10)
+        _add_centered_line(doc, anchor, full_name, bold=True, space_after_pt=5)
+        _add_centered_line(doc, anchor, matric, space_after_pt=20)
+        submission_line = (
+            f"A PROJECT SUBMITTED TO THE DEPARTMENT OF {department.upper()}, "
+            f"FACULTY OF {faculty.upper()}, {university.upper()}, IN PARTIAL "
+            f"FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF {degree.upper()}"
+        ).strip()
+        _add_centered_line(doc, anchor, submission_line, space_after_pt=15)
+        if supervisor:
+            _add_centered_line(doc, anchor, supervisor.upper(), bold=True, space_after_pt=10)
+        _add_centered_line(doc, anchor, f"{month.upper()}, {year}".strip(", "), bold=True)
+
+    # --- Declaration -------------------------------------------------------
+    if prelim_toggles.get("declaration"):
+        heading = _add_centered_line(doc, anchor, "DECLARATION", bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=20)
+        heading.paragraph_format.page_break_before = True
+        apply_heading_style(doc, heading, 1)
+        body = _new_prepended_paragraph(doc, anchor)
+        body.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        body.paragraph_format.line_spacing = 1.5
+        body.paragraph_format.space_after = Pt(20)
+        decl_text = (
+            f"I, {full_name} ({matric}) hereby declare that this project titled "
+            f"\u201c{topic.title()}\u201d represents my original work and has not "
+            f"been previously submitted wholly or in part elsewhere nor in this "
+            f"University for the award of any degree."
+        )
+        run = body.add_run(decl_text)
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+        _add_signature_block(doc, anchor, "", "Signature of Student / Date")
+
+    # --- Certification -------------------------------------------------
+    if prelim_toggles.get("certification"):
+        heading = _add_centered_line(doc, anchor, "CERTIFICATION", bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=20)
+        heading.paragraph_format.page_break_before = True
+        apply_heading_style(doc, heading, 1)
+        body = _new_prepended_paragraph(doc, anchor)
+        body.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        body.paragraph_format.line_spacing = 1.5
+        body.paragraph_format.space_after = Pt(20)
+        cert_text = (
+            f"This is to certify that this project titled \u201c{topic.title()}\u201d "
+            f"presented by {full_name} with matriculation number {matric} in the "
+            f"Department of {department}, Faculty of {faculty}, {university}, has "
+            f"met the requirements for the award of {degree}."
+        )
+        run = body.add_run(cert_text)
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+
+        if supervisor:
+            _add_signature_block(doc, anchor, supervisor, "Supervisor")
+        if hod:
+            _add_signature_block(doc, anchor, hod, "Head of Department")
+        if dean:
+            _add_signature_block(doc, anchor, dean, "Dean of Faculty")
+        if examiner:
+            _add_signature_block(doc, anchor, examiner, "External Examiner")
+        else:
+            _add_blank_examiner_line(doc, anchor)
+
+    # --- Dedication (AI-drafted, only when genuinely missing) ---------------
+    if prelim_toggles.get("dedication") and not has_dedication and ai_content.get("dedicationText"):
+        heading = _add_centered_line(doc, anchor, "DEDICATION", bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=15)
+        heading.paragraph_format.page_break_before = True
+        apply_heading_style(doc, heading, 1)
+        body = _new_prepended_paragraph(doc, anchor)
+        body.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        body.paragraph_format.line_spacing = 1.5
+        run = body.add_run(ai_content["dedicationText"].strip())
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+        run.italic = True  # visually flags AI-drafted prose for the student
+        # to review/edit before submitting — the UI also tells them this
+        # explicitly, this is just a visual reinforcement in the file itself.
+
+    # --- Acknowledgement (AI-drafted, only when genuinely missing) ---------
+    if prelim_toggles.get("acknowledgement") and not has_acknowledgement and ai_content.get("acknowledgementText"):
+        heading = _add_centered_line(doc, anchor, "ACKNOWLEDGEMENTS", bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=15)
+        heading.paragraph_format.page_break_before = True
+        apply_heading_style(doc, heading, 1)
+        for para_text in ai_content["acknowledgementText"].strip().split("\n\n"):
+            if not para_text.strip():
+                continue
+            body = _new_prepended_paragraph(doc, anchor)
+            body.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            body.paragraph_format.line_spacing = 1.5
+            run = body.add_run(para_text.strip())
+            run.font.name = FONT
+            run.font.size = Pt(BODY_PT)
+            run.italic = True
+
+
+# ---------------------------------------------------------------------------
+# Custom-prompt directive: italicize "et al." (or any other targeted phrase)
+# ---------------------------------------------------------------------------
+def apply_italicize_phrase(doc, phrase="et al"):
+    """Splits any run containing the target phrase into up to three runs
+    (before / phrase / after), italicizing only the middle one — a run's
+    formatting applies to its entire text, so partial italics require
+    splitting the run first."""
+    pattern = re.compile(re.escape(phrase) + r"\.?", re.IGNORECASE)
+
+    for p in doc.paragraphs:
+        processed_run_ids = set()
+        while True:
+            match_found = False
+            for run in list(p.runs):
+                if id(run._r) in processed_run_ids:
+                    continue
+                text = run.text
+                match = pattern.search(text)
+                if not match:
+                    continue
+                match_found = True
+                before, matched, after = text[: match.start()], text[match.start() : match.end()], text[match.end() :]
+
+                # Capture ORIGINAL formatting before mutating — copying it
+                # after setting italic=True would leak italic onto the
+                # before/after split runs (a real bug caught in testing:
+                # entire paragraphs were turning italic instead of just
+                # "et al.").
+                original_rPr = run._r.find(qn("w:rPr"))
+                rpr_for_before = deepcopy(original_rPr) if original_rPr is not None else None
+                rpr_for_after = deepcopy(original_rPr) if original_rPr is not None else None
+
+                run.text = matched
+                run.italic = True
+                processed_run_ids.add(id(run._r))
+
+                if before:
+                    before_run = OxmlElement("w:r")
+                    if rpr_for_before is not None:
+                        before_run.append(rpr_for_before)
+                    t_el = OxmlElement("w:t")
+                    t_el.set(qn("xml:space"), "preserve")
+                    t_el.text = before
+                    before_run.append(t_el)
+                    run._r.addprevious(before_run)
+
+                if after:
+                    after_run = OxmlElement("w:r")
+                    if rpr_for_after is not None:
+                        after_run.append(rpr_for_after)
+                    t_el = OxmlElement("w:t")
+                    t_el.set(qn("xml:space"), "preserve")
+                    t_el.text = after
+                    after_run.append(t_el)
+                    run._r.addnext(after_run)
+
+                break  # restart the scan from a fresh p.runs — the "after"
+                # run just created might itself contain another match.
+
+            if not match_found:
+                break

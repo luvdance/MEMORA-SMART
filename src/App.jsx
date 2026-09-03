@@ -15,6 +15,7 @@ import LeadMagnetAISideHustles from "./pages/LeadMagnetAISideHustles";
 import LeadMagnetContentCreation from "./pages/LeadMagnetContentCreation";
 import LeadMagnetComputerSkills from "./pages/LeadMagnetComputerSkills";
 import Library from "./pages/Library";
+import ProjectPilot from "./project-formatter/PilotLandingPage";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
       <Route path="/content-creation" element={<LeadMagnetContentCreation />} />
       <Route path="/digital-skills" element={<LeadMagnetComputerSkills />} />
       <Route path="/library" element={<Library />} />
+      <Route path="/projectpilot" element={<ProjectPilot />} />
     </Routes>
   );
 }
