@@ -348,6 +348,55 @@ def remove_manual_page_breaks_and_blank_pages(doc):
                 parent.remove(p_el)
 
 
+def reorder_prelim_sections(prelim_paragraph_objects, prelim_rank_by_index, first_chapter_paragraph):
+    """Physically relocates the ORIGINAL prelim paragraphs (Declaration,
+    Certification, Dedication, Acknowledgement, Abstract, TOC, List of
+    Tables/Figures/Plates, and generic cover/title front matter) into
+    canonical order, ahead of Chapter One — fixing documents whose own
+    file order has these sections scrambled (e.g. Acknowledgements
+    physically sitting before the Cover Page, confirmed against a real
+    submission in testing).
+
+    Must run AFTER Pass B and generate_prelim_pages:
+      - AFTER Pass B, so paragraphs Pass B deleted (e.g. an original
+        Declaration whose toggle asked for a regenerated replacement) are
+        correctly excluded — detected here via p._p.getparent() being
+        None, which is how a removed lxml element reports itself.
+      - AFTER generate_prelim_pages, so this doesn't fight with where it
+        inserts freshly-generated replacement sections. Newly-generated
+        content is deliberately NOT part of prelim_paragraph_objects (that
+        dict was built once, read-only, in PASS A, before any new content
+        existed) and needs no reordering — generate_prelim_pages already
+        builds it in canonical call order, positioned ahead of all
+        original content, so it naturally stays first; this function only
+        reorders the surviving ORIGINAL paragraphs among themselves,
+        anchored right after that.
+
+    Invents nothing and never touches Chapter One onward — only relocates
+    paragraphs that already exist in the prelim area.
+    """
+    if first_chapter_paragraph is None or not prelim_paragraph_objects:
+        return
+
+    surviving = [
+        idx for idx in sorted(prelim_paragraph_objects)
+        if prelim_paragraph_objects[idx]._p.getparent() is not None
+    ]
+    if not surviving:
+        return
+
+    new_order = sorted(surviving, key=lambda idx: (prelim_rank_by_index[idx], idx))
+    if new_order == surviving:
+        return  # already in canonical order — nothing to move
+
+    anchor_element = first_chapter_paragraph._p
+    for idx in surviving:
+        el = prelim_paragraph_objects[idx]._p
+        el.getparent().remove(el)
+    for idx in new_order:
+        anchor_element.addprevious(prelim_paragraph_objects[idx]._p)
+
+
 # ---------------------------------------------------------------------------
 # Reference cleanup
 # ---------------------------------------------------------------------------
@@ -435,6 +484,44 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     # the orphan-heading promotion in the section/subsection/subsubsection
     # branches below; this can differ from the role's "natural" level.
     caption_labels = {}   # index -> new text
+
+    # --- Prelim-section canonical-order tracking ----------------------------
+    # Real student documents sometimes physically place prelim sections in
+    # the wrong order in the FILE ITSELF — e.g. an Acknowledgements page
+    # sitting before the Cover Page in the document's own paragraph order
+    # (confirmed against a real submission in testing). render() otherwise
+    # never reorders body content by design, but the prelim front matter
+    # has a well-known canonical order every institution expects regardless
+    # of what order the student's file happens to have it in. This tracks,
+    # for every paragraph BEFORE Chapter One, which canonical section it
+    # belongs to — computed here in PASS A (read-only, indices still exactly
+    # match the classification array) since doing this later would be
+    # unsafe: paragraph deletions in PASS B shift what a fresh index scan
+    # would number each remaining paragraph, per this file's existing
+    # index-safety rule. reorder_prelim_sections() (called after PASS B and
+    # generate_prelim_pages) uses this to physically relocate the surviving
+    # ORIGINAL paragraphs into canonical order — see there for how survival
+    # is checked and why newly-generated content doesn't need reordering.
+    PRELIM_RANK = {
+        "declaration": 1, "certification": 2, "dedication": 3,
+        "acknowledgement": 4, "abstract": 5, "toc": 6,
+        "list_of_tables": 7, "list_of_figures": 8, "list_of_plates": 9,
+    }
+    PRELIM_HEADING_ROLE_RANK = {
+        "declaration_body": PRELIM_RANK["declaration"],
+        "certification_body": PRELIM_RANK["certification"],
+        "dedication_body": PRELIM_RANK["dedication"],
+        "acknowledgement_body": PRELIM_RANK["acknowledgement"],
+        "abstract_heading": PRELIM_RANK["abstract"],
+        "abstract_body": PRELIM_RANK["abstract"],
+        "toc_heading": PRELIM_RANK["toc"],
+        "list_of_tables_heading": PRELIM_RANK["list_of_tables"],
+        "list_of_figures_heading": PRELIM_RANK["list_of_figures"],
+        "list_of_plates_heading": PRELIM_RANK["list_of_plates"],
+    }
+    prelim_paragraph_objects = {}  # index -> Paragraph, for idx < first chapter
+    prelim_rank_by_index = {}      # index -> canonical rank (0 = front/cover)
+    current_prelim_rank = 0
     toc_figure_entries = []
     toc_table_entries = []
     toc_plate_entries = []
@@ -450,6 +537,39 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     for idx, p in iter_indexed_paragraphs(doc):
         role = get_role(idx)
         text = p.text.strip()
+
+        if first_chapter_index is None and not (role == "chapter_heading" and prev_role != "chapter_heading"):
+            # Still in the prelim area (haven't reached the real start of
+            # Chapter One yet on this iteration). cover_title/prelim_label
+            # are EXPLICIT front-matter signals from the classifier — treat
+            # them as always resetting to the front bucket regardless of
+            # where they physically sit, since a label like "SUPERVISOR:"
+            # or the student's name sitting in the middle of the file
+            # (e.g. physically after a misplaced Acknowledgements section)
+            # is still unambiguously front matter, not a continuation of
+            # whatever heading happens to precede it in the file.
+            label_upper = text.upper()
+            if role == "cover_title":
+                current_prelim_rank = 0
+            elif role == "prelim_label":
+                if "DECLARATION" in label_upper:
+                    current_prelim_rank = PRELIM_RANK["declaration"]
+                elif "CERTIF" in label_upper:
+                    current_prelim_rank = PRELIM_RANK["certification"]
+                elif "DEDICAT" in label_upper:
+                    current_prelim_rank = PRELIM_RANK["dedication"]
+                elif "ACKNOWLEDG" in label_upper:
+                    current_prelim_rank = PRELIM_RANK["acknowledgement"]
+                else:
+                    current_prelim_rank = 0
+            elif role in PRELIM_HEADING_ROLE_RANK:
+                current_prelim_rank = PRELIM_HEADING_ROLE_RANK[role]
+            # else (body_paragraph, stale_listing_entry, table_data, a
+            # stray caption, etc.): carries forward whatever section rank
+            # it's physically sitting under — reasonable default, and this
+            # is genuinely ambiguous content to attribute otherwise.
+            prelim_paragraph_objects[idx] = p
+            prelim_rank_by_index[idx] = current_prelim_rank
 
         if role == "chapter_heading":
             if prev_role == "chapter_heading":
@@ -781,13 +901,45 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             enforce_run_fonts(p)
 
 
-    # --- Fallback: create missing List-of-X headings if entries exist but
-    # no heading paragraph was found in the original document at all. -------
+    # --- Generate boilerplate/AI-drafted prelim pages -----------------------
+    # Must happen AFTER Pass B (which depends on stable original-document
+    # indices) but BEFORE Pass C (section break), so newly-inserted content
+    # correctly ends up inside the roman-numbered prelim section — Pass C
+    # anchors on the first_chapter_paragraph OBJECT reference, which stays
+    # valid regardless of what gets inserted elsewhere in the tree.
+    generate_prelim_pages(
+        doc, prelim_toggles, personal, ai_content,
+        has_dedication=has_dedication, has_acknowledgement=has_acknowledgement,
+    )
+
+    # --- Reorder prelim sections into canonical order -----------------------
+    # Must run AFTER generate_prelim_pages (see reorder_prelim_sections'
+    # own docstring for why) and BEFORE the List-of-X/TOC fallback below —
+    # that fallback anchors new content on prelim_list_anchor / immediately
+    # before Chapter One, and must see the FINAL canonical positions, not
+    # insert first and get outrun by content the reorder moves afterward
+    # (which would otherwise push a freshly-inserted TOC in front of the
+    # very content it's supposed to follow — caught in testing).
+    reorder_prelim_sections(prelim_paragraph_objects, prelim_rank_by_index, first_chapter_paragraph)
+
+    # --- Fallback: create missing TOC / List-of-X headings if the original
+    # document had none at all. -----------------------------------------
     # If prelim_list_anchor is still None here (no TOC/earlier List-of-X
     # heading existed or got generated to chain onto), fall back to
     # inserting right before Chapter One's own paragraph, so real captions
     # still get their List page instead of silently producing nothing.
     _list_fallback_element = first_chapter_paragraph._p if first_chapter_paragraph is not None else None
+    if (prelim_toggles.get("tableOfContents", True)
+            and not any(get_role(i) == "toc_heading" for i, _ in iter_indexed_paragraphs(doc))):
+        # The document had NO Table of Contents at all — unlike the
+        # List-of-X fallback below (gated on entries actually existing),
+        # a TOC is always worth offering fresh: chapter/section headings
+        # always exist in a real project, and the native TOC field
+        # auto-populates from them once the student updates fields in
+        # Word, matching what a "properly done" formatter should offer
+        # rather than silently doing nothing just because the original
+        # file never had one.
+        prelim_list_anchor = _insert_new_toc_section(doc, prelim_list_anchor, fallback_before_element=_list_fallback_element)
     if (toc_table_entries and prelim_toggles.get("listOfTables", True)
             and not any(get_role(i) == "list_of_tables_heading" for i, _ in iter_indexed_paragraphs(doc))):
         prelim_list_anchor = _insert_new_list_section(
@@ -803,17 +955,6 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         prelim_list_anchor = _insert_new_list_section(
             doc, prelim_list_anchor, "LIST OF PLATES", toc_plate_entries,
             fallback_before_element=_list_fallback_element)
-
-    # --- Generate boilerplate/AI-drafted prelim pages -----------------------
-    # Must happen AFTER Pass B (which depends on stable original-document
-    # indices) but BEFORE Pass C (section break), so newly-inserted content
-    # correctly ends up inside the roman-numbered prelim section — Pass C
-    # anchors on the first_chapter_paragraph OBJECT reference, which stays
-    # valid regardless of what gets inserted elsewhere in the tree.
-    generate_prelim_pages(
-        doc, prelim_toggles, personal, ai_content,
-        has_dedication=has_dedication, has_acknowledgement=has_acknowledgement,
-    )
 
     # --- Blank-page cleanup ---------------------------------------------
     # Must run AFTER Pass B and generate_prelim_pages, since those are
@@ -942,6 +1083,28 @@ def _insert_new_list_section(doc, anchor, title, entries, fallback_before_elemen
         run.font.name = FONT
         run.font.size = Pt(BODY_PT)
     return current
+
+
+def _insert_new_toc_section(doc, anchor, fallback_before_element=None):
+    """Same insertion-point logic as _insert_new_list_section (see there),
+    but builds a Table of Contents heading + native TOC field instead of
+    a plain entry list — used when the original document had NO Table of
+    Contents at all, so the tool can still offer one instead of silently
+    producing nothing."""
+    if anchor is not None:
+        heading_p = insert_paragraph_after(anchor, doc)
+    elif fallback_before_element is not None:
+        heading_p = doc.add_paragraph()
+        fallback_before_element.addprevious(heading_p._p)
+    else:
+        return anchor
+    set_paragraph_text_single_run(heading_p, "TABLE OF CONTENTS", bold=True, size_pt=CHAPTER_HEADING_PT)
+    apply_heading_style(doc, heading_p, 1)
+    heading_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    heading_p.paragraph_format.page_break_before = True
+    field_p = insert_paragraph_after(heading_p, doc)
+    _insert_toc_field(field_p)
+    return field_p
 
 
 def _ensure_page_number_footer(section):
