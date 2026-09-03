@@ -1171,6 +1171,15 @@
   gap: 20px;
 }
 
+.pf-result-footer__actions {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+}
+
 .pf-result-footer p {
   display: flex;
   align-items: center;
@@ -1857,6 +1866,11 @@
   .pf-result-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .pf-result-footer__actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .pf-uploaded {

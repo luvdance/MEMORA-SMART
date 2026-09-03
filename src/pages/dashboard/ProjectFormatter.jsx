@@ -300,6 +300,24 @@ export default function ProjectFormatter() {
     setPrelimToggles((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
+  /**
+   * Returns to the options screen with the SAME document still loaded —
+   * the file, its structure scan and the details already filled in all
+   * stay in memory, so changing a setting and re-formatting costs no AI
+   * call at all (not even a cache lookup). Only the previous run's
+   * output is discarded, since it no longer reflects the new options.
+   */
+  function handleAdjustOptions() {
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    setDownloadUrl(null);
+    setDownloadFilename(null);
+    setPreviewHtml("");
+    setAiDraftedFlags({ dedication: false, acknowledgement: false });
+    setUnsupportedRequests([]);
+    setError(null);
+    setStage(STAGES.CONFIGURING);
+  }
+
   /** Discards this document's cached AI results and classifies it again. */
   function handleReanalyze() {
     if (fileKey) clearCacheForFile(fileKey);
@@ -1217,10 +1235,16 @@ export default function ProjectFormatter() {
             </div>
 
             <div className="pf-result-footer">
-              <button className="pf-secondary-button" onClick={reset}>
-                <i className="fa-solid fa-plus" />
-                Format another project
-              </button>
+              <div className="pf-result-footer__actions">
+                <button className="pf-primary-button" onClick={handleAdjustOptions}>
+                  <i className="fa-solid fa-sliders" />
+                  Change options &amp; re-format
+                </button>
+                <button className="pf-secondary-button" onClick={reset}>
+                  <i className="fa-solid fa-plus" />
+                  Format another project
+                </button>
+              </div>
               <p>
                 <i className="fa-solid fa-circle-info" />
                 For the best final result, open the document in Microsoft
