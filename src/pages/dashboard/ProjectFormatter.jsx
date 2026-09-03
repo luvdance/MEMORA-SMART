@@ -28,6 +28,14 @@ import {
   defaultPrelimToggles,
   guessPersonalDetails,
 } from "./projectFormatterUtils";
+import {
+  fileCacheKey,
+  getCachedClassifications,
+  setCachedClassifications,
+  getCachedDraft,
+  setCachedDraft,
+  clearCacheForFile,
+} from "./projectFormatterCache";
 import "./ProjectFormatter.css";
 
 const STAGES = {
@@ -128,6 +136,10 @@ export default function ProjectFormatter() {
   const [isDragging, setIsDragging] = useState(false);
 
   const [classifications, setClassifications] = useState([]);
+  // Content hash of the uploaded file — the cache key for this document's
+  // classification and AI-drafted text. See projectFormatterCache.js.
+  const [fileKey, setFileKey] = useState(null);
+  const [cacheInfo, setCacheInfo] = useState(null); // { cachedAt } when reused
   const [detectedPrelim, setDetectedPrelim] = useState({});
   const [prelimToggles, setPrelimToggles] = useState({});
   const [personalDetails, setPersonalDetails] = useState(DEFAULT_PERSONAL_DETAILS);
@@ -163,8 +175,18 @@ export default function ProjectFormatter() {
     setProcessingLabel("Reading your project...");
     setFilename(file.name);
     setRawFile(file);
+    setCacheInfo(null);
 
     try {
+      // Hash the file's bytes up front so the classify step can look for
+      // a previous result for this exact document. Never fatal — a
+      // hashing failure just means this run goes uncached.
+      try {
+        setFileKey(await fileCacheKey(file));
+      } catch {
+        setFileKey(null);
+      }
+
       const formData = new FormData();
       formData.append("document", file);
 
@@ -204,23 +226,44 @@ export default function ProjectFormatter() {
   // Stage 2: classify (runs once, right after the user confirms UPLOADED,
   // so CONFIGURING can be pre-filled with real detection results)
   // ---------------------------------------------------------------------
-  async function handleContinueToConfigure() {
+  async function handleContinueToConfigure({ forceReanalyze = false } = {}) {
     setStage(STAGES.CLASSIFYING);
     setProcessingLabel("Understanding your project structure...");
 
     try {
-      const classifyRes = await fetch("/api/project-formatter/classify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paragraphs }),
-      });
+      // Classification is the one genuinely expensive step in the whole
+      // pipeline — it sends every paragraph to the model. Re-formatting
+      // the same document (the normal loop when someone is adjusting
+      // options) shouldn't pay for it again, so a previous result for
+      // this exact file is reused. Keyed by the file's content hash, so
+      // an edited document never gets a stale structure map.
+      let cls = null;
+      let fromCache = null;
 
-      const classifyData = await classifyRes.json();
-      if (!classifyRes.ok) {
-        throw new Error(classifyData.error || "Classification failed");
+      if (fileKey && !forceReanalyze) {
+        const hit = getCachedClassifications(fileKey);
+        if (hit) {
+          cls = hit.classifications;
+          fromCache = { cachedAt: hit.cachedAt };
+        }
       }
 
-      const cls = classifyData.classifications;
+      if (!cls) {
+        const classifyRes = await fetch("/api/project-formatter/classify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paragraphs }),
+        });
+
+        const classifyData = await classifyRes.json();
+        if (!classifyRes.ok) {
+          throw new Error(classifyData.error || "Classification failed");
+        }
+        cls = classifyData.classifications;
+        if (fileKey) setCachedClassifications(fileKey, cls);
+      }
+
+      setCacheInfo(fromCache);
       setClassifications(cls);
 
       const detected = detectPrelimSections(cls);
@@ -255,6 +298,13 @@ export default function ProjectFormatter() {
   // ---------------------------------------------------------------------
   function togglePrelim(key) {
     setPrelimToggles((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  /** Discards this document's cached AI results and classifies it again. */
+  function handleReanalyze() {
+    if (fileKey) clearCacheForFile(fileKey);
+    setCacheInfo(null);
+    handleContinueToConfigure({ forceReanalyze: true });
   }
 
   function updatePersonal(field, value) {
@@ -302,13 +352,27 @@ export default function ProjectFormatter() {
       setStage(STAGES.DRAFTING);
       setProcessingLabel("Drafting your dedication and acknowledgement...");
       try {
-        const res = await fetch("/api/project-formatter/generate-content", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "draftPrelim", personalDetails }),
-        });
-        const data = await res.json();
-        if (res.ok) {
+        // Cheaper than classification, but this fires on EVERY "Format
+        // Project" click, so repeated runs while adjusting options add
+        // up. Reuse the previous draft when the details it's built from
+        // haven't changed — change the supervisor or who the work is
+        // dedicated to and it re-drafts.
+        let data = fileKey ? getCachedDraft(fileKey, personalDetails) : null;
+
+        if (!data) {
+          const res = await fetch("/api/project-formatter/generate-content", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "draftPrelim", personalDetails }),
+          });
+          const fetched = await res.json();
+          if (res.ok) {
+            data = fetched;
+            if (fileKey) setCachedDraft(fileKey, personalDetails, fetched);
+          }
+        }
+
+        if (data) {
           if (needsDedicationDraft && data.dedicationText) {
             aiDraftedContent.dedicationText = data.dedicationText;
             draftedFlags.dedication = true;
@@ -378,6 +442,8 @@ export default function ProjectFormatter() {
     setParagraphs([]);
     setRawFile(null);
     setClassifications([]);
+    setFileKey(null);
+    setCacheInfo(null);
     setDetectedPrelim({});
     setPrelimToggles({});
     setPersonalDetails(DEFAULT_PERSONAL_DETAILS);
@@ -687,6 +753,30 @@ export default function ProjectFormatter() {
 
         {stage === STAGES.CONFIGURING && (
           <section className="pf-configuring">
+
+            {cacheInfo && (
+              <div className="pf-notice pf-notice--cache">
+                <i className="fa-solid fa-bolt" />
+                <div>
+                  <strong>Reusing this document's saved structure scan.</strong>
+                  <p>
+                    We analyzed this exact file before, so we skipped the
+                    AI scan and went straight here. Re-format it as many
+                    times as you like at no extra cost. If you've edited
+                    the document since, upload it again and it will be
+                    re-scanned automatically.
+                  </p>
+                  <button
+                    type="button"
+                    className="pf-inline-button"
+                    onClick={handleReanalyze}
+                  >
+                    <i className="fa-solid fa-rotate" />
+                    Scan again anyway
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Section 1: preliminary pages checklist */}
             <div className="pf-config-card">
