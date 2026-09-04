@@ -135,6 +135,28 @@ function splitName(fullNameUpper) {
   };
 }
 
+// Fields the classifier now extracts deterministically arrive in the
+// rulebook's snake_case vocabulary; the renderer consumes the UI's
+// camelCase personalDetails shape. This is the one translation point
+// between them — and it is where the single `student_name` string gets
+// split into the first/middle/surname parts the Declaration and
+// Certification templates interpolate separately.
+export function mapPrelimFieldsToPersonalDetails(prelimFields = {}) {
+  const mapped = {};
+  if (prelimFields.project_title) mapped.projectTopic = prelimFields.project_title;
+  if (prelimFields.mat_number) mapped.matricNumber = prelimFields.mat_number;
+  if (prelimFields.supervisor_name) mapped.supervisorName = prelimFields.supervisor_name;
+  if (prelimFields.student_name) {
+    const { firstName, middleName, surname } = splitName(
+      prelimFields.student_name.toUpperCase()
+    );
+    if (firstName) mapped.firstName = titleCase(firstName);
+    if (middleName) mapped.middleName = titleCase(middleName);
+    if (surname) mapped.surname = titleCase(surname);
+  }
+  return mapped;
+}
+
 function isLikelyNameLine(text) {
   const trimmed = text.trim();
   // Comma format: "SURNAME, FIRSTNAME MIDDLENAME" — validate each side

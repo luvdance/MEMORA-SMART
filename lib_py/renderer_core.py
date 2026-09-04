@@ -44,6 +44,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 from paragraph_indexing import iter_indexed_paragraphs
+import rulebook
 
 FONT = "Times New Roman"  # module-level defaults, overridden per-call by options.formatting
 BODY_PT = 12
@@ -51,6 +52,14 @@ CHAPTER_HEADING_PT = 14
 SECTION_HEADING_PT = 12
 
 CHAPTER_WORDS = ["ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN"]
+
+_ALIGNMENT_BY_NAME = {
+    "justify": WD_ALIGN_PARAGRAPH.JUSTIFY,
+    "center": WD_ALIGN_PARAGRAPH.CENTER,
+    "centered": WD_ALIGN_PARAGRAPH.CENTER,
+    "left": WD_ALIGN_PARAGRAPH.LEFT,
+    "right": WD_ALIGN_PARAGRAPH.RIGHT,
+}
 
 CAPTION_PREFIX_RE = re.compile(
     r"^(fig(?:ure)?|table|plate)\.?\s*\d+(?:[.\-]\d+)*\s*[:.\-]?\s*", re.IGNORECASE
@@ -296,6 +305,85 @@ def _paragraph_is_empty(paragraph):
     return "<w:drawing" not in xml and "<w:pict" not in xml and "<w:object" not in xml
 
 
+def _element_is_image_paragraph(element):
+    """True for a <w:p> whose content is a picture — the 'figure' a figure
+    caption belongs to."""
+    if element.tag != qn("w:p"):
+        return False
+    xml = element.xml
+    return "<w:drawing" in xml or "<w:pict" in xml or "<w:object" in xml
+
+
+def _element_is_skippable(element):
+    """Filler between a caption and the thing it captions: an empty
+    paragraph carrying neither text nor a picture."""
+    if element.tag != qn("w:p"):
+        return False
+    if _element_is_image_paragraph(element):
+        return False
+    return not "".join(element.itertext()).strip()
+
+
+def _nearest_sibling(element, matcher, forward, max_steps=3):
+    """Walk siblings in one direction, stepping over blank filler, and
+    return the first element the matcher accepts."""
+    sibling = element.getnext() if forward else element.getprevious()
+    steps = 0
+    while sibling is not None and steps < max_steps:
+        if matcher(sibling):
+            return sibling
+        if not _element_is_skippable(sibling):
+            return None
+        sibling = sibling.getnext() if forward else sibling.getprevious()
+        steps += 1
+    return None
+
+
+def reposition_captions(table_captions, figure_captions, rb):
+    """Put every caption on the side of its table/figure the rulebook asks
+    for.
+
+    project_rulebook.json states table_rules.caption_position and
+    figure_rules.caption_position, and those two strings are the only
+    input here — this function has no opinion of its own about which way
+    round they go.
+
+    Runs at the very end of render(), on the finished XML tree. Moving a
+    paragraph changes what a positional index would refer to, so it has to
+    happen after every index-dependent pass has finished, per this file's
+    index-safety rule.
+    """
+    moved = 0
+
+    def place(caption_paragraphs, target_matcher, want_above):
+        nonlocal moved
+        for para in caption_paragraphs:
+            cap = para._p
+            if cap.getparent() is None:
+                continue  # deleted earlier in the render
+            after = _nearest_sibling(cap, target_matcher, forward=True)
+            before = _nearest_sibling(cap, target_matcher, forward=False)
+            if want_above and after is None and before is not None:
+                # Caption sits below its target but belongs above it.
+                cap.getparent().remove(cap)
+                before.addprevious(cap)
+                moved += 1
+            elif not want_above and before is None and after is not None:
+                # Caption sits above its target but belongs below it.
+                cap.getparent().remove(cap)
+                after.addnext(cap)
+                moved += 1
+
+    table_pos = (rulebook.table_rules(rb) or {}).get("caption_position", "above")
+    figure_pos = (rulebook.figure_rules(rb) or {}).get("caption_position", "below")
+
+    place(table_captions, lambda el: el.tag == qn("w:tbl"),
+          want_above=(str(table_pos).lower() == "above"))
+    place(figure_captions, _element_is_image_paragraph,
+          want_above=(str(figure_pos).lower() == "above"))
+    return moved
+
+
 def remove_manual_page_breaks_and_blank_pages(doc):
     """Real student documents very commonly use manual page breaks
     (Word's Ctrl+Enter, a <w:br w:type="page"/> run character) between
@@ -355,19 +443,10 @@ def remove_manual_page_breaks_and_blank_pages(doc):
 # pages in. Everything before Chapter One is ASSEMBLED into this order —
 # it is not left wherever it happened to sit in the student's file, and
 # not left wherever the generator happened to insert it.
-PRELIM_RANK = {
-    "front": 0,          # cover page / title page block (topic, BY, name,
-                         # matric, department, supervisor label, date...)
-    "declaration": 1,
-    "certification": 2,
-    "dedication": 3,
-    "acknowledgement": 4,
-    "abstract": 5,
-    "toc": 6,
-    "list_of_tables": 7,
-    "list_of_figures": 8,
-    "list_of_plates": 9,
-}
+# Derived from project_rulebook.json's `sections` array — the order the
+# document is assembled in is a JSON edit, not a code change, and the
+# shipped order cannot drift from the spec. See rulebook.prelim_rank().
+PRELIM_RANK = rulebook.prelim_rank()
 
 
 class PrelimAssembler:
@@ -473,12 +552,40 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     # each Vercel invocation completes before the next starts; would need a
     # proper refactor (pass config explicitly) if that ever changes.
     global FONT, BODY_PT, CHAPTER_HEADING_PT, SECTION_HEADING_PT
+    # Every default here comes from project_rulebook.json — nothing is
+    # invented in this file. The user's own formatting overrides (font,
+    # size, spacing chosen in the UI) still win, but where they say
+    # nothing the rulebook decides, not a hardcoded literal.
+    rb = rulebook.load_rulebook()
+    rb_defaults = rulebook.document_defaults(rb)
+
     fmt_opts = options.get("formatting", {})
-    FONT = fmt_opts.get("fontFamily", "Times New Roman")
-    BODY_PT = fmt_opts.get("fontSizePt", 12)
+    FONT = fmt_opts.get("fontFamily") or rb_defaults.get("font")
+    BODY_PT = fmt_opts.get("fontSizePt") or rb_defaults.get("font_size_pt")
+    # The rulebook describes heading styles in prose ("bold_centered",
+    # "CENTERED, UPPERCASE, BOLD") but states no point sizes, so these
+    # are still derived from the body size — reported by
+    # rulebook.unspecified_settings() so the gap stays visible.
     CHAPTER_HEADING_PT = BODY_PT + 2
     SECTION_HEADING_PT = BODY_PT
-    body_line_spacing = fmt_opts.get("lineSpacing", 2.0)
+    body_line_spacing = fmt_opts.get("lineSpacing") or rulebook.line_spacing_value(
+        rb_defaults.get("line_spacing"))
+    body_alignment = _ALIGNMENT_BY_NAME.get(
+        (rb_defaults.get("body_alignment") or "justify").lower(),
+        WD_ALIGN_PARAGRAPH.JUSTIFY)
+
+    # Page margins — specified by the rulebook and, until now, never
+    # applied at all.
+    margins = rb_defaults.get("margins_inches") or {}
+    for section in doc.sections:
+        if "top" in margins:
+            section.top_margin = Inches(margins["top"])
+        if "bottom" in margins:
+            section.bottom_margin = Inches(margins["bottom"])
+        if "left" in margins:
+            section.left_margin = Inches(margins["left"])
+        if "right" in margins:
+            section.right_margin = Inches(margins["right"])
 
     prelim_toggles = options.get("prelimToggles", {})
     personal = options.get("personalDetails", {})
@@ -534,6 +641,14 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     # had their say — see PrelimAssembler for why generated and preserved
     # content must go through the same mechanism.
     PRELIM_HEADING_ROLE_RANK = {
+        # Literal front-matter heading lines. deterministicClassify emits
+        # these as first-class roles; the previous AI classifier lumped
+        # them into prelim_label and they had to be recovered by matching
+        # the heading text.
+        "declaration_heading": PRELIM_RANK["declaration"],
+        "certification_heading": PRELIM_RANK["certification"],
+        "dedication_heading": PRELIM_RANK["dedication"],
+        "acknowledgement_heading": PRELIM_RANK["acknowledgement"],
         "declaration_body": PRELIM_RANK["declaration"],
         "certification_body": PRELIM_RANK["certification"],
         "dedication_body": PRELIM_RANK["dedication"],
@@ -545,11 +660,43 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         "list_of_figures_heading": PRELIM_RANK["list_of_figures"],
         "list_of_plates_heading": PRELIM_RANK["list_of_plates"],
     }
+
+    # Where the cover/title page stops and the rest of the front matter
+    # begins. Everything before the first real front-matter or body
+    # heading is cover-page furniture: the title, "BY", the student's
+    # name, the matric number, the submission sentence, the supervisor
+    # line, the date.
+    #
+    # This matters because deterministicClassify tags all of those lines
+    # prelim_label, and prelim_label's default treatment is "style this as
+    # a section heading on its own page". Applied to cover lines that is
+    # both wrong and duplicated — the regenerated cover page already
+    # carries the same information — so when the cover is being rebuilt,
+    # the originals are removed instead.
+    #
+    # Computed once, here, from the untouched classification array. PASS B
+    # deletes paragraphs, so an index derived later would refer to a
+    # different paragraph than the classifier meant.
+    _ZONE_ENDING_ROLES = set(PRELIM_HEADING_ROLE_RANK) | {
+        "chapter_heading", "references_heading", "appendix_heading",
+        "section_heading", "subsection_heading", "subsubsection_heading",
+        "body_paragraph",
+    }
+    cover_zone_end = None
+    for _i in sorted(role_by_index):
+        if role_by_index[_i] in _ZONE_ENDING_ROLES:
+            cover_zone_end = _i
+            break
+    if cover_zone_end is None:
+        cover_zone_end = -1  # no front matter at all — treat nothing as cover
+
     prelim = PrelimAssembler()
     current_prelim_rank = PRELIM_RANK["front"]
     toc_figure_entries = []
     toc_table_entries = []
     toc_plate_entries = []
+    table_caption_paragraphs = []
+    figure_caption_paragraphs = []
     reference_indices = []
     reference_texts = []
     first_chapter_index = None
@@ -754,6 +901,14 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             set_paragraph_text_single_run(p, caption_labels[idx], bold=True)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.keep_with_next = True
+            # Held for the caption-placement pass at the end of render().
+            # Collected as live paragraph objects rather than indices so
+            # the later pass never has to re-derive a position that
+            # deletions here have already shifted.
+            if role == "table_caption":
+                table_caption_paragraphs.append(p)
+            else:
+                figure_caption_paragraphs.append(p)
 
         elif role == "reference_entry":
             p._p.getparent().remove(p._p)  # deleted here; cleaned list re-inserted below
@@ -877,10 +1032,44 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         elif role == "certification_body" and prelim_toggles.get("certification"):
             p._p.getparent().remove(p._p)
 
+        elif role in ("declaration_heading", "certification_heading",
+                      "dedication_heading", "acknowledgement_heading"):
+            # First-class front-matter heading roles from
+            # deterministicClassify. Same treatment the prelim_label
+            # branch below gives a heading it recognised by text, but
+            # driven by the role itself rather than string matching.
+            _toggle_for_role = {
+                "declaration_heading": "declaration",
+                "certification_heading": "certification",
+            }.get(role)
+            if _toggle_for_role and prelim_toggles.get(_toggle_for_role):
+                # A regenerated replacement section is coming, so the
+                # original heading goes with the original body.
+                p._p.getparent().remove(p._p)
+            else:
+                rb_section = rulebook.section_by_id({
+                    "declaration_heading": "declaration",
+                    "certification_heading": "certification",
+                    "dedication_heading": "dedication",
+                    "acknowledgement_heading": "acknowledgement",
+                }[role], rb)
+                title = (rb_section or {}).get("title") or p.text.strip().upper()
+                set_paragraph_text_single_run(p, title, bold=True, size_pt=CHAPTER_HEADING_PT)
+                apply_heading_style(doc, p, 1)
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.paragraph_format.page_break_before = True
+
         elif role == "prelim_label":
             label_upper = p.text.strip().upper()
+            in_cover_zone = idx < cover_zone_end
             should_delete = (
-                ("DECLARATION" in label_upper and prelim_toggles.get("declaration"))
+                # Cover-page furniture, and a fresh cover page is being
+                # built from the personal details — keeping these would
+                # print the student's name, matric number and supervisor
+                # twice, each on its own page.
+                (in_cover_zone and (prelim_toggles.get("coverPage")
+                                    or prelim_toggles.get("titlePage")))
+                or ("DECLARATION" in label_upper and prelim_toggles.get("declaration"))
                 or ("CERTIFICATION" in label_upper and prelim_toggles.get("certification"))
                 # Dedication/Acknowledgement labels are NOT deleted here even
                 # if toggled on — original personal writing is preserved
@@ -889,6 +1078,16 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             )
             if should_delete:
                 p._p.getparent().remove(p._p)
+            elif in_cover_zone:
+                # Cover lines the user chose to keep. They are lines on one
+                # page, not section headings: centred, body-sized, no page
+                # break between them, and deliberately not a Heading style
+                # so they never appear as entries in the generated table of
+                # contents.
+                set_paragraph_text_single_run(p, p.text.strip().upper(), bold=True, size_pt=BODY_PT)
+                p.style = get_or_create_style(doc, "Normal", WD_STYLE_TYPE.PARAGRAPH)
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.paragraph_format.page_break_before = False
             else:
                 set_paragraph_text_single_run(p, p.text.strip().upper(), bold=True, size_pt=CHAPTER_HEADING_PT)
                 apply_heading_style(doc, p, 1)
@@ -896,10 +1095,15 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                 p.paragraph_format.page_break_before = True
 
         elif role == "abstract_body":
-            enforce_run_fonts(p)
-            p.paragraph_format.line_spacing = 1.0  # ALWAYS single, regardless
-            # of whatever body line spacing the user configured — a fixed
-            # convention, not user-adjustable.
+            # Abstract formatting is pinned by the rulebook's own
+            # constraints block (single spacing, its own point size,
+            # justified), not by the user's body-text choices.
+            _abs = rulebook.abstract_constraints(rb)
+            enforce_run_fonts(p, size_pt=_abs.get("font_size_pt") or BODY_PT)
+            p.paragraph_format.line_spacing = rulebook.line_spacing_value(
+                _abs.get("line_spacing"), default=1.0)
+            p.alignment = _ALIGNMENT_BY_NAME.get(
+                (_abs.get("alignment") or "justify").lower(), WD_ALIGN_PARAGRAPH.JUSTIFY)
 
         elif role in ("body_paragraph", "appendix_body"):
             # Flowing body prose. Force consistent double-spacing (or
@@ -914,7 +1118,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             # bug found in testing.
             enforce_run_fonts(p)
             p.paragraph_format.line_spacing = body_line_spacing
-            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p.alignment = body_alignment  # rulebook document_defaults.body_alignment
 
         else:
             # declaration_body, certification_body, dedication_body,
@@ -1041,6 +1245,11 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         set_page_numbering(final_sectPr, "decimal", 1)
         _ensure_page_number_footer(doc.sections[-1])
 
+
+    # Caption placement, last of the structural passes: it moves
+    # paragraphs, so nothing that depends on paragraph position may run
+    # after it.
+    reposition_captions(table_caption_paragraphs, figure_caption_paragraphs, rb)
 
     if directives.get("italicizeEtAl"):
         apply_italicize_phrase(doc, "et al")

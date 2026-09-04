@@ -58,6 +58,23 @@ function checkRateLimit(ip) {
 // the actual available Haiku model.
 const MODEL = "claude-haiku-4-5-20251001";
 
+// ---------------------------------------------------------------------
+// FORMATTING IS NOT AN AI DECISION.
+// ---------------------------------------------------------------------
+// "draftPrelim" writes actual PROSE (a dedication, an acknowledgement)
+// from the student's own details. That is authorship, and the model
+// stays connected for it.
+//
+// "interpretDirectives" was different in kind: it read a free-text
+// instruction and decided which FORMATTING levers to pull. That is a
+// structural decision, and structural decisions now come from
+// lib/project_rulebook.json only — never from a model. It is disabled.
+//
+// TODO(reconnect-ai): leave false. If free-text instructions are wanted
+// again, map them to rulebook keys with an explicit, reviewable table
+// rather than asking a model to infer the mapping.
+const USE_AI_DIRECTIVE_INTERPRETER = false;
+
 async function callClaude({ system, userContent, maxTokens }) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -125,7 +142,7 @@ async function draftPrelim(personalDetails) {
   let parsed;
   try {
     parsed = JSON.parse(stripFences(rawText));
-  } catch (err) {
+  } catch {
     throw new Error("Content drafter returned invalid JSON: " + rawText.substring(0, 300));
   }
 
@@ -160,6 +177,27 @@ async function interpretDirectives(customInstruction) {
     return { italicizeEtAl: false, unsupportedRequests: [] };
   }
 
+  if (!USE_AI_DIRECTIVE_INTERPRETER) {
+    // Deterministic replacement. Only one real formatting lever exists
+    // (italicising "et al"), and matching it is a literal string test —
+    // there is nothing here a model needs to reason about. Everything
+    // else is reported back as unapplied rather than silently dropped,
+    // which is the same honesty guarantee the AI version provided.
+    const italicizeEtAl = /\bet\s*\.?\s*al\b/i.test(trimmed)
+      && /\b(italici[sz]e|italics)\b/i.test(trimmed);
+
+    const unsupportedRequests = [];
+    if (!italicizeEtAl) {
+      unsupportedRequests.push(
+        "Custom instructions are not applied automatically: document " +
+        "structure and formatting come from the project rulebook, not " +
+        "from free-text requests. Your instruction was recorded but not " +
+        "acted on: \"" + trimmed.slice(0, 160) + "\""
+      );
+    }
+    return { italicizeEtAl, unsupportedRequests };
+  }
+
   const rawText = await callClaude({
     system: INTERPRET_SYSTEM_PROMPT,
     userContent: `Student's instruction: ${JSON.stringify(trimmed)}`,
@@ -169,7 +207,7 @@ async function interpretDirectives(customInstruction) {
   let parsed;
   try {
     parsed = JSON.parse(stripFences(rawText));
-  } catch (err) {
+  } catch {
     throw new Error("Directive interpreter returned invalid JSON: " + rawText.substring(0, 300));
   }
 

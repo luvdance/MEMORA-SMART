@@ -31,6 +31,8 @@ import base64
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "lib_py"))
 from renderer_core import render
+from validate_output import validate_document
+from extractor_core import extract_paragraphs
 
 import mammoth
 
@@ -56,6 +58,39 @@ def render_endpoint():
     except Exception as e:
         return jsonify({"error": f"Failed to build the formatted document: {str(e)}"}), 500
 
+    # --- Validation gate -------------------------------------------------
+    # Runs on the assembled document before it goes back to the client,
+    # checking project_rulebook.json's global_constraints plus the
+    # structural invariants the pipeline depends on (every paragraph
+    # classified exactly once, no chapter heading without a real zone
+    # transition, no stale contents rows leaking through).
+    #
+    # Findings are reported, not thrown: a document that trips a warning
+    # is still worth downloading, and the checks that can only be
+    # approximated without a layout engine say so in the finding itself.
+    # What must never happen is a silent pass, so failures always travel
+    # back to the caller and are logged server-side.
+    validation = None
+    try:
+        from docx import Document as _Doc
+        rendered_doc = _Doc(io.BytesIO(output_bytes))
+        source_texts = [p["text"] for p in extract_paragraphs(file_bytes)]
+        validation = validate_document(rendered_doc, classifications, source_texts)
+        if not validation["ok"] or validation["warnings"]:
+            print("[project-formatter] validation: %d error(s), %d warning(s)"
+                  % (validation["errors"], validation["warnings"]))
+            for finding in validation["findings"]:
+                print("  [%s] %s — %s"
+                      % (finding["severity"], finding["check"], finding["message"]))
+    except Exception as exc:
+        # A broken validator must not withhold a document that rendered
+        # fine — but it must not look like a clean pass either.
+        print("[project-formatter] validation could not run: %s" % exc)
+        validation = {
+            "ok": None, "errors": 0, "warnings": 0, "findings": [],
+            "error": "Validation could not run: %s" % exc,
+        }
+
     try:
         preview_result = mammoth.convert_to_html(io.BytesIO(output_bytes))
         preview_html = preview_result.value
@@ -75,4 +110,5 @@ def render_endpoint():
         "filename": out_name,
         "docxBase64": base64.b64encode(output_bytes).decode("ascii"),
         "previewHtml": preview_html,
+        "validation": validation,
     })

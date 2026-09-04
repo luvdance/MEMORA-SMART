@@ -27,6 +27,7 @@ import {
   detectPrelimSections,
   defaultPrelimToggles,
   guessPersonalDetails,
+  mapPrelimFieldsToPersonalDetails,
 } from "./projectFormatterUtils";
 import {
   fileCacheKey,
@@ -96,6 +97,17 @@ const CHECKLIST_ICONS = {
   listOfPlates: "fa-solid fa-images",
 };
 
+// The extractor's field names, in the words the form uses for them.
+// Only the three fields the pipeline treats as required appear here —
+// a project title is recoverable from the filename, but a document that
+// prints someone else's name or no name at all is worse than useless.
+const PRELIM_FIELD_LABELS = {
+  student_name: "your full name",
+  mat_number: "your matriculation number",
+  supervisor_name: "your supervisor's name",
+  project_title: "your project title",
+};
+
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
@@ -140,6 +152,11 @@ export default function ProjectFormatter() {
   // classification and AI-drafted text. See projectFormatterCache.js.
   const [fileKey, setFileKey] = useState(null);
   const [cacheInfo, setCacheInfo] = useState(null); // { cachedAt } when reused
+  // Front-matter fields the deterministic extractor could not find.
+  // These are interpolated into the declaration/certification text and
+  // printed on the cover page, so the user is asked for them rather
+  // than rendering a document with blanks where a name should be.
+  const [missingPrelimFields, setMissingPrelimFields] = useState([]);
   const [detectedPrelim, setDetectedPrelim] = useState({});
   const [prelimToggles, setPrelimToggles] = useState({});
   const [personalDetails, setPersonalDetails] = useState(DEFAULT_PERSONAL_DETAILS);
@@ -155,6 +172,10 @@ export default function ProjectFormatter() {
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [downloadFilename, setDownloadFilename] = useState(null);
   const [previewHtml, setPreviewHtml] = useState("");
+  // Findings from render.py's validation gate. Each one names the
+  // paragraph or section that triggered it, so a problem the tool
+  // cannot fix on the student's behalf is stated rather than hidden.
+  const [validation, setValidation] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -238,12 +259,16 @@ export default function ProjectFormatter() {
       // this exact file is reused. Keyed by the file's content hash, so
       // an edited document never gets a stale structure map.
       let cls = null;
+      let prelimFields = null;
+      let missingFields = [];
       let fromCache = null;
 
       if (fileKey && !forceReanalyze) {
         const hit = getCachedClassifications(fileKey);
         if (hit) {
           cls = hit.classifications;
+          prelimFields = hit.prelimFields || null;
+          missingFields = hit.missingFields || [];
           fromCache = { cachedAt: hit.cachedAt };
         }
       }
@@ -260,11 +285,22 @@ export default function ProjectFormatter() {
           throw new Error(classifyData.error || "Classification failed");
         }
         cls = classifyData.classifications;
-        if (fileKey) setCachedClassifications(fileKey, cls);
+        prelimFields = classifyData.prelimFields || null;
+        missingFields = classifyData.missingFields || [];
+        if (fileKey) {
+          setCachedClassifications(fileKey, cls, { prelimFields, missingFields });
+        }
       }
 
       setCacheInfo(fromCache);
       setClassifications(cls);
+      setMissingPrelimFields(missingFields);
+      if (missingFields.length > 0) {
+        console.warn(
+          "[project-formatter] Front-matter extraction could not find:",
+          missingFields.join(", ")
+        );
+      }
 
       const detected = detectPrelimSections(cls);
       setDetectedPrelim(detected);
@@ -276,11 +312,20 @@ export default function ProjectFormatter() {
       // defaultPrelimToggles in projectFormatterUtils.js.
       setPrelimToggles(defaultPrelimToggles(cls));
 
+      // Two sources, in priority order. The deterministic extractor is
+      // authoritative for the fields it owns (title, name, mat number,
+      // supervisor). The older heuristic still fills the institutional
+      // fields nobody extracts yet — department, faculty, university,
+      // degree, HOD, dean — so it runs first and is then overridden.
       const guessed = guessPersonalDetails(paragraphs, cls);
+      const extracted = prelimFields ? mapPrelimFieldsToPersonalDetails(prelimFields) : {};
       setPersonalDetails((prev) => {
         const merged = { ...prev };
         for (const key of Object.keys(guessed)) {
           if (guessed[key]) merged[key] = guessed[key];
+        }
+        for (const key of Object.keys(extracted)) {
+          if (extracted[key]) merged[key] = extracted[key];
         }
         return merged;
       });
@@ -312,6 +357,7 @@ export default function ProjectFormatter() {
     setDownloadUrl(null);
     setDownloadFilename(null);
     setPreviewHtml("");
+    setValidation(null);
     setAiDraftedFlags({ dedication: false, acknowledgement: false });
     setUnsupportedRequests([]);
     setError(null);
@@ -444,6 +490,14 @@ export default function ProjectFormatter() {
       setDownloadUrl(URL.createObjectURL(blob));
       setDownloadFilename(renderData.filename || "formatted.docx");
       setPreviewHtml(renderData.previewHtml || "");
+      setValidation(renderData.validation || null);
+      if (renderData.validation && renderData.validation.findings?.length) {
+        for (const f of renderData.validation.findings) {
+          console.warn(
+            `[project-formatter] ${f.severity}: ${f.check} (${f.where || "document"}) — ${f.message}`
+          );
+        }
+      }
       setStage(STAGES.DONE);
     } catch (err) {
       console.error(err);
@@ -462,6 +516,7 @@ export default function ProjectFormatter() {
     setClassifications([]);
     setFileKey(null);
     setCacheInfo(null);
+    setMissingPrelimFields([]);
     setDetectedPrelim({});
     setPrelimToggles({});
     setPersonalDetails(DEFAULT_PERSONAL_DETAILS);
@@ -470,6 +525,7 @@ export default function ProjectFormatter() {
     setAiDraftedFlags({ dedication: false, acknowledgement: false });
     setUnsupportedRequests([]);
     setPreviewHtml("");
+    setValidation(null);
 
     if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     setDownloadUrl(null);
@@ -837,6 +893,27 @@ export default function ProjectFormatter() {
               </div>
             </div>
 
+            {missingPrelimFields.length > 0 && (
+              <div className="pf-notice pf-notice--warn">
+                <i className="fa-solid fa-circle-exclamation" />
+                <div>
+                  <strong>
+                    We couldn&apos;t read{" "}
+                    {missingPrelimFields
+                      .map((f) => PRELIM_FIELD_LABELS[f] || f)
+                      .join(", ")}{" "}
+                    from your document.
+                  </strong>
+                  <p>
+                    Please type {missingPrelimFields.length > 1 ? "them" : "it"} in
+                    below before formatting. These details are printed on your
+                    cover page and written into the declaration and
+                    certification pages, so we won&apos;t guess at them.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Section 2: personal & institutional details */}
             <div className="pf-config-card">
               <div className="pf-card-heading">
@@ -1100,6 +1177,46 @@ export default function ProjectFormatter() {
                   <ul className="pf-unsupported-list">
                     {unsupportedRequests.map((msg, i) => <li key={i}>{msg}</li>)}
                   </ul>
+                </div>
+              </div>
+            )}
+
+            {validation?.findings?.length > 0 && (
+              <div className="pf-notice pf-notice--warn">
+                <i className="fa-solid fa-triangle-exclamation" />
+                <div>
+                  <strong>
+                    {validation.errors > 0
+                      ? "Your document was formatted, but some checks failed."
+                      : "Your document passed, with a few things worth a look."}
+                  </strong>
+                  <p>
+                    These are checked against the project rulebook after
+                    formatting. Each one names the paragraph or section it
+                    came from.
+                  </p>
+                  <ul className="pf-unsupported-list">
+                    {validation.findings.map((f, i) => (
+                      <li key={i}>
+                        {f.where ? `${f.where}: ` : ""}
+                        {f.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {validation?.error && (
+              <div className="pf-notice pf-notice--warn">
+                <i className="fa-solid fa-circle-question" />
+                <div>
+                  <strong>The post-format checks couldn&apos;t run.</strong>
+                  <p>
+                    Your document formatted successfully and is ready to
+                    download, but we could not verify it against the
+                    rulebook, so treat this copy as unchecked.
+                  </p>
                 </div>
               </div>
             )}

@@ -30,7 +30,10 @@ const PREFIX = "pf-cache:";
 // Bump when a change to classify.js's prompt/schema (or the roles in
 // classifySchema.js) would make previously cached classifications wrong.
 // Old entries key differently and are ignored, then evicted by age.
-const CLASSIFY_VERSION = "v1";
+// Bumped to v2 when classification moved from the AI classifier to
+// lib/deterministicClassify.js: the role vocabulary gained four
+// front-matter heading roles, so v1 entries would map incorrectly.
+const CLASSIFY_VERSION = "v2";
 const DRAFT_VERSION = "v1";
 
 // Entries are small (a classification array for a long project is tens of
@@ -159,12 +162,24 @@ export async function fileCacheKey(file) {
 export function getCachedClassifications(fileKey) {
   const entry = readEntry(`classify:${CLASSIFY_VERSION}:${fileKey}`);
   if (!entry || !Array.isArray(entry.classifications)) return null;
-  return { classifications: entry.classifications, cachedAt: entry.cachedAt };
+  return {
+    classifications: entry.classifications,
+    // Extracted front-matter travels with the classification it came
+    // from, so a cache hit skips the whole step rather than leaving the
+    // details form empty.
+    prelimFields: entry.prelimFields || null,
+    missingFields: entry.missingFields || [],
+    cachedAt: entry.cachedAt,
+  };
 }
 
-export function setCachedClassifications(fileKey, classifications) {
+export function setCachedClassifications(fileKey, classifications, extras = {}) {
   if (!Array.isArray(classifications) || classifications.length === 0) return;
-  writeEntry(`classify:${CLASSIFY_VERSION}:${fileKey}`, { classifications });
+  writeEntry(`classify:${CLASSIFY_VERSION}:${fileKey}`, {
+    classifications,
+    prelimFields: extras.prelimFields || null,
+    missingFields: extras.missingFields || [],
+  });
 }
 
 // --- AI-drafted dedication / acknowledgement --------------------------

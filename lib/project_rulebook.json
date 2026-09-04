@@ -1,0 +1,200 @@
+{
+  "$schema_purpose": "Machine-readable structural spec for generating university project/thesis documents. This is the SINGLE SOURCE OF TRUTH for formatting logic. Student content is injected as data — it must never be mixed into or inferred from this file.",
+  "document_defaults": {
+    "font": "Times New Roman",
+    "font_size_pt": 12,
+    "line_spacing": "double",
+    "margins_inches": { "top": 1, "bottom": 1, "left": 1.5, "right": 1 },
+    "body_alignment": "justify"
+  },
+  "page_numbering": {
+    "front_matter": { "style": "lowercase_roman", "start": "i", "position": "bottom_center" },
+    "body": { "style": "arabic", "start": 1, "reset_at": "chapter_one", "position": "top_right_or_bottom_center" }
+  },
+  "sections": [
+    {
+      "id": "cover_page",
+      "title": null,
+      "roman_numeral": null,
+      "page_break_after": true,
+      "no_overflow": true,
+      "layout": "centered_block",
+      "elements": [
+        { "type": "project_title", "style": "bold_caps_centered", "space_after_paragraphs": 3 },
+        { "type": "student_name", "style": "bold_centered" },
+        { "type": "mat_number", "style": "bold_centered" },
+        { "type": "spacer_block", "min_paragraphs": 3 },
+        { "type": "month_year", "style": "bold_centered", "position": "bottom_of_page" }
+      ],
+      "notes": "No department/supervisor text on this page — that belongs on title page."
+    },
+    {
+      "id": "title_page",
+      "title": null,
+      "roman_numeral": "ii",
+      "page_break_after": true,
+      "no_overflow": true,
+      "layout": "centered_block",
+      "elements": [
+        { "type": "project_title", "style": "bold_caps_centered" },
+        { "type": "student_name", "style": "bold_centered" },
+        { "type": "mat_number", "style": "bold_centered" },
+        { "type": "submission_statement", "style": "justified_centered_block",
+          "template": "A PROJECT SUBMITTED TO THE DEPARTMENT OF {department}, FACULTY OF {faculty}, {university}, IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF {degree} DEGREE IN {course_of_study}" },
+        { "type": "supervisor_name", "style": "bold_centered" },
+        { "type": "month_year", "style": "bold_centered", "position": "bottom_of_page" }
+      ]
+    },
+    {
+      "id": "declaration",
+      "title": "DECLARATION",
+      "roman_numeral": "iii",
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "elements": [
+        { "type": "declaration_statement", "alignment": "justify",
+          "template": "I, {student_name_upper} ({mat_number}) hereby declare that this project {project_title} represents my original work and has not been previously submitted wholly or in part elsewhere nor in this University for the award of any degree." },
+        { "type": "signature_block", "paragraph_spacing_pt": 0, "line_spacing": "single",
+          "rows": [
+            { "line": "signature", "label": "Signature of Student", "date_line": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "certification",
+      "title": "CERTIFICATION",
+      "roman_numeral": "iv",
+      "page_break_after": true,
+      "no_overflow": true,
+      "heading_style": "bold_centered",
+      "elements": [
+        { "type": "certification_statement", "alignment": "justify",
+          "template": "This is to certify that this project {project_title} presented by {student_name} with the matriculation number {mat_number} in the Department of {department}, Faculty of {faculty}, {university}, has met the partial requirements for the award of {degree} Degree in {course_of_study}." },
+        { "type": "signature_block", "paragraph_spacing_pt": 0, "line_spacing": "single",
+          "rows": [
+            { "role": "Supervisor", "signature_line": true, "date_line": true },
+            { "role": "Head of Department", "signature_line": true, "date_line": true },
+            { "role": "Dean", "signature_line": true, "date_line": true },
+            { "role": "External Supervisor", "signature_line": true, "date_line": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dedication",
+      "title": "DEDICATION",
+      "roman_numeral": "auto",
+      "page_break_before": true,
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "elements": [ { "type": "free_text", "alignment": "justify" } ]
+    },
+    {
+      "id": "acknowledgement",
+      "title": "ACKNOWLEDGEMENT",
+      "roman_numeral": "auto",
+      "page_break_before": true,
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "elements": [ { "type": "free_text", "alignment": "justify" } ]
+    },
+    {
+      "id": "table_of_contents",
+      "title": "TABLE OF CONTENTS",
+      "roman_numeral": "auto",
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "rules": {
+        "front_matter_entries": "roman numeral page refs, correctly indented",
+        "chapter_headings": "UPPERCASE, BOLD, NOT numbered (e.g. 'CHAPTER ONE: INTRODUCTION')",
+        "section_headings": "numbered (1.1, 1.2...), indent 0.5in",
+        "auto_generated": true
+      }
+    },
+    {
+      "id": "list_of_tables",
+      "title": "LIST OF TABLES",
+      "page_break_before": true,
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "auto_generated_from": "tables_in_document"
+    },
+    {
+      "id": "list_of_figures",
+      "title": "LIST OF FIGURES",
+      "page_break_before": true,
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "auto_generated_from": "figures_in_document"
+    },
+    {
+      "id": "list_of_plates",
+      "title": "LIST OF PLATES",
+      "page_break_before": true,
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "auto_generated_from": "plates_in_document",
+      "optional": true
+    },
+    {
+      "id": "abstract",
+      "title": "ABSTRACT",
+      "page_break_before": true,
+      "page_break_after": true,
+      "heading_style": "bold_centered",
+      "constraints": {
+        "line_spacing": "single",
+        "font_size_pt": 10,
+        "word_count_min": 250,
+        "word_count_max": 300,
+        "keywords_style": "bold_or_highlighted",
+        "alignment": "justify"
+      }
+    },
+    {
+      "id": "chapters",
+      "numbering": "arabic_starts_at_1",
+      "chapter_heading_style": "CENTERED, UPPERCASE, BOLD, NOT numbered (e.g. 'CHAPTER ONE') with title on next line, also centered+bold",
+      "section_heading_style": "numbered (e.g. 1.1), 0.5in indent, bold",
+      "body_alignment": "justify",
+      "default_chapters": [
+        { "n": 1, "title": "INTRODUCTION", "typical_sections": ["Background to the Study","Statement of the Problem","Objectives of the Study","Research Questions","Significance of the Study","Scope of the Study","Limitations of the Study"] },
+        { "n": 2, "title": "LITERATURE REVIEW", "typical_sections": ["Theoretical Framework","Conceptual Review"] },
+        { "n": 3, "title": "METHODOLOGY", "typical_sections": ["Research Design","Study Area","Population of the Study"] },
+        { "n": 4, "title": "RESULTS AND DISCUSSION", "typical_sections": ["Results","Discussion"] },
+        { "n": 5, "title": "SUMMARY, CONCLUSION AND RECOMMENDATIONS", "typical_sections": ["Summary","Conclusion","Recommendations"] }
+      ],
+      "note": "Chapter titles/sections are project-type-dependent (research project vs design/build project). Do not hardcode content — only structure."
+    },
+    {
+      "id": "references",
+      "title": "REFERENCES",
+      "page_break_before": true,
+      "heading_style": "bold_centered",
+      "rules": { "sort": "alphabetical_by_author_surname", "style": "APA", "style_override_allowed": true }
+    },
+    {
+      "id": "appendix",
+      "title": "APPENDIX",
+      "page_break_before": true,
+      "heading_style": "bold_centered"
+    }
+  ],
+  "table_rules": {
+    "caption_position": "above",
+    "caption_style": "bold, indent 0.5in, centered above table",
+    "borders": "none except: bottom border under header row, bottom border closing the table (no side/internal borders)"
+  },
+  "figure_rules": {
+    "caption_position": "below",
+    "caption_style": "bold, centered",
+    "multiple_figures": "grid and arrange properly, caption still centered below"
+  },
+  "global_constraints": [
+    "No blank pages anywhere — delete and shift content upward",
+    "Cover page and Certification page content must never overflow onto a second page",
+    "Body text is always justified unless explicitly centered (headings, signature blocks, cover/title pages)",
+    "Signature/date lines use single line spacing and 0pt paragraph spacing before/after"
+  ]
+}
