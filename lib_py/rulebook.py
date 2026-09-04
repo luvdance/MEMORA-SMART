@@ -105,6 +105,84 @@ def abstract_constraints(rb=None):
     return section.get("constraints", {})
 
 
+def heading_size_pt(role_key, body_pt, rb=None):
+    """Point size for one heading role.
+
+    `body_pt` is the fallback and is itself rulebook-derived (or the
+    user's own override), so a rulebook without a size for this role
+    still produces a size the document already uses rather than an
+    invented one.
+    """
+    sizes = document_defaults(rb).get("heading_sizes_pt") or {}
+    value = sizes.get(role_key)
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return body_pt
+
+
+def section_heading_rules(rb=None):
+    return (section_by_id("chapters", rb) or {}).get("section_heading", {})
+
+
+def chapter_heading_rules(rb=None):
+    return (section_by_id("chapters", rb) or {}).get("chapter_heading", {})
+
+
+def reference_rules(rb=None):
+    return (section_by_id("references", rb) or {}).get("rules", {})
+
+
+def section_heading_spec(section_id, rb=None):
+    """The `heading` block for a front-matter section: alignment, bold,
+    case and spacing for its title line."""
+    return (section_by_id(section_id, rb) or {}).get("heading", {})
+
+
+def section_body_spec(section_id, rb=None):
+    return (section_by_id(section_id, rb) or {}).get("body", {})
+
+
+def signature_block_spec(section_id, rb=None):
+    return (section_by_id(section_id, rb) or {}).get("signature_block", {})
+
+
+def listing_spec(section_id, rb=None):
+    """Column header + entry geometry for a List of Tables/Figures/Plates
+    or the Table of Contents."""
+    section = section_by_id(section_id, rb) or {}
+    return {
+        "column_header": section.get("column_header", {}),
+        "entries": section.get("entries", {}),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Template filling
+# ---------------------------------------------------------------------------
+def fill_template(template, values):
+    """Substitutes {placeholders} in a rulebook template.
+
+    Only placeholders the caller supplied are replaced; an unknown one is
+    left intact rather than raising, so a rulebook edit that adds a field
+    the renderer does not yet supply shows up visibly in the output
+    instead of crashing the render or silently vanishing.
+    """
+    if not template:
+        return ""
+    text = str(template)
+    for key, value in (values or {}).items():
+        text = text.replace("{%s}" % key, "" if value is None else str(value))
+    return text
+
+
+def template_placeholders(template):
+    """The {names} a template expects — used to report which fields a
+    section still needs."""
+    import re as _re
+    return _re.findall(r"\{([a-zA-Z0-9_]+)\}", str(template or ""))
+
+
 # ---------------------------------------------------------------------------
 # Section ordering
 # ---------------------------------------------------------------------------
@@ -169,24 +247,41 @@ def unspecified_settings(rb=None):
     rb = rb or load_rulebook()
     gaps = []
     defaults = rb.get("document_defaults", {})
-    for key in ("font", "font_size_pt", "line_spacing", "margins_inches", "body_alignment"):
+    for key in ("font", "font_size_pt", "line_spacing", "margins_inches",
+                "body_alignment", "heading_sizes_pt"):
         if key not in defaults:
             gaps.append("document_defaults.%s" % key)
 
-    if "heading_sizes_pt" not in defaults:
-        # The rulebook describes heading styles in prose ("bold_centered",
-        # "CENTERED, UPPERCASE, BOLD") but never states a point size for
-        # chapter vs section headings, so the renderer still derives them
-        # from the body size.
-        gaps.append("document_defaults.heading_sizes_pt (chapter/section heading point sizes)")
-
-    chapters = section_by_id("chapters", rb) or {}
-    if "section_heading_indent_inches" not in chapters:
-        gaps.append("sections[chapters].section_heading_indent_inches "
-                    "(stated in prose as '0.5in indent', not machine-readable)")
-
-    refs = (section_by_id("references", rb) or {}).get("rules", {})
-    if "hanging_indent_inches" not in refs:
+    if "hanging_indent_inches" not in reference_rules(rb):
         gaps.append("sections[references].rules.hanging_indent_inches")
+
+    sec = section_heading_rules(rb)
+    for key in ("hanging_indent_inches", "tab_stop_inches"):
+        if key not in sec:
+            gaps.append("sections[chapters].section_heading.%s" % key)
+
+    # Rules the rulebook states only in prose. They are real requirements,
+    # but nothing here can enforce them, so they are reported every run
+    # rather than quietly assumed to be handled.
+    figures = figure_rules(rb)
+    if figures.get("multiple_figures_note"):
+        gaps.append("figure_rules.multiple_figures (grid arrangement of "
+                    "several figures under one caption — stated in prose, "
+                    "not implemented)")
+
+    toc = section_by_id("table_of_contents", rb) or {}
+    if toc.get("auto_generated"):
+        gaps.append("sections[table_of_contents].entries (page_number_style, "
+                    "page_number_alignment, tab_leader, show_page_number and "
+                    "the per-level indents are produced by Word's own TOC "
+                    "field when the student opens the file, so this renderer "
+                    "cannot apply that geometry itself)")
+
+    cover = section_by_id("cover_page", rb) or {}
+    if cover.get("excluded_elements"):
+        gaps.append("sections[cover_page].excluded_elements is descriptive: "
+                    "the cover page carries only the elements listed in its "
+                    "`elements` array, so exclusion is enforced by omission "
+                    "rather than by reading this key")
 
     return gaps

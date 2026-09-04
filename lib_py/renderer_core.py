@@ -38,7 +38,8 @@ from copy import deepcopy
 
 from docx import Document
 from docx.shared import Pt, Inches, Emu
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT
+from docx.text.paragraph import Paragraph
 from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -139,6 +140,174 @@ def set_paragraph_text_single_run(paragraph, text, bold=None, size_pt=BODY_PT):
     return target_run
 
 
+def _apply_hanging_indent(paragraph, left_inches=None, hanging_inches=None,
+                          tab_inches=None):
+    """Applies the rulebook's indent geometry to one paragraph.
+
+    A hanging indent is expressed as a positive number of inches in the
+    rulebook but as a NEGATIVE first-line indent in Word, so the sign flip
+    happens here, once, rather than at every call site.
+    """
+    pf = paragraph.paragraph_format
+    if left_inches is not None:
+        pf.left_indent = Inches(float(left_inches))
+    if hanging_inches:
+        hanging = float(hanging_inches)
+        # The text body sits at left + hanging; the first line pulls back
+        # to left, which is where the number prints.
+        pf.left_indent = Inches(float(left_inches or 0) + hanging)
+        pf.first_line_indent = Inches(-hanging)
+    if tab_inches is not None:
+        try:
+            pf.tab_stops.add_tab_stop(Inches(float(tab_inches)))
+        except Exception:
+            pass  # a duplicate stop is harmless; never fail a render for one
+    return paragraph
+
+
+def _tabify_numbered_label(label, separator="tab"):
+    """Turns "1.1 Background to the Study" into "1.1\tBackground to the
+    Study" when the rulebook asks for a tab between the number and the
+    words. A label with no leading number is returned untouched."""
+    if separator != "tab" or not label:
+        return label
+    match = re.match(r"^(\d+(?:\.\d+)*)\s+(.*)$", label)
+    if not match:
+        return label
+    return match.group(1) + "\t" + match.group(2)
+
+
+def set_two_line_heading(paragraph, line_1, line_2, bold=True, size_pt=None):
+    """Writes a heading that reads as two centred lines but is ONE
+    paragraph, the two halves separated by a soft line break.
+
+    The rulebook requires the chapter number and the chapter title on
+    separate lines. Two real paragraphs would give Word's table-of-contents
+    field two separate entries for one chapter, so the break is a <w:br/>
+    inside a single Heading 1 paragraph instead: the page looks the way the
+    rulebook asks, and the contents page still shows one entry per chapter.
+    """
+    size_pt = size_pt or BODY_PT
+    for run in list(paragraph.runs):
+        run._r.getparent().remove(run._r)
+
+    first = paragraph.add_run(line_1)
+    first.font.name = FONT
+    first.font.size = Pt(size_pt)
+    first.font.bold = bold
+
+    if line_2:
+        first._r.append(OxmlElement("w:br"))
+        second = paragraph.add_run(line_2)
+        second.font.name = FONT
+        second.font.size = Pt(size_pt)
+        second.font.bold = bold
+    return paragraph
+
+
+def _build_listing_rows(doc, heading_paragraph, section_id, entries, rb=None):
+    """Writes the body of a List of Tables / Figures / Plates page.
+
+    The rulebook gives each of those pages a two-part column header
+    ("Table" on the left, "Page" on the right, italic) and an entry
+    geometry: a hanging indent so a long caption wraps under its own text,
+    and a right tab stop where the page number sits. Returns every
+    paragraph it created, in order, so the caller can register them with
+    the front-matter assembler.
+    """
+    spec = rulebook.listing_spec(section_id, rb)
+    header = spec.get("column_header") or {}
+    entry_rules = spec.get("entries") or {}
+    tab_inches = entry_rules.get("page_number_tab_inches")
+    created = []
+    anchor = heading_paragraph
+
+    def new_row():
+        nonlocal anchor
+        anchor = insert_paragraph_after(anchor, doc)
+        created.append(anchor)
+        return anchor
+
+    if header.get("left") or header.get("right"):
+        row = new_row()
+        if tab_inches is not None:
+            row.paragraph_format.tab_stops.add_tab_stop(
+                Inches(float(tab_inches)), WD_TAB_ALIGNMENT.RIGHT)
+        text = str(header.get("left") or "")
+        if header.get("right"):
+            text += "\t" + str(header["right"])
+        run = row.add_run(text)
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+        run.font.italic = bool(header.get("italic"))
+
+    for label in entries:
+        row = new_row()
+        if tab_inches is not None:
+            row.paragraph_format.tab_stops.add_tab_stop(
+                Inches(float(tab_inches)), WD_TAB_ALIGNMENT.RIGHT)
+        _apply_hanging_indent(
+            row, left_inches=0,
+            hanging_inches=entry_rules.get("hanging_indent_inches"))
+        row.paragraph_format.line_spacing = rulebook.line_spacing_value(
+            entry_rules.get("line_spacing"), default=1.0)
+        if entry_rules.get("space_after_pt") is not None:
+            row.paragraph_format.space_after = Pt(entry_rules["space_after_pt"])
+        # A list page repeats its subject in the column header ("Table",
+        # "Figure"), so the entries themselves carry only the number and
+        # the caption: "3.1<tab>Resistor Colour Code", not "Table 3.1: ...".
+        entry_text = re.sub(r"^(Table|Figure|Fig|Plate)\s+", "", label,
+                            flags=re.IGNORECASE)
+        entry_text = re.sub(r"^(\d+(?:\.\d+)*)\s*[:.–-]\s*", r"\1 ", entry_text)
+        run = row.add_run(_tabify_numbered_label(entry_text))
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+
+    return created
+
+
+def _apply_prelim_heading(doc, paragraph, section_id, fallback_title=None, rb=None):
+    """Styles one front- or back-matter heading entirely from its section's
+    `heading` block in the rulebook.
+
+    Every such heading in the document — Declaration, Certification,
+    Dedication, Acknowledgement, Table of Contents, the three List-of
+    pages, Abstract, References, Appendix — goes through here, so their
+    look is one rulebook edit away rather than nine identical literals
+    scattered through the render pass.
+    """
+    section = rulebook.section_by_id(section_id, rb) or {}
+    spec = section.get("heading", {}) or {}
+
+    title = section.get("title") or fallback_title or paragraph.text.strip()
+    if str(spec.get("case", "upper")).lower() == "upper":
+        title = title.upper()
+
+    size_pt = rulebook.heading_size_pt("prelim_heading", BODY_PT, rb)
+    set_paragraph_text_single_run(
+        paragraph, title, bold=spec.get("bold", True), size_pt=size_pt)
+    apply_heading_style(doc, paragraph, 1)
+    paragraph.alignment = _ALIGNMENT_BY_NAME.get(
+        str(spec.get("alignment") or "center").lower(), WD_ALIGN_PARAGRAPH.CENTER)
+    paragraph.paragraph_format.page_break_before = bool(
+        section.get("page_break_before", True))
+    if spec.get("space_after_pt") is not None:
+        paragraph.paragraph_format.space_after = Pt(spec["space_after_pt"])
+    return paragraph
+
+
+def _apply_section_body(paragraph, section_id, rb=None, default_alignment="justify"):
+    """Applies a front-matter section's `body` block: alignment and line
+    spacing for its prose."""
+    spec = rulebook.section_body_spec(section_id, rb) or {}
+    paragraph.alignment = _ALIGNMENT_BY_NAME.get(
+        str(spec.get("alignment") or default_alignment).lower(),
+        WD_ALIGN_PARAGRAPH.JUSTIFY)
+    paragraph.paragraph_format.line_spacing = rulebook.line_spacing_value(
+        spec.get("line_spacing"), default=2.0)
+    return paragraph
+
+
 def enforce_run_fonts(paragraph, size_pt=BODY_PT):
     """For body paragraphs we don't rewrite text, but we DO force every run's
     font back to Times New Roman/12pt, since direct run-level formatting
@@ -213,7 +382,7 @@ def _border_edge(tag, val, sz=4, color="000000"):
     return el
 
 
-def apply_academic_table_borders(table):
+def apply_academic_table_borders(table, rb=None):
     """Academic 'open' table style: a single line above the header row
     (table top), a single line below the header row, a single line
     closing the bottom of the table, and NO other borders — no outer box
@@ -243,14 +412,31 @@ def apply_academic_table_borders(table):
     if existing_borders is not None:
         tblPr.remove(existing_borders)
 
+    # Which edges are drawn comes from table_rules.borders in the
+    # rulebook. "none" becomes OOXML's "nil"; anything else is passed
+    # through as the line style Word should draw.
+    border_rules = (rulebook.table_rules(rb) or {}).get("borders") or {}
+
+    def edge_val(key, default):
+        value = border_rules.get(key, default)
+        return "nil" if str(value).lower() in ("none", "nil", "") else str(value)
+
     borders = OxmlElement("w:tblBorders")
-    borders.append(_border_edge("top", "single"))
-    borders.append(_border_edge("bottom", "single"))
-    borders.append(_border_edge("left", "nil"))
-    borders.append(_border_edge("right", "nil"))
-    borders.append(_border_edge("insideH", "nil"))
-    borders.append(_border_edge("insideV", "nil"))
+    for key, tag, default in (
+        ("outer_top", "top", "single"),
+        ("outer_bottom", "bottom", "single"),
+        ("outer_left", "left", "none"),
+        ("outer_right", "right", "none"),
+        ("inside_horizontal", "insideH", "none"),
+        ("inside_vertical", "insideV", "none"),
+    ):
+        borders.append(_border_edge(tag, edge_val(key, default)))
     _insert_in_tblPr_order(tblPr, borders)
+
+    header_bottom = edge_val("header_row_bottom", "single")
+    header_bold = bool((rulebook.table_rules(rb) or {}).get("header_row_bold"))
+    cell_align = _ALIGNMENT_BY_NAME.get(
+        str((rulebook.table_rules(rb) or {}).get("cell_alignment") or "").lower())
 
     rows = table.rows
     for r_idx, row in enumerate(rows):
@@ -264,13 +450,21 @@ def apply_academic_table_borders(table):
             if existing_tc_borders is not None:
                 tcPr.remove(existing_tc_borders)
 
+            if cell_align is not None:
+                for cell_para in cell.paragraphs:
+                    cell_para.alignment = cell_align
+
             if r_idx == 0:
+                if header_bold:
+                    for cell_para in cell.paragraphs:
+                        for cell_run in cell_para.runs:
+                            cell_run.font.bold = True
                 # Header row: explicit bottom line. Every other edge is
                 # left unset so it falls through to the table-wide
                 # tblBorders above (which already gives the correct
                 # top/nil-everything-else behavior).
                 tc_borders = OxmlElement("w:tcBorders")
-                tc_borders.append(_border_edge("bottom", "single"))
+                tc_borders.append(_border_edge("bottom", header_bottom))
                 # tcPr child order: tcBorders comes early (after tcW,
                 # before shd/tcMar/etc) — insert at the front is safe
                 # since tcW (if present) is python-docx-managed and this
@@ -282,14 +476,14 @@ def apply_academic_table_borders(table):
                     tcPr.insert(0, tc_borders)
 
 
-def apply_academic_borders_to_all_tables(doc):
+def apply_academic_borders_to_all_tables(doc, rb=None):
     """Applies the open academic border style to every table in the
     document, including tables nested inside table cells (doc.tables only
     lists top-level tables)."""
     from docx.table import Table
 
     for tbl_element in doc.element.body.iter(qn("w:tbl")):
-        apply_academic_table_borders(Table(tbl_element, doc))
+        apply_academic_table_borders(Table(tbl_element, doc), rb)
 
 
 # ---------------------------------------------------------------------------
@@ -446,6 +640,10 @@ def remove_manual_page_breaks_and_blank_pages(doc):
 # Derived from project_rulebook.json's `sections` array — the order the
 # document is assembled in is a JSON edit, not a code change, and the
 # shipped order cannot drift from the spec. See rulebook.prelim_rank().
+# Front-matter ordering, derived from the rulebook's own `sections` array.
+# Module level is only a convenience for helpers called outside a render;
+# render() recomputes it per call (see below) so that reordering sections
+# in the JSON reorders the document without needing a process restart.
 PRELIM_RANK = rulebook.prelim_rank()
 
 
@@ -551,23 +749,29 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     # concurrent renders in the same warm process — acceptable for now since
     # each Vercel invocation completes before the next starts; would need a
     # proper refactor (pass config explicitly) if that ever changes.
-    global FONT, BODY_PT, CHAPTER_HEADING_PT, SECTION_HEADING_PT
+    global FONT, BODY_PT, CHAPTER_HEADING_PT, SECTION_HEADING_PT, PRELIM_RANK
     # Every default here comes from project_rulebook.json — nothing is
     # invented in this file. The user's own formatting overrides (font,
     # size, spacing chosen in the UI) still win, but where they say
     # nothing the rulebook decides, not a hardcoded literal.
     rb = rulebook.load_rulebook()
     rb_defaults = rulebook.document_defaults(rb)
+    # Recomputed per render so the order of `sections` in the JSON is what
+    # decides the order of the finished document, every time.
+    PRELIM_RANK = rulebook.prelim_rank(rb)
 
     fmt_opts = options.get("formatting", {})
     FONT = fmt_opts.get("fontFamily") or rb_defaults.get("font")
     BODY_PT = fmt_opts.get("fontSizePt") or rb_defaults.get("font_size_pt")
-    # The rulebook describes heading styles in prose ("bold_centered",
-    # "CENTERED, UPPERCASE, BOLD") but states no point sizes, so these
-    # are still derived from the body size — reported by
-    # rulebook.unspecified_settings() so the gap stays visible.
-    CHAPTER_HEADING_PT = BODY_PT + 2
-    SECTION_HEADING_PT = BODY_PT
+    CHAPTER_HEADING_PT = rulebook.heading_size_pt("chapter_heading", BODY_PT, rb)
+    SECTION_HEADING_PT = rulebook.heading_size_pt("section_heading", BODY_PT, rb)
+    PRELIM_HEADING_PT = rulebook.heading_size_pt("prelim_heading", BODY_PT, rb)
+
+    # Layout rules for the two heading families the body uses. Read once,
+    # here, so no branch below reaches for a literal of its own.
+    _chapter_heading_rules = rulebook.chapter_heading_rules(rb)
+    _section_heading_rules = rulebook.section_heading_rules(rb)
+    _reference_rules = rulebook.reference_rules(rb)
     body_line_spacing = fmt_opts.get("lineSpacing") or rulebook.line_spacing_value(
         rb_defaults.get("line_spacing"))
     body_alignment = _ALIGNMENT_BY_NAME.get(
@@ -615,7 +819,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     # --- Table borders: academic "open" style on every table -----------------
     # Independent of paragraph indices (tables are never part of
     # iter_indexed_paragraphs), so safe to run at any point in render().
-    apply_academic_borders_to_all_tables(doc)
+    apply_academic_borders_to_all_tables(doc, rb)
 
     # --- PASS A: compute all renumbering labels + collect list entries -----
     # (read-only pass — we need to know EVERY caption's final label before
@@ -625,6 +829,10 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
     figure_ctr = table_ctr = plate_ctr = 0
 
     heading_labels = {}   # index -> new text
+    chapter_title_labels = {}  # chapter anchor index -> that chapter's TITLE
+    # line. The rulebook puts a chapter heading on two lines ("CHAPTER ONE"
+    # then "INTRODUCTION"), so the number line and the title line are
+    # tracked apart and joined by a line break at render time.
     heading_levels = {}   # index -> effective Heading level (2/3/4) — see
     # the orphan-heading promotion in the section/subsection/subsubsection
     # branches below; this can differ from the role's "natural" level.
@@ -752,10 +960,10 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                 extra = strip_heading_number_prefix(text)
                 extra = re.sub(r"^CHAPTER\s+(\w+|\d+)\s*[:.\-]?\s*", "", extra, flags=re.IGNORECASE)
                 if extra:
-                    separator = "" if heading_labels[current_chapter_anchor_idx].endswith(":") else ": "
-                    if ":" in heading_labels[current_chapter_anchor_idx]:
-                        separator = " "
-                    heading_labels[current_chapter_anchor_idx] += f"{separator}{extra.upper()}"
+                    existing = chapter_title_labels.get(current_chapter_anchor_idx, "")
+                    joiner = " " if existing else ""
+                    chapter_title_labels[current_chapter_anchor_idx] = (
+                        existing + joiner + extra.upper())
                 chapter_continuation_indices.add(idx)
                 prev_role = role
                 continue
@@ -769,7 +977,15 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             word = CHAPTER_WORDS[chapter_ctr - 1] if chapter_ctr <= len(CHAPTER_WORDS) else str(chapter_ctr)
             title_part = strip_heading_number_prefix(text)
             title_part = re.sub(r"^CHAPTER\s+(\w+|\d+)\s*[:.\-]?\s*", "", title_part, flags=re.IGNORECASE)
-            heading_labels[idx] = f"CHAPTER {word}" + (f": {title_part.upper()}" if title_part else "")
+            # The number line and the title line, kept apart. Which form the
+            # document actually used does not matter: a student who wrote
+            # "CHAPTER 1: Introduction" on one line and one who used two
+            # paragraphs both arrive here with the same pair.
+            heading_labels[idx] = rulebook.fill_template(
+                (_chapter_heading_rules.get("line_1") or {}).get("template")
+                or "CHAPTER {chapter_word}",
+                {"chapter_word": word, "chapter_number": chapter_ctr})
+            chapter_title_labels[idx] = title_part.upper() if title_part else ""
         elif role == "section_heading":
             section_ctr += 1
             subsection_ctr = subsubsection_ctr = 0
@@ -874,11 +1090,33 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             p._p.getparent().remove(p._p)
 
         elif role == "chapter_heading":
-            set_paragraph_text_single_run(p, heading_labels[idx], bold=True, size_pt=CHAPTER_HEADING_PT)
+            _line1_rules = _chapter_heading_rules.get("line_1") or {}
+            _line2_rules = _chapter_heading_rules.get("line_2") or {}
             apply_heading_style(doc, p, 1)
-            p.paragraph_format.page_break_before = True
-            p.paragraph_format.keep_with_next = True
-            p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            if _chapter_heading_rules.get("layout") == "two_lines":
+                set_two_line_heading(
+                    p, heading_labels[idx], chapter_title_labels.get(idx, ""),
+                    bold=_line1_rules.get("bold", True),
+                    size_pt=CHAPTER_HEADING_PT)
+            else:
+                _joined = heading_labels[idx]
+                _title = chapter_title_labels.get(idx, "")
+                if _title:
+                    _joined = _joined + ": " + _title
+                set_paragraph_text_single_run(
+                    p, _joined, bold=_line1_rules.get("bold", True),
+                    size_pt=CHAPTER_HEADING_PT)
+            p.paragraph_format.page_break_before = bool(
+                _chapter_heading_rules.get("page_break_before", True))
+            p.paragraph_format.keep_with_next = bool(
+                _chapter_heading_rules.get("keep_with_next", True))
+            p.paragraph_format.alignment = _ALIGNMENT_BY_NAME.get(
+                str(_line2_rules.get("alignment")
+                    or _line1_rules.get("alignment") or "center").lower(),
+                WD_ALIGN_PARAGRAPH.CENTER)
+            if _chapter_heading_rules.get("space_after_pt") is not None:
+                p.paragraph_format.space_after = Pt(
+                    _chapter_heading_rules["space_after_pt"])
             if first_chapter_paragraph is None:
                 first_chapter_paragraph = p
 
@@ -892,15 +1130,61 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             level = heading_levels.get(
                 idx, {"section_heading": 2, "subsection_heading": 3, "subsubsection_heading": 4}[role]
             )
-            set_paragraph_text_single_run(p, heading_labels[idx], bold=True, size_pt=SECTION_HEADING_PT)
+            set_paragraph_text_single_run(
+                p,
+                _tabify_numbered_label(
+                    heading_labels[idx],
+                    _section_heading_rules.get("number_separator", "tab")),
+                bold=_section_heading_rules.get("bold", True),
+                size_pt=SECTION_HEADING_PT)
             p.style = get_or_create_style(doc, f"Heading {level}", WD_STYLE_TYPE.PARAGRAPH)
             set_outline_level(p, level - 1)
-            p.paragraph_format.keep_with_next = True
+            p.paragraph_format.keep_with_next = bool(
+                _section_heading_rules.get("keep_with_next", True))
+            # The rulebook puts the number at the margin and the words at a
+            # tab stop, so a heading that wraps lines up under its own text
+            # rather than under its number.
+            _apply_hanging_indent(
+                p,
+                left_inches=_section_heading_rules.get("left_indent_inches"),
+                hanging_inches=_section_heading_rules.get("hanging_indent_inches"),
+                tab_inches=_section_heading_rules.get("tab_stop_inches"))
+            if _section_heading_rules.get("space_before_pt") is not None:
+                p.paragraph_format.space_before = Pt(_section_heading_rules["space_before_pt"])
+            if _section_heading_rules.get("space_after_pt") is not None:
+                p.paragraph_format.space_after = Pt(_section_heading_rules["space_after_pt"])
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
         elif role in ("figure_caption", "table_caption", "plate_caption"):
-            set_paragraph_text_single_run(p, caption_labels[idx], bold=True)
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.paragraph_format.keep_with_next = True
+            # Table captions and figure captions follow different rules —
+            # the rulebook indents a table caption's title to a tab stop
+            # and centres a figure caption under its image — so each reads
+            # its own block rather than sharing one style.
+            _cap_rules = (rulebook.table_rules(rb) if role == "table_caption"
+                          else rulebook.figure_rules(rb)) or {}
+            _cap_text = caption_labels[idx]
+            if _cap_rules.get("caption_number_separator") == "tab":
+                _cap_text = re.sub(
+                    r"^(Table|Figure|Fig|Plate)\s+(\d+(?:\.\d+)*)\s*[:.]?\s*",
+                    r"\1 \2\t", _cap_text, flags=re.IGNORECASE)
+            set_paragraph_text_single_run(
+                p, _cap_text, bold=_cap_rules.get("caption_bold", True))
+            p.alignment = _ALIGNMENT_BY_NAME.get(
+                str(_cap_rules.get("caption_alignment") or "center").lower(),
+                WD_ALIGN_PARAGRAPH.CENTER)
+            _apply_hanging_indent(
+                p,
+                left_inches=_cap_rules.get("caption_left_indent_inches"),
+                hanging_inches=_cap_rules.get("caption_hanging_indent_inches"),
+                tab_inches=_cap_rules.get("caption_tab_stop_inches"))
+            if _cap_rules.get("caption_space_before_pt") is not None:
+                p.paragraph_format.space_before = Pt(_cap_rules["caption_space_before_pt"])
+            if _cap_rules.get("caption_space_after_pt") is not None:
+                p.paragraph_format.space_after = Pt(_cap_rules["caption_space_after_pt"])
+            # A caption above its target must stay with it; one below must
+            # stay with what precedes it, so keep_with_next would be wrong.
+            p.paragraph_format.keep_with_next = (
+                str(_cap_rules.get("caption_position", "above")).lower() == "above")
             # Held for the caption-placement pass at the end of render().
             # Collected as live paragraph objects rather than indices so
             # the later pass never has to re-derive a position that
@@ -917,35 +1201,38 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             p._p.getparent().remove(p._p)  # old TOC/List-of-X entry, regenerated below instead
 
         elif role == "references_heading":
-            set_paragraph_text_single_run(p, "REFERENCES", bold=True, size_pt=CHAPTER_HEADING_PT)
-            apply_heading_style(doc, p, 1)
-            p.paragraph_format.page_break_before = True
+            _apply_prelim_heading(
+                doc, p, "references",
+                fallback_title=p.text.strip().upper() or "REFERENCES")
             anchor = p
             for ref_text in cleaned_references:
                 anchor = insert_paragraph_after(anchor, doc)
                 run = anchor.add_run(ref_text)
                 run.font.name = FONT
                 run.font.size = Pt(BODY_PT)
-                anchor.paragraph_format.left_indent = Inches(0.5)
-                anchor.paragraph_format.first_line_indent = Inches(-0.5)
-                anchor.paragraph_format.line_spacing = 1.0
-                anchor.paragraph_format.space_after = Pt(6)
-                anchor.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                _apply_hanging_indent(
+                    anchor,
+                    left_inches=0,
+                    hanging_inches=_reference_rules.get("hanging_indent_inches"))
+                anchor.paragraph_format.line_spacing = rulebook.line_spacing_value(
+                    _reference_rules.get("line_spacing"), default=1.0)
+                if _reference_rules.get("space_after_pt") is not None:
+                    anchor.paragraph_format.space_after = Pt(
+                        _reference_rules["space_after_pt"])
+                anchor.alignment = _ALIGNMENT_BY_NAME.get(
+                    str(_reference_rules.get("alignment") or "justify").lower(),
+                    WD_ALIGN_PARAGRAPH.JUSTIFY)
 
         elif role == "appendix_heading":
-            set_paragraph_text_single_run(p, p.text.strip().upper(), bold=True, size_pt=CHAPTER_HEADING_PT)
-            apply_heading_style(doc, p, 1)
-            p.paragraph_format.page_break_before = True
+            _apply_prelim_heading(doc, p, "appendix",
+                                  fallback_title=p.text.strip().upper())
 
         elif role == "toc_heading":
             # Toggle defaults to True when the caller doesn't specify it,
             # so callers that don't pass prelimToggles at all (existing
             # tests, older callers) keep the original always-on behavior.
             if prelim_toggles.get("tableOfContents", True):
-                set_paragraph_text_single_run(p, "TABLE OF CONTENTS", bold=True, size_pt=CHAPTER_HEADING_PT)
-                apply_heading_style(doc, p, 1)
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.page_break_before = True
+                _apply_prelim_heading(doc, p, "table_of_contents", fallback_title="TABLE OF CONTENTS")
                 field_p = insert_paragraph_after(p, doc)
                 _insert_toc_field(field_p)
                 # The heading itself was registered in PASS A; this field
@@ -958,18 +1245,11 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
 
         elif role == "list_of_tables_heading":
             if toc_table_entries and prelim_toggles.get("listOfTables", True):
-                set_paragraph_text_single_run(p, "LIST OF TABLES", bold=True, size_pt=CHAPTER_HEADING_PT)
-                apply_heading_style(doc, p, 1)
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.page_break_before = True
-                entry_anchor = p
-                for label in toc_table_entries:
-                    entry_anchor = insert_paragraph_after(entry_anchor, doc)
-                    run = entry_anchor.add_run(label)
-                    run.font.name = FONT
-                    run.font.size = Pt(BODY_PT)
-                    # Newly created, so register it alongside its heading.
-                    prelim.add(PRELIM_RANK["list_of_tables"], entry_anchor)
+                _apply_prelim_heading(doc, p, "list_of_tables", fallback_title="LIST OF TABLES")
+                _rows = _build_listing_rows(doc, p, "list_of_tables", toc_table_entries, rb)
+                for _row in _rows:
+                    # Newly created, so register alongside the heading.
+                    prelim.add(PRELIM_RANK["list_of_tables"], _row)
             else:
                 # No tables were actually found in this document, or the
                 # user unchecked "List of Tables" — remove the stray
@@ -978,35 +1258,21 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
 
         elif role == "list_of_figures_heading":
             if toc_figure_entries and prelim_toggles.get("listOfFigures", True):
-                set_paragraph_text_single_run(p, "LIST OF FIGURES", bold=True, size_pt=CHAPTER_HEADING_PT)
-                apply_heading_style(doc, p, 1)
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.page_break_before = True
-                entry_anchor = p
-                for label in toc_figure_entries:
-                    entry_anchor = insert_paragraph_after(entry_anchor, doc)
-                    run = entry_anchor.add_run(label)
-                    run.font.name = FONT
-                    run.font.size = Pt(BODY_PT)
-                    # Newly created, so register it alongside its heading.
-                    prelim.add(PRELIM_RANK["list_of_figures"], entry_anchor)
+                _apply_prelim_heading(doc, p, "list_of_figures", fallback_title="LIST OF FIGURES")
+                _rows = _build_listing_rows(doc, p, "list_of_figures", toc_figure_entries, rb)
+                for _row in _rows:
+                    # Newly created, so register alongside the heading.
+                    prelim.add(PRELIM_RANK["list_of_figures"], _row)
             else:
                 p._p.getparent().remove(p._p)
 
         elif role == "list_of_plates_heading":
             if toc_plate_entries and prelim_toggles.get("listOfPlates", True):
-                set_paragraph_text_single_run(p, "LIST OF PLATES", bold=True, size_pt=CHAPTER_HEADING_PT)
-                apply_heading_style(doc, p, 1)
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.page_break_before = True
-                entry_anchor = p
-                for label in toc_plate_entries:
-                    entry_anchor = insert_paragraph_after(entry_anchor, doc)
-                    run = entry_anchor.add_run(label)
-                    run.font.name = FONT
-                    run.font.size = Pt(BODY_PT)
-                    # Newly created, so register it alongside its heading.
-                    prelim.add(PRELIM_RANK["list_of_plates"], entry_anchor)
+                _apply_prelim_heading(doc, p, "list_of_plates", fallback_title="LIST OF PLATES")
+                _rows = _build_listing_rows(doc, p, "list_of_plates", toc_plate_entries, rb)
+                for _row in _rows:
+                    # Newly created, so register alongside the heading.
+                    prelim.add(PRELIM_RANK["list_of_plates"], _row)
             else:
                 p._p.getparent().remove(p._p)
 
@@ -1016,10 +1282,7 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             # writing, not a derived listing, so "not wanted as its own
             # styled prelim page" must never mean "destroyed".
             if prelim_toggles.get("abstract", True):
-                set_paragraph_text_single_run(p, p.text.strip(), bold=True, size_pt=CHAPTER_HEADING_PT)
-                apply_heading_style(doc, p, 1)
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.page_break_before = True
+                _apply_prelim_heading(doc, p, "abstract", fallback_title=p.text.strip())
             else:
                 enforce_run_fonts(p)
 
@@ -1047,17 +1310,12 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
                 # original heading goes with the original body.
                 p._p.getparent().remove(p._p)
             else:
-                rb_section = rulebook.section_by_id({
+                _apply_prelim_heading(doc, p, {
                     "declaration_heading": "declaration",
                     "certification_heading": "certification",
                     "dedication_heading": "dedication",
                     "acknowledgement_heading": "acknowledgement",
-                }[role], rb)
-                title = (rb_section or {}).get("title") or p.text.strip().upper()
-                set_paragraph_text_single_run(p, title, bold=True, size_pt=CHAPTER_HEADING_PT)
-                apply_heading_style(doc, p, 1)
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.page_break_before = True
+                }[role], fallback_title=p.text.strip().upper())
 
         elif role == "prelim_label":
             label_upper = p.text.strip().upper()
@@ -1119,10 +1377,30 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             enforce_run_fonts(p)
             p.paragraph_format.line_spacing = body_line_spacing
             p.alignment = body_alignment  # rulebook document_defaults.body_alignment
+            # Block paragraphs: the rulebook sets both of these to zero, so
+            # a student's stray first-line indent or paragraph spacing is
+            # normalised away rather than carried through.
+            if rb_defaults.get("body_first_line_indent_inches") is not None:
+                p.paragraph_format.first_line_indent = Inches(
+                    rb_defaults["body_first_line_indent_inches"])
+            if rb_defaults.get("body_space_after_pt") is not None:
+                p.paragraph_format.space_after = Pt(rb_defaults["body_space_after_pt"])
+
+        elif role in ("dedication_body", "acknowledgement_body"):
+            # The student's own dedication and acknowledgement prose, kept
+            # word for word but given the alignment and spacing their
+            # rulebook section asks for. These are flowing paragraphs, not
+            # hand-built layouts, so reflowing them is safe — unlike the
+            # signature blocks handled by the catch-all below.
+            enforce_run_fonts(p)
+            _apply_section_body(
+                p,
+                "dedication" if role == "dedication_body" else "acknowledgement",
+                rb)
 
         else:
-            # declaration_body, certification_body, dedication_body,
-            # acknowledgement_body, cover_title, table_data, etc.
+            # declaration_body, certification_body, cover_title,
+            # table_data, etc.
             # Content untouched — just force consistent font/size. This is
             # also what protects tab+underscore signature lines on the
             # Certification page: we never touch paragraph structure/tabs,
@@ -1167,19 +1445,22 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         # populates itself from them the moment the file is opened (see
         # _enable_update_fields_on_open).
         prelim.add_all(PRELIM_RANK["toc"],
-                       _build_toc_section(doc, _prelim_build_anchor))
+                       _build_toc_section(doc, _prelim_build_anchor, rb))
     if (toc_table_entries and prelim_toggles.get("listOfTables", True)
             and not any(get_role(i) == "list_of_tables_heading" for i, _ in iter_indexed_paragraphs(doc))):
         prelim.add_all(PRELIM_RANK["list_of_tables"],
-                       _build_list_section(doc, _prelim_build_anchor, "LIST OF TABLES", toc_table_entries))
+                       _build_list_section(doc, _prelim_build_anchor, "list_of_tables",
+                                           "LIST OF TABLES", toc_table_entries, rb))
     if (toc_figure_entries and prelim_toggles.get("listOfFigures", True)
             and not any(get_role(i) == "list_of_figures_heading" for i, _ in iter_indexed_paragraphs(doc))):
         prelim.add_all(PRELIM_RANK["list_of_figures"],
-                       _build_list_section(doc, _prelim_build_anchor, "LIST OF FIGURES", toc_figure_entries))
+                       _build_list_section(doc, _prelim_build_anchor, "list_of_figures",
+                                           "LIST OF FIGURES", toc_figure_entries, rb))
     if (toc_plate_entries and prelim_toggles.get("listOfPlates", True)
             and not any(get_role(i) == "list_of_plates_heading" for i, _ in iter_indexed_paragraphs(doc))):
         prelim.add_all(PRELIM_RANK["list_of_plates"],
-                       _build_list_section(doc, _prelim_build_anchor, "LIST OF PLATES", toc_plate_entries))
+                       _build_list_section(doc, _prelim_build_anchor, "list_of_plates",
+                                           "LIST OF PLATES", toc_plate_entries, rb))
 
     # --- Assemble the front matter in canonical order -----------------------
     # Single placement pass over everything registered above — preserved
@@ -1236,6 +1517,11 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
             pPr.append(prelim_sectPr)
             set_page_numbering(prelim_sectPr, "lowerRoman", 1)
             _ensure_page_number_footer(doc.sections[0])
+            # The cover page is counted but not numbered when the rulebook
+            # says so — it is page i, it just doesn't print the numeral.
+            if not rulebook.page_numbering(rb).get(
+                    "front_matter", {}).get("show_on_cover_page", True):
+                _suppress_first_page_footer(doc.sections[0])
 
         # The body section (Chapter One onward) ALWAYS gets decimal numbering
         # restarting at 1 — this must happen even when there's no preliminary
@@ -1245,6 +1531,15 @@ def render(file_bytes: bytes, classifications: list, options: dict = None):
         set_page_numbering(final_sectPr, "decimal", 1)
         _ensure_page_number_footer(doc.sections[-1])
 
+
+    # Images sit where the rulebook says they sit.
+    _image_align = _ALIGNMENT_BY_NAME.get(
+        str(rulebook.figure_rules(rb).get("image_alignment") or "").lower())
+    if _image_align is not None:
+        for _p_el in doc.element.body.iter(qn("w:p")):
+            if _p_el.find(".//" + qn("w:drawing")) is not None \
+                    or _p_el.find(".//" + qn("w:pict")) is not None:
+                Paragraph(_p_el, doc).alignment = _image_align
 
     # Caption placement, last of the structural passes: it moves
     # paragraphs, so nothing that depends on paragraph position may run
@@ -1316,48 +1611,68 @@ def _enable_update_fields_on_open(doc):
     settings.append(el)
 
 
-def _build_prelim_section_heading(doc, before_element, title):
-    """Creates a standalone front-matter heading paragraph (DECLARATION,
-    LIST OF TABLES, etc.) immediately before `before_element`. Position is
-    provisional — PrelimAssembler repositions it — so this only needs a
-    valid attachment point."""
+def _build_prelim_section_heading(doc, before_element, section_id, fallback_title=None,
+                                  rb=None):
+    """Creates a standalone front-matter heading paragraph immediately
+    before `before_element`, styled from its rulebook section exactly like
+    a heading the document already had. Position is provisional —
+    PrelimAssembler repositions it — so this only needs a valid attachment
+    point."""
     heading = doc.add_paragraph()
     before_element.addprevious(heading._p)
-    set_paragraph_text_single_run(heading, title, bold=True, size_pt=CHAPTER_HEADING_PT)
-    apply_heading_style(doc, heading, 1)
-    heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    heading.paragraph_format.page_break_before = True
+    _apply_prelim_heading(doc, heading, section_id,
+                          fallback_title=fallback_title, rb=rb)
     return heading
 
 
-def _build_list_section(doc, before_element, title, entries):
-    """Builds a List of Tables/Figures/Plates section. Returns every
-    paragraph it created, in reading order, for the caller to register
-    with the assembler — returning them all is what keeps the heading and
-    its entries together when the assembler later relocates the block."""
+def _build_list_section(doc, before_element, section_id, fallback_title, entries,
+                        rb=None):
+    """Builds a List of Tables/Figures/Plates section for a document that
+    had none. Returns every paragraph it created, in reading order, for
+    the caller to register with the assembler — returning them all is what
+    keeps the heading and its entries together when the assembler later
+    relocates the block.
+
+    Goes through the same rulebook-driven builders the in-place path uses,
+    so a generated list page and a rewritten one are indistinguishable.
+    """
     if before_element is None:
         return []
-    heading = _build_prelim_section_heading(doc, before_element, title)
-    created = [heading]
-    current = heading
-    for label in entries:
-        current = insert_paragraph_after(current, doc)
-        run = current.add_run(label)
-        run.font.name = FONT
-        run.font.size = Pt(BODY_PT)
-        created.append(current)
-    return created
+    heading = _build_prelim_section_heading(doc, before_element, section_id,
+                                            fallback_title, rb)
+    return [heading] + _build_listing_rows(doc, heading, section_id, entries, rb)
 
 
-def _build_toc_section(doc, before_element):
+def _build_toc_section(doc, before_element, rb=None):
     """Builds a Table of Contents heading plus a native Word TOC field.
     Returns both paragraphs for the caller to register."""
     if before_element is None:
         return []
-    heading = _build_prelim_section_heading(doc, before_element, "TABLE OF CONTENTS")
+    heading = _build_prelim_section_heading(
+        doc, before_element, "table_of_contents", "TABLE OF CONTENTS", rb)
     field_p = insert_paragraph_after(heading, doc)
     _insert_toc_field(field_p)
     return [heading, field_p]
+
+
+def _suppress_first_page_footer(section):
+    """Turns on Word's "Different First Page" for this section and leaves
+    that first-page footer empty.
+
+    The rulebook counts the cover page as page i but does not print a
+    numeral on it. Word has no way to say "count but do not show" other
+    than giving the first page its own, blank, footer — which is what this
+    does.
+    """
+    sectPr = section._sectPr
+    if sectPr.find(qn("w:titlePg")) is None:
+        title_pg = OxmlElement("w:titlePg")
+        sectPr.append(title_pg)
+    first = section.first_page_footer
+    first.is_linked_to_previous = False
+    for para in first.paragraphs:
+        for run in list(para.runs):
+            run._r.getparent().remove(run._r)
 
 
 def _ensure_page_number_footer(section):
@@ -1582,6 +1897,217 @@ def _add_blank_examiner_line(doc, anchor):
     return [line1, line2]
 
 
+def _case_text(text, case):
+    """Applies a rulebook `case` value to one string."""
+    text = text or ""
+    case = str(case or "").lower()
+    if case == "upper":
+        return text.upper()
+    if case == "lower":
+        return text.lower()
+    if case == "title":
+        return text.title()
+    return text
+
+
+def _render_full_page_section(doc, anchor, section_id, values, rb=None,
+                              page_break_before=False):
+    """Builds a cover page or title page from its rulebook `elements` list.
+
+    The rulebook decides which lines appear, in what order, in what case,
+    how many blank paragraphs separate them, and which line is pinned to
+    the bottom of the page. Nothing about the page's content is decided
+    here — an element type this function has no value for is skipped, and
+    a rulebook that drops a line (the cover page carries no supervisor,
+    for instance) simply stops producing it.
+
+    Returns the layout table, or None when the section has no elements.
+    """
+    section = rulebook.section_by_id(section_id, rb) or {}
+    elements = section.get("elements") or []
+    if not elements:
+        return None
+
+    top_lines = []
+    bottom_lines = []
+
+    for element in elements:
+        etype = element.get("type")
+        target = bottom_lines if element.get("anchor") == "bottom" else top_lines
+
+        if etype == "spacer":
+            for _ in range(int(element.get("paragraphs") or 1)):
+                target.append(("", False, None))
+            continue
+
+        if element.get("template"):
+            text = rulebook.fill_template(element["template"], values)
+        else:
+            text = values.get(etype)
+
+        text = (text or "").strip()
+        if not text:
+            continue  # nothing supplied for this line — omit it, never invent
+
+        size_pt = None
+        if etype == "project_title":
+            size_pt = rulebook.heading_size_pt("chapter_heading", BODY_PT, rb)
+        target.append((_case_text(text, element.get("case")),
+                       bool(element.get("bold", True)), size_pt))
+
+    if not top_lines and not bottom_lines:
+        return None
+
+    return build_full_height_layout_table(
+        doc, anchor,
+        top_lines=top_lines,
+        bottom_lines=bottom_lines,
+        page_break_before=page_break_before,
+    )
+
+
+def _add_templated_body(doc, anchor, section_id, values, rb=None):
+    """Writes a Declaration or Certification statement from the rulebook's
+    own template, bolding the fields the rulebook marks."""
+    spec = rulebook.section_body_spec(section_id, rb) or {}
+    # A field can read differently inside a sentence than it does on the
+    # cover page — the title is set in caps there and in title case here —
+    # so the rulebook states the case per field.
+    field_case = spec.get("field_case") or {}
+    values = dict(values)
+    for field, case in field_case.items():
+        if values.get(field):
+            values[field] = _case_text(values[field], case)
+
+    text = rulebook.fill_template(spec.get("template"), values)
+    if not text:
+        return None
+
+    para = _new_prepended_paragraph(doc, anchor)
+    para.alignment = _ALIGNMENT_BY_NAME.get(
+        str(spec.get("alignment") or "justify").lower(), WD_ALIGN_PARAGRAPH.JUSTIFY)
+    para.paragraph_format.line_spacing = rulebook.line_spacing_value(
+        spec.get("line_spacing"), default=2.0)
+    para.paragraph_format.space_after = Pt(20)
+
+    # Split the finished sentence around the values the rulebook wants in
+    # bold, so the emphasis lands on the student's own details rather than
+    # on a fixed slice of the template.
+    emphasis = []
+    for field in spec.get("bold_fields") or []:
+        value = (values.get(field) or "").strip()
+        if value and value in text:
+            emphasis.append(value)
+
+    remaining = text
+    while emphasis and remaining:
+        hits = [(remaining.find(v), v) for v in emphasis if v in remaining]
+        if not hits:
+            break
+        pos, value = min(hits)
+        if pos > 0:
+            run = para.add_run(remaining[:pos])
+            run.font.name = FONT
+            run.font.size = Pt(BODY_PT)
+        run = para.add_run(value)
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+        run.font.bold = True
+        remaining = remaining[pos + len(value):]
+    if remaining:
+        run = para.add_run(remaining)
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+    return para
+
+
+def _add_signature_rows(doc, anchor, section_id, values, rb=None):
+    """Builds a section's signature block exactly as the rulebook lays it
+    out: which rows, whose name on each, the label under each name, the
+    tab positions of the signature and date lines, and the blank
+    paragraphs between rows.
+
+    A row whose name field is empty is dropped unless the rulebook marks
+    it allow_blank_name — the External Supervisor line is printed blank on
+    purpose, but a missing Dean is simply not printed rather than shown as
+    an empty slot.
+    """
+    spec = rulebook.signature_block_spec(section_id, rb) or {}
+    rows = spec.get("rows") or []
+    if not rows:
+        return []
+
+    line_spacing = rulebook.line_spacing_value(spec.get("line_spacing"), default=1.0)
+    space_before = Pt(spec.get("space_before_pt") or 0)
+    space_after = Pt(spec.get("space_after_pt") or 0)
+    tab_stops = spec.get("tab_stops_inches") or []
+    label_pt = spec.get("label_size_pt") or BODY_PT
+    gap = int(spec.get("spacer_paragraphs_between_rows") or 0)
+    name_bold = bool(spec.get("name_bold"))
+    sig_rule = "_" * int(spec.get("signature_rule_chars") or 20)
+    date_rule = "_" * int(spec.get("date_rule_chars") or 14)
+    created = []
+
+    def new_line():
+        para = _new_prepended_paragraph(doc, anchor)
+        para.paragraph_format.line_spacing = line_spacing
+        para.paragraph_format.space_before = space_before
+        para.paragraph_format.space_after = space_after
+        for stop in tab_stops:
+            try:
+                para.paragraph_format.tab_stops.add_tab_stop(Inches(float(stop)))
+            except Exception:
+                pass
+        created.append(para)
+        return para
+
+    for position, row in enumerate(rows):
+        name_field = row.get("name_field")
+        name = (values.get(name_field) or "").strip() if name_field else ""
+        if name_field and not name and not row.get("allow_blank_name"):
+            continue
+        if not name and row.get("blank_name_text"):
+            # No name supplied, and the rulebook says what to print in its
+            # place — the External Supervisor line is signed on the day, so
+            # it carries its role instead of a name.
+            name = rulebook.fill_template(row["blank_name_text"], values)
+
+        # The rulebook names each column of the row, and the labels line
+        # beneath it has one entry per column. Nothing is appended here
+        # that the rulebook did not ask for, so a Declaration row that is
+        # just a signature and a date does not sprout a third label.
+        cells = []
+        for column in row.get("columns") or []:
+            if column == "name":
+                cells.append(name)
+            elif column == "signature_line":
+                cells.append(sig_rule)
+            elif column == "date_line":
+                cells.append(date_rule)
+            else:
+                cells.append(rulebook.fill_template(column, values))
+
+        top = new_line()
+        run = top.add_run("\t".join(cells))
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+        run.font.bold = name_bold and bool(name)
+
+        labels = [rulebook.fill_template(label, values)
+                  for label in (row.get("labels") or [])]
+        if labels:
+            bottom = new_line()
+            run = bottom.add_run("\t".join(labels))
+            run.font.name = FONT
+            run.font.size = Pt(label_pt)
+
+        if gap and position < len(rows) - 1:
+            for _ in range(gap):
+                created.append(_new_prepended_paragraph(doc, anchor))
+
+    return created
+
+
 def generate_prelim_pages(doc, prelim_toggles, personal, ai_content,
                           has_dedication, has_acknowledgement,
                           prelim=None, before_element=None):
@@ -1631,100 +2157,75 @@ def generate_prelim_pages(doc, prelim_toggles, personal, ai_content,
     examiner = (personal.get("externalExaminerName") or "").strip()
     date_line = (month.upper() + ", " + str(year)).strip(", ")
 
-    # --- Cover Page ----------------------------------------------------
-    # Full-page-height layout table (see build_full_height_layout_table):
-    # title/BY/name/matric top-anchored, month/year bottom-anchored at the
-    # page's bottom margin — spread across the whole page without
-    # overflowing, instead of bunching at the top like a plain sequence
-    # of paragraphs does.
+    # Every value the rulebook's templates can ask for, in one place. The
+    # rulebook decides which of them each page actually uses.
+    rb = rulebook.load_rulebook()
+    template_values = {
+        "project_title": topic,
+        "student_name": full_name,
+        "mat_number": matric,
+        "month_year": date_line,
+        "department": department,
+        "faculty": faculty,
+        "university": university,
+        "degree": degree,
+        "course_of_study": personal.get("courseOfStudy") or department,
+        "supervisor_name": supervisor,
+        "hod_name": hod,
+        "dean_name": dean,
+        "external_examiner_name": examiner,
+    }
+
+    # --- Cover Page ------------------------------------------------------
+    # A full-page-height layout table (see build_full_height_layout_table)
+    # so the lines spread from the top margin down to the date at the
+    # bottom margin instead of bunching at the top, and so the page cannot
+    # overflow onto a second sheet.
     if prelim_toggles.get("coverPage"):
-        cover = build_full_height_layout_table(
-            doc, anchor,
-            top_lines=[
-                (topic, True, CHAPTER_HEADING_PT),
-                ("BY", False, None),
-                (full_name, True, None),
-                (matric, False, None),
-            ],
-            bottom_lines=[(date_line, True, None)],
-        )
-        emit(PRELIM_RANK["front"], cover)
+        cover = _render_full_page_section(
+            doc, anchor, "cover_page", template_values, rb)
+        if cover is not None:
+            emit(PRELIM_RANK["front"], cover)
 
     # --- Title Page ------------------------------------------------------
     if prelim_toggles.get("titlePage"):
-        top_lines = [
-            (topic, True, CHAPTER_HEADING_PT),
-            ("BY", False, None),
-            (full_name, True, None),
-            (matric, False, None),
-        ]
-        submission_line = (
-            "A PROJECT SUBMITTED TO THE DEPARTMENT OF " + department.upper() + ", "
-            "FACULTY OF " + faculty.upper() + ", " + university.upper() + ", IN PARTIAL "
-            "FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF " + degree.upper()
-        ).strip()
-        top_lines.append((submission_line, False, None))
-        if supervisor:
-            top_lines.append((supervisor.upper(), True, None))
-        title_page = build_full_height_layout_table(
-            doc, anchor,
-            top_lines=top_lines,
-            bottom_lines=[(date_line, True, None)],
-            page_break_before=bool(prelim_toggles.get("coverPage")),
-        )
-        emit(PRELIM_RANK["front"], title_page)
+        title_page = _render_full_page_section(
+            doc, anchor, "title_page", template_values, rb,
+            page_break_before=bool(prelim_toggles.get("coverPage")))
+        if title_page is not None:
+            emit(PRELIM_RANK["front"], title_page)
 
-    # --- Declaration -------------------------------------------------------
+    # --- Declaration -----------------------------------------------------
     if prelim_toggles.get("declaration"):
-        heading = _add_centered_line(doc, anchor, "DECLARATION", bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=20)
-        heading.paragraph_format.page_break_before = True
-        apply_heading_style(doc, heading, 1)
-        body = _new_prepended_paragraph(doc, anchor)
-        body.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        body.paragraph_format.line_spacing = 1.5
-        body.paragraph_format.space_after = Pt(20)
-        decl_text = (
-            "I, " + full_name + " (" + matric + ") hereby declare that this project titled "
-            "\u201c" + topic.title() + "\u201d represents my original work and has not "
-            "been previously submitted wholly or in part elsewhere nor in this "
-            "University for the award of any degree."
-        )
-        run = body.add_run(decl_text)
-        run.font.name = FONT
-        run.font.size = Pt(BODY_PT)
-        sig = _add_signature_block(doc, anchor, "", "Signature of Student / Date")
-        emit(PRELIM_RANK["declaration"], heading, body, sig)
+        heading = _new_prepended_paragraph(doc, anchor)
+        _apply_prelim_heading(doc, heading, "declaration",
+                              fallback_title="DECLARATION", rb=rb)
+        blocks = [heading]
+        body = _add_templated_body(doc, anchor, "declaration", template_values, rb)
+        if body is not None:
+            blocks.append(body)
+        decl_section = rulebook.section_by_id("declaration", rb) or {}
+        for _ in range(int(decl_section.get("spacer_before_signatures") or 0)):
+            blocks.append(_new_prepended_paragraph(doc, anchor))
+        blocks.extend(_add_signature_rows(doc, anchor, "declaration",
+                                          template_values, rb))
+        emit(PRELIM_RANK["declaration"], blocks)
 
-    # --- Certification -------------------------------------------------
+    # --- Certification ---------------------------------------------------
     if prelim_toggles.get("certification"):
-        heading = _add_centered_line(doc, anchor, "CERTIFICATION", bold=True, size_pt=CHAPTER_HEADING_PT, space_after_pt=20)
-        heading.paragraph_format.page_break_before = True
-        apply_heading_style(doc, heading, 1)
-        body = _new_prepended_paragraph(doc, anchor)
-        body.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        body.paragraph_format.line_spacing = 1.5
-        body.paragraph_format.space_after = Pt(20)
-        cert_text = (
-            "This is to certify that this project titled \u201c" + topic.title() + "\u201d "
-            "presented by " + full_name + " with matriculation number " + matric + " in the "
-            "Department of " + department + ", Faculty of " + faculty + ", " + university + ", has "
-            "met the requirements for the award of " + degree + "."
-        )
-        run = body.add_run(cert_text)
-        run.font.name = FONT
-        run.font.size = Pt(BODY_PT)
-        emit(PRELIM_RANK["certification"], heading, body)
-
-        if supervisor:
-            emit(PRELIM_RANK["certification"], _add_signature_block(doc, anchor, supervisor, "Supervisor"))
-        if hod:
-            emit(PRELIM_RANK["certification"], _add_signature_block(doc, anchor, hod, "Head of Department"))
-        if dean:
-            emit(PRELIM_RANK["certification"], _add_signature_block(doc, anchor, dean, "Dean of Faculty"))
-        if examiner:
-            emit(PRELIM_RANK["certification"], _add_signature_block(doc, anchor, examiner, "External Examiner"))
-        else:
-            emit(PRELIM_RANK["certification"], _add_blank_examiner_line(doc, anchor))
+        heading = _new_prepended_paragraph(doc, anchor)
+        _apply_prelim_heading(doc, heading, "certification",
+                              fallback_title="CERTIFICATION", rb=rb)
+        blocks = [heading]
+        body = _add_templated_body(doc, anchor, "certification", template_values, rb)
+        if body is not None:
+            blocks.append(body)
+        cert_section = rulebook.section_by_id("certification", rb) or {}
+        for _ in range(int(cert_section.get("spacer_before_signatures") or 0)):
+            blocks.append(_new_prepended_paragraph(doc, anchor))
+        blocks.extend(_add_signature_rows(doc, anchor, "certification",
+                                          template_values, rb))
+        emit(PRELIM_RANK["certification"], blocks)
 
     # --- Dedication (AI-drafted, only when genuinely missing) ---------------
     if prelim_toggles.get("dedication") and not has_dedication and ai_content.get("dedicationText"):

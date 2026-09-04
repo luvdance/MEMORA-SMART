@@ -242,7 +242,17 @@ def check_single_page_sections(doc, max_lines=34):
     not silently block the render.
     """
     findings = []
-    watched = {"CERTIFICATION", "DECLARATION"}
+    # Which sections must fit on one page is the rulebook's call, not this
+    # function's — it reads the no_overflow flag rather than carrying its
+    # own list. Cover and title pages are built as fixed-height layout
+    # tables and cannot overflow, so only the prose sections are watched.
+    watched = {
+        (section.get("title") or "").upper()
+        for section in (rb_module.load_rulebook().get("sections") or [])
+        if section.get("no_overflow") and section.get("title")
+    }
+    if not watched:
+        return findings
     current = None
     lines = 0
     start_at = 0
@@ -349,6 +359,69 @@ def check_references_sorted(doc):
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+def check_abstract_keywords(doc, rb):
+    """The rulebook requires the abstract to end with a keywords line."""
+    findings = []
+    spec = (rb_module.section_by_id("abstract", rb) or {}).get("keywords_line") or {}
+    if not spec.get("required"):
+        return findings
+    prefix = (spec.get("prefix") or "Keywords:").lower()
+
+    in_abstract = False
+    found = False
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        style = para.style.name if para.style else ""
+        if text.upper() == "ABSTRACT":
+            in_abstract = True
+            continue
+        if in_abstract:
+            if style == "Heading 1" and text:
+                break
+            if text.lower().startswith(prefix):
+                found = True
+                break
+
+    if in_abstract and not found:
+        findings.append(_finding(
+            "abstract_keywords", "warn",
+            "The abstract has no %r line. The rulebook requires one, and the "
+            "keywords have to come from the student — nothing here can "
+            "invent them." % spec.get("prefix", "Keywords:"),
+            "abstract"))
+    return findings
+
+
+def check_front_matter_order(doc, rb):
+    """Front-matter sections must appear in the rulebook's declared order."""
+    findings = []
+    expected = [
+        (s.get("title") or "").upper()
+        for s in (rb.get("sections") or [])
+        if s.get("title") and s.get("id") not in ("chapters", "references", "appendix")
+    ]
+    if not expected:
+        return findings
+
+    seen = []
+    for para in doc.paragraphs:
+        style = para.style.name if para.style else ""
+        if style != "Heading 1":
+            continue
+        title = para.text.strip().split("\n")[0].strip().upper()
+        if title in expected and title not in seen:
+            seen.append(title)
+
+    wanted = [t for t in expected if t in seen]
+    if seen != wanted:
+        findings.append(_finding(
+            "front_matter_order", "error",
+            "Front matter is out of order. The rulebook asks for %s; the "
+            "document has %s." % (" -> ".join(wanted), " -> ".join(seen)),
+            "front matter"))
+    return findings
+
+
 def validate_document(doc, classifications, paragraph_texts, rb=None):
     """Runs every check and returns a structured report.
 
@@ -366,7 +439,9 @@ def validate_document(doc, classifications, paragraph_texts, rb=None):
     findings += check_no_blank_pages(doc)
     findings += check_single_page_sections(doc)
     findings += check_abstract_word_count(doc, rb_module.abstract_constraints(rb))
+    findings += check_abstract_keywords(doc, rb)
     findings += check_references_sorted(doc)
+    findings += check_front_matter_order(doc, rb)
 
     errors = sum(1 for f in findings if f["severity"] == "error")
     warnings = sum(1 for f in findings if f["severity"] == "warn")

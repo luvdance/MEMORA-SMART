@@ -1,200 +1,584 @@
 {
   "$schema_purpose": "Machine-readable structural spec for generating university project/thesis documents. This is the SINGLE SOURCE OF TRUTH for formatting logic. Student content is injected as data — it must never be mixed into or inferred from this file.",
+  "$source": "Derived from RULE BOOK.pdf, a worked structural example covering every section from cover page to appendix. The PDF is an example of SHAPE, not of content: no chapter titles, section names, chapter counts or numbering depths from it are binding. Section numbering depth is always determined by counting dots in the document's own text, and a project may have any number of chapters.",
+  "$authoring_rule": "Every value here must be machine-readable. If a rule can only be stated in prose, it belongs in a *_note field AND in rulebook.unspecified_settings(), so the renderer reports it as unenforced instead of silently guessing.",
   "document_defaults": {
     "font": "Times New Roman",
     "font_size_pt": 12,
     "line_spacing": "double",
-    "margins_inches": { "top": 1, "bottom": 1, "left": 1.5, "right": 1 },
-    "body_alignment": "justify"
+    "margins_inches": {
+      "top": 1,
+      "bottom": 1,
+      "left": 1.5,
+      "right": 1
+    },
+    "body_alignment": "justify",
+    "body_first_line_indent_inches": 0,
+    "body_space_after_pt": 0,
+    "heading_sizes_pt": {
+      "chapter_heading": 12,
+      "section_heading": 12,
+      "subsection_heading": 12,
+      "subsubsection_heading": 12,
+      "prelim_heading": 12
+    }
   },
   "page_numbering": {
-    "front_matter": { "style": "lowercase_roman", "start": "i", "position": "bottom_center" },
-    "body": { "style": "arabic", "start": 1, "reset_at": "chapter_one", "position": "top_right_or_bottom_center" }
+    "front_matter": {
+      "style": "lowercase_roman",
+      "start": "i",
+      "position": "bottom_center",
+      "show_on_cover_page": false
+    },
+    "body": {
+      "style": "arabic",
+      "start": 1,
+      "reset_at": "chapter_one",
+      "position": "bottom_center"
+    }
   },
   "sections": [
     {
       "id": "cover_page",
       "title": null,
-      "roman_numeral": null,
-      "page_break_after": true,
       "no_overflow": true,
-      "layout": "centered_block",
+      "layout": "full_page_spread",
       "elements": [
-        { "type": "project_title", "style": "bold_caps_centered", "space_after_paragraphs": 3 },
-        { "type": "student_name", "style": "bold_centered" },
-        { "type": "mat_number", "style": "bold_centered" },
-        { "type": "spacer_block", "min_paragraphs": 3 },
-        { "type": "month_year", "style": "bold_centered", "position": "bottom_of_page" }
+        {
+          "type": "project_title",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center",
+          "anchor": "top"
+        },
+        {
+          "type": "spacer",
+          "paragraphs": 3
+        },
+        {
+          "type": "student_name",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center"
+        },
+        {
+          "type": "mat_number",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center"
+        },
+        {
+          "type": "spacer",
+          "paragraphs": 3
+        },
+        {
+          "type": "month_year",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center",
+          "anchor": "bottom"
+        }
       ],
-      "notes": "No department/supervisor text on this page — that belongs on title page."
+      "excluded_elements": [
+        "submission_statement",
+        "supervisor_name",
+        "department",
+        "faculty",
+        "university"
+      ],
+      "excluded_elements_note": "The cover page carries the title, the student, and the date only. Department and supervisor details belong on the title page."
     },
     {
       "id": "title_page",
       "title": null,
-      "roman_numeral": "ii",
-      "page_break_after": true,
+      "page_break_before": true,
       "no_overflow": true,
-      "layout": "centered_block",
+      "layout": "full_page_spread",
       "elements": [
-        { "type": "project_title", "style": "bold_caps_centered" },
-        { "type": "student_name", "style": "bold_centered" },
-        { "type": "mat_number", "style": "bold_centered" },
-        { "type": "submission_statement", "style": "justified_centered_block",
-          "template": "A PROJECT SUBMITTED TO THE DEPARTMENT OF {department}, FACULTY OF {faculty}, {university}, IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF {degree} DEGREE IN {course_of_study}" },
-        { "type": "supervisor_name", "style": "bold_centered" },
-        { "type": "month_year", "style": "bold_centered", "position": "bottom_of_page" }
+        {
+          "type": "project_title",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center",
+          "anchor": "top"
+        },
+        {
+          "type": "spacer",
+          "paragraphs": 3
+        },
+        {
+          "type": "student_name",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center"
+        },
+        {
+          "type": "mat_number",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center"
+        },
+        {
+          "type": "spacer",
+          "paragraphs": 3
+        },
+        {
+          "type": "submission_statement",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center",
+          "template": "A PROJECT SUBMITTED TO THE DEPARTMENT OF {department}, FACULTY OF {faculty}, {university}, IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF {degree} DEGREE IN {course_of_study}"
+        },
+        {
+          "type": "spacer",
+          "paragraphs": 1
+        },
+        {
+          "type": "supervisor_line",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center",
+          "template": "SUPERVISOR: {supervisor_name}"
+        },
+        {
+          "type": "spacer",
+          "paragraphs": 1
+        },
+        {
+          "type": "month_year",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center",
+          "anchor": "bottom"
+        }
       ]
     },
     {
       "id": "declaration",
       "title": "DECLARATION",
-      "roman_numeral": "iii",
-      "page_break_after": true,
-      "heading_style": "bold_centered",
-      "elements": [
-        { "type": "declaration_statement", "alignment": "justify",
-          "template": "I, {student_name_upper} ({mat_number}) hereby declare that this project {project_title} represents my original work and has not been previously submitted wholly or in part elsewhere nor in this University for the award of any degree." },
-        { "type": "signature_block", "paragraph_spacing_pt": 0, "line_spacing": "single",
-          "rows": [
-            { "line": "signature", "label": "Signature of Student", "date_line": true }
-          ]
+      "page_break_before": true,
+      "no_overflow": true,
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 20
+      },
+      "body": {
+        "alignment": "justify",
+        "line_spacing": "double",
+        "template": "I, {student_name} ({mat_number}) hereby declare that this project {project_title} represents my original work and has not been previously submitted wholly or in part elsewhere nor in this University for the award of any degree.",
+        "bold_fields": [
+          "student_name"
+        ],
+        "field_case": {
+          "project_title": "title"
         }
-      ]
+      },
+      "spacer_before_signatures": 2,
+      "signature_block": {
+        "line_spacing": "single",
+        "space_before_pt": 0,
+        "space_after_pt": 0,
+        "signature_rule_chars": 24,
+        "date_rule_chars": 16,
+        "tab_stops_inches": [
+          3.3
+        ],
+        "label_size_pt": 12,
+        "rows": [
+          {
+            "name_field": null,
+            "columns": [
+              "signature_line",
+              "date_line"
+            ],
+            "labels": [
+              "Signature of Student",
+              "Date"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "certification",
       "title": "CERTIFICATION",
-      "roman_numeral": "iv",
-      "page_break_after": true,
+      "page_break_before": true,
       "no_overflow": true,
-      "heading_style": "bold_centered",
-      "elements": [
-        { "type": "certification_statement", "alignment": "justify",
-          "template": "This is to certify that this project {project_title} presented by {student_name} with the matriculation number {mat_number} in the Department of {department}, Faculty of {faculty}, {university}, has met the partial requirements for the award of {degree} Degree in {course_of_study}." },
-        { "type": "signature_block", "paragraph_spacing_pt": 0, "line_spacing": "single",
-          "rows": [
-            { "role": "Supervisor", "signature_line": true, "date_line": true },
-            { "role": "Head of Department", "signature_line": true, "date_line": true },
-            { "role": "Dean", "signature_line": true, "date_line": true },
-            { "role": "External Supervisor", "signature_line": true, "date_line": true }
-          ]
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 20
+      },
+      "body": {
+        "alignment": "justify",
+        "line_spacing": "double",
+        "template": "This is to certify that this project {project_title} presented by {student_name} with the matriculation number {mat_number} in the Department of {department}, Faculty of {faculty}, {university}, has met the partial requirements for the award of {degree} Degree in {course_of_study}.",
+        "bold_fields": [
+          "student_name"
+        ],
+        "field_case": {
+          "project_title": "title"
         }
-      ]
+      },
+      "spacer_before_signatures": 1,
+      "signature_block": {
+        "line_spacing": "single",
+        "space_before_pt": 0,
+        "space_after_pt": 0,
+        "spacer_paragraphs_between_rows": 2,
+        "name_bold": true,
+        "signature_rule_chars": 20,
+        "date_rule_chars": 14,
+        "tab_stops_inches": [
+          3.3,
+          5.0
+        ],
+        "label_size_pt": 12,
+        "rows": [
+          {
+            "name_field": "supervisor_name",
+            "columns": [
+              "name",
+              "signature_line",
+              "date_line"
+            ],
+            "labels": [
+              "Supervisor",
+              "Signature",
+              "Date"
+            ],
+            "required": true
+          },
+          {
+            "name_field": "hod_name",
+            "columns": [
+              "name",
+              "signature_line",
+              "date_line"
+            ],
+            "labels": [
+              "Head of Department",
+              "Signature",
+              "Date"
+            ]
+          },
+          {
+            "name_field": "dean_name",
+            "columns": [
+              "name",
+              "signature_line",
+              "date_line"
+            ],
+            "labels": [
+              "Dean, {faculty}",
+              "Signature",
+              "Date"
+            ]
+          },
+          {
+            "name_field": "external_examiner_name",
+            "columns": [
+              "name",
+              "signature_line",
+              "date_line"
+            ],
+            "labels": [
+              "",
+              "Signature",
+              "Date"
+            ],
+            "allow_blank_name": true,
+            "blank_name_text": "(External Supervisor)"
+          }
+        ]
+      }
     },
     {
       "id": "dedication",
       "title": "DEDICATION",
-      "roman_numeral": "auto",
       "page_break_before": true,
-      "page_break_after": true,
-      "heading_style": "bold_centered",
-      "elements": [ { "type": "free_text", "alignment": "justify" } ]
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "body": {
+        "alignment": "justify",
+        "line_spacing": "double"
+      }
     },
     {
       "id": "acknowledgement",
       "title": "ACKNOWLEDGEMENT",
-      "roman_numeral": "auto",
       "page_break_before": true,
-      "page_break_after": true,
-      "heading_style": "bold_centered",
-      "elements": [ { "type": "free_text", "alignment": "justify" } ]
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "body": {
+        "alignment": "justify",
+        "line_spacing": "double"
+      }
     },
     {
       "id": "table_of_contents",
       "title": "TABLE OF CONTENTS",
-      "roman_numeral": "auto",
-      "page_break_after": true,
-      "heading_style": "bold_centered",
-      "rules": {
-        "front_matter_entries": "roman numeral page refs, correctly indented",
-        "chapter_headings": "UPPERCASE, BOLD, NOT numbered (e.g. 'CHAPTER ONE: INTRODUCTION')",
-        "section_headings": "numbered (1.1, 1.2...), indent 0.5in",
-        "auto_generated": true
-      }
+      "page_break_before": true,
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "entries": {
+        "page_number_alignment": "right",
+        "page_number_tab_inches": 6.0,
+        "tab_leader": "none",
+        "line_spacing": "single",
+        "space_after_pt": 6,
+        "front_matter": {
+          "indent_inches": 0.0,
+          "bold": false,
+          "page_number_style": "lowercase_roman"
+        },
+        "chapter": {
+          "indent_inches": 0.0,
+          "bold": true,
+          "case": "upper",
+          "numbered": false,
+          "show_page_number": false
+        },
+        "section": {
+          "indent_inches": 0.0,
+          "hanging_indent_inches": 0.5,
+          "bold": false,
+          "numbered": true
+        },
+        "back_matter": {
+          "indent_inches": 0.0,
+          "bold": true,
+          "case": "upper"
+        }
+      },
+      "auto_generated": true
     },
     {
       "id": "list_of_tables",
       "title": "LIST OF TABLES",
       "page_break_before": true,
-      "page_break_after": true,
-      "heading_style": "bold_centered",
-      "auto_generated_from": "tables_in_document"
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "column_header": {
+        "left": "Table",
+        "right": "Page",
+        "italic": true
+      },
+      "entries": {
+        "hanging_indent_inches": 0.5,
+        "page_number_tab_inches": 6.0,
+        "line_spacing": "single",
+        "space_after_pt": 6
+      },
+      "omit_when_empty": true,
+      "auto_generated_from_note": "tables_in_document"
     },
     {
       "id": "list_of_figures",
       "title": "LIST OF FIGURES",
       "page_break_before": true,
-      "page_break_after": true,
-      "heading_style": "bold_centered",
-      "auto_generated_from": "figures_in_document"
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "column_header": {
+        "left": "Figure",
+        "right": "Page",
+        "italic": true
+      },
+      "entries": {
+        "hanging_indent_inches": 0.5,
+        "page_number_tab_inches": 6.0,
+        "line_spacing": "single",
+        "space_after_pt": 6
+      },
+      "omit_when_empty": true,
+      "auto_generated_from_note": "figures_in_document"
     },
     {
       "id": "list_of_plates",
       "title": "LIST OF PLATES",
       "page_break_before": true,
-      "page_break_after": true,
-      "heading_style": "bold_centered",
-      "auto_generated_from": "plates_in_document",
-      "optional": true
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "column_header": {
+        "left": "Plate",
+        "right": "Page",
+        "italic": true
+      },
+      "entries": {
+        "hanging_indent_inches": 0.5,
+        "page_number_tab_inches": 6.0,
+        "line_spacing": "single",
+        "space_after_pt": 6
+      },
+      "omit_when_empty": true,
+      "optional": true,
+      "auto_generated_from_note": "plates_in_document"
     },
     {
       "id": "abstract",
       "title": "ABSTRACT",
       "page_break_before": true,
-      "page_break_after": true,
-      "heading_style": "bold_centered",
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
       "constraints": {
         "line_spacing": "single",
         "font_size_pt": 10,
         "word_count_min": 250,
         "word_count_max": 300,
-        "keywords_style": "bold_or_highlighted",
         "alignment": "justify"
+      },
+      "keywords_line": {
+        "prefix": "Keywords:",
+        "bold": true,
+        "required": true
       }
     },
     {
       "id": "chapters",
       "numbering": "arabic_starts_at_1",
-      "chapter_heading_style": "CENTERED, UPPERCASE, BOLD, NOT numbered (e.g. 'CHAPTER ONE') with title on next line, also centered+bold",
-      "section_heading_style": "numbered (e.g. 1.1), 0.5in indent, bold",
-      "body_alignment": "justify",
-      "default_chapters": [
-        { "n": 1, "title": "INTRODUCTION", "typical_sections": ["Background to the Study","Statement of the Problem","Objectives of the Study","Research Questions","Significance of the Study","Scope of the Study","Limitations of the Study"] },
-        { "n": 2, "title": "LITERATURE REVIEW", "typical_sections": ["Theoretical Framework","Conceptual Review"] },
-        { "n": 3, "title": "METHODOLOGY", "typical_sections": ["Research Design","Study Area","Population of the Study"] },
-        { "n": 4, "title": "RESULTS AND DISCUSSION", "typical_sections": ["Results","Discussion"] },
-        { "n": 5, "title": "SUMMARY, CONCLUSION AND RECOMMENDATIONS", "typical_sections": ["Summary","Conclusion","Recommendations"] }
-      ],
-      "note": "Chapter titles/sections are project-type-dependent (research project vs design/build project). Do not hardcode content — only structure."
+      "chapter_heading": {
+        "layout": "two_lines",
+        "line_1": {
+          "template": "CHAPTER {chapter_word}",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center",
+          "numbered": false
+        },
+        "line_2": {
+          "content": "chapter_title",
+          "case": "upper",
+          "bold": true,
+          "alignment": "center"
+        },
+        "page_break_before": true,
+        "space_after_pt": 12,
+        "keep_with_next": true
+      },
+      "section_heading": {
+        "numbered": true,
+        "number_separator": "tab",
+        "left_indent_inches": 0.0,
+        "hanging_indent_inches": 0.5,
+        "tab_stop_inches": 0.5,
+        "bold": true,
+        "case": "title",
+        "space_before_pt": 12,
+        "space_after_pt": 6,
+        "keep_with_next": true,
+        "depth_note": "Depth (1.1 vs 2.2.1 vs 2.2.1.7) is determined solely by counting dots in the heading text as it appears in the document. No depth or count is fixed here."
+      },
+      "body": {
+        "alignment": "justify",
+        "line_spacing": "double",
+        "first_line_indent_inches": 0
+      },
+      "chapter_count_note": "derived_from_document"
     },
     {
       "id": "references",
       "title": "REFERENCES",
       "page_break_before": true,
-      "heading_style": "bold_centered",
-      "rules": { "sort": "alphabetical_by_author_surname", "style": "APA", "style_override_allowed": true }
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "rules": {
+        "sort": "alphabetical_by_author_surname",
+        "style": "APA",
+        "hanging_indent_inches": 0.5,
+        "line_spacing": "single",
+        "space_after_pt": 12,
+        "alignment": "justify",
+        "style_override_allowed_note": true
+      }
     },
     {
       "id": "appendix",
       "title": "APPENDIX",
       "page_break_before": true,
-      "heading_style": "bold_centered"
+      "heading": {
+        "alignment": "center",
+        "bold": true,
+        "case": "upper",
+        "space_after_pt": 15
+      },
+      "body": {
+        "alignment": "justify",
+        "line_spacing": "double"
+      }
     }
   ],
   "table_rules": {
     "caption_position": "above",
-    "caption_style": "bold, indent 0.5in, centered above table",
-    "borders": "none except: bottom border under header row, bottom border closing the table (no side/internal borders)"
+    "caption_bold": true,
+    "caption_alignment": "left",
+    "caption_left_indent_inches": 0.0,
+    "caption_hanging_indent_inches": 0.5,
+    "caption_tab_stop_inches": 0.5,
+    "caption_number_separator": "tab",
+    "caption_space_after_pt": 6,
+    "borders": {
+      "outer_top": "single",
+      "outer_bottom": "single",
+      "outer_left": "none",
+      "outer_right": "none",
+      "inside_horizontal": "none",
+      "inside_vertical": "none",
+      "header_row_bottom": "single"
+    },
+    "header_row_bold": true,
+    "cell_alignment": "center"
   },
   "figure_rules": {
     "caption_position": "below",
-    "caption_style": "bold, centered",
-    "multiple_figures": "grid and arrange properly, caption still centered below"
+    "caption_bold": true,
+    "caption_alignment": "center",
+    "caption_space_before_pt": 6,
+    "caption_space_after_pt": 12,
+    "image_alignment": "center",
+    "multiple_figures_note": "Several figures sharing one caption should be arranged in a grid, with the caption still centred below the group. Not implemented — reported as an unenforced setting."
   },
   "global_constraints": [
     "No blank pages anywhere — delete and shift content upward",
-    "Cover page and Certification page content must never overflow onto a second page",
+    "Cover page, title page and certification page content must never overflow onto a second page",
     "Body text is always justified unless explicitly centered (headings, signature blocks, cover/title pages)",
-    "Signature/date lines use single line spacing and 0pt paragraph spacing before/after"
+    "Signature/date lines use single line spacing and 0pt paragraph spacing before/after",
+    "Every front-matter section starts on its own page",
+    "Chapter headings are never numbered with digits in the heading text — the word form is used (CHAPTER ONE), and the chapter title sits on the following line",
+    "Section numbering depth is read from the text, never assumed; a project may have any number of chapters and any depth of subsection"
   ]
 }
