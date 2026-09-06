@@ -22,8 +22,15 @@ export default function DashboardLayout({ children, title, subtitle }) {
             <p>{subtitle || "Welcome to your workspace"}</p>
           </div>
           <div className="dash-topbar__right">
-            <button className="dash-topbar__home" onClick={() => navigate("/")}>
-              <i className="fas fa-home"></i> Main Site
+            <button
+              className="dash-topbar__home"
+              onClick={() => navigate("/")}
+              aria-label="Main Site"
+              title="Main Site"
+            >
+              <i className="fas fa-home"></i>
+              {/* span so the mobile rule can collapse this to an icon-only button */}
+              <span>Main Site</span>
             </button>
             <div
               className="dash-topbar__avatar"

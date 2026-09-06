@@ -5289,3 +5289,51 @@
     display: none;
   }
 }
+/* ── INPUT + CLEAR BUTTON (date of birth and friends) ── */
+.cv-form__input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cv-form__input-wrap .cv-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cv-form__clear-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: 'Neulis', 'Raleway', sans-serif;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cv-form__clear-btn:hover {
+  background: #9D00FF;
+  border-color: #9D00FF;
+  color: #fff;
+}
+
+.cv-form__clear-btn:active {
+  transform: scale(0.9);
+}
+
+@media (max-width: 900px) {
+  .cv-form__clear-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 0.9rem;
+  }
+}

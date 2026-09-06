@@ -2016,3 +2016,24 @@
     padding: 25px;
   }
 }
+/* ── MOBILE POLISH: bottom-nav clearance + touch targets ── */
+@media screen and (max-width: 900px) {
+  /* This page renders inside .dash-content, which already reserves room for
+     the fixed bottom nav — drop its own bottom padding so the gap isn't doubled. */
+  .project-formatter {
+    padding-bottom: 8px !important;
+    overflow-x: clip;
+  }
+
+  .pf-primary-button,
+  .pf-secondary-button {
+    min-height: 44px;
+  }
+
+  .project-formatter input[type="text"],
+  .project-formatter input[type="number"],
+  .project-formatter select,
+  .project-formatter textarea {
+    font-size: 16px; /* stops iOS from zooming the page on focus */
+  }
+}

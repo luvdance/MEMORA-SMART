@@ -1030,13 +1030,37 @@ const moveEdu = (i, dir) => {
         ].map(([lbl, key, type]) => (
           <div className="cv-form__field" key={key}>
             <Label>{lbl}</Label>
-            <Input
-              type={type}
-              value={cv[key] || ""}
-              onChange={upd(key)}
-              onBlur={type === "text" && key !== "nin" ? blur(key) : undefined}
-              placeholder={lbl}
-            />
+            {type === "date" ? (
+              // Date inputs give the user no way back to an empty value once a
+              // date is picked, so pair it with an explicit clear button.
+              <div className="cv-form__input-wrap">
+                <Input
+                  type="date"
+                  value={cv[key] || ""}
+                  onChange={upd(key)}
+                  placeholder={lbl}
+                />
+                {cv[key] ? (
+                  <button
+                    type="button"
+                    className="cv-form__clear-btn"
+                    aria-label={`Clear ${lbl}`}
+                    title={`Clear ${lbl}`}
+                    onClick={() => setCV(p => ({ ...p, [key]: "" }))}
+                  >
+                    ✕
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <Input
+                type={type}
+                value={cv[key] || ""}
+                onChange={upd(key)}
+                onBlur={key !== "nin" ? blur(key) : undefined}
+                placeholder={lbl}
+              />
+            )}
           </div>
         ))}
 
