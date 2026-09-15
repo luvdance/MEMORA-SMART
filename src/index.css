@@ -1934,7 +1934,7 @@ body {
 /* ══════════════════════════════════════
    ROOT-LEVEL FIXES — ensure full width chain
 ══════════════════════════════════════ */
-html, body, #root {
+html, body {
   width: 100% !important;
   max-width: 100vw !important;
   margin: 0 !important;
