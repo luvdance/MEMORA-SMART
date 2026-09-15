@@ -6,6 +6,21 @@
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/api/academy/:action",
+      "destination": "/api/academy?action=:action"
+    },
+    {
+      "source": "/api/project-formatter/classify",
+      "destination": "/api/project-formatter/ai?action=classify"
+    },
+    {
+      "source": "/api/project-formatter/generate-content",
+      "destination": "/api/project-formatter/ai?action=generate-content"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
   ]
 }
