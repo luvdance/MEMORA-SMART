@@ -2,6 +2,12 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Global border-box. Removing this silently rewrites every width on the
+   site, because padding and borders start adding to declared widths again. */
+* {
+  box-sizing: border-box;
+}
+
 
 @font-face {
   font-family: 'Neulis';
