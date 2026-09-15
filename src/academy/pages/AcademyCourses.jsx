@@ -11,7 +11,7 @@ import { EXAMS } from "../data/exams";
 import { startAcademyJourney } from "../services/intent";
 import "../academy.css";
 
-
+//the nature of the export
 export default function AcademyCourses() {
   const navigate = useNavigate();
   const { user } = useAuth();
