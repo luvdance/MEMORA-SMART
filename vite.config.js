@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 /**
  * Serves /api/academy/assessment during `npm run dev`.
  *
- * In production Vercel runs api/academy/assessment.js as a function. Vite's
+ * In production Vercel runs api/academy/[action].js as a function. Vite's
  * dev server does not, which would leave the assessment step dead locally and
  * push someone toward "just grade it in the browser" — which would put the
  * answer key in the bundle.
