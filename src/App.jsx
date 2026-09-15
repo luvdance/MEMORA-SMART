@@ -16,6 +16,14 @@ import LeadMagnetContentCreation from "./pages/LeadMagnetContentCreation";
 import LeadMagnetComputerSkills from "./pages/LeadMagnetComputerSkills";
 import Library from "./pages/Library";
 import ProjectPilot from "./project-formatter/PilotLandingPage";
+import AcademyLanding from "./academy/pages/AcademyLanding";
+import AcademyCourses from "./academy/pages/AcademyCourses";
+import AcademyEnroll from "./academy/pages/AcademyEnroll";
+import AcademyJobs from "./academy/pages/AcademyJobs";
+import AcademyLearn from "./academy/pages/AcademyLearn";
+import AcademyProfile from "./academy/pages/AcademyProfile";
+import LessonPlayer from "./academy/pages/LessonPlayer";
+import AcademyRoute from "./academy/components/AcademyRoute";
 
 function App() {
   return (
@@ -41,6 +49,52 @@ function App() {
       <Route path="/digital-skills" element={<LeadMagnetComputerSkills />} />
       <Route path="/library" element={<Library />} />
       <Route path="/projectpilot" element={<ProjectPilot />} />
+
+      {/* ── Memora Smart Academy ──
+          Public landing, then everything behind AcademyRoute, which also
+          guarantees a student record and Memora ID exist. */}
+      <Route path="/academy" element={<AcademyLanding />} />
+      <Route path="/academy/courses" element={<AcademyCourses />} />
+      <Route
+        path="/academy/enroll/:slug"
+        element={
+          <AcademyRoute>
+            <AcademyEnroll />
+          </AcademyRoute>
+        }
+      />
+      <Route
+        path="/academy/learn"
+        element={
+          <AcademyRoute>
+            <AcademyLearn />
+          </AcademyRoute>
+        }
+      />
+      <Route
+        path="/academy/learn/:slug/:lessonId"
+        element={
+          <AcademyRoute>
+            <LessonPlayer />
+          </AcademyRoute>
+        }
+      />
+      <Route
+        path="/academy/jobs"
+        element={
+          <AcademyRoute>
+            <AcademyJobs />
+          </AcademyRoute>
+        }
+      />
+      <Route
+        path="/academy/profile"
+        element={
+          <AcademyRoute>
+            <AcademyProfile />
+          </AcademyRoute>
+        }
+      />
     </Routes>
   );
 }

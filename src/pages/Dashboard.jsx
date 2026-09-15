@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Overview from "./dashboard/Overview";
 import Profile from "./dashboard/Profile";
 import CVBuilder from "./CVBuilder";
@@ -32,7 +32,9 @@ export default function Dashboard() {
       <Route path="project-formatter" element={<ProjectFormatter />} />
       <Route path="web-builder" element={<ComingSoon name="Website Builder" />} />
       <Route path="app-builder" element={<ComingSoon name="Mobile App Builder" />} />
-      <Route path="data-analysis" element={<ComingSoon name="Data Analysis" />} />
+      {/* Data Analysis is now a course inside the Academy, not a standalone
+          app. Redirect so any old link or bookmark still lands somewhere. */}
+      <Route path="data-analysis" element={<Navigate to="/academy" replace />} />
       <Route path="ai-automation" element={<ComingSoon name="AI Automation" />} />
       <Route path="settings" element={<ComingSoon name="Settings" />} />
       <Route path="payments" element={<Payments />} />

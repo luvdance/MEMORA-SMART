@@ -9,9 +9,9 @@ const navItems = [
 
 const apps = [
   { label: "CV Builder", icon: "fas fa-file-alt", path: "/dashboard/cv-builder", tag: "Live" },
+  { label: "Academy", icon: "fas fa-graduation-cap", path: "/academy", tag: "Live" },
   { label: "Website Builder", icon: "fas fa-laptop-code", path: "/dashboard/web-builder", tag: "Soon" },
   { label: "Mobile App Builder", icon: "fas fa-mobile-alt", path: "/dashboard/app-builder", tag: "Soon" },
-  { label: "Data Analysis", icon: "fas fa-chart-line", path: "/dashboard/data-analysis", tag: "Soon" },
   { label: "AI Automation", icon: "fas fa-robot", path: "/dashboard/ai-automation", tag: "Soon" },
 ];
 

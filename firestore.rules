@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // EXISTING RULES — unchanged
+    // ═══════════════════════════════════════════════════════════════
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /cvs/{cvId} {
+      allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    match /pending_transfers/{transferId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null;
+    }
+
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MEMORA SMART ACADEMY
+    //
+    // TRUST LEVEL: PREVIEW.
+    //
+    // There is no Firebase service account configured for this project, so
+    // there is no server able to write these documents. Progress is therefore
+    // written by the signed-in client, and these rules constrain the SHAPE of
+    // those writes rather than their honesty.
+    //
+    // What these rules DO guarantee:
+    //   · nobody can read another student's record
+    //   · a Memora ID, once issued, can never be changed or reassigned
+    //   · a Memora ID can never be claimed twice (create-only on the key)
+    //   · the ID counter can only ever move forward by one
+    //
+    // What they CANNOT guarantee:
+    //   · that a score or XP total is honest. A determined user could write
+    //     themselves a pass.
+    //
+    // Certificates must not be issued on this trust level. Before that ships:
+    // add FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY, move the progress
+    // writes into /api/academy/*, and set students/{uid} back to
+    // `allow write: if false`.
+    // ═══════════════════════════════════════════════════════════════
+
+    match /students/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+
+      allow create: if isSignedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.uid == uid
+                    && request.resource.data.xp == 0;
+
+      // The Memora ID is permanent: an update may never CHANGE it. The
+      // get(..., default) form also lets a record that somehow exists without
+      // an ID receive its first one, instead of being permanently stuck.
+      allow update: if isSignedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.memoraId ==
+                       resource.data.get('memoraId', request.resource.data.memoraId);
+
+      allow delete: if false;
+
+      // Enrollments and per-lesson progress.
+      match /{document=**} {
+        allow read, write: if isSignedIn() && request.auth.uid == uid;
+      }
+    }
+
+    // Memora ID → uid claim. Create-only: Firestore guarantees atomicity on
+    // the document key, so two people cannot claim the same ID. Never
+    // updatable or deletable, so an ID cannot be reassigned.
+    match /memoraIds/{memoraId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Certificates stay server-only. Nothing issues them yet, and nothing
+    // should be able to until the trust level above is raised.
+    match /certificates/{certificateId} {
+      allow read, write: if false;
+    }
+
+    // The ID sequence. It may only advance by exactly one, so a client cannot
+    // jump the counter — except at a year boundary, where the sequence
+    // restarts at 1 under a new year. Without that second clause every signup
+    // on 1 January would be rejected.
+    match /counters/memoraId {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.seq == 1;
+      allow update: if isSignedIn()
+                    && (
+                      request.resource.data.seq == resource.data.seq + 1
+                      || (
+                        request.resource.data.year != resource.data.year
+                        && request.resource.data.seq == 1
+                      )
+                    );
+      allow delete: if false;
+    }
+  }
+}

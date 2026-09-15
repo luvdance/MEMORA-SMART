@@ -5,14 +5,15 @@ import heroImage from "../assets/hero image.png";
 const services = [
   { icon: "fas fa-laptop-code", label: "Build Websites" },
   { icon: "fas fa-mobile-alt", label: "Build Mobile Apps" },
-  { icon: "fas fa-chart-line", label: "Learn Data Analysis" },
-  { icon: "fas fa-code", label: "Learn Web Development" },
+  { icon: "fas fa-chart-line", label: "Learn Data Analysis", path: "/academy" },
+  { icon: "fas fa-code", label: "Learn Web Development", path: "/academy" },
   { icon: "fas fa-file-alt", label: "Create a CV in Mins", path: "/cv-builder" },
   { icon: "fas fa-robot", label: "AI Automation for Businesses" },
-  { icon: "fas fa-calculator", label: "Learn Elementary Mathematics" },
-  { icon: "fas fa-atom", label: "Learn Physics" },
-  { icon: "fas fa-flask", label: "Learn Chemistry" },
+  { icon: "fas fa-calculator", label: "Learn Elementary Mathematics", path: "/academy" },
+  { icon: "fas fa-atom", label: "Learn Physics", path: "/academy" },
+  { icon: "fas fa-flask", label: "Learn Chemistry", path: "/academy" },
   { icon: "fas fa-book", label: "Read & Buy E-books", path: "/library" },
+  { icon: "fas fa-graduation-cap", label: "Memora Academy", path: "/academy" },
   { icon: "fas fa-ellipsis-h", label: "More" },
 ];
 

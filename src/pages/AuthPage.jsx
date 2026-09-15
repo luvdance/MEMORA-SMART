@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { intentPath, readIntent } from "../academy/services/intent";
 import "./AuthPage.css";
 
 const perks = [
@@ -47,7 +48,15 @@ export default function AuthPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || "/dashboard";
+  // Router state is lost when a new user returns via the email-verification
+  // link (that is a fresh page load), so a stored Academy intent is the
+  // fallback. Without it, someone who set out to enroll on a course lands on
+  // the product dashboard instead.
+  const academyIntent = readIntent();
+  const from =
+    location.state?.from ||
+    (academyIntent ? intentPath(academyIntent) : null) ||
+    "/dashboard";
 
   // ── Show success on verified redirect ──
   useEffect(() => {

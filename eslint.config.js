@@ -26,4 +26,13 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Server-side code: Vercel functions, shared lib modules and build config
+    // run in Node, not the browser, so `process`, `Buffer` and friends exist.
+    // Without this every server file reported `'process' is not defined`.
+    files: ['api/**/*.js', 'lib/**/*.{js,mjs}', 'lib_py/**/*.js', '*.config.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "validate:content": "node lib/academy/validateContent.mjs",
+    "test:academy": "node lib/academy/selfTest.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -27,13 +27,6 @@ const apps = [
     path: null,
   },
   {
-    icon: "fas fa-chart-line",
-    name: "Data Analysis",
-    desc: "Upload your data and get AI-powered insights, charts and reports instantly.",
-    tag: "Coming Soon",
-    path: null,
-  },
-  {
     icon: "fas fa-robot",
     name: "AI Automation",
     desc: "Automate your business workflows with powerful AI integrations.",
@@ -43,9 +36,9 @@ const apps = [
   {
     icon: "fas fa-graduation-cap",
     name: "Academy",
-    desc: "Learn web development, data analysis, mathematics, physics and more.",
-    tag: "Coming Soon",
-    path: null,
+    desc: "Structured courses from beginner to professional. Data Analysis with Excel, Power BI and Python is open now.",
+    tag: "Live",
+    path: "/academy",
   },
   {
     icon: "fas fa-file-word",
