@@ -8,6 +8,7 @@ import {
 import { db } from "../firebase";
 import "./Admin.css";
 import { getLaunchPromoState } from "../utils/userService";
+import AcademyAdmin from "./admin/AcademyAdmin";
 
 export default function Admin() {
   const { user, loading } = useAuth();
@@ -327,6 +328,12 @@ if (!isAdmin) return null;
           >
             <i className="fas fa-money-bill-wave"></i> Manual Transfers
           </button>
+          <button
+            className={`admin__main-tab ${mainTab === "academy" ? "admin__main-tab--active" : ""}`}
+            onClick={() => setMainTab("academy")}
+          >
+            <i className="fas fa-graduation-cap"></i> Academy
+          </button>
         </div>
 
         {/* PROMO STATUS */}
@@ -604,6 +611,8 @@ if (!isAdmin) return null;
             </div>
           </div>
         )}
+
+        {mainTab === "academy" && <AcademyAdmin />}
 
       </div>
     </div>
