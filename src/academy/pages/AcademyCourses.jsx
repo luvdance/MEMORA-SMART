@@ -11,23 +11,7 @@ import { EXAMS } from "../data/exams";
 import { startAcademyJourney } from "../services/intent";
 import "../academy.css";
 
-/**
- * THE COURSE CATALOGUE
- *
- * A dedicated page rather than an anchor on the landing page, because the
- * course list is a destination people return to, link to and share.
- *
- * Two things most LMS catalogues get wrong, and what we do instead:
- *
- *   Most hide what is not built yet, so the catalogue looks bigger than it is
- *   and a learner clicks into an empty shell. Ours labels every course with
- *   what you can actually do today, and a course that is not open cannot be
- *   clicked into.
- *
- *   Most bury the outcome. Ours puts the industry certification a course
- *   builds toward on the card itself, because that is what people are really
- *   shopping for.
- */
+
 export default function AcademyCourses() {
   const navigate = useNavigate();
   const { user } = useAuth();
