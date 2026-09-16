@@ -162,6 +162,15 @@ export const LESSONS = [
       {
         id: "a-sum",
         title: "SUM",
+        syntax: {
+          pattern: "=SUM(number1, [number2], ...)",
+          args: [
+            ["number1", "The first number, cell or range to add. A range like B2:B7 is the usual form."],
+            ["[number2], ...", "Up to 254 more numbers, cells or ranges. Separate each with a comma.", "optional"],
+          ],
+          returns: "The total of everything supplied. Text and blanks are ignored.",
+          note: "=SUM(B2:B7) adds a range. =SUM(B2,B5,B9) adds three separate cells. You can mix both: =SUM(B2:B7,D2).",
+        },
         explain: "Adds every number in a range and ignores any text or blank cells it finds.",
         why: "It is the most used function in Excel by a wide margin. Every total you have ever seen in a report started here.",
         exercise: {
@@ -182,6 +191,15 @@ export const LESSONS = [
       {
         id: "a-average",
         title: "AVERAGE",
+        syntax: {
+          pattern: "=AVERAGE(number1, [number2], ...)",
+          args: [
+            ["number1", "The first number, cell or range to average."],
+            ["[number2], ...", "Further numbers, cells or ranges.", "optional"],
+          ],
+          returns: "The arithmetic mean: the total divided by how many numbers there were.",
+          note: "Blank cells are skipped entirely, but a cell holding 0 is counted and drags the average down. That difference is the whole reason AVERAGEA exists.",
+        },
         explain:
           "Adds the numbers and divides by how many there were. =AVERAGE(B2:B5) gives the mean price.",
         why: "It quietly ignores empty cells rather than counting them as zero, which is almost always what you want and is the opposite of what a hand-written division would do.",
@@ -202,6 +220,15 @@ export const LESSONS = [
       {
         id: "a-min-max",
         title: "MIN and MAX",
+        syntax: {
+          pattern: "=MAX(number1, [number2], ...)\n=MIN(number1, [number2], ...)",
+          args: [
+            ["number1", "The first number, cell or range to search."],
+            ["[number2], ...", "Further numbers, cells or ranges.", "optional"],
+          ],
+          returns: "MAX returns the largest value found, MIN the smallest.",
+          note: "Both ignore text and blanks. If every cell supplied is text or empty, they return 0 rather than an error.",
+        },
         explain:
           "MIN returns the smallest number in a range and MAX the largest. =MAX(C2:C5) tells you the biggest quantity you stock.",
         why: "They are how you find the extremes without sorting the whole sheet, which matters once a sort would disturb other people's formulas.",
@@ -221,6 +248,15 @@ export const LESSONS = [
       {
         id: "a-count-counta",
         title: "COUNT and COUNTA, which are not the same",
+        syntax: {
+          pattern: "=COUNT(value1, [value2], ...)\n=COUNTA(value1, [value2], ...)",
+          args: [
+            ["value1", "The first cell or range to count."],
+            ["[value2], ...", "Further cells or ranges.", "optional"],
+          ],
+          returns: "COUNT returns how many cells hold NUMBERS. COUNTA returns how many are NOT EMPTY.",
+          note: "The gap between the two is your missing-data count: =COUNTA(B2:B100)-COUNT(B2:B100) tells you how many entries are text where numbers were expected.",
+        },
         explain:
           "COUNT counts cells containing numbers. COUNTA counts cells that are not empty, whatever is in them.",
         why: "This is a favourite exam question and a common real-world bug. Run COUNT down a column of product names and you get 0, because names are not numbers.",
@@ -268,6 +304,16 @@ export const LESSONS = [
       {
         id: "a-if",
         title: "IF",
+        syntax: {
+          pattern: "=IF(logical_test, value_if_true, [value_if_false])",
+          args: [
+            ["logical_test", "Anything that resolves to TRUE or FALSE, such as C2>500000 or A2=\"Lagos\"."],
+            ["value_if_true", "What to return when the test is TRUE. Text must be in double quotes."],
+            ["[value_if_false]", "What to return when the test is FALSE. Omit it and Excel returns the word FALSE, which is almost never what you want.", "optional"],
+          ],
+          returns: "One of the two values you supplied.",
+          note: "Always supply the third argument. \"\" gives you a clean blank instead of the word FALSE.",
+        },
         explain:
           "IF asks a question and gives one answer when it is true and another when it is false. =IF(C2<100,\"Reorder\",\"OK\") checks whether the quantity is under 100.",
         why: "It turns a sheet of numbers into something that tells you what to do. A stock list with a Reorder column is useful to a shopkeeper; a stock list of quantities is homework.",

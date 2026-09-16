@@ -4,6 +4,9 @@ import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
 import { LESSONS as FORMULAS } from "./m1-formulas-functions.js";
 import { LESSONS as FORMULAS_2 } from "./m1-formulas-part2.js";
 import { LESSONS as CLEANING } from "./m1-clean-structure.js";
+import { LESSONS as EXPLORATORY } from "./m2-exploratory.js";
+import { LESSONS as PIVOTS } from "./m2-pivots.js";
+import { LESSONS as DASHBOARDS } from "./m2-kpis-dashboards.js";
 
 /**
  * LESSON REGISTRY
@@ -27,6 +30,9 @@ const REGISTRY = {
     "m1-formulas-functions": [...FORMULAS, ...FORMULAS_2.filter(
       (l) => l.moduleId === "m1-formulas-functions"
     )],
+    "m2-exploratory": EXPLORATORY,
+    "m2-pivots": PIVOTS,
+    "m2-kpis-dashboards": DASHBOARDS,
   },
 };
 

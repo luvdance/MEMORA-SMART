@@ -6,6 +6,10 @@ import AcademyNav from "../components/AcademyNav";
 import LessonSidebar from "../components/LessonSidebar";
 import AssessmentPanel from "../components/AssessmentPanel";
 import AtomTable from "../components/AtomTable";
+import FormulaSyntax from "../components/FormulaSyntax";
+import PivotSim from "../components/PivotSim";
+import AcademyChart, { KpiRow } from "../components/AcademyChart";
+import ChartChoice from "../components/ChartChoice";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
 import { getCatalogEntry } from "../data/catalog";
@@ -140,7 +144,12 @@ export default function LessonPlayer() {
   // Deliberately NOT exempting atoms in `done`: that record only means the
   // atom was moved past, and atoms completed before this gate existed were
   // never checked. Trusting it would mark a skipped exercise as passed.
-  const practiceUnsolved = Boolean(atom?.exercise && !solved.has(atom.id));
+  // Either kind of practice — a formula in a cell, or a pivot arrangement —
+  // gates progression. Without the pivot half, a learner could walk past the
+  // only atom in the module that actually proves they can build one.
+  const practiceUnsolved = Boolean(
+    (atom?.exercise || atom?.pivotExercise || atom?.chartChoice) && !solved.has(atom.id)
+  );
 
   async function handleGotIt() {
     if (!atom) return;
@@ -149,8 +158,10 @@ export default function LessonPlayer() {
     // check happens here and explains itself instead of silently refusing.
     if (practiceUnsolved) {
       setPracticeWarning(true);
+      // Scroll to whichever kind of practice this atom carries, so the warning
+      // never points at something off screen.
       document
-        .querySelector(".ac-sheet-sim")
+        .querySelector(".ac-sheet-sim, .ac-pivot, .ac-choice")
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
@@ -266,6 +277,10 @@ export default function LessonPlayer() {
 
               <p className="ac-atomview__explain">{atom.explain}</p>
 
+              {/* Signature first: a learner who knows the shape of a function
+                  can generalise it, instead of copying one worked example. */}
+              {atom.syntax && <FormulaSyntax syntax={atom.syntax} />}
+
               {atom.why && (
                 <div className="ac-note ac-note--why">
                   <span className="ac-note__label">Why it matters</span>
@@ -310,6 +325,48 @@ export default function LessonPlayer() {
                 />
               )}
 
+              {/* Stat tiles. A single headline number is not a chart, and
+                  drawing it as one wastes the space it needs. */}
+              {atom.kpis && <KpiRow items={atom.kpis} />}
+
+              {/* Charts, rendered from the same numbers the lesson quotes. */}
+              {atom.charts &&
+                atom.charts.map((c, i) => <AcademyChart key={i} {...c} />)}
+
+              {atom.chartChoice && (
+                <ChartChoice
+                  key={atom.id}
+                  {...atom.chartChoice}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={() => {
+                    setSolved((prev) => new Set(prev).add(atom.id));
+                    setPracticeWarning(false);
+                    completePractice(user, slug, lesson.id, atom.id).catch(
+                      (err) => console.error("Could not save practice", err)
+                    );
+                  }}
+                />
+              )}
+
+              {/* A live pivot table. `pivot` demonstrates, `pivotExercise`
+                  asks the learner to arrange the fields themselves. */}
+              {(atom.pivot || atom.pivotExercise) && (
+                <PivotSim
+                  key={atom.id}
+                  source={atom.pivot?.source || atom.pivotExercise?.source}
+                  initial={atom.pivot?.initial || atom.pivotExercise?.initial || {}}
+                  exercise={atom.pivotExercise || null}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={() => {
+                    setSolved((prev) => new Set(prev).add(atom.id));
+                    setPracticeWarning(false);
+                    completePractice(user, slug, lesson.id, atom.id).catch(
+                      (err) => console.error("Could not save practice", err)
+                    );
+                  }}
+                />
+              )}
+
               {atom.example && (
                 <div className="ac-note ac-note--example">
                   <span className="ac-note__label">Example</span>
@@ -330,12 +387,28 @@ export default function LessonPlayer() {
                 <p className="ac-gate" role="alert">
                   <i className="fas fa-circle-exclamation" aria-hidden="true" />
                   <span>
-                    <strong>Not yet. Finish the practice first.</strong> Your
-                    answer in cell {atom.exercise.target} is not right yet. Type
-                    a formula there and press <em>Check my answer</em>. It is not
-                    marked or timed and you can try as many times as you like,
-                    but this one is worth getting working before the idea moves
-                    on.
+                    <strong>Not yet. Finish the practice first.</strong>{" "}
+                    {atom.exercise ? (
+                      <>
+                        Your answer in cell {atom.exercise.target} is not right
+                        yet. Type a formula there and press{" "}
+                        <em>Check my answer</em>.
+                      </>
+                    ) : atom.pivotExercise ? (
+                      <>
+                        Your pivot is not arranged correctly yet. Move the
+                        fields between the areas and press{" "}
+                        <em>Check my pivot</em>.
+                      </>
+                    ) : (
+                      <>
+                        You have not picked the right chart yet. Compare the
+                        options and press <em>Check my choice</em>.
+                      </>
+                    )}{" "}
+                    It is not marked or timed and you can try as many times as
+                    you like, but this one is worth getting working before the
+                    idea moves on.
                   </span>
                 </p>
               )}

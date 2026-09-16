@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   evaluateFormula,
   evaluateSheet,
@@ -60,6 +60,73 @@ export default function ExcelGrid({
   const [cellFormats, setCellFormats] = useState(() => ({ ...formats }));
   const values = useMemo(() => evaluateSheet(cells), [cells]);
 
+  /* ── FILL HANDLE ──────────────────────────────────────────────────────
+   * The small square on the bottom-right of the selected cell. Dragging it
+   * down is how real Excel users copy a formula, and it is the moment
+   * relative references stop being theory: B2*C2 becomes B3*C3 on its own.
+   *
+   * `drag` holds the row the pointer is currently over, so the range can be
+   * outlined before the learner commits to it — the same preview Excel shows.
+   * Pointer events (not mouse) so this works under a finger as well as a
+   * mouse, and elementFromPoint because the pointer is captured by the handle
+   * once the drag starts, which means the cells never receive their own
+   * enter events.
+   */
+  const [drag, setDrag] = useState(null); // { fromRef, fromRow, col, toRow }
+
+  const fillRange = useMemo(() => {
+    if (!drag || drag.toRow <= drag.fromRow) return [];
+    const out = [];
+    for (let r = drag.fromRow + 1; r <= drag.toRow; r += 1) {
+      out.push(toRef({ col: drag.col, row: r }));
+    }
+    return out;
+  }, [drag]);
+
+  const applyFill = (fromRef, toRow) => {
+    const here = parseRef(fromRef);
+    if (!here || toRow <= here.row) return;
+    const filled = fillDown(cells, fromRef, toRef({ col: here.col, row: toRow }));
+    if (Object.keys(filled).length === 0) return;
+    setCells((prev) => ({ ...prev, ...filled }));
+    setChecked(null);
+  };
+
+  useEffect(() => {
+    if (!drag) return undefined;
+
+    const rowUnder = (x, y) => {
+      const el = document.elementFromPoint(x, y);
+      const cell = el && el.closest?.("[data-ref]");
+      if (!cell) return null;
+      const parsed = parseRef(cell.getAttribute("data-ref"));
+      return parsed && parsed.col === drag.col ? parsed.row : null;
+    };
+
+    const onMove = (event) => {
+      const row = rowUnder(event.clientX, event.clientY);
+      if (row === null) return;
+      const clamped = Math.max(drag.fromRow, Math.min(rows - 1, row));
+      setDrag((d) => (d && d.toRow !== clamped ? { ...d, toRow: clamped } : d));
+    };
+
+    const onUp = () => {
+      setDrag((d) => {
+        if (d) applyFill(d.fromRef, d.toRow);
+        return null;
+      });
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  });
+
   const colLetters = Array.from({ length: cols }, (_, i) => toRef({ col: i, row: 0 }).replace(/\d/g, ""));
 
   function startEdit(ref) {
@@ -114,7 +181,14 @@ export default function ExcelGrid({
     }
 
     if (exercise.mustUse) {
-      const used = new RegExp(`\\b${exercise.mustUse}\\s*\\(`, "i").test(typed);
+      // The optional `.SUFFIX` lets a lesson ask for MODE, STDEV or QUARTILE
+      // and still accept the modern dotted spelling the learner was actually
+      // shown — MODE.SNGL, STDEV.S, QUARTILE.INC — as well as the legacy name.
+      // Without it, typing the correct modern function was marked wrong.
+      const used = new RegExp(
+        `\\b${exercise.mustUse}(\\.[A-Z]+)?\\s*\\(`,
+        "i"
+      ).test(typed);
       if (!used) {
         return setChecked({
           ok: false,
@@ -230,9 +304,14 @@ export default function ExcelGrid({
                   const locked = exercise?.lockedCells?.includes(ref);
                   const isTarget = exercise?.target === ref;
 
+                  const inFillPreview = fillRange.includes(ref);
+                  const showHandle =
+                    !readOnly && allowFill && selected === ref && editing !== ref;
+
                   return (
                     <td
                       key={ref}
+                      data-ref={ref}
                       className={[
                         "ac-cell",
                         selected === ref ? "is-selected" : "",
@@ -241,6 +320,7 @@ export default function ExcelGrid({
                         isNumber ? "is-number" : "",
                         isError ? "is-error" : "",
                         isFormula ? "has-formula" : "",
+                        inFillPreview ? "is-fill-preview" : "",
                       ].filter(Boolean).join(" ")}
                       onClick={() => {
                         setSelected(ref);
@@ -260,6 +340,32 @@ export default function ExcelGrid({
                       ) : (
                         <span>{display}</span>
                       )}
+
+                      {showHandle && (
+                        <span
+                          className="ac-cell__fill-handle"
+                          role="button"
+                          tabIndex={-1}
+                          aria-label={`Fill handle for ${ref}. Drag down to copy this cell, or double-click to fill the column.`}
+                          title="Drag down to copy. Double-click to fill to the bottom."
+                          onPointerDown={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            const here = parseRef(ref);
+                            if (!here) return;
+                            setDrag({
+                              fromRef: ref,
+                              fromRow: here.row,
+                              col: here.col,
+                              toRow: here.row,
+                            });
+                          }}
+                          onDoubleClick={(event) => {
+                            event.stopPropagation();
+                            applyFill(ref, rows - 1);
+                          }}
+                        />
+                      )}
                     </td>
                   );
                 })}
@@ -271,17 +377,24 @@ export default function ExcelGrid({
 
       {!readOnly && allowFill && (
         <div className="ac-sheet-sim__tools">
+          <span className="ac-sheet-sim__fillhint">
+            {drag && drag.toRow > drag.fromRow ? (
+              <>
+                Filling <strong>{drag.fromRef}</strong> down to{" "}
+                <strong>{toRef({ col: drag.col, row: drag.toRow })}</strong> —
+                release to copy
+              </>
+            ) : (
+              <>
+                Drag the small square on the corner of <strong>{selected}</strong>{" "}
+                to copy it down, exactly as you would in Excel.
+              </>
+            )}
+          </span>
+
           <button
             className="ac-sheet-sim__tool"
-            onClick={() => {
-              const here = parseRef(selected);
-              if (!here) return;
-              const last = toRef({ col: here.col, row: rows - 1 });
-              const filled = fillDown(cells, selected, last);
-              if (Object.keys(filled).length === 0) return;
-              setCells((prev) => ({ ...prev, ...filled }));
-              setChecked(null);
-            }}
+            onClick={() => applyFill(selected, rows - 1)}
             title="Copy this cell down the rest of the column, as the fill handle does"
           >
             <i className="fas fa-arrow-down" aria-hidden="true" />

@@ -89,6 +89,15 @@ export const LESSONS = [
       {
         id: "a-countif",
         title: "COUNTIF",
+        syntax: {
+          pattern: "=COUNTIF(range, criteria)",
+          args: [
+            ["range", "The cells to examine."],
+            ["criteria", "The condition a cell must meet. Text and operators go in double quotes: \"Lagos\", \">500000\", \"<>\" for non-blank."],
+          ],
+          returns: "How many cells in the range meet the condition.",
+          note: "A bare number needs no quotes (=COUNTIF(C2:C7,500000)) but anything with an operator does (=COUNTIF(C2:C7,\">500000\")).",
+        },
         explain:
           "COUNTIF counts only the cells that meet one condition. =COUNTIF(B2:B7,\"Lagos\") counts the Lagos reps. =COUNTIF(C2:C7,\">500000\") counts reps above half a million in sales.",
         why: "This is how you answer \"how many of them\" without filtering and manually counting rows. Every segment figure in a report, every conversion count, every how-many-customers-did-X, is a COUNTIF underneath.",
@@ -120,6 +129,16 @@ export const LESSONS = [
       {
         id: "a-countifs",
         title: "COUNTIFS, when one condition is not enough",
+        syntax: {
+          pattern: "=COUNTIFS(criteria_range1, criteria1, [criteria_range2, criteria2], ...)",
+          args: [
+            ["criteria_range1", "The first range to test."],
+            ["criteria1", "The condition that first range must meet."],
+            ["[criteria_range2, criteria2], ...", "Further range-and-condition pairs, up to 127 of them. They always come in pairs.", "optional"],
+          ],
+          returns: "How many rows satisfy EVERY condition at once.",
+          note: "Every range must be the same size and shape, or Excel returns #VALUE!. Conditions are joined by AND, never OR.",
+        },
         explain:
           "COUNTIFS takes several range and criteria pairs and counts only the rows that satisfy every one of them. =COUNTIFS(B2:B7,\"Lagos\",C2:C7,\">500000\") counts Lagos reps who also sold over half a million.",
         why: "Real business questions are almost never single-condition. \"How many Lagos customers bought twice last quarter?\" is a COUNTIFS. Answering it with two separate COUNTIFs and subtracting is where people introduce errors they cannot find later.",
@@ -181,6 +200,16 @@ export const LESSONS = [
       {
         id: "a-averageif",
         title: "AVERAGEIF",
+        syntax: {
+          pattern: "=AVERAGEIF(range, criteria, [average_range])",
+          args: [
+            ["range", "The cells to test against the condition."],
+            ["criteria", "The condition, such as \"Lagos\" or \">=100000\"."],
+            ["[average_range]", "The cells to actually average. Leave it out and Excel averages `range` itself.", "optional"],
+          ],
+          returns: "The mean of the qualifying cells.",
+          note: "Note the argument order: the range you TEST comes first and the range you AVERAGE comes last. AVERAGEIFS reverses this, which is the single most common mix-up between the two.",
+        },
         explain:
           "Averages only the rows meeting a condition. =AVERAGEIF(B2:B7,\"Lagos\",C2:C7) gives the average sales of Lagos reps only.",
         why: "Segment averages are how you find out whether a problem is everywhere or somewhere. A company-wide average of 507,500 hides that Lagos averages 698,333 while Abuja averages 320,000. The overall number tells you nothing actionable; the split tells you where to send help.",
@@ -211,6 +240,17 @@ export const LESSONS = [
       {
         id: "a-averageifs",
         title: "AVERAGEIFS, and the argument order trap",
+        syntax: {
+          pattern: "=AVERAGEIFS(average_range, criteria_range1, criteria1, [criteria_range2, criteria2], ...)",
+          args: [
+            ["average_range", "The cells to average. This comes FIRST here, unlike AVERAGEIF."],
+            ["criteria_range1", "The first range to test."],
+            ["criteria1", "The condition that range must meet."],
+            ["[criteria_range2, criteria2], ...", "Further range-and-condition pairs.", "optional"],
+          ],
+          returns: "The mean of rows meeting every condition.",
+          note: "If no row qualifies you get #DIV/0!, because Excel is averaging nothing. That error is information, not a bug.",
+        },
         explain:
           "AVERAGEIFS averages rows meeting several conditions. The catch: the range you want to average comes FIRST, whereas in AVERAGEIF it comes last.",
         why: "Two conditions is where segment analysis starts being genuinely useful. \"Average order value for Lagos customers who bought more than once\" is the kind of question a business actually pays for.",
@@ -252,6 +292,16 @@ export const LESSONS = [
       {
         id: "a-rank",
         title: "RANK.EQ and RANK.AVG",
+        syntax: {
+          pattern: "=RANK.EQ(number, ref, [order])\n=RANK.AVG(number, ref, [order])",
+          args: [
+            ["number", "The value you want the position of. Usually a cell such as C3."],
+            ["ref", "The list it is ranked within, such as C2:C7. Lock it as $C$2:$C$7 before filling down, or the range slides and every rank below the first is wrong."],
+            ["[order]", "0 or omitted ranks LARGEST first (rank 1 is the biggest). Any non-zero number, normally 1, ranks SMALLEST first.", "optional"],
+          ],
+          returns: "A number giving the position of `number` within `ref`.",
+          note: "The two differ only on ties. RANK.EQ gives tied values the same higher rank and then skips one (1, 2, 2, 4). RANK.AVG averages the positions they occupy (1, 2.5, 2.5, 4).",
+        },
         explain:
           "Both rank a value within a list. They differ only on ties. RANK.EQ gives tied values the same, higher rank and then skips: 1, 2, 2, 4. RANK.AVG gives them the average of the positions they occupy: 1, 2.5, 2.5, 4.",
         why: "Ranking is how leaderboards, commission tiers and performance bands are built. The tie rule matters the moment money depends on it: if two reps tie for second, RANK.EQ says both are second and nobody is third, while RANK.AVG says both are 2.5. Decide which one your bonus scheme means BEFORE you build the sheet.",
@@ -422,10 +472,10 @@ export const LESSONS = [
           expected: 964000,
           mustUseFormula: true,
           mustUse: "SUM",
-          task: "D2 already has its formula. Select D2, press Fill down above the grid to copy it to the rest of the column, then in D7 use SUM to total the whole column.",
-          hint: "Select D2 first, then Fill down. Then total D2 to D5.",
+          task: "D2 already has its formula. Click D2, then DRAG the small square on its bottom-right corner down to D5 to copy it. Then in D7 use SUM to total the column.",
+          hint: "Grab the little square at the corner of D2 and pull it down to D5. Double-clicking it fills the column too. Then total D2 to D5.",
           successMessage:
-            "One formula written, three filled, one total. Click D4 and read the formula bar: Excel shifted it to =B4*C4 on its own.",
+            "One formula written, three dragged, one total. Now click D4 and read the formula bar: Excel shifted it to =B4*C4 by itself. That shift is what relative references mean.",
         },
       },
       {
@@ -444,6 +494,37 @@ export const LESSONS = [
         },
         mistake:
           "Filling down and seeing #DIV/0! or steadily shrinking numbers. That is almost always a reference that should have been locked with $.",
+        syntax: {
+          pattern: "$C$8   $C8   C$8   C8",
+          args: [
+            ["$C$8", "Fully locked. Neither the column nor the row moves, however far you drag. This is what a single total cell needs."],
+            ["$C8", "Column locked, row free. Filling down changes 8, filling right does not change C."],
+            ["C$8", "Row locked, column free. Filling right changes C, filling down does not change 8."],
+            ["C8", "Fully relative. Both move. This is the default and it is what you usually want for row-by-row maths."],
+          ],
+          returns: "Nothing on its own. The $ changes how a reference behaves WHEN COPIED, and has no effect on a formula that is never filled.",
+          note: "Press F4 with the cursor on a reference to cycle C8 into $C$8, C$8, $C8 and back. On many laptops that is Fn + F4.",
+        },
+        exercise: {
+          data: {
+            A1: "Rep", B1: "Sales", C1: "Share of total",
+            A2: "Ada", B2: 820000,
+            A3: "Musa", B3: 640000,
+            A4: "Chuka", B4: 455000,
+            A5: "Ngozi", B5: 385000,
+            A7: "Team total", B7: "=SUM(B2:B5)",
+          },
+          rows: 8,
+          cols: 3,
+          allowFill: true,
+          target: "C2",
+          expected: 0.36123348017621143,
+          mustUseFormula: true,
+          task: "In C2, work out Ada's share of the team total, then drag C2's fill handle down to C5. If rows 3 to 5 break, your reference to the total was not locked. Fix C2 and fill again.",
+          hint: "Ada's sales are in B2 and the total is in B7. Divide one by the other, and lock the total so it cannot slide down: $B$7.",
+          successMessage:
+            "0.36, and the three below it are real numbers rather than #DIV/0!. Click C4 and read the formula bar: B4 moved but $B$7 stayed exactly where you pinned it.",
+        },
       },
       {
         id: "a-auto-numbering",
