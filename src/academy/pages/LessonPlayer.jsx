@@ -10,6 +10,8 @@ import FormulaSyntax from "../components/FormulaSyntax";
 import PivotSim from "../components/PivotSim";
 import AcademyChart, { KpiRow } from "../components/AcademyChart";
 import ChartChoice from "../components/ChartChoice";
+import QuerySteps from "../components/QuerySteps";
+import ModelSim from "../components/ModelSim";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
 import { getCatalogEntry } from "../data/catalog";
@@ -148,7 +150,12 @@ export default function LessonPlayer() {
   // gates progression. Without the pivot half, a learner could walk past the
   // only atom in the module that actually proves they can build one.
   const practiceUnsolved = Boolean(
-    (atom?.exercise || atom?.pivotExercise || atom?.chartChoice) && !solved.has(atom.id)
+    (atom?.exercise ||
+      atom?.pivotExercise ||
+      atom?.chartChoice ||
+      atom?.queryExercise ||
+      atom?.modelExercise) &&
+      !solved.has(atom.id)
   );
 
   async function handleGotIt() {
@@ -161,7 +168,7 @@ export default function LessonPlayer() {
       // Scroll to whichever kind of practice this atom carries, so the warning
       // never points at something off screen.
       document
-        .querySelector(".ac-sheet-sim, .ac-pivot, .ac-choice")
+        .querySelector(".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model")
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
@@ -348,6 +355,46 @@ export default function LessonPlayer() {
                 />
               )}
 
+              {/* The Model view, with cardinality and filter direction made
+                  visible. `model` demonstrates, `modelExercise` grades. */}
+              {(atom.model || atom.modelExercise) && (
+                <ModelSim
+                  key={atom.id}
+                  {...(atom.model || atom.modelExercise)}
+                  exercise={atom.modelExercise || null}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={() => {
+                    setSolved((prev) => new Set(prev).add(atom.id));
+                    setPracticeWarning(false);
+                    completePractice(user, slug, lesson.id, atom.id).catch(
+                      (err) => console.error("Could not save practice", err)
+                    );
+                  }}
+                />
+              )}
+
+              {/* The Power Query editor in miniature. `query` demonstrates a
+                  recipe, `queryExercise` makes the learner build one. */}
+              {(atom.query || atom.queryExercise) && (
+                <QuerySteps
+                  key={atom.id}
+                  source={atom.query?.source || atom.queryExercise?.source}
+                  initialSteps={
+                    atom.query?.steps || atom.queryExercise?.initialSteps || []
+                  }
+                  showM={atom.query?.showM ?? atom.queryExercise?.showM ?? true}
+                  exercise={atom.queryExercise || null}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={() => {
+                    setSolved((prev) => new Set(prev).add(atom.id));
+                    setPracticeWarning(false);
+                    completePractice(user, slug, lesson.id, atom.id).catch(
+                      (err) => console.error("Could not save practice", err)
+                    );
+                  }}
+                />
+              )}
+
               {/* A live pivot table. `pivot` demonstrates, `pivotExercise`
                   asks the learner to arrange the fields themselves. */}
               {(atom.pivot || atom.pivotExercise) && (
@@ -355,6 +402,7 @@ export default function LessonPlayer() {
                   key={atom.id}
                   source={atom.pivot?.source || atom.pivotExercise?.source}
                   initial={atom.pivot?.initial || atom.pivotExercise?.initial || {}}
+                  wells={atom.pivot?.wells || atom.pivotExercise?.wells || "excel"}
                   exercise={atom.pivotExercise || null}
                   alreadySolved={solved.has(atom.id)}
                   onSolved={() => {
@@ -400,10 +448,21 @@ export default function LessonPlayer() {
                         fields between the areas and press{" "}
                         <em>Check my pivot</em>.
                       </>
-                    ) : (
+                    ) : atom.chartChoice ? (
                       <>
                         You have not picked the right chart yet. Compare the
                         options and press <em>Check my choice</em>.
+                      </>
+                    ) : atom.queryExercise ? (
+                      <>
+                        The table is not clean yet. Add or remove steps and
+                        press <em>Check my table</em>.
+                      </>
+                    ) : (
+                      <>
+                        The relationship is not right yet. Pick the joining
+                        column in each table and press{" "}
+                        <em>Check my model</em>.
                       </>
                     )}{" "}
                     It is not marked or timed and you can try as many times as

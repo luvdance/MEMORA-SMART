@@ -25,11 +25,23 @@ import { AGGREGATIONS, computePivot, fieldValues } from "../../../lib/academy/pi
  * because two people who both put State in Rows have both understood it.
  */
 
-const ZONES = [
+const EXCEL_ZONES = [
   { id: "filter", label: "Filters", hint: "Narrows the data BEFORE anything is added up" },
   { id: "column", label: "Columns", hint: "Becomes the across-the-top axis" },
   { id: "row", label: "Rows", hint: "Becomes the down-the-side axis" },
   { id: "value", label: "Values", hint: "The numbers in the body of the table" },
+];
+
+/**
+ * Power BI calls the same four wells by different names. Teaching them as the
+ * same idea is the point: a learner who understood pivot areas already
+ * understands field wells, and saying so saves them re-learning it.
+ */
+const POWERBI_ZONES = [
+  { id: "filter", label: "Filters", hint: "Filters this visual before anything is aggregated" },
+  { id: "column", label: "Legend", hint: "Splits each bar or line into a series" },
+  { id: "row", label: "X-axis", hint: "The category the visual is broken down by" },
+  { id: "value", label: "Values", hint: "The measure that gets summarised" },
 ];
 
 function fmt(n) {
@@ -44,7 +56,9 @@ export default function PivotSim({
   onSolved,
   alreadySolved = false,
   initial = {},
+  wells = "excel",
 }) {
+  const ZONES = wells === "powerbi" ? POWERBI_ZONES : EXCEL_ZONES;
   // Memoised because `|| []` would hand the pivot memo a brand new array on
   // every render, rebuilding the whole table on each keystroke elsewhere.
   const headers = useMemo(() => source?.headers || [], [source]);

@@ -7,6 +7,10 @@ import { LESSONS as CLEANING } from "./m1-clean-structure.js";
 import { LESSONS as EXPLORATORY } from "./m2-exploratory.js";
 import { LESSONS as PIVOTS } from "./m2-pivots.js";
 import { LESSONS as DASHBOARDS } from "./m2-kpis-dashboards.js";
+import { LESSONS as PROJECT } from "./m2-project-sales.js";
+import { LESSONS as PBI_FOUNDATIONS } from "./m3-pbi-foundations.js";
+import { LESSONS as POWER_QUERY } from "./m3-power-query.js";
+import { LESSONS as MODELLING } from "./m3-modelling.js";
 
 /**
  * LESSON REGISTRY
@@ -33,6 +37,10 @@ const REGISTRY = {
     "m2-exploratory": EXPLORATORY,
     "m2-pivots": PIVOTS,
     "m2-kpis-dashboards": DASHBOARDS,
+    "m2-project-sales": PROJECT,
+    "m3-pbi-foundations": PBI_FOUNDATIONS,
+    "m3-power-query": POWER_QUERY,
+    "m3-modelling": MODELLING,
   },
 };
 
