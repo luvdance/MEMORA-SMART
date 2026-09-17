@@ -11,6 +11,13 @@ import { LESSONS as PROJECT } from "./m2-project-sales.js";
 import { LESSONS as PBI_FOUNDATIONS } from "./m3-pbi-foundations.js";
 import { LESSONS as POWER_QUERY } from "./m3-power-query.js";
 import { LESSONS as MODELLING } from "./m3-modelling.js";
+import { LESSONS as DAX } from "./m3-dax.js";
+import { LESSONS as VISUALISATION } from "./m3-visualisation.js";
+import { LESSONS as PY_FOUNDATIONS } from "./m4-python-foundations.js";
+import { LESSONS as PANDAS } from "./m4-pandas.js";
+import { LESSONS as TRANSFORM } from "./m4-transform.js";
+import { LESSONS as VISUAL_ANALYSIS } from "./m4-visual-analysis.js";
+import { LESSONS as CAPSTONE } from "./m4-capstone.js";
 
 /**
  * LESSON REGISTRY
@@ -41,6 +48,13 @@ const REGISTRY = {
     "m3-pbi-foundations": PBI_FOUNDATIONS,
     "m3-power-query": POWER_QUERY,
     "m3-modelling": MODELLING,
+    "m3-dax": DAX,
+    "m3-visualisation": VISUALISATION,
+    "m4-python-foundations": PY_FOUNDATIONS,
+    "m4-pandas": PANDAS,
+    "m4-transform": TRANSFORM,
+    "m4-visual-analysis": VISUAL_ANALYSIS,
+    "m4-capstone": CAPSTONE,
   },
 };
 

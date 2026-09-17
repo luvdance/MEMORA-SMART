@@ -37,7 +37,11 @@ function niceMax(value) {
   if (value <= 0) return 1;
   const mag = 10 ** Math.floor(Math.log10(value));
   const n = value / mag;
-  const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
+  // A fine step ladder, because a coarse one wastes the plot: with only
+  // 1/2/2.5/5/10 a maximum of 276,000 rounds to 500,000 and the tallest bar
+  // uses barely half the height available to it.
+  const LADDER = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  const step = LADDER.find((s) => n <= s) ?? 10;
   return step * mag;
 }
 
@@ -91,6 +95,9 @@ export default function AcademyChart({
   categories = [],
   series = [],
   valuePrefix = "",
+  // A unit that follows the number, e.g. "%". Percentages need it, and a
+  // prefix cannot express it.
+  valueSuffix = "",
   height = 240,
   showTable = true,
   caption,
@@ -194,7 +201,7 @@ export default function AcademyChart({
               <g key={t}>
                 <line x1={padL} x2={W - padR} y1={py(t)} y2={py(t)} stroke={GRID} strokeWidth="1" />
                 <text x={padL - 8} y={py(t) + 4} textAnchor="end" fontSize="10.5" fill={MUTED}>
-                  {valuePrefix}{fmt(t)}
+                  {valuePrefix}{fmt(t)}{valueSuffix}
                 </text>
               </g>
             ))}
@@ -229,12 +236,168 @@ export default function AcademyChart({
           {hover && (
             <div className="ac-chart__tip" role="status">
               <strong>{hover.label}</strong>
-              {multi && <> · {hover.series}</>} · {valuePrefix}{fmt(hover.value)}
+              {multi && <> · {hover.series}</>} · {valuePrefix}{fmt(hover.value)}{valueSuffix}
             </div>
           )}
         </div>
         {caption && <p className="ac-chart__caption">{caption}</p>}
-        {showTable && <DataTable categories={categories} series={series} valuePrefix={valuePrefix} />}
+        {showTable && <DataTable categories={categories} series={series} valuePrefix={valuePrefix} valueSuffix={valueSuffix} />}
+      </figure>
+    );
+  }
+
+  /* ── SCATTER — for a relationship between two measures ──────────────── */
+  if (type === "scatter") {
+    // points: [{ x, y, label }]
+    const pts = series[0].points || [];
+    const xMax = niceMax(Math.max(...pts.map((p) => p.x), 0));
+    const yMax = niceMax(Math.max(...pts.map((p) => p.y), 0));
+    const sPadL = 56;
+    const px = (v) => sPadL + (v / xMax) * (W - sPadL - padR);
+    const py = (v) => padT + innerH - (v / yMax) * innerH;
+    const xTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * xMax);
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * yMax);
+
+    return (
+      <figure className="ac-chart">
+        {title && <figcaption className="ac-chart__title">{title}</figcaption>}
+        <div className="ac-chart__plot-wrap">
+          <svg viewBox={`0 0 ${W} ${height}`} className="ac-chart__svg" role="img" aria-label={title}>
+            {yTicks.map((t) => (
+              <g key={`y${t}`}>
+                <line x1={sPadL} x2={W - padR} y1={py(t)} y2={py(t)} stroke={GRID} strokeWidth="1" />
+                <text x={sPadL - 8} y={py(t) + 4} textAnchor="end" fontSize="10.5" fill={MUTED}>
+                  {valuePrefix}{fmt(t)}{valueSuffix}
+                </text>
+              </g>
+            ))}
+            {xTicks.map((t) => (
+              <text key={`x${t}`} x={px(t)} y={height - 12} textAnchor="middle" fontSize="10.5" fill={MUTED}>
+                {fmt(t)}
+              </text>
+            ))}
+            {pts.map((p, i) => (
+              <circle
+                key={i}
+                cx={px(p.x)}
+                cy={py(p.y)}
+                r="5.5"
+                fill={SERIES[0]}
+                fillOpacity="0.75"
+                stroke="#fff"
+                strokeWidth="2"
+                onMouseEnter={() => setHover({ label: p.label, series: series[0].name, value: `${fmt(p.x)} / ${valuePrefix}${fmt(p.y)}${valueSuffix}` })}
+                onMouseLeave={() => setHover(null)}
+              />
+            ))}
+            {series[0].xLabel && (
+              <text x={(W + sPadL) / 2} y={height - 1} textAnchor="middle" fontSize="10.5" fill={MUTED}>
+                {series[0].xLabel}
+              </text>
+            )}
+          </svg>
+          {hover && (
+            <div className="ac-chart__tip" role="status">
+              <strong>{hover.label}</strong> · {hover.value}
+            </div>
+          )}
+        </div>
+        {caption && <p className="ac-chart__caption">{caption}</p>}
+      </figure>
+    );
+  }
+
+  /* ── STACKED and 100% STACKED columns ───────────────────────────────── */
+  if (type === "stacked" || type === "stacked100") {
+    const pct100 = type === "stacked100";
+    const totals = categories.map((_, ci) =>
+      series.reduce((a, s) => a + s.values[ci], 0)
+    );
+    const stackMax = pct100 ? 1 : niceMax(Math.max(...totals, 0));
+    const stackTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * stackMax);
+    const groupW = innerW / categories.length;
+    const barW = Math.min(46, groupW - 18);
+
+    return (
+      <figure className="ac-chart">
+        {title && <figcaption className="ac-chart__title">{title}</figcaption>}
+        <ul className="ac-chart__legend">
+          {series.map((s, i) => (
+            <li key={s.name}>
+              <span className="ac-chart__swatch" style={{ background: SERIES[i % SERIES.length] }} />
+              {s.name}
+            </li>
+          ))}
+        </ul>
+        <div className="ac-chart__plot-wrap">
+          <svg viewBox={`0 0 ${W} ${height}`} className="ac-chart__svg" role="img" aria-label={title}>
+            {stackTicks.map((t) => {
+              const y = padT + innerH - (t / stackMax) * innerH;
+              return (
+                <g key={t}>
+                  <line x1={padL} x2={W - padR} y1={y} y2={y} stroke={GRID} strokeWidth="1" />
+                  <text x={padL - 8} y={y + 4} textAnchor="end" fontSize="10.5" fill={MUTED}>
+                    {pct100
+                      ? `${Math.round(t * 100)}%`
+                      : `${valuePrefix}${fmt(t)}${valueSuffix}`}
+                  </text>
+                </g>
+              );
+            })}
+            {categories.map((cat, ci) => {
+              const x = padL + ci * groupW + (groupW - barW) / 2;
+              const denom = pct100 ? totals[ci] || 1 : stackMax;
+              // Walk the series bottom-up, accumulating the offset so each
+              // segment sits on the one below with a 2px surface gap.
+              const offsets = series.reduce(
+                (acc, s) => [...acc, acc[acc.length - 1] + s.values[ci] / denom],
+                [0]
+              );
+              return (
+                <g key={cat}>
+                  {series.map((s, si) => {
+                    const frac = s.values[ci] / denom;
+                    const h = frac * innerH;
+                    const y = padT + innerH - offsets[si + 1] * innerH;
+                    if (h <= 0) return null;
+                    return (
+                      <rect
+                        key={s.name}
+                        x={x}
+                        y={y}
+                        width={barW}
+                        height={Math.max(0, h - 2)}
+                        fill={SERIES[si % SERIES.length]}
+                        rx="2"
+                        onMouseEnter={() =>
+                          setHover({
+                            label: cat,
+                            series: s.name,
+                            value: pct100
+                              ? `${Math.round(frac * 1000) / 10}%`
+                              : `${valuePrefix}${fmt(s.values[ci])}${valueSuffix}`,
+                          })
+                        }
+                        onMouseLeave={() => setHover(null)}
+                      />
+                    );
+                  })}
+                  <text x={x + barW / 2} y={height - 12} textAnchor="middle" fontSize="11.5" fill={INK}>
+                    {cat}
+                  </text>
+                </g>
+              );
+            })}
+            <line x1={padL} y1={padT + innerH} x2={W - padR} y2={padT + innerH} stroke="#c9cee0" strokeWidth="1" />
+          </svg>
+          {hover && (
+            <div className="ac-chart__tip" role="status">
+              <strong>{hover.label}</strong> · {hover.series} · {hover.value}
+            </div>
+          )}
+        </div>
+        {caption && <p className="ac-chart__caption">{caption}</p>}
+        {showTable && <DataTable categories={categories} series={series} valuePrefix={valuePrefix} valueSuffix={valueSuffix} />}
       </figure>
     );
   }
@@ -277,7 +440,7 @@ export default function AcademyChart({
                 <g key={t}>
                   <line x1={padL} x2={W - padR} y1={y} y2={y} stroke={GRID} strokeWidth="1" />
                   <text x={padL - 8} y={y + 4} textAnchor="end" fontSize="10.5" fill={MUTED}>
-                    {valuePrefix}{fmt(t)}
+                    {valuePrefix}{fmt(t)}{valueSuffix}
                   </text>
                 </g>
               );
@@ -330,7 +493,7 @@ export default function AcademyChart({
                           fontWeight="600"
                           fill={INK}
                         >
-                          {valuePrefix}{fmt(v)}
+                          {valuePrefix}{fmt(v)}{valueSuffix}
                         </text>
                       )}
                     </g>
@@ -353,18 +516,18 @@ export default function AcademyChart({
         {hover && (
           <div className="ac-chart__tip" role="status">
             <strong>{hover.label}</strong>
-            {multi && <> · {hover.series}</>} · {valuePrefix}{fmt(hover.value)}
+            {multi && <> · {hover.series}</>} · {valuePrefix}{fmt(hover.value)}{valueSuffix}
           </div>
         )}
       </div>
       {caption && <p className="ac-chart__caption">{caption}</p>}
-      {showTable && <DataTable categories={categories} series={series} valuePrefix={valuePrefix} />}
+      {showTable && <DataTable categories={categories} series={series} valuePrefix={valuePrefix} valueSuffix={valueSuffix} />}
     </figure>
   );
 }
 
 /** Every chart ships a table view — the accessibility floor, not an extra. */
-function DataTable({ categories, series, valuePrefix }) {
+function DataTable({ categories, series, valuePrefix, valueSuffix = "" }) {
   return (
     <details className="ac-chart__data">
       <summary>View as a table</summary>
@@ -386,6 +549,7 @@ function DataTable({ categories, series, valuePrefix }) {
                   <td key={s.name}>
                     {valuePrefix}
                     {fmt(s.values[i])}
+                    {valueSuffix}
                   </td>
                 ))}
               </tr>

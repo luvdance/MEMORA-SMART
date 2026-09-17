@@ -12,6 +12,8 @@ import AcademyChart, { KpiRow } from "../components/AcademyChart";
 import ChartChoice from "../components/ChartChoice";
 import QuerySteps from "../components/QuerySteps";
 import ModelSim from "../components/ModelSim";
+import DaxSim from "../components/DaxSim";
+import CodeTrace from "../components/CodeTrace";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
 import { getCatalogEntry } from "../data/catalog";
@@ -154,7 +156,8 @@ export default function LessonPlayer() {
       atom?.pivotExercise ||
       atom?.chartChoice ||
       atom?.queryExercise ||
-      atom?.modelExercise) &&
+      atom?.modelExercise ||
+      atom?.codeExercise) &&
       !solved.has(atom.id)
   );
 
@@ -168,7 +171,9 @@ export default function LessonPlayer() {
       // Scroll to whichever kind of practice this atom carries, so the warning
       // never points at something off screen.
       document
-        .querySelector(".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model")
+        .querySelector(
+          ".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model, .ac-trace"
+        )
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
@@ -355,6 +360,28 @@ export default function LessonPlayer() {
                 />
               )}
 
+              {/* Python. `code` demonstrates and shows its output;
+                  `codeExercise` makes the learner predict it. */}
+              {atom.code && <CodeTrace key={`${atom.id}-demo`} {...atom.code} showOutput />}
+              {atom.codeExercise && (
+                <CodeTrace
+                  key={atom.id}
+                  {...atom.codeExercise}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={() => {
+                    setSolved((prev) => new Set(prev).add(atom.id));
+                    setPracticeWarning(false);
+                    completePractice(user, slug, lesson.id, atom.id).catch(
+                      (err) => console.error("Could not save practice", err)
+                    );
+                  }}
+                />
+              )}
+
+              {/* A measure evaluated once per row, so filter context is
+                  something the learner watches rather than reads about. */}
+              {atom.dax && <DaxSim key={atom.id} {...atom.dax} />}
+
               {/* The Model view, with cardinality and filter direction made
                   visible. `model` demonstrates, `modelExercise` grades. */}
               {(atom.model || atom.modelExercise) && (
@@ -458,11 +485,17 @@ export default function LessonPlayer() {
                         The table is not clean yet. Add or remove steps and
                         press <em>Check my table</em>.
                       </>
-                    ) : (
+                    ) : atom.modelExercise ? (
                       <>
                         The relationship is not right yet. Pick the joining
                         column in each table and press{" "}
                         <em>Check my model</em>.
+                      </>
+                    ) : (
+                      <>
+                        Your predicted output is not right yet. Read the code
+                        one line at a time and press{" "}
+                        <em>Check my answer</em>.
                       </>
                     )}{" "}
                     It is not marked or timed and you can try as many times as
