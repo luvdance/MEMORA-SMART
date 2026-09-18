@@ -19,6 +19,62 @@
       "destination": "/api/project-formatter/ai?action=generate-content"
     },
     {
+      "source": "/cv-builder",
+      "destination": "/cv-builder/index.html"
+    },
+    {
+      "source": "/ats-check",
+      "destination": "/ats-check/index.html"
+    },
+    {
+      "source": "/projectpilot",
+      "destination": "/projectpilot/index.html"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/pricing/index.html"
+    },
+    {
+      "source": "/academy",
+      "destination": "/academy/index.html"
+    },
+    {
+      "source": "/academy/courses",
+      "destination": "/academy/courses/index.html"
+    },
+    {
+      "source": "/academy/enroll",
+      "destination": "/academy/enroll/index.html"
+    },
+    {
+      "source": "/library",
+      "destination": "/library/index.html"
+    },
+    {
+      "source": "/excel-masterclass",
+      "destination": "/excel-masterclass/index.html"
+    },
+    {
+      "source": "/ai-side-hustles",
+      "destination": "/ai-side-hustles/index.html"
+    },
+    {
+      "source": "/remote-jobs-guide",
+      "destination": "/remote-jobs-guide/index.html"
+    },
+    {
+      "source": "/content-creation",
+      "destination": "/content-creation/index.html"
+    },
+    {
+      "source": "/digital-skills",
+      "destination": "/digital-skills/index.html"
+    },
+    {
+      "source": "/daniel-nwankwo",
+      "destination": "/daniel-nwankwo/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }
