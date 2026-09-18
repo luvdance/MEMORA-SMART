@@ -80,8 +80,6 @@ function App() {
           </AcademyRoute>
         }
       />
-      {/* TEMPORARY unguarded route for visual verification. Remove. */}
-      <Route path="/__lbtest/:slug/:lessonId" element={<LessonPlayer />} />
       <Route
         path="/academy/exam"
         element={

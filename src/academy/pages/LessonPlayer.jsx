@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import useSEO from "../../hooks/useSEO";
 import AcademyNav from "../components/AcademyNav";
 import LessonSidebar from "../components/LessonSidebar";
-import Leaderboard from "../components/Leaderboard";
+import SocialPane from "../components/SocialPane";
 import AssessmentPanel from "../components/AssessmentPanel";
 import AtomTable from "../components/AtomTable";
 import FormulaSyntax from "../components/FormulaSyntax";
@@ -576,12 +576,18 @@ export default function LessonPlayer() {
             />
           )}
 
-          {/* Collapsed by default and fetches nothing until opened, so it
-              cannot slow the lesson, shift the page, or pull attention away
-              from what the learner came here for. Placed AFTER the lesson
-              content, never over it. */}
-          <Leaderboard variant="compact" />
         </main>
+
+        {/* The study circle: ranking, who is around, and encrypted chat.
+            A SIBLING of <main>, not a child, so on a wide screen it is a real
+            third grid column to the right of the lesson; below 1180px the
+            grid collapses and it falls into the flow underneath, which is
+            where it belongs on a phone.
+
+            Collapsed by default and completely inert until opened — no reads,
+            no key generation, no presence announced — so it can neither slow
+            the lesson nor pull attention from it. */}
+        <SocialPane lessonTitle={lesson?.title || null} variant="lesson" />
       </div>
 
       {toast && (

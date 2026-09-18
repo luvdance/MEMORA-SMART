@@ -22,6 +22,487 @@
       own rather than making the page do it.
    ════════════════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════════════
+   SOCIAL PANE  ·  .ac-sp__*
+   Ranking, who is active, and encrypted chat.
+
+   THE RIGHT PANE, WITHOUT DISTURBING THE LESSON
+   The component is a sibling of <main> inside .ac-player__grid. At 1240px and
+   up a third column opens and it becomes a genuine right pane, sticky beside
+   the lesson. Below that the extra column is never declared, so it simply
+   falls into the flow beneath the lesson — which is the right place on a
+   phone and needs no separate mobile layout.
+
+   Everything the leaderboard rules said still holds: no position:fixed, no
+   overlay, no animation, and the body is unmounted while collapsed so
+   opening it pushes content down rather than reflowing what is above.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ac-sp {
+  border: 1px solid var(--ac-line);
+  border-radius: var(--ac-r);
+  background: var(--ac-bg);
+  overflow: hidden;
+  margin-top: 28px;
+}
+
+/* The right pane. Only at a width where a third column does not squeeze the
+   lesson text below a comfortable measure. */
+@media (min-width: 1240px) {
+  .ac-player__grid {
+    grid-template-columns: 290px minmax(0, 1fr) 320px;
+  }
+
+  .ac-sp--lesson {
+    position: sticky;
+    top: 146px;
+    max-height: calc(100vh - 170px);
+    display: flex;
+    flex-direction: column;
+    margin-top: 36px;
+  }
+
+  .ac-sp--lesson .ac-sp__body {
+    overflow-y: auto;
+  }
+}
+
+.ac-sp__bar {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.ac-sp__toggle {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--ac-tint);
+  border: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--ac-ink);
+  cursor: pointer;
+}
+
+.ac-sp__toggle > i:first-child {
+  color: var(--ac-violet);
+}
+
+.ac-sp__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.ac-sp__rank {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ac-primary);
+  background: var(--ac-primary-soft);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.ac-sp__chev {
+  margin-left: auto;
+  color: var(--ac-muted);
+  font-size: 0.8rem;
+}
+
+.ac-sp__body {
+  border-top: 1px solid var(--ac-line);
+  padding: 12px;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────── */
+
+.ac-sp__tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--ac-line);
+}
+
+.ac-sp__tab {
+  flex: 1;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 6px;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ac-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ac-sp__tab.is-on {
+  color: var(--ac-primary);
+  border-bottom-color: var(--ac-primary);
+}
+
+.ac-sp__tab i {
+  font-size: 0.7rem;
+}
+
+/* The dot on "Active now" reads as a status light. */
+.ac-sp__tab:nth-child(2) i {
+  color: #12a150;
+  font-size: 0.5rem;
+}
+
+/* ── Ranking rows ─────────────────────────────────────────────────────── */
+
+.ac-sp__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.ac-sp__row {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.86rem;
+}
+
+.ac-sp__row:nth-child(odd) {
+  background: var(--ac-tint);
+}
+
+.ac-sp__row.is-me {
+  background: var(--ac-primary-soft);
+  outline: 1px solid #c3cbf5;
+}
+
+.ac-sp__pos {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--ac-muted);
+  text-align: right;
+}
+
+.ac-sp__name {
+  color: var(--ac-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ac-sp__name em {
+  font-style: normal;
+  color: var(--ac-primary);
+  font-weight: 700;
+}
+
+.ac-sp__xp {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--ac-ink);
+}
+
+/* ── A learner's card ─────────────────────────────────────────────────── */
+
+.ac-sp__card {
+  border: 1px solid var(--ac-line);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.ac-sp__cardhead {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.ac-sp__avatar {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ac-primary-soft);
+  color: var(--ac-primary);
+  font-weight: 700;
+}
+
+.ac-sp__cardhead strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--ac-ink);
+}
+
+.ac-sp__meta {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--ac-muted);
+}
+
+.ac-sp__badges {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ac-sp__badges li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--ac-line);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  background: var(--ac-tint);
+  color: var(--ac-ink-2);
+}
+
+.ac-sp__badges i {
+  color: var(--ac-violet);
+  font-size: 0.7rem;
+}
+
+.ac-sp__nobadges {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--ac-muted);
+}
+
+.ac-sp__cardactions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.ac-sp__cardactions .ac-btn {
+  min-height: 38px;
+  font-size: 0.8rem;
+  padding: 0 12px;
+}
+
+.ac-sp__quiet {
+  border: 0;
+  background: none;
+  padding: 6px 4px;
+  min-height: 34px;
+  font: inherit;
+  font-size: 0.76rem;
+  color: var(--ac-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── Chat ─────────────────────────────────────────────────────────────── */
+
+.ac-sp__threadhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ac-sp__back {
+  border: 0;
+  background: none;
+  padding: 6px 4px;
+  min-height: 34px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ac-primary);
+  cursor: pointer;
+}
+
+.ac-sp__threadhead strong {
+  font-size: 0.92rem;
+  color: var(--ac-ink);
+}
+
+/* The encryption notice. Informational, not a warning — but it must be
+   visible, because it is also where the limits are admitted. */
+.ac-sp__crypto {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f3fbf5;
+  border: 1px solid #b7e0c2;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #1c5b30;
+}
+
+.ac-sp__crypto i {
+  margin-top: 2px;
+}
+
+.ac-sp__codelink {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ac-sp__code {
+  margin: 0 0 10px;
+  padding: 10px;
+  border: 1px dashed var(--ac-line);
+  border-radius: 8px;
+  background: var(--ac-tint);
+}
+
+.ac-sp__code .ac-mono {
+  display: block;
+  font-family: var(--ac-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ac-ink);
+  margin-bottom: 6px;
+}
+
+.ac-sp__code p {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--ac-muted);
+}
+
+.ac-sp__messages {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px;
+}
+
+.ac-sp__bubble {
+  max-width: 85%;
+  align-self: flex-start;
+  padding: 8px 11px;
+  border-radius: 12px 12px 12px 4px;
+  background: var(--ac-tint);
+  border: 1px solid var(--ac-line);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ac-ink);
+  overflow-wrap: anywhere;
+}
+
+.ac-sp__bubble.is-mine {
+  align-self: flex-end;
+  border-radius: 12px 12px 4px 12px;
+  background: var(--ac-primary-soft);
+  border-color: #c3cbf5;
+}
+
+.ac-sp__bubble.is-unreadable {
+  background: #fffaf0;
+  border-color: #f0d9a8;
+  color: #7a5310;
+  font-size: 0.78rem;
+}
+
+.ac-sp__composer {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-top: 10px;
+}
+
+.ac-sp__composer textarea {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--ac-line);
+  border-radius: 10px;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+  color: var(--ac-ink);
+}
+
+.ac-sp__composer textarea:focus {
+  outline: 2px solid var(--ac-primary);
+  outline-offset: 1px;
+}
+
+.ac-sp__composer .ac-btn {
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+/* The word "Send" is redundant beside the icon once the pane is narrow. */
+.ac-sp__sendlabel {
+  display: none;
+}
+
+@media (min-width: 420px) {
+  .ac-sp__sendlabel {
+    display: inline;
+  }
+}
+
+/* ── Messages and notices ─────────────────────────────────────────────── */
+
+.ac-sp__msg {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ac-muted);
+}
+
+.ac-sp__msg.is-error {
+  color: #9a2020;
+}
+
+.ac-sp__msg.is-notice {
+  background: var(--ac-primary-soft);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--ac-ink-2);
+}
+
+.ac-sp__foot {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ac-line-soft);
+  font-size: 0.73rem;
+  line-height: 1.55;
+  color: var(--ac-muted);
+}
+
 /* ── LEADERBOARD  ·  .ac-lb__* ──────────────────────────────────────────
    Collapsible, and built not to interrupt a lesson:
 

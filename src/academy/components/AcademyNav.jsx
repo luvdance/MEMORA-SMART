@@ -118,16 +118,26 @@ export default function AcademyNav() {
             <span className="ac-nav__divider" aria-hidden="true" />
 
             {user ? (
-              <Link to="/academy/profile" className="ac-nav__avatar" title="Your profile">
-                {user.photoURL ? <img src={user.photoURL} alt="" /> : initial}
-              </Link>
+              <>
+                {/* Present when signed in too: a student adding a second
+                    course should not have to hunt for the action. */}
+                <button
+                  className="ac-btn ac-btn--primary ac-nav__enroll"
+                  onClick={enroll}
+                >
+                  Enroll now
+                </button>
+                <Link to="/academy/profile" className="ac-nav__avatar" title="Your profile">
+                  {user.photoURL ? <img src={user.photoURL} alt="" /> : initial}
+                </Link>
+              </>
             ) : (
               <>
                 <button className="ac-nav__login" onClick={enroll}>
                   Log in
                 </button>
                 <button className="ac-btn ac-btn--primary" onClick={enroll}>
-                  Enroll free
+                  Enroll now
                 </button>
               </>
             )}
@@ -200,7 +210,7 @@ export default function AcademyNav() {
           ) : (
             <>
               <button className="ac-btn ac-btn--primary ac-btn--block" onClick={enroll}>
-                Enroll free
+                Enroll now
               </button>
               <button className="ac-btn ac-btn--ghost ac-btn--block" onClick={enroll}>
                 Log in

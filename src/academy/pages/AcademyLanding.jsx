@@ -236,9 +236,18 @@ export default function AcademyLanding() {
                   Browse the courses
                   <i className="fas fa-arrow-right" aria-hidden="true" />
                 </a>
-                <a className="ac-btn ac-btn--ghost ac-btn--lg" href="#how-it-works">
-                  How it works
-                </a>
+                {/* The conversion action, not an anchor down the page. Runs
+                    the same onboarding journey as the nav button, so there is
+                    exactly one way into the course from anywhere on this
+                    page. Replaced a "How it works" anchor, whose section is
+                    still reachable from the nav. */}
+                <button
+                  className="ac-btn ac-btn--ghost ac-btn--lg"
+                  onClick={() => enroll()}
+                >
+                  Enroll now
+                  <i className="fas fa-user-plus" aria-hidden="true" />
+                </button>
               </div>
 
               <p className="ac-hero__note">
