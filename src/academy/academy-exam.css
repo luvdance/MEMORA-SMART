@@ -572,24 +572,76 @@
   margin-top: 28px;
 }
 
-/* The right pane. Only at a width where a third column does not squeeze the
-   lesson text below a comfortable measure. */
-@media (min-width: 1240px) {
+/* ── THE RIGHT RAIL ──────────────────────────────────────────────────────
+   Closed, this occupies a 52px strip — not a 320px column. An earlier
+   version reserved the full open width permanently, which meant a collapsed
+   pane was still taking 320px away from the lesson for no benefit.
+
+   Open, it grows LEFTWARDS over its own gutter using a negative margin,
+   while the grid track stays 52px. So expanding does not resize the lesson
+   column and the lesson text never reflows mid-read — the panel floats above
+   it and closing puts it back. That is the difference between "expands" and
+   "shoves the lesson aside".
+
+   The breakpoint is low (1080px) because a 52px rail costs the lesson almost
+   nothing; below it the pane falls into the flow beneath the lesson, which is
+   the right place on a phone.
+   ─────────────────────────────────────────────────────────────────────── */
+@media (min-width: 1080px) {
   .ac-player__grid {
-    grid-template-columns: 290px minmax(0, 1fr) 320px;
+    grid-template-columns: 290px minmax(0, 1fr) 52px;
   }
 
   .ac-sp--lesson {
     position: sticky;
     top: 146px;
+    margin-top: 36px;
+    width: 52px;
     max-height: calc(100vh - 170px);
     display: flex;
     flex-direction: column;
-    margin-top: 36px;
+    /* Above the lesson content once expanded, below the sticky nav. */
+    z-index: 3;
+    transition: width 0.18s ease, margin-left 0.18s ease;
   }
 
-  .ac-sp--lesson .ac-sp__body {
+  /* Closed: a vertical tab. The label is rotated rather than hidden, so the
+     rail still says what it is instead of being a mystery icon. */
+  .ac-sp--lesson:not(.is-open) .ac-sp__toggle {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    min-height: 190px;
+  }
+
+  .ac-sp--lesson:not(.is-open) .ac-sp__title {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 0.04em;
+  }
+
+  .ac-sp--lesson:not(.is-open) .ac-sp__chev {
+    margin-left: 0;
+    margin-top: auto;
+  }
+
+  .ac-sp--lesson:not(.is-open) .ac-sp__rank {
+    writing-mode: vertical-rl;
+    padding: 8px 3px;
+  }
+
+  /* Open: 340px wide, pulled left over the gutter. The grid track is still
+     52px, so nothing in the lesson column moves. */
+  .ac-sp--lesson.is-open {
+    width: 340px;
+    margin-left: -288px;
+    box-shadow: var(--ac-shadow-lg);
+  }
+
+  .ac-sp--lesson.is-open .ac-sp__body {
     overflow-y: auto;
+    background: var(--ac-bg);
   }
 }
 
