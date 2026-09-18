@@ -23,6 +23,7 @@ import AcademyJobs from "./academy/pages/AcademyJobs";
 import AcademyLearn from "./academy/pages/AcademyLearn";
 import AcademyProfile from "./academy/pages/AcademyProfile";
 import LessonPlayer from "./academy/pages/LessonPlayer";
+import FinalExam from "./academy/pages/FinalExam";
 import AcademyRoute from "./academy/components/AcademyRoute";
 
 function App() {
@@ -76,6 +77,14 @@ function App() {
         element={
           <AcademyRoute>
             <LessonPlayer />
+          </AcademyRoute>
+        }
+      />
+      <Route
+        path="/academy/exam"
+        element={
+          <AcademyRoute>
+            <FinalExam />
           </AcademyRoute>
         }
       />

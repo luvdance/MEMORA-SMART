@@ -4,6 +4,9 @@ import {
   setDoc,
   collection,
   getDocs,
+  query,
+  where,
+  limit,
   runTransaction,
   serverTimestamp,
 } from "firebase/firestore";
@@ -26,16 +29,25 @@ import { getCourseLessons } from "../data/lessons";
  * Assessment ANSWERS are safe: they live in lib/ and are graded by
  * /api/academy/assessment, so they never reach the browser.
  *
- * Assessment RESULTS are written here, by the client, because the project has
- * no Firebase service-account credentials configured (no FIREBASE_CLIENT_EMAIL
- * or FIREBASE_PRIVATE_KEY in Vercel). Security rules constrain the shape of
- * these writes and make Memora IDs genuinely unique, but they cannot verify
- * that a score is honest. A determined user could write themselves a pass.
+ * LESSON assessment RESULTS are written here, by the client. Security rules
+ * constrain the shape of these writes and make Memora IDs genuinely unique,
+ * but they cannot verify that a score is honest: a determined user could write
+ * themselves a lesson pass. That is an accepted trade-off for practice scores,
+ * which are a study aid.
  *
- * That is acceptable while the platform is in preview. It is NOT acceptable
- * once certificates are issued. The fix is contained: add the service account,
- * move recordAssessment() and awardXp() into the API route that already grades
- * the attempt, and flip the rules for students/{uid} back to `write: if false`.
+ * The FINAL EXAM does not come through here, for exactly that reason. Its
+ * attempts and its certificates are graded AND written server-side by
+ * lib/academy/finalExam/record.js, using the Admin SDK and the candidate's
+ * verified ID token, and firestore.rules denies client writes to both. A
+ * certificate is a claim made to an employer, so it must not be self-issued.
+ *
+ * (An earlier version of this note said no service account was configured.
+ * That was wrong — api/paystack-webhook.js and api/requery-payment.js have
+ * used one in production since before the Academy shipped.)
+ *
+ * To raise practice progress to the same level, move recordAssessment() and
+ * awardXp() into an API route behind the same ID-token check the exam uses,
+ * and deny client writes to enrollments and progress in the rules.
  * ───────────────────────────────────────────────────────────────────────────
  */
 
@@ -334,6 +346,58 @@ async function markLessonComplete(uid, courseSlug, lessonId) {
     },
     { merge: true }
   );
+}
+
+/* ── Final exam ─────────────────────────────────────────────────────────── */
+
+/**
+ * The student's exam attempts, newest first.
+ *
+ * Read-only from the client: these documents are written by the server and
+ * the rules deny client writes, so there is no setter here to match.
+ */
+export async function getExamAttempts(uid, examId = "mst-da-final") {
+  if (!uid) return [];
+  const snap = await getDocs(collection(db, "students", uid, "examAttempts"));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((a) => a.examId === examId)
+    .sort((a, b) => {
+      // serverTimestamp() is null for a moment after a write, so fall back to
+      // the seed rather than throwing the row to the bottom.
+      const at = a.submittedAt?.seconds ?? 0;
+      const bt = b.submittedAt?.seconds ?? 0;
+      return bt - at;
+    });
+}
+
+/**
+ * The certificate this student holds, or null.
+ *
+ * Queries by uid rather than reading a known id, because the certificate
+ * number is allocated by the server and the client never learns it except
+ * from here or from the exam result. `list` is denied by the rules, so this
+ * relies on the query being constrained to the caller's own uid — which is
+ * exactly the condition the rule checks.
+ */
+export async function getCertificate(uid, courseSlug = "data-analysis") {
+  if (!uid) return null;
+  const q = query(
+    collection(db, "certificates"),
+    where("uid", "==", uid),
+    where("courseId", "==", courseSlug),
+    limit(1)
+  );
+  try {
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    const doc0 = snap.docs[0];
+    return { id: doc0.id, ...doc0.data() };
+  } catch {
+    // A rules rejection here means no certificate is readable, which is the
+    // same outcome for the UI as not having one.
+    return null;
+  }
 }
 
 /** Remember where the learner is, so returning always resumes correctly. */

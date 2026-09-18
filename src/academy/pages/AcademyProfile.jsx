@@ -10,7 +10,9 @@ import { getCourseLessons, getCourseOutline } from "../data/lessons";
 import {
   calculateProgress,
   getAllProgress,
+  getCertificate,
   getEnrollments,
+  getExamAttempts,
   getStudent,
 } from "../services/academyService";
 import "../academy.css";
@@ -28,6 +30,8 @@ export default function AcademyProfile() {
   const [student, setStudent] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [progressByCourse, setProgressByCourse] = useState({});
+  const [certificate, setCertificate] = useState(null);
+  const [examAttempts, setExamAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useSEO({ title: "My Profile — Memora Smart Academy" });
@@ -38,9 +42,14 @@ export default function AcademyProfile() {
 
     (async () => {
       try {
-        const [record, list] = await Promise.all([
+        const [record, list, cert, attempts] = await Promise.all([
           getStudent(user.uid),
           getEnrollments(user.uid),
+          // Both are server-written and read-only here. A missing one is the
+          // normal case for anyone who has not sat the exam, so neither is
+          // allowed to fail the page load.
+          getCertificate(user.uid).catch(() => null),
+          getExamAttempts(user.uid).catch(() => []),
         ]);
         if (!alive) return;
 
@@ -56,6 +65,8 @@ export default function AcademyProfile() {
         setStudent(record);
         setEnrollments(list);
         setProgressByCourse(progress);
+        setCertificate(cert);
+        setExamAttempts(attempts);
       } finally {
         if (alive) setLoading(false);
       }
@@ -257,18 +268,92 @@ export default function AcademyProfile() {
               {/* ── CERTIFICATE STATUS ── */}
               <section className="ac-learn__section">
                 <h2 className="ac-learn__title">Certification</h2>
+                {/* The real record, read from the server-written documents.
+                    Nothing here is inferred from lesson progress: a
+                    certificate exists or it does not. */}
+                {certificate ? (
+                  <div className="ac-certstatus">
+                    <i className="fas fa-award" aria-hidden="true" />
+                    <div>
+                      <strong>{certificate.name}</strong>
+                      <p>
+                        {certificate.covers} · issued by {certificate.issuer}
+                      </p>
+                      <p className="ac-fx__certid">
+                        Certificate number <code>{certificate.id}</code>
+                        {typeof certificate.score === "number" && (
+                          <> · passed at {certificate.score}%</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="ac-certstatus">
+                    <i className="fas fa-certificate" aria-hidden="true" />
+                    <div>
+                      <strong>Not yet issued</strong>
+                      <p>
+                        A certificate is issued when you pass the final
+                        certification exam.
+                        {averageScore !== null && (
+                          <> Your average assessment score so far is {averageScore}%.</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {examAttempts.length > 0 && (
+                  <table className="ac-record__table ac-fx__attempts">
+                    <thead>
+                      <tr>
+                        <th>Exam attempt</th>
+                        <th>Score</th>
+                        <th>Result</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {examAttempts.map((a, i) => (
+                        <tr key={a.id}>
+                          <td>
+                            Attempt {examAttempts.length - i}
+                            {a.submittedAt?.toDate && (
+                              <em>
+                                {" "}
+                                {a.submittedAt.toDate().toLocaleDateString()}
+                              </em>
+                            )}
+                          </td>
+                          <td>{a.score}%</td>
+                          <td>
+                            {a.passed
+                              ? "Passed"
+                              : a.verdict === "domain-floor"
+                              ? "A section below minimum"
+                              : "Not passed"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+
+                {/* The exam is not gated on completion: it warns a candidate
+                    who is early rather than hiding itself, because someone who
+                    already works in data may reasonably want to sit it. */}
                 <div className="ac-certstatus">
-                  <i className="fas fa-certificate" aria-hidden="true" />
+                  <i className="fas fa-file-pen" aria-hidden="true" />
                   <div>
-                    <strong>Not yet eligible</strong>
+                    <strong>Final certification exam</strong>
                     <p>
-                      A certificate is issued once every required lesson is
-                      complete, every assessment is passed, and the capstone is
-                      submitted.
-                      {averageScore !== null && (
-                        <> Your average assessment score so far is {averageScore}%.</>
-                      )}
+                      32 questions across Excel, Power BI and Python, built on
+                      real company case studies. Every paper is generated for
+                      the candidate, so no two are the same and every retake is
+                      a new exam.
                     </p>
+                    <Link className="ac-btn ac-btn--primary" to="/academy/exam">
+                      Read the exam briefing
+                    </Link>
                   </div>
                 </div>
               </section>

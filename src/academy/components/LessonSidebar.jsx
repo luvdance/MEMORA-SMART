@@ -15,6 +15,18 @@ export default function LessonSidebar({
   open,
   onClose,
 }) {
+  // Readiness for the exam, counted off the same progressMap the lesson ticks
+  // use — so the sidebar can never disagree with itself about what is done.
+  // Only written modules count: a learner cannot be blocked by a module that
+  // does not exist yet.
+  const writtenLessons = outline.flatMap((month) =>
+    month.modules.filter((m) => m.ready).flatMap((m) => m.lessons)
+  );
+  const lessonsLeft = writtenLessons.filter(
+    (l) => !progressMap?.[l.id]?.assessment?.passed
+  ).length;
+  const examReady = writtenLessons.length > 0 && lessonsLeft === 0;
+
   return (
     <>
       <aside className={`ac-curric ${open ? "is-open" : ""}`}>
@@ -90,6 +102,53 @@ export default function LessonSidebar({
               ))}
             </section>
           ))}
+
+          {/* ── The last step in the journey ──────────────────────────────
+              The exam is not a module, so it is not in the outline data —
+              but it IS where the course ends, and a learner who cannot see
+              it has no idea the certificate is reachable. Shown as ready or
+              not-yet-ready rather than hidden, for the same reason modules
+              still being written are shown: a hidden step reads as a missing
+              one. */}
+          <section className="ac-curric__month ac-curric__finale">
+            <h3>
+              <span>Finally</span>
+              Certification
+            </h3>
+
+            <div className="ac-curric__module">
+              <h4>
+                Final certification exam
+                {!examReady && <em>Not yet</em>}
+              </h4>
+              <ul>
+                <li>
+                  <Link
+                    to="/academy/exam"
+                    className={`ac-curric__lesson ac-curric__exam ${
+                      examReady ? "is-ready" : ""
+                    }`}
+                    onClick={onClose}
+                  >
+                    <i
+                      className={examReady ? "fas fa-award" : "far fa-circle"}
+                      aria-hidden="true"
+                    />
+                    <span>
+                      Sit the exam
+                      <em>
+                        {examReady
+                          ? "You have finished every lesson — you are ready"
+                          : `${lessonsLeft} lesson${
+                              lessonsLeft === 1 ? "" : "s"
+                            } still to pass`}
+                      </em>
+                    </span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </section>
         </div>
       </aside>
 

@@ -45,12 +45,20 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════════
     // MEMORA SMART ACADEMY
     //
-    // TRUST LEVEL: PREVIEW.
+    // TRUST LEVEL: MIXED, and deliberately so.
     //
-    // There is no Firebase service account configured for this project, so
-    // there is no server able to write these documents. Progress is therefore
-    // written by the signed-in client, and these rules constrain the SHAPE of
-    // those writes rather than their honesty.
+    //   PRACTICE progress (enrollments, per-lesson scores, XP) is written by
+    //   the signed-in client. These rules constrain the SHAPE of those writes
+    //   rather than their honesty.
+    //
+    //   EXAM attempts and CERTIFICATES are written only by the server, via
+    //   the Admin SDK, after it has graded the paper itself and verified the
+    //   candidate from their Firebase ID token. Client writes are denied
+    //   outright. See lib/academy/finalExam/record.js.
+    //
+    // The split is the point: a practice score is a study aid and nobody is
+    // harmed if a learner fudges one, whereas a certificate is a claim made
+    // to an employer and must not be self-issued.
     //
     // What these rules DO guarantee:
     //   · nobody can read another student's record
@@ -58,14 +66,17 @@ service cloud.firestore {
     //   · a Memora ID can never be claimed twice (create-only on the key)
     //   · the ID counter can only ever move forward by one
     //
-    // What they CANNOT guarantee:
-    //   · that a score or XP total is honest. A determined user could write
-    //     themselves a pass.
+    //   · an exam attempt or certificate can only have come from the server
     //
-    // Certificates must not be issued on this trust level. Before that ships:
-    // add FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY, move the progress
-    // writes into /api/academy/*, and set students/{uid} back to
-    // `allow write: if false`.
+    // What they CANNOT guarantee:
+    //   · that a practice score or XP total is honest. A determined user
+    //     could write themselves a lesson pass. That does not reach the
+    //     certificate, which is graded and written server-side.
+    //
+    // To raise practice progress to the same level, move recordAssessment()
+    // and awardXp() into /api/academy/* behind the same ID-token check that
+    // finalExam.js uses, then deny client writes to enrollments and progress
+    // below.
     // ═══════════════════════════════════════════════════════════════
 
     match /students/{uid} {
@@ -86,9 +97,30 @@ service cloud.firestore {
 
       allow delete: if false;
 
-      // Enrollments and per-lesson progress.
-      match /{document=**} {
+      // Enrollments and per-lesson progress are client-written, at the
+      // preview trust level described above.
+      //
+      // These are listed EXPLICITLY and the previous `match /{document=**}`
+      // catch-all is gone on purpose. Firestore grants access if ANY rule
+      // allows it, so a permissive catch-all here could not be narrowed by
+      // adding a stricter rule for a subcollection underneath it — the
+      // catch-all would still win. Exam attempts must be server-only, so the
+      // catch-all had to go rather than be overridden.
+      match /enrollments/{courseId} {
         allow read, write: if isSignedIn() && request.auth.uid == uid;
+      }
+
+      match /progress/{progressId} {
+        allow read, write: if isSignedIn() && request.auth.uid == uid;
+      }
+
+      // Exam attempts: readable by the student, written only by the server
+      // through the Admin SDK, which bypasses these rules entirely. A client
+      // cannot write itself a pass, which is what makes the certificate mean
+      // something.
+      match /examAttempts/{attemptId} {
+        allow read: if isSignedIn() && request.auth.uid == uid;
+        allow write: if false;
       }
     }
 
@@ -103,9 +135,24 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Certificates stay server-only. Nothing issues them yet, and nothing
-    // should be able to until the trust level above is raised.
+    // Certificates are issued by the server only, after it has graded the
+    // exam and verified the candidate's ID token. Writes are denied here for
+    // everyone; the Admin SDK bypasses these rules, so that route still works
+    // and is the only route.
+    //
+    // A holder may read their own certificate so it can be displayed. `list`
+    // is denied so nobody can enumerate the collection and harvest the names
+    // and email addresses of every graduate.
     match /certificates/{certificateId} {
+      allow get: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow list: if false;
+      allow write: if false;
+    }
+
+    // The certificate number counter. Server-only, like the certificates it
+    // numbers — uniqueness rests on the atomic create of certificates/{id}
+    // inside a transaction, and the counter is only an optimisation.
+    match /counters/certificateId {
       allow read, write: if false;
     }
 

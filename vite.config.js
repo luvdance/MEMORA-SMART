@@ -60,6 +60,44 @@ function academyApi() {
         }
       })
 
+      // Final certification exam. Reuses the production handler verbatim by
+      // adapting the dev request to the req/res shape it expects, so the two
+      // environments cannot drift apart.
+      server.middlewares.use('/api/academy/final-exam', async (req, res) => {
+        try {
+          const mod = await server.ssrLoadModule(
+            '/lib/academy/api/finalExam.js'
+          )
+          const url = new URL(req.url, 'http://localhost')
+          const query = Object.fromEntries(url.searchParams.entries())
+
+          let body = {}
+          if (req.method === 'POST') {
+            let raw = ''
+            for await (const chunk of req) raw += chunk
+            body = JSON.parse(raw || '{}')
+          }
+
+          const shim = {
+            status(code) {
+              res.statusCode = code
+              return shim
+            },
+            json(payload) {
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify(payload))
+              return shim
+            },
+            setHeader: (k, v) => res.setHeader(k, v),
+          }
+          await mod.default({ method: req.method, query, body }, shim)
+        } catch (err) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
+
       // Job recommendations, same handler shape as production
       server.middlewares.use('/api/academy/jobs', async (req, res) => {
         const respond = (status, body) => {

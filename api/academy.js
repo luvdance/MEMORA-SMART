@@ -1,4 +1,5 @@
 import assessment from "../lib/academy/api/assessment.js";
+import finalExam from "../lib/academy/api/finalExam.js";
 import jobs from "../lib/academy/api/jobs.js";
 
 /**
@@ -11,6 +12,7 @@ import jobs from "../lib/academy/api/jobs.js";
  * The pretty URLs are preserved by rewrites in vercel.json:
  *
  *   /api/academy/assessment → /api/academy?action=assessment
+ *   /api/academy/final-exam → /api/academy?action=final-exam
  *   /api/academy/jobs       → /api/academy?action=jobs
  *
  * Do NOT reintroduce a `[action].js` dynamic route here. Vercel did not match
@@ -20,7 +22,7 @@ import jobs from "../lib/academy/api/jobs.js";
  *
  * Add a route by adding an entry here AND a rewrite in vercel.json.
  */
-const routes = { assessment, jobs };
+const routes = { assessment, "final-exam": finalExam, jobs };
 
 export default async function handler(req, res) {
   const { action } = req.query || {};
