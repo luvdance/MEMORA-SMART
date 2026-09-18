@@ -16,7 +16,8 @@ import DaxSim from "../components/DaxSim";
 import CodeTrace from "../components/CodeTrace";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
-import { getCatalogEntry } from "../data/catalog";
+import BetaBadge from "../components/BetaBadge";
+import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getExamForModule } from "../data/exams";
 import { getCourseOutline, getLesson, getNextLesson } from "../data/lessons";
 import {
@@ -235,6 +236,7 @@ export default function LessonPlayer() {
           </button>
 
           <div className="ac-player__crumb">
+            <BetaBadge beta={entry?.beta} note={BETA_NOTE} />
             <span>{lesson.moduleTitle}</span>
             <i className="fas fa-chevron-right" aria-hidden="true" />
             <strong>{lesson.title}</strong>

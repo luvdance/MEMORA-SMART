@@ -1,5 +1,6 @@
 import DATA_ANALYSIS_COURSE from "../dataAnalysisCourse.js";
 import { LESSONS as FOUNDATIONS } from "./m1-data-foundations.js";
+import { LESSONS as EXCEL_SETUP } from "./m1-excel-setup.js";
 import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
 import { LESSONS as FORMULAS } from "./m1-formulas-functions.js";
 import { LESSONS as FORMULAS_2 } from "./m1-formulas-part2.js";
@@ -13,6 +14,7 @@ import { LESSONS as POWER_QUERY } from "./m3-power-query.js";
 import { LESSONS as MODELLING } from "./m3-modelling.js";
 import { LESSONS as DAX } from "./m3-dax.js";
 import { LESSONS as VISUALISATION } from "./m3-visualisation.js";
+import { LESSONS as PYTHON_SETUP } from "./m4-python-setup.js";
 import { LESSONS as PY_FOUNDATIONS } from "./m4-python-foundations.js";
 import { LESSONS as PANDAS } from "./m4-pandas.js";
 import { LESSONS as TRANSFORM } from "./m4-transform.js";
@@ -34,7 +36,10 @@ const REGISTRY = {
   "data-analysis": {
     "m1-data-foundations": FOUNDATIONS,
     "m1-clean-structure": CLEANING,
-    "m1-excel-essentials": [...EXCEL_ESSENTIALS, ...FORMULAS_2.filter(
+    // Three files, one module: the setup lesson, the essentials, and the
+    // formats lesson that lives with the formula content. Merged and
+    // re-sorted by `order` below, with setup at order 1.
+    "m1-excel-essentials": [...EXCEL_SETUP, ...EXCEL_ESSENTIALS, ...FORMULAS_2.filter(
       (l) => l.moduleId === "m1-excel-essentials"
     )],
     // Two files, one module. Merged and re-sorted by `order` below.
@@ -50,7 +55,8 @@ const REGISTRY = {
     "m3-modelling": MODELLING,
     "m3-dax": DAX,
     "m3-visualisation": VISUALISATION,
-    "m4-python-foundations": PY_FOUNDATIONS,
+    // Setup first, then the language. See m4-python-setup.js for why.
+    "m4-python-foundations": [...PYTHON_SETUP, ...PY_FOUNDATIONS],
     "m4-pandas": PANDAS,
     "m4-transform": TRANSFORM,
     "m4-visual-analysis": VISUAL_ANALYSIS,

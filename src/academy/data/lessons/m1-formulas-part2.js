@@ -340,7 +340,7 @@ export const LESSONS = [
     id: "l13-percentages-and-formats",
     moduleId: "m1-excel-essentials",
     sectionId: SECTION_ID,
-    order: 4,
+    order: 5,
     title: "Percentages and Data Types",
     subtitle: "What a cell holds vs how it looks",
     estimatedMinutes: 13,

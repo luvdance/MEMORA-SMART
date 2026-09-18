@@ -26,6 +26,22 @@ export const STATUS_LABELS = {
   planned: "Planned",
 };
 
+/**
+ * BETA.
+ *
+ * Every course carries `beta: true` while the platform is still being tested
+ * and improved. It is deliberately a SEPARATE flag from `status` rather than
+ * a fourth status value: a course is both "open now" and "in beta" at the
+ * same time, and folding the two together would break every `status ===
+ * "open"` check that decides whether a course can be enrolled on.
+ *
+ * Remove the flag from an entry to take that one course out of beta. Nothing
+ * else needs changing — the badge disappears with it.
+ */
+export const BETA_LABEL = "Beta";
+export const BETA_NOTE =
+  "This course is in beta. The lessons are complete and the content is verified, but we are still testing and improving as people work through it — tell us anything that looks wrong.";
+
 export const CATEGORIES = [
   { id: "all", label: "All courses" },
   { id: "data", label: "Data & Analytics" },
@@ -44,6 +60,7 @@ export const CATALOG = [
     category: "data",
     icon: "fas fa-chart-line",
     status: "open",
+    beta: true,
     level: "Beginner → Professional",
     summary:
       "Clean messy data, build dashboards people actually use, and defend your findings to a business. Our flagship programme.",
@@ -58,6 +75,7 @@ export const CATALOG = [
     category: "web",
     icon: "fas fa-code",
     status: "next",
+    beta: true,
     level: "Absolute beginner → Intermediate",
     summary:
       "Build and ship real websites from scratch. Structure, style, behaviour and deployment, with nothing assumed.",
@@ -71,6 +89,7 @@ export const CATALOG = [
     category: "web",
     icon: "fas fa-layer-group",
     status: "next",
+    beta: true,
     level: "Intermediate",
     summary:
       "Move from plain JavaScript to component-driven applications, state management and a professional build setup.",
@@ -84,6 +103,7 @@ export const CATALOG = [
     category: "ai",
     icon: "fas fa-robot",
     status: "next",
+    beta: true,
     level: "Beginner → Intermediate",
     summary:
       "Use AI tools properly instead of guessing at them, and automate the repetitive work out of a real business.",
@@ -97,6 +117,7 @@ export const CATALOG = [
     category: "creative",
     icon: "fas fa-video",
     status: "next",
+    beta: true,
     level: "Beginner → Intermediate",
     summary:
       "Turn an idea into content that gets watched — scripting, shooting, editing and the discipline of publishing consistently.",
@@ -109,6 +130,7 @@ export const CATALOG = [
     category: "creative",
     icon: "fas fa-pen-ruler",
     status: "planned",
+    beta: true,
     level: "Beginner → Professional",
     summary:
       "Research, wireframe and design interfaces people can use, then hand them over in a way developers can build.",
@@ -121,6 +143,7 @@ export const CATALOG = [
     category: "creative",
     icon: "fas fa-palette",
     status: "planned",
+    beta: true,
     level: "Beginner → Intermediate",
     summary:
       "Layout, typography and colour for brands, social media and print — the fundamentals before the software.",
@@ -133,6 +156,7 @@ export const CATALOG = [
     category: "skills",
     icon: "fas fa-bullhorn",
     status: "planned",
+    beta: true,
     level: "Beginner → Intermediate",
     summary:
       "Reach the right people and measure whether it worked, across social, search and email.",
@@ -145,6 +169,7 @@ export const CATALOG = [
     category: "data",
     icon: "fas fa-brain",
     status: "planned",
+    beta: true,
     level: "Intermediate → Advanced",
     summary:
       "The step after Data Analysis — statistics, machine learning and modelling on real datasets.",
@@ -157,6 +182,7 @@ export const CATALOG = [
     category: "skills",
     icon: "fas fa-file-lines",
     status: "planned",
+    beta: true,
     level: "Absolute beginner → Intermediate",
     summary:
       "Word, Excel and PowerPoint to a standard an employer expects, taught for people starting from zero.",
@@ -169,6 +195,7 @@ export const CATALOG = [
     category: "skills",
     icon: "fas fa-shield-halved",
     status: "planned",
+    beta: true,
     level: "Beginner → Intermediate",
     summary:
       "How attacks actually happen and the practical habits that stop them, for individuals and small teams.",

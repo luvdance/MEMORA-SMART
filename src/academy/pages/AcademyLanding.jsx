@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import MediaSlot from "../components/MediaSlot";
+import BetaBadge from "../components/BetaBadge";
 import ACADEMY_MEDIA from "../academyMedia";
 import {
   CATALOG,
@@ -14,6 +15,7 @@ import {
   getAcademyStats,
   getByCategory,
   getCourseStats,
+  BETA_NOTE,
 } from "../data/catalog";
 import { ASSESSMENT_RULES } from "../data/dataAnalysisCourse";
 import { startAcademyJourney } from "../services/intent";
@@ -377,8 +379,11 @@ export default function AcademyLanding() {
                       <span className="ac-cc__icon">
                         <i className={entry.icon} aria-hidden="true" />
                       </span>
-                      <span className={`ac-status ac-status--${entry.status}`}>
-                        {STATUS_LABELS[entry.status]}
+                      <span className="ac-cc__flags">
+                        <BetaBadge beta={entry.beta} note={BETA_NOTE} />
+                        <span className={`ac-status ac-status--${entry.status}`}>
+                          {STATUS_LABELS[entry.status]}
+                        </span>
                       </span>
                     </div>
 

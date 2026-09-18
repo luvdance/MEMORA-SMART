@@ -5,7 +5,9 @@ import useSEO from "../../hooks/useSEO";
 import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import StudentStats from "../components/StudentStats";
-import { getCatalogEntry } from "../data/catalog";
+import BetaBadge from "../components/BetaBadge";
+import CertificateCard from "../components/CertificateCard";
+import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getCourseLessons, getCourseOutline } from "../data/lessons";
 import {
   calculateProgress,
@@ -176,7 +178,10 @@ export default function AcademyProfile() {
                     <article className="ac-record" key={enrollment.courseId}>
                       <div className="ac-record__head">
                         <div>
-                          <h3>{entry.title}</h3>
+                          <h3>
+                            {entry.title}
+                            <BetaBadge beta={entry.beta} note={BETA_NOTE} />
+                          </h3>
                           <p>{entry.subtitle}</p>
                         </div>
                         <div className="ac-record__percent">
@@ -272,21 +277,11 @@ export default function AcademyProfile() {
                     Nothing here is inferred from lesson progress: a
                     certificate exists or it does not. */}
                 {certificate ? (
-                  <div className="ac-certstatus">
-                    <i className="fas fa-award" aria-hidden="true" />
-                    <div>
-                      <strong>{certificate.name}</strong>
-                      <p>
-                        {certificate.covers} · issued by {certificate.issuer}
-                      </p>
-                      <p className="ac-fx__certid">
-                        Certificate number <code>{certificate.id}</code>
-                        {typeof certificate.score === "number" && (
-                          <> · passed at {certificate.score}%</>
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  /* Only ever rendered when a server-issued certificate
+                     document exists — see CertificateCard for why that is the
+                     only acceptable gate. Pass `onDownload` once the PDF
+                     generator is in; the card owns the button either way. */
+                  <CertificateCard certificate={certificate} />
                 ) : (
                   <div className="ac-certstatus">
                     <i className="fas fa-certificate" aria-hidden="true" />

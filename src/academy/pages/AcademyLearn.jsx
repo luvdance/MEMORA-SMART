@@ -6,7 +6,8 @@ import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import StudentStats from "../components/StudentStats";
 import LiveSessions from "../components/LiveSessions";
-import { CATALOG, getCatalogEntry } from "../data/catalog";
+import BetaBadge from "../components/BetaBadge";
+import { CATALOG, getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getCourseLessons, getResumeLesson } from "../data/lessons";
 import {
   calculateProgress,
@@ -245,7 +246,10 @@ export default function AcademyLearn() {
                             <span>{percent}%</span>
                           </div>
                           <div className="ac-mycourse__body">
-                            <h3>{entry.title}</h3>
+                            <h3>
+                              {entry.title}
+                              <BetaBadge beta={entry.beta} note={BETA_NOTE} />
+                            </h3>
                             <p>
                               {(enrollment.completedLessons || []).length} of{" "}
                               {getCourseLessons(enrollment.courseId).length} lessons
@@ -288,7 +292,10 @@ export default function AcademyLearn() {
                           <span className="ac-cc__icon">
                             <i className={entry.icon} aria-hidden="true" />
                           </span>
-                          <span className="ac-status ac-status--open">Open now</span>
+                          <span className="ac-cc__flags">
+                            <BetaBadge beta={entry.beta} note={BETA_NOTE} />
+                            <span className="ac-status ac-status--open">Open now</span>
+                          </span>
                         </div>
                         <h3 className="ac-cc__title">{entry.title}</h3>
                         <p className="ac-cc__subtitle">{entry.subtitle}</p>

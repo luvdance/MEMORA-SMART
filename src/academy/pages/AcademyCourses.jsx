@@ -5,7 +5,8 @@ import useSEO from "../../hooks/useSEO";
 import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import ExamCard from "../components/ExamCard";
-import { CATALOG, CATEGORIES, STATUS_LABELS, getCourseStats } from "../data/catalog";
+import BetaBadge from "../components/BetaBadge";
+import { CATALOG, CATEGORIES, STATUS_LABELS, getCourseStats, BETA_NOTE } from "../data/catalog";
 import { getAuthoredStats } from "../data/lessons";
 import { EXAMS } from "../data/exams";
 import { startAcademyJourney } from "../services/intent";
@@ -150,8 +151,11 @@ export default function AcademyCourses() {
                       <span className="ac-cc__icon">
                         <i className={entry.icon} aria-hidden="true" />
                       </span>
-                      <span className={`ac-status ac-status--${entry.status}`}>
-                        {STATUS_LABELS[entry.status]}
+                      <span className="ac-cc__flags">
+                        <BetaBadge beta={entry.beta} note={BETA_NOTE} />
+                        <span className={`ac-status ac-status--${entry.status}`}>
+                          {STATUS_LABELS[entry.status]}
+                        </span>
                       </span>
                     </div>
 
