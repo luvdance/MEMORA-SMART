@@ -270,6 +270,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
+  const [chatAllowed, setChatAllowed] = useState(null);
 
   const available = useMemo(() => isE2eeAvailable(), []);
 
@@ -279,6 +280,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     setError(null);
     try {
       const me = await getStudent(user.uid);
+      // The under-18 safeguard, read from the record rather than recomputed
+      // here so there is one authoritative value. Undefined (a learner who
+      // has not completed onboarding) is treated as NOT allowed: when we
+      // cannot tell someone's age, the protective default is the right one.
+      setChatAllowed(me?.chatEnabled === true);
       const [rows, myRank, live, blocks] = await Promise.all([
         getLeaderboard({ top: 15 }),
         getMyRank(user.uid, me?.xp || 0),
@@ -321,6 +327,13 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   }, [open, user, lessonTitle]);
 
   const startChat = async (person) => {
+    if (chatAllowed === false) {
+      setNotice(
+        "Private messaging is off on your account — see the Messages tab for why."
+      );
+      setTab("chats");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -473,14 +486,24 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                   disabled here rather than falling back to something weaker.
                 </p>
               )}
-              {available && !chatWith && (
+              {chatAllowed === false && (
+                <p className="ac-sp__msg is-notice">
+                  <i className="fas fa-shield-halved" aria-hidden="true" />{" "}
+                  Private messaging is off on your account. These messages are
+                  encrypted, so nobody — including us — can read or moderate
+                  them, and that is not a safe default for under-18s or for an
+                  account whose age we do not know. Complete your profile if
+                  this is wrong.
+                </p>
+              )}
+              {available && chatAllowed && !chatWith && (
                 <p className="ac-sp__msg">
                   Open <strong>Active now</strong> and choose someone to
                   message. Conversations are encrypted in your browser, so they
                   are readable on this device only.
                 </p>
               )}
-              {available && chatWith && (
+              {available && chatAllowed && chatWith && (
                 <ChatThread
                   user={user}
                   person={chatWith}

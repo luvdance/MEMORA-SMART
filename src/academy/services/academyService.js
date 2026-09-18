@@ -22,6 +22,8 @@ import {
   localDateKey,
 } from "../data/gamification";
 import { getCourseLessons } from "../data/lessons";
+import { getCatalogEntry } from "../data/catalog";
+import { chatDefaultFor } from "../data/onboarding";
 
 /**
  * ACADEMY DATA LAYER
@@ -146,6 +148,52 @@ export async function getStudent(uid) {
   return snap.exists() ? snap.data() : null;
 }
 
+/* ── Onboarding profile ─────────────────────────────────────────────────── */
+
+/**
+ * Save the answers from the onboarding form.
+ *
+ * Stored under `profile` on the student document, which the owner may already
+ * write. Nothing here goes in the leaderboard or presence projections, so a
+ * phone number and an age band are never visible to another learner — that
+ * separation is the whole reason those projections exist.
+ *
+ * `chatEnabled` is DERIVED here rather than taken from the form, so the
+ * under-18 default cannot be bypassed by a crafted submission. See
+ * chatDefaultFor in data/onboarding.js for why it defaults closed.
+ */
+export async function saveProfile(user, answers) {
+  if (!user?.uid) throw new Error("Not signed in");
+
+  const profile = {
+    phone: String(answers.phone || "").trim(),
+    ageBand: answers.ageBand || null,
+    state: answers.state || null,
+    device: answers.device || null,
+    situation: answers.situation || null,
+    education: answers.education || null,
+    interests: Array.isArray(answers.interests) ? answers.interests : [],
+    goal: String(answers.goal || "").trim().slice(0, 300),
+    source: answers.source || null,
+    analyticsConsent: Boolean(answers.analyticsConsent),
+    completedAt: new Date().toISOString(),
+  };
+
+  await setDoc(
+    studentRef(user.uid),
+    {
+      profile,
+      // A safeguard, not a preference: computed from the age band on the
+      // server-visible record so the chat UI reads one authoritative value.
+      chatEnabled: chatDefaultFor(profile),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  return profile;
+}
+
 /* ── Enrollment ─────────────────────────────────────────────────────────── */
 
 export async function enroll(user, courseSlug) {
@@ -160,6 +208,12 @@ export async function enroll(user, courseSlug) {
   const enrollment = {
     uid: user.uid,
     courseId: courseSlug,
+    // The course CODE, recorded silently. It is never shown to the learner —
+    // an internal handle, not something they should have to read or quote —
+    // but it is stamped on the enrolment so a certificate, a support query or
+    // an export can say exactly which course this was without depending on a
+    // title that may later be reworded.
+    courseCode: getCatalogEntry(courseSlug)?.code || null,
     enrolledAt: serverTimestamp(),
     status: "active",
     position: first

@@ -5,7 +5,9 @@ import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import { getCatalogEntry } from "../data/catalog";
 import { getCourseLessons, getAuthoredStats } from "../data/lessons";
-import { enroll, getStudent } from "../services/academyService";
+import { enroll, getStudent, saveProfile } from "../services/academyService";
+import { isProfileComplete } from "../data/onboarding";
+import OnboardingForm from "../components/OnboardingForm";
 import "../academy.css";
 
 /**
@@ -28,7 +30,18 @@ export default function AcademyEnroll() {
   const [student, setStudent] = useState(null);
   const [status, setStatus] = useState("working");
   const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState(null);
 
+  /**
+   * Enrolment happens FIRST, then the questions.
+   *
+   * Deliberately that order. Putting a form between a learner and the course
+   * they just asked for is how you lose them, and if they close the tab
+   * halfway through the form they should still be enrolled rather than
+   * stranded. So the enrolment is committed immediately and the profile step
+   * is shown afterwards — skippable, and offered again next time.
+   */
   useEffect(() => {
     if (!user || !entry) return;
     let alive = true;
@@ -39,7 +52,7 @@ export default function AcademyEnroll() {
         const record = await getStudent(user.uid);
         if (!alive) return;
         setStudent(record);
-        setStatus("ready");
+        setStatus(isProfileComplete(record?.profile) ? "ready" : "profile");
       } catch (err) {
         if (!alive) return;
         console.error("Enrollment failed", err);
@@ -52,6 +65,25 @@ export default function AcademyEnroll() {
       alive = false;
     };
   }, [user, slug, entry]);
+
+  const submitProfile = async (answers) => {
+    setSaving(true);
+    setFormError(null);
+    try {
+      await saveProfile(user, answers);
+      const record = await getStudent(user.uid);
+      setStudent(record);
+      setStatus("ready");
+    } catch {
+      // They are already enrolled, so a failure here must not look like a
+      // failed enrolment. Let them retry or skip.
+      setFormError(
+        "Your details could not be saved, but you are enrolled. Try again, or skip and do it from your profile."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (!entry) {
     return (
@@ -99,6 +131,18 @@ export default function AcademyEnroll() {
                 Try again
               </button>
             </div>
+          )}
+
+          {/* Enrolled, but we have not met them yet. */}
+          {status === "profile" && (
+            <OnboardingForm
+              email={student?.email || user?.email}
+              displayName={student?.displayName || user?.displayName}
+              busy={saving}
+              error={formError}
+              onSubmit={submitProfile}
+              onSkip={() => setStatus("ready")}
+            />
           )}
 
           {status === "ready" && (

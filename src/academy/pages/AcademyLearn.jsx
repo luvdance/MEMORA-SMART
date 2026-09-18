@@ -224,7 +224,15 @@ export default function AcademyLearn() {
               {/* ── ENROLLED COURSES ── */}
               {enrollments.length > 0 && (
                 <section className="ac-learn__section">
-                  <h2 className="ac-learn__title">Your courses</h2>
+                  <h2 className="ac-learn__title">
+                    Your courses
+                    {/* Where "add another course" lives now that the nav's
+                        Enroll button is signed-out only. */}
+                    <Link className="ac-learn__add" to="/academy/enroll">
+                      <i className="fas fa-plus" aria-hidden="true" />
+                      Add a course
+                    </Link>
+                  </h2>
                   <div className="ac-mycourses">
                     {enrollments.map((enrollment) => {
                       const entry = getCatalogEntry(enrollment.courseId);

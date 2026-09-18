@@ -21,7 +21,11 @@ export function rememberIntent(slug) {
   try {
     localStorage.setItem(
       KEY,
-      JSON.stringify({ action: "enroll", slug, at: Date.now() })
+      // `slug` may be null, meaning "they pressed Enrol without having picked
+      // a course yet". That is a real intent and must survive sign-up just as
+      // a specific course does — otherwise a new learner verifies their email
+      // and lands on the flagship they never chose.
+      JSON.stringify({ action: "enroll", slug: slug || null, at: Date.now() })
     );
   } catch {
     // Private browsing or blocked storage — router state still covers the
@@ -35,7 +39,8 @@ export function readIntent() {
     if (!raw) return null;
 
     const intent = JSON.parse(raw);
-    if (!intent?.slug || Date.now() - intent.at > MAX_AGE_MS) {
+    // A slug-less enrol intent is valid; only a malformed or stale one is not.
+    if (intent?.action !== "enroll" || Date.now() - intent.at > MAX_AGE_MS) {
       clearIntent();
       return null;
     }
@@ -53,22 +58,44 @@ export function clearIntent() {
   }
 }
 
-/** Where a pending intent should send someone once they are signed in. */
+/**
+ * Where a pending intent should send someone once they are signed in.
+ *
+ * No slug means they had not chosen a course yet, so they go to the chooser —
+ * NOT to /academy/learn, which would silently drop the intent, and not to the
+ * flagship, which would enrol them in something they never picked.
+ */
 export function intentPath(intent) {
-  if (!intent?.slug) return "/academy/learn";
+  if (!intent) return "/academy/learn";
+  if (!intent.slug) return "/academy/enroll";
   return `/academy/enroll/${intent.slug}`;
 }
 
 /**
  * The single entry point into the Academy funnel.
  *
- * Signed in  → straight to enrollment.
+ * Signed in  → straight to enrolment, or to the chooser if no course is named.
  * Signed out → the existing /auth flow, with the destination remembered twice.
+ *
+ * NO DEFAULT COURSE. This used to default to "data-analysis", which meant a
+ * button labelled "Enrol now" enrolled you in a specific course without
+ * asking. Called without a slug it now routes to the chooser, so the learner
+ * picks and the system records what they actually chose. A slug passed
+ * explicitly — from a course card, say — still goes straight through, because
+ * there the choice has already been made.
  *
  * Deliberately never routes to /dashboard: the Academy is its own product and
  * a learner should never be dropped into the CV-builder dashboard.
  */
-export function startAcademyJourney(navigate, user, slug = "data-analysis") {
+export function startAcademyJourney(navigate, user, slug = null) {
+  // No course named yet: everyone goes to the chooser, signed in or not. The
+  // signup wall belongs AFTER the choice, not before it — a visitor asked to
+  // create an account before seeing what is on offer usually just leaves.
+  if (!slug) {
+    navigate("/academy/enroll");
+    return;
+  }
+
   const destination = `/academy/enroll/${slug}`;
 
   if (user) {

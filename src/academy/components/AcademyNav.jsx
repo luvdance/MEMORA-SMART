@@ -63,10 +63,15 @@ export default function AcademyNav() {
   const close = () => setMenuOpen(false);
   const isActive = (to) => location.pathname === to.split("#")[0];
 
-  /** Enroll is the only conversion action — never a link to the product dashboard. */
+  /**
+   * Enroll is the only conversion action — never a link to the product
+   * dashboard, and never a specific course. A button labelled "Enroll now"
+   * that silently picked Data Analysis was telling the learner one thing and
+   * doing another; with no slug this routes to the chooser, where they pick.
+   */
   const enroll = () => {
     close();
-    startAcademyJourney(navigate, user, "data-analysis");
+    startAcademyJourney(navigate, user);
   };
 
   const initial = (user?.displayName || user?.email || "S").charAt(0).toUpperCase();
@@ -118,19 +123,18 @@ export default function AcademyNav() {
             <span className="ac-nav__divider" aria-hidden="true" />
 
             {user ? (
-              <>
-                {/* Present when signed in too: a student adding a second
-                    course should not have to hunt for the action. */}
-                <button
-                  className="ac-btn ac-btn--primary ac-nav__enroll"
-                  onClick={enroll}
-                >
-                  Enroll now
-                </button>
-                <Link to="/academy/profile" className="ac-nav__avatar" title="Your profile">
-                  {user.photoURL ? <img src={user.photoURL} alt="" /> : initial}
-                </Link>
-              </>
+              /* NO ENROLL BUTTON WHEN SIGNED IN.
+                 Enroll is an ONBOARDING action — it brings someone into the
+                 Academy. Showing it to a student who is already enrolled
+                 labels the wrong thing: they do not need enrolling, they need
+                 their course. My Learning and Courses above already cover
+                 that, and /academy/enroll stays reachable from the dashboard
+                 for adding a second course.
+                 It also avoids a Firestore read on every page load just to
+                 decide what the button should say. */
+              <Link to="/academy/profile" className="ac-nav__avatar" title="Your profile">
+                {user.photoURL ? <img src={user.photoURL} alt="" /> : initial}
+              </Link>
             ) : (
               <>
                 <button className="ac-nav__login" onClick={enroll}>

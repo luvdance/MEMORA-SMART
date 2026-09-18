@@ -20,6 +20,23 @@ import DATA_ANALYSIS_COURSE from "./dataAnalysisCourse.js";
  * would put numbers on the page that nothing backs.
  */
 
+/**
+ * COURSE CODES.
+ *
+ * Every course carries a short, human-readable code alongside its id. The id
+ * is what code matches on; the CODE is what a person quotes — in an
+ * enrolment, on a certificate, in an email asking for help. "I am on DA-101"
+ * is unambiguous in a way "the data one" is not.
+ *
+ * Convention: two-letter discipline, then a level.
+ *   101   no prerequisite, starts from zero
+ *   201   builds on the 101 in the same discipline
+ *   301   advanced, assumes real working knowledge
+ *
+ * A code is PERMANENT once a learner has enrolled under it, because their
+ * enrolment and any certificate record it. Rename a course freely; never
+ * reissue its code to something else.
+ */
 export const STATUS_LABELS = {
   open: "Open now",
   next: "In development",
@@ -54,6 +71,7 @@ export const CATEGORIES = [
 export const CATALOG = [
   {
     id: "data-analysis",
+    code: "DA-101",
     slug: "data-analysis",
     title: "Data Analysis",
     subtitle: "Beginner to Professional",
@@ -69,6 +87,7 @@ export const CATALOG = [
   },
   {
     id: "web-development",
+    code: "WD-101",
     slug: "web-development",
     title: "Web Development",
     subtitle: "Foundations",
@@ -83,6 +102,7 @@ export const CATALOG = [
   },
   {
     id: "frontend-libraries",
+    code: "WD-201",
     slug: "frontend-libraries",
     title: "Frontend Libraries",
     subtitle: "React and the modern toolchain",
@@ -97,6 +117,7 @@ export const CATALOG = [
   },
   {
     id: "ai-automation",
+    code: "AI-101",
     slug: "ai-automation",
     title: "AI & Automation",
     subtitle: "For work and for business",
@@ -111,6 +132,7 @@ export const CATALOG = [
   },
   {
     id: "content-creation",
+    code: "CC-101",
     slug: "content-creation",
     title: "Content Creation",
     subtitle: "Plan, produce, publish",
@@ -125,6 +147,7 @@ export const CATALOG = [
   },
   {
     id: "uiux-design",
+    code: "UX-101",
     slug: "uiux-design",
     title: "UI/UX Design",
     category: "creative",
@@ -138,6 +161,7 @@ export const CATALOG = [
   },
   {
     id: "graphics-design",
+    code: "GD-101",
     slug: "graphics-design",
     title: "Graphics Design",
     category: "creative",
@@ -151,6 +175,7 @@ export const CATALOG = [
   },
   {
     id: "digital-marketing",
+    code: "DM-101",
     slug: "digital-marketing",
     title: "Digital Marketing",
     category: "skills",
@@ -164,6 +189,7 @@ export const CATALOG = [
   },
   {
     id: "data-science",
+    code: "DA-301",
     slug: "data-science",
     title: "Data Science",
     category: "data",
@@ -177,6 +203,7 @@ export const CATALOG = [
   },
   {
     id: "microsoft-office",
+    code: "MO-101",
     slug: "microsoft-office",
     title: "Microsoft Office",
     category: "skills",
@@ -190,6 +217,7 @@ export const CATALOG = [
   },
   {
     id: "cybersecurity",
+    code: "CS-101",
     slug: "cybersecurity",
     title: "Cybersecurity",
     category: "skills",

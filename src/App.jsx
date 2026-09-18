@@ -19,6 +19,7 @@ import ProjectPilot from "./project-formatter/PilotLandingPage";
 import AcademyLanding from "./academy/pages/AcademyLanding";
 import AcademyCourses from "./academy/pages/AcademyCourses";
 import AcademyEnroll from "./academy/pages/AcademyEnroll";
+import AcademyEnrollChoose from "./academy/pages/AcademyEnrollChoose";
 import AcademyJobs from "./academy/pages/AcademyJobs";
 import AcademyLearn from "./academy/pages/AcademyLearn";
 import AcademyProfile from "./academy/pages/AcademyProfile";
@@ -56,6 +57,12 @@ function App() {
           guarantees a student record and Memora ID exist. */}
       <Route path="/academy" element={<AcademyLanding />} />
       <Route path="/academy/courses" element={<AcademyCourses />} />
+      {/* The chooser. Declared BEFORE /academy/enroll/:slug so the bare
+          path resolves here rather than being read as a slug. */}
+      {/* Public on purpose: a visitor picks a course BEFORE being asked to
+          create an account. Requiring sign-in here would put the signup wall
+          in front of the choice, which is the flow this page replaced. */}
+      <Route path="/academy/enroll" element={<AcademyEnrollChoose />} />
       <Route
         path="/academy/enroll/:slug"
         element={

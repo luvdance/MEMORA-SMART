@@ -172,7 +172,11 @@ export default function AcademyLanding() {
 
   // Signed in → straight to enrollment. Signed out → the existing signup,
   // with the course remembered so verification cannot lose it.
-  const enroll = (slug = flagship.slug) => startAcademyJourney(navigate, user, slug);
+  // Pass a slug when the course is already chosen (a course card); pass
+  // nothing for a generic "Enroll now", which routes to the chooser. The old
+  // default of flagship.slug meant the hero button enrolled you in Data
+  // Analysis without asking.
+  const enroll = (slug = null) => startAcademyJourney(navigate, user, slug);
 
   const visibleCourses = useMemo(() => getByCategory(category), [category]);
 
