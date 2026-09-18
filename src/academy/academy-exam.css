@@ -22,6 +22,205 @@
       own rather than making the page do it.
    ════════════════════════════════════════════════════════════════════════ */
 
+/* ── LEADERBOARD  ·  .ac-lb__* ──────────────────────────────────────────
+   Collapsible, and built not to interrupt a lesson:
+
+   · no position: fixed, no overlay, no transform — it cannot cover content
+   · the collapsed bar is a single row, so it adds almost no height
+   · the body is unmounted while closed, so opening it pushes content DOWN
+     rather than reflowing anything already read above it
+   · the compact variant is quieter still, for the lesson page
+
+   Deliberately no expand animation on height: an animated panel on a lesson
+   page draws the eye, which is the opposite of the requirement. */
+.ac-lb {
+  border: 1px solid var(--ac-line);
+  border-radius: var(--ac-r);
+  background: var(--ac-bg);
+  overflow: hidden;
+}
+
+.ac-lb__bar {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.ac-lb__toggle {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: none;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--ac-ink);
+  cursor: pointer;
+}
+
+.ac-lb__toggle > i:first-child {
+  color: var(--ac-violet);
+}
+
+.ac-lb__title {
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+
+.ac-lb__myrank {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ac-primary);
+  background: var(--ac-primary-soft);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+/* Pushes the chevron to the right whatever else is in the bar. */
+.ac-lb__chev {
+  margin-left: auto;
+  color: var(--ac-muted);
+  font-size: 0.8rem;
+}
+
+.ac-lb__body {
+  border-top: 1px solid var(--ac-line);
+  padding: 14px 16px 16px;
+}
+
+.ac-lb__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.ac-lb__row {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 9px 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.ac-lb__row:nth-child(odd) {
+  background: var(--ac-tint);
+}
+
+.ac-lb__row.is-me {
+  background: var(--ac-primary-soft);
+  outline: 1px solid #c3cbf5;
+}
+
+.ac-lb__pos {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--ac-muted);
+  text-align: right;
+}
+
+.ac-lb__name {
+  color: var(--ac-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ac-lb__name em {
+  font-style: normal;
+  color: var(--ac-primary);
+  font-weight: 700;
+}
+
+.ac-lb__xp {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--ac-ink);
+  white-space: nowrap;
+}
+
+/* The level sits under the name on a phone rather than squeezing the row. */
+.ac-lb__lvl {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.76rem;
+  color: var(--ac-muted);
+}
+
+.ac-lb__msg {
+  margin: 10px 0 0;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--ac-muted);
+}
+
+.ac-lb__msg.is-error {
+  color: #9a2020;
+}
+
+.ac-lb__retry {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ac-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ac-lb__foot {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ac-line-soft);
+}
+
+.ac-lb__foot p {
+  margin: 0 0 8px;
+  font-size: 0.79rem;
+  line-height: 1.55;
+  color: var(--ac-muted);
+}
+
+.ac-lb__optout {
+  border: 1px solid var(--ac-line);
+  background: var(--ac-bg);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 38px;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--ac-text);
+  cursor: pointer;
+}
+
+/* The lesson-page variant: quieter, and it never carries a shadow that would
+   make it read as a floating thing over the lesson. */
+.ac-lb--compact {
+  margin-top: 28px;
+  background: var(--ac-tint);
+  box-shadow: none;
+}
+
+.ac-lb--compact .ac-lb__toggle {
+  min-height: 44px;
+  padding: 10px 14px;
+}
+
+.ac-lb--compact .ac-lb__title {
+  font-size: 0.9rem;
+}
+
+.ac-lb--compact .ac-lb__body {
+  background: var(--ac-bg);
+}
+
 /* ── The earned certificate ─────────────────────────────────────────────
    Only ever on screen once a server-issued certificate exists, so this is
    allowed to look like an award rather than a status card. */

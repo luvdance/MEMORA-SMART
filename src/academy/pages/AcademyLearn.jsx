@@ -7,6 +7,7 @@ import AcademyFooter from "../components/AcademyFooter";
 import StudentStats from "../components/StudentStats";
 import LiveSessions from "../components/LiveSessions";
 import BetaBadge from "../components/BetaBadge";
+import Leaderboard from "../components/Leaderboard";
 import { CATALOG, getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getCourseLessons, getResumeLesson } from "../data/lessons";
 import {
@@ -214,6 +215,10 @@ export default function AcademyLearn() {
               <section className="ac-learn__section">
                 <h2 className="ac-learn__title">Live classes</h2>
                 <LiveSessions />
+              </section>
+
+              <section className="ac-learn__section">
+                <Leaderboard variant="panel" student={student} />
               </section>
 
               {/* ── ENROLLED COURSES ── */}

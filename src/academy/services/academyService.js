@@ -2,10 +2,13 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   collection,
   getDocs,
+  getCountFromServer,
   query,
   where,
+  orderBy,
   limit,
   runTransaction,
   serverTimestamp,
@@ -348,6 +351,107 @@ async function markLessonComplete(uid, courseSlug, lessonId) {
   );
 }
 
+/* ── Leaderboard ────────────────────────────────────────────────────────── */
+
+/**
+ * THE LEADERBOARD IS A SEPARATE, MINIMAL PROJECTION — and it has to be.
+ *
+ * A student document holds an email address, a Memora ID and a full progress
+ * record, and the rules let a learner read only their OWN. A leaderboard needs
+ * to read everybody's, so the obvious shortcut — loosening the read rule on
+ * `students` — would publish every learner's email to every other learner.
+ *
+ * So `leaderboard/{uid}` carries only what a board actually displays: a name,
+ * an XP total, a level and a streak. Nothing else is written, and the rules
+ * enforce that with `hasOnly`, so this collection cannot quietly become a
+ * second copy of the student record.
+ *
+ * TRUST: the same preview level as XP itself. XP is written by the client, so
+ * a determined user could inflate their own row. A leaderboard cannot be more
+ * honest than the number it ranks — the fix is the one the rules already
+ * describe: move awardXp() server-side behind the exam's ID-token check, and
+ * write this row from there.
+ *
+ * PRIVACY: a learner can remove themselves with leaveLeaderboard(). Their row
+ * is deleted and they stop appearing; they can still see the board.
+ */
+
+const leaderboardRef = (uid) => doc(db, "leaderboard", uid);
+
+/** Fields the board is allowed to hold. Mirrored by the Firestore rules. */
+const LEADERBOARD_FIELDS = ["uid", "name", "xp", "level", "levelName", "streak", "updatedAt"];
+
+/**
+ * Publish or refresh this learner's public row.
+ *
+ * Called from awardXp, so the board follows real progress and never needs a
+ * backfill. Deliberately non-fatal: a learner who has opted out, or whose
+ * write is refused, must still earn their XP.
+ */
+async function publishLeaderboardEntry(uid, student) {
+  try {
+    const level = getLevel(student.xp || 0);
+    const row = {
+      uid,
+      // Only the display name — never the email, which is what a naive
+      // "show who is top" query would have leaked.
+      name: student.displayName || "Memora learner",
+      xp: student.xp || 0,
+      level: level.level,
+      levelName: level.name,
+      streak: student.streak?.current || 0,
+      updatedAt: serverTimestamp(),
+    };
+    await setDoc(leaderboardRef(uid), row, { merge: true });
+  } catch {
+    // Opted out, offline, or refused by rules. None of those should cost the
+    // learner the XP they just earned.
+  }
+}
+
+/**
+ * The top of the board.
+ *
+ * Only ever called when a learner has actually opened the leaderboard — the
+ * component does not fetch while collapsed, so a closed board costs no reads
+ * and adds nothing to a lesson page's load.
+ */
+export async function getLeaderboard({ top = 20 } = {}) {
+  const q = query(
+    collection(db, "leaderboard"),
+    orderBy("xp", "desc"),
+    limit(top)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d, i) => ({ rank: i + 1, id: d.id, ...d.data() }));
+}
+
+/**
+ * Where this learner sits, without downloading the whole board.
+ *
+ * Counts the rows above them server-side, so a learner ranked 4,000th costs
+ * one aggregation query rather than 4,000 document reads.
+ */
+export async function getMyRank(uid, xp = 0) {
+  if (!uid) return null;
+  try {
+    const above = query(collection(db, "leaderboard"), where("xp", ">", xp));
+    const snap = await getCountFromServer(above);
+    return snap.data().count + 1;
+  } catch {
+    return null;
+  }
+}
+
+/** Remove yourself from the board. Reversible: earning XP re-publishes. */
+export async function leaveLeaderboard(uid) {
+  if (!uid) return;
+  await deleteDoc(leaderboardRef(uid));
+}
+
+/** Exposed for the test suite, so the field list and the rules cannot drift. */
+export const __leaderboardFields = LEADERBOARD_FIELDS;
+
 /* ── Final exam ─────────────────────────────────────────────────────────── */
 
 /**
@@ -452,6 +556,11 @@ async function awardXp(uid, amount, counters = {}) {
     },
     { merge: true }
   );
+
+  // Keep the public board in step with the record that just changed. Awaited
+  // rather than fired and forgotten, so a learner who opens the leaderboard
+  // straight after finishing a lesson sees their new total, not the old one.
+  await publishLeaderboardEntry(uid, { ...student, ...updated });
 
   const afterLevel = getLevel(updated.xp).level;
 

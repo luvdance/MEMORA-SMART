@@ -124,6 +124,39 @@ service cloud.firestore {
       }
     }
 
+    // ── LEADERBOARD ─────────────────────────────────────────────────
+    //
+    // A deliberately minimal PROJECTION of a student record, and the only
+    // Academy collection any signed-in learner may read in full.
+    //
+    // It exists because the alternative is worse: a leaderboard needs to read
+    // everyone's name and XP, and loosening the read rule on `students` to
+    // allow that would publish every learner's email address and Memora ID
+    // to every other learner. So the board gets its own document holding
+    // nothing but what a board displays.
+    //
+    // `hasOnly` is what keeps that true. Without it this collection would
+    // gradually accumulate whatever a future feature found convenient, and
+    // the privacy boundary would erode one field at a time.
+    match /leaderboard/{uid} {
+      // Any signed-in learner can see the board. Not public: a visitor who
+      // has not signed in has no reason to see a list of students.
+      allow read: if isSignedIn();
+
+      allow create, update: if isSignedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.uid == uid
+                    && request.resource.data.keys().hasOnly([
+                         'uid', 'name', 'xp', 'level', 'levelName',
+                         'streak', 'updatedAt'
+                       ])
+                    && request.resource.data.xp is int
+                    && request.resource.data.xp >= 0;
+
+      // Opting out. A learner may remove their own row and nobody else's.
+      allow delete: if isSignedIn() && request.auth.uid == uid;
+    }
+
     // Memora ID → uid claim. Create-only: Firestore guarantees atomicity on
     // the document key, so two people cannot claim the same ID. Never
     // updatable or deletable, so an ID cannot be reassigned.

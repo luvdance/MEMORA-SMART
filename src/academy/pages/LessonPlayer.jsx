@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import useSEO from "../../hooks/useSEO";
 import AcademyNav from "../components/AcademyNav";
 import LessonSidebar from "../components/LessonSidebar";
+import Leaderboard from "../components/Leaderboard";
 import AssessmentPanel from "../components/AssessmentPanel";
 import AtomTable from "../components/AtomTable";
 import FormulaSyntax from "../components/FormulaSyntax";
@@ -574,6 +575,12 @@ export default function LessonPlayer() {
               flash={flash}
             />
           )}
+
+          {/* Collapsed by default and fetches nothing until opened, so it
+              cannot slow the lesson, shift the page, or pull attention away
+              from what the learner came here for. Placed AFTER the lesson
+              content, never over it. */}
+          <Leaderboard variant="compact" />
         </main>
       </div>
 
