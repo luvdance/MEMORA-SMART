@@ -444,6 +444,12 @@ const LEADERBOARD_FIELDS = ["uid", "name", "xp", "level", "levelName", "streak",
  */
 async function publishLeaderboardEntry(uid, student) {
   try {
+    // A stored preference, not a one-off delete. Without this check, hiding
+    // yourself lasted only until your next lesson: awardXp calls this on every
+    // award and would have quietly put you back on the board. A privacy
+    // control that silently undoes itself is worse than none.
+    if (student?.leaderboardOptOut === true) return;
+
     const level = getLevel(student.xp || 0);
     const row = {
       uid,
@@ -497,10 +503,45 @@ export async function getMyRank(uid, xp = 0) {
   }
 }
 
-/** Remove yourself from the board. Reversible: earning XP re-publishes. */
-export async function leaveLeaderboard(uid) {
-  if (!uid) return;
-  await deleteDoc(leaderboardRef(uid));
+/**
+ * Show or hide yourself on the leaderboard, and remember the choice.
+ *
+ * Both directions, because a one-way "hide me" is a trap: a learner who
+ * changes their mind, or who pressed it to see what it did, has no way back.
+ *
+ * Two writes, in an order that matters. Going private, the FLAG is set first
+ * and then the row deleted — if the second write fails, awardXp still honours
+ * the flag and the row disappears on its next pass. Doing it the other way
+ * round would leave someone visible again after their next lesson, which is
+ * the failure that actually harms.
+ */
+export async function setLeaderboardVisibility(user, visible) {
+  if (!user?.uid) return;
+
+  if (!visible) {
+    await setDoc(
+      studentRef(user.uid),
+      { leaderboardOptOut: true, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+    await deleteDoc(leaderboardRef(user.uid));
+    return;
+  }
+
+  await setDoc(
+    studentRef(user.uid),
+    { leaderboardOptOut: false, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+  // Republish immediately rather than waiting for their next lesson, so
+  // pressing "Show me" has a visible effect straight away.
+  const record = await getStudent(user.uid);
+  if (record) await publishLeaderboardEntry(user.uid, { ...record, leaderboardOptOut: false });
+}
+
+/** Are they currently visible? Read from the preference, not from the row. */
+export function isOnLeaderboard(student) {
+  return student?.leaderboardOptOut !== true;
 }
 
 /** Exposed for the test suite, so the field list and the rules cannot drift. */

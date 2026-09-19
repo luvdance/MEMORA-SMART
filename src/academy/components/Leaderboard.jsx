@@ -4,7 +4,8 @@ import {
   getLeaderboard,
   getMyRank,
   getStudent,
-  leaveLeaderboard,
+  isOnLeaderboard,
+  setLeaderboardVisibility,
 } from "../services/academyService";
 
 /**
@@ -62,6 +63,7 @@ export default function Leaderboard({
   const [myRank, setMyRank] = useState(null);
   const [error, setError] = useState(null);
   const [hidden, setHidden] = useState(false);
+  const [working, setWorking] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   // The caller may already hold the student record (the dashboard does). Where
@@ -89,6 +91,7 @@ export default function Leaderboard({
         ]);
         if (!alive) return;
         setMe(record);
+        setHidden(!isOnLeaderboard(record));
         setRows(board);
         setMyRank(rank);
       } catch (err) {
@@ -121,15 +124,36 @@ export default function Leaderboard({
     }
   };
 
-  const optOut = async () => {
-    if (!user) return;
+  /**
+   * Visibility, both ways.
+   *
+   * `hidden` is seeded from the stored preference when the board loads, not
+   * from local state alone — otherwise a learner who hid themselves would see
+   * "Hide me" again on their next visit and have no idea it had worked.
+   */
+  const setVisible = async (visible) => {
+    if (!user || working) return;
+    setWorking(true);
+    setError(null);
     try {
-      await leaveLeaderboard(user.uid);
-      setHidden(true);
-      setRows((prev) => (prev || []).filter((r) => r.id !== user.uid));
-      setMyRank(null);
+      await setLeaderboardVisibility(user, visible);
+      setHidden(!visible);
+      if (!visible) {
+        setRows((prev) => (prev || []).filter((r) => r.id !== user.uid));
+        setMyRank(null);
+      } else {
+        // Re-read so their row and rank appear immediately.
+        setRows(null);
+        setAttempt((n) => n + 1);
+      }
     } catch {
-      setError("Could not remove you from the board. Try again.");
+      setError(
+        visible
+          ? "Could not put you back on the board. Try again."
+          : "Could not remove you from the board. Try again."
+      );
+    } finally {
+      setWorking(false);
     }
   };
 
@@ -219,22 +243,45 @@ export default function Leaderboard({
                 </p>
               )}
 
-              {hidden ? (
-                <p className="ac-lb__msg">
-                  You have been removed from the board. Earning XP will put you
-                  back on it.
-                </p>
-              ) : (
-                <div className="ac-lb__foot">
-                  <p>
-                    Only your name, level and XP are shared here — never your
-                    email or your scores.
-                  </p>
-                  <button type="button" className="ac-lb__optout" onClick={optOut}>
-                    Hide me from the leaderboard
-                  </button>
-                </div>
-              )}
+              {/* Always both states, and always the way back. A one-way
+                  privacy control is a trap: someone who presses it to see
+                  what it does, or simply changes their mind, is stuck. */}
+              <div className="ac-lb__foot">
+                {hidden ? (
+                  <>
+                    <p>
+                      <i className="fas fa-eye-slash" aria-hidden="true" /> You
+                      are hidden. Nobody else sees your name, level or XP here,
+                      and you stay hidden until you choose otherwise — finishing
+                      lessons will not put you back.
+                    </p>
+                    <button
+                      type="button"
+                      className="ac-lb__optout is-show"
+                      onClick={() => setVisible(true)}
+                      disabled={working}
+                    >
+                      {working ? "Working…" : "Show me on the leaderboard"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      Only your name, level and XP are shared here — never your
+                      email or your scores. You can hide yourself at any time
+                      and put yourself back whenever you like.
+                    </p>
+                    <button
+                      type="button"
+                      className="ac-lb__optout"
+                      onClick={() => setVisible(false)}
+                      disabled={working}
+                    >
+                      {working ? "Working…" : "Hide me from the leaderboard"}
+                    </button>
+                  </>
+                )}
+              </div>
             </>
           )}
         </div>

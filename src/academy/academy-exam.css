@@ -1072,15 +1072,6 @@
   color: var(--ac-ink-2);
 }
 
-.ac-sp__foot {
-  margin: 14px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--ac-line-soft);
-  font-size: 0.73rem;
-  line-height: 1.55;
-  color: var(--ac-muted);
-}
-
 /* ── LEADERBOARD  ·  .ac-lb__* ──────────────────────────────────────────
    Collapsible, and built not to interrupt a lesson:
 
@@ -1234,6 +1225,51 @@
   cursor: pointer;
 }
 
+/* ── Visibility control ───────────────────────────────────────────────────
+   Both states get a real button, never a dead-end message. "Hide" is quiet;
+   "Show me" is the affirmative action so someone who hid themselves by
+   accident can find the way back at a glance. */
+.ac-sp__foot {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ac-line-soft);
+}
+
+.ac-sp__foot p {
+  margin: 0 0 9px;
+  font-size: 0.73rem;
+  line-height: 1.55;
+  color: var(--ac-muted);
+}
+
+.ac-sp__optout,
+.ac-lb__optout {
+  border: 1px solid var(--ac-line);
+  background: var(--ac-bg);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 38px;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--ac-text);
+  cursor: pointer;
+}
+
+.ac-sp__optout:disabled,
+.ac-lb__optout:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Coming back is the encouraged direction, so it reads as a real action. */
+.ac-sp__optout.is-show,
+.ac-lb__optout.is-show {
+  border-color: var(--ac-primary);
+  background: var(--ac-primary-soft);
+  color: var(--ac-primary);
+  font-weight: 600;
+}
+
 .ac-lb__foot {
   margin-top: 14px;
   padding-top: 12px;
@@ -1245,18 +1281,6 @@
   font-size: 0.79rem;
   line-height: 1.55;
   color: var(--ac-muted);
-}
-
-.ac-lb__optout {
-  border: 1px solid var(--ac-line);
-  background: var(--ac-bg);
-  border-radius: 8px;
-  padding: 8px 12px;
-  min-height: 38px;
-  font: inherit;
-  font-size: 0.8rem;
-  color: var(--ac-text);
-  cursor: pointer;
 }
 
 /* The lesson-page variant: quieter, and it never carries a shadow that would

@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { BADGES } from "../data/gamification";
-import { getLeaderboard, getMyRank, getStudent } from "../services/academyService";
+import {
+  getLeaderboard,
+  getMyRank,
+  getStudent,
+  isOnLeaderboard,
+  setLeaderboardVisibility,
+} from "../services/academyService";
 import {
   announcePresence,
+  clearPresence,
   blockUser,
   getActiveLearners,
   getBlockedUids,
@@ -271,6 +278,8 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const [chatAllowed, setChatAllowed] = useState(null);
+  const [hidden, setHidden] = useState(false);
+  const [working, setWorking] = useState(false);
 
   const available = useMemo(() => isE2eeAvailable(), []);
 
@@ -285,6 +294,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       // has not completed onboarding) is treated as NOT allowed: when we
       // cannot tell someone's age, the protective default is the right one.
       setChatAllowed(me?.chatEnabled === true);
+      setHidden(!isOnLeaderboard(me));
       const [rows, myRank, live, blocks] = await Promise.all([
         getLeaderboard({ top: 15 }),
         getMyRank(user.uid, me?.xp || 0),
@@ -300,7 +310,10 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       // so a learner who never opens the pane never appears in the active
       // list and never generates a key.
       if (available) await publishPublicKey(user).catch(() => {});
-      await announcePresence(user, { student: me, lessonTitle });
+      // Only appear in the active list if they have not hidden themselves.
+      if (isOnLeaderboard(me)) {
+        await announcePresence(user, { student: me, lessonTitle });
+      }
     } catch (err) {
       setError(err?.message || "Could not load the pane.");
     }
@@ -317,14 +330,18 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     };
   }, [open, board, error, load]);
 
-  /* Heartbeat, only while the pane is open. */
+  /* Heartbeat, only while the pane is open AND they are not hidden.
+     Without the `hidden` guard this would re-announce someone who had just
+     hidden themselves, putting them back in the active list 90 seconds
+     later — the same self-undoing failure the stored opt-out fixes for the
+     leaderboard. */
   useEffect(() => {
-    if (!open || !user) return;
+    if (!open || !user || hidden) return;
     const t = setInterval(() => {
       announcePresence(user, { lessonTitle });
     }, 90 * 1000);
     return () => clearInterval(t);
-  }, [open, user, lessonTitle]);
+  }, [open, user, lessonTitle, hidden]);
 
   const startChat = async (person) => {
     if (chatAllowed === false) {
@@ -348,6 +365,42 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       setTab("chats");
     } finally {
       setBusy(false);
+    }
+  };
+
+  /**
+   * Show or hide this learner across the whole pane.
+   *
+   * Hiding removes the leaderboard row AND the presence row, so they vanish
+   * from both lists rather than only one. Showing republishes both, so the
+   * button has an effect they can see immediately.
+   */
+  const toggleVisibility = async (visible) => {
+    if (!user || working) return;
+    setWorking(true);
+    setError(null);
+    try {
+      await setLeaderboardVisibility(user, visible);
+      if (visible) {
+        const me = await getStudent(user.uid);
+        await announcePresence(user, { student: me, lessonTitle });
+        setBoard(null);
+        setActive(null);
+      } else {
+        await clearPresence(user.uid);
+        setBoard((rows) => (rows || []).filter((r) => r.id !== user.uid));
+        setRank(null);
+      }
+      setHidden(!visible);
+      setNotice(
+        visible
+          ? "You are visible again. Others can see you in the ranking and message you."
+          : "You are hidden. Nobody sees you in the ranking or the active list."
+      );
+    } catch {
+      setError("That could not be saved. Try again.");
+    } finally {
+      setWorking(false);
     }
   };
 
@@ -513,12 +566,46 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
             </>
           )}
 
-          <p className="ac-sp__foot">
-            Only your name, level, badges and XP are shared here — never your
-            email or your scores. Messages are encrypted in your browser, which
-            also means we cannot moderate them: use Block or Report if someone
-            is a problem.
-          </p>
+          {/* Visibility, both ways. Hiding covers the ranking AND the active
+              list: appearing in one while hidden from the other would make
+              the control a half-measure a learner could not reason about. */}
+          <div className="ac-sp__foot">
+            {hidden ? (
+              <>
+                <p>
+                  <i className="fas fa-eye-slash" aria-hidden="true" /> You are
+                  hidden. Nobody sees your name in the ranking or the active
+                  list, and you stay hidden until you choose otherwise —
+                  finishing lessons will not put you back.
+                </p>
+                <button
+                  type="button"
+                  className="ac-sp__optout is-show"
+                  onClick={() => toggleVisibility(true)}
+                  disabled={working}
+                >
+                  {working ? "Working…" : "Show me and let others chat with me"}
+                </button>
+              </>
+            ) : (
+              <>
+                <p>
+                  Only your name, level, badges and XP are shared here — never
+                  your email or your scores. Messages are encrypted in your
+                  browser, which also means we cannot moderate them: use Block
+                  or Report if someone is a problem.
+                </p>
+                <button
+                  type="button"
+                  className="ac-sp__optout"
+                  onClick={() => toggleVisibility(false)}
+                  disabled={working}
+                >
+                  {working ? "Working…" : "Hide me from others"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       )}
     </aside>
