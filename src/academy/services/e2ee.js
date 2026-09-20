@@ -53,7 +53,27 @@
 const DB_NAME = "mst-academy-e2ee";
 const DB_VERSION = 1;
 const STORE = "keys";
-const KEY_ID = "identity";
+/**
+ * ONE KEYPAIR PER ACCOUNT, NOT PER BROWSER.
+ *
+ * This was a single constant, "identity", and that was a real hole. Two
+ * accounts signing in on the same browser got the SAME private key: the
+ * second learner's published "public key" was the first learner's, both
+ * derived identical conversation keys, and the safety code — which is
+ * sort(mine, theirs) — compared a key against itself and always matched, so
+ * the one check that would have exposed it could not.
+ *
+ * The consequence on a shared laptop, which is this audience's normal case:
+ * whoever signed in later held the earlier learner's private key and could
+ * decrypt every conversation they had ever had.
+ *
+ * Scoping by uid fixes it at the source and needs no sign-out hook to be
+ * correct — there is nothing left to leak between accounts. The legacy
+ * unscoped key is deleted on sight rather than migrated, because adopting it
+ * for one account would preserve exactly the sharing this removes.
+ */
+const LEGACY_KEY_ID = "identity";
+const keyIdFor = (uid) => `identity:${uid}`;
 
 /* ── Availability ───────────────────────────────────────────────────────── */
 
@@ -114,6 +134,20 @@ function idbGet(key) {
   );
 }
 
+function idbDelete(key) {
+  return openDb().then(
+    (db) =>
+      new Promise((resolve) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const req = tx.objectStore(STORE).delete(key);
+        // A failed cleanup must not block signing in, so this resolves either
+        // way; the scoped key is what correctness depends on.
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve();
+      })
+  );
+}
+
 function idbPut(key, value) {
   return openDb().then(
     (db) =>
@@ -138,10 +172,16 @@ function idbPut(key, value) {
  *
  * Stored as a CryptoKey object, which IndexedDB can hold directly.
  */
-export async function getIdentity() {
+export async function getIdentity(uid) {
   if (!isE2eeAvailable()) throw new Error("Encryption is not available here");
+  if (!uid) throw new Error("An identity key needs the account it belongs to");
 
-  const existing = await idbGet(KEY_ID);
+  // Any key from before keys were scoped belongs to nobody in particular and
+  // may belong to a different learner. Remove it rather than inherit it.
+  await idbDelete(LEGACY_KEY_ID);
+
+  const id = keyIdFor(uid);
+  const existing = await idbGet(id);
   if (existing?.privateKey && existing?.publicKey) return existing;
 
   const pair = await crypto.subtle.generateKey(
@@ -150,7 +190,7 @@ export async function getIdentity() {
     ["deriveBits"]
   );
 
-  await idbPut(KEY_ID, pair);
+  await idbPut(id, pair);
   return pair;
 }
 
@@ -171,10 +211,10 @@ async function importPublicKey(b64) {
 }
 
 /** Does this browser already hold a key? Used to explain why history is blank. */
-export async function hasIdentity() {
-  if (!isE2eeAvailable()) return false;
+export async function hasIdentity(uid) {
+  if (!isE2eeAvailable() || !uid) return false;
   try {
-    const existing = await idbGet(KEY_ID);
+    const existing = await idbGet(keyIdFor(uid));
     return Boolean(existing?.privateKey);
   } catch {
     return false;

@@ -7,6 +7,8 @@ import AcademyFooter from "../components/AcademyFooter";
 import StudentStats from "../components/StudentStats";
 import BetaBadge from "../components/BetaBadge";
 import CertificateCard from "../components/CertificateCard";
+import OnboardingForm from "../components/OnboardingForm";
+import { ONBOARDING_FIELDS, isProfileComplete } from "../data/onboarding";
 import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getCourseLessons, getCourseOutline } from "../data/lessons";
 import {
@@ -16,6 +18,7 @@ import {
   getEnrollments,
   getExamAttempts,
   getStudent,
+  saveProfile,
 } from "../services/academyService";
 import "../academy.css";
 
@@ -35,6 +38,9 @@ export default function AcademyProfile() {
   const [certificate, setCertificate] = useState(null);
   const [examAttempts, setExamAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState(null);
 
   useSEO({ title: "My Profile — Memora Smart Academy" });
 
@@ -106,6 +112,24 @@ export default function AcademyProfile() {
     if (!scores.length) return null;
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   }, [progressByCourse]);
+
+  /* Saving re-derives chatEnabled from the age band inside saveProfile, so
+     correcting the age band here is what actually turns messaging on. The
+     record is re-read rather than patched locally, so what the page shows is
+     what the server stored. */
+  const submitProfile = async (answers) => {
+    setSavingProfile(true);
+    setProfileError(null);
+    try {
+      await saveProfile(user, answers);
+      setStudent(await getStudent(user.uid));
+      setEditingProfile(false);
+    } catch {
+      setProfileError("Your details could not be saved. Try again.");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   return (
     <div className="academy">
@@ -268,6 +292,78 @@ export default function AcademyProfile() {
                     </article>
                   );
                 })}
+              </section>
+
+              {/* ── YOUR DETAILS ──────────────────────────────────────────
+                   Two messages elsewhere tell a learner to fix things "on
+                   your profile": the chat gate, and the enrolment form's skip
+                   path. Until this section existed neither was true —
+                   saveProfile was reachable only from /academy/enroll/:slug,
+                   and an enrolled learner is always routed to the lesson
+                   player instead. Anyone who skipped the form, or who
+                   enrolled before it existed, had messaging off permanently
+                   with no way to correct it. */}
+              <section className="ac-learn__section">
+                <h2 className="ac-learn__title">Your details</h2>
+
+                {editingProfile ? (
+                  <OnboardingForm
+                    mode="edit"
+                    email={student?.email || user?.email}
+                    displayName={student?.displayName || user?.displayName}
+                    initialValues={student?.profile || null}
+                    initialConsent={student?.profile?.analyticsConsent}
+                    busy={savingProfile}
+                    error={profileError}
+                    onSubmit={submitProfile}
+                    onSkip={() => {
+                      setEditingProfile(false);
+                      setProfileError(null);
+                    }}
+                  />
+                ) : (
+                  <div className="ac-pdetails">
+                    {!isProfileComplete(student?.profile) && (
+                      <p className="ac-pdetails__gap">
+                        <i className="fas fa-circle-info" aria-hidden="true" />{" "}
+                        Some details are missing. Until we know your age band,
+                        private messaging stays off on your account.
+                      </p>
+                    )}
+
+                    <dl className="ac-pdetails__list">
+                      {ONBOARDING_FIELDS.map((field) => {
+                        const value = student?.profile?.[field.id];
+                        const shown = Array.isArray(value)
+                          ? value.join(", ")
+                          : value;
+                        return (
+                          <div key={field.id}>
+                            <dt>{field.label}</dt>
+                            <dd className={shown ? "" : "is-empty"}>
+                              {shown || "Not given"}
+                            </dd>
+                          </div>
+                        );
+                      })}
+                      <div>
+                        <dt>Private messaging</dt>
+                        <dd>{student?.chatEnabled === true ? "On" : "Off"}</dd>
+                      </div>
+                    </dl>
+
+                    <button
+                      type="button"
+                      className="ac-btn ac-btn--ghost"
+                      onClick={() => setEditingProfile(true)}
+                    >
+                      <i className="fas fa-pen" aria-hidden="true" />
+                      {isProfileComplete(student?.profile)
+                        ? "Edit your details"
+                        : "Complete your details"}
+                    </button>
+                  </div>
+                )}
               </section>
 
               {/* ── CERTIFICATE STATUS ── */}

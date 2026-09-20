@@ -204,9 +204,29 @@ service cloud.firestore {
     // already ciphertext when they arrive, so even a mistake here would leak
     // metadata rather than content. That is the point of encrypting in the
     // browser — the rules are the second line, not the only one.
+    // Membership is derivable from the id itself: conversationIdFor() in
+    // e2ee.js is the two uids sorted and joined with "__", and both clients
+    // compute it the same way. That matters because the conversation
+    // DOCUMENT does not exist until the first message is sent — and the
+    // previous rule called get() on it and read .data.participants, which
+    // errors on a null get and denies. The effect was that opening any new
+    // thread failed with "insufficient permissions" before anyone had sent
+    // anything, which is precisely when a conversation starts.
+    //
+    // Deriving from the id also removes a billed get() per message read.
+    // It grants nothing extra: a learner is only ever a member of ids that
+    // contain their own uid, and sending still requires senderUid == uid.
+    function inConversationId(cid) {
+      return request.auth.uid in cid.split('__');
+    }
+
     match /conversations/{conversationId} {
+      // `resource` is null for a document that does not exist, so the id
+      // check has to come first — it is also the one that works on create.
       allow read: if isSignedIn()
-                  && request.auth.uid in resource.data.participants;
+                  && (inConversationId(conversationId)
+                      || (resource != null
+                          && request.auth.uid in resource.data.participants));
 
       // A conversation may only be opened between the writer and one other
       // person, and the writer must be in it.
@@ -221,18 +241,14 @@ service cloud.firestore {
       allow delete: if false;
 
       match /messages/{messageId} {
-        allow read: if isSignedIn()
-                    && request.auth.uid in
-                       get(/databases/$(database)/documents/conversations/$(conversationId))
-                         .data.participants;
+        // Works on an empty thread, which the get() form did not.
+        allow read: if isSignedIn() && inConversationId(conversationId);
 
         // Only a participant may send, and only as themselves — so a message
         // cannot be written into the thread attributed to the other person.
         allow create: if isSignedIn()
                       && request.resource.data.senderUid == request.auth.uid
-                      && request.auth.uid in
-                         get(/databases/$(database)/documents/conversations/$(conversationId))
-                           .data.participants
+                      && inConversationId(conversationId)
                       && request.resource.data.keys().hasOnly([
                            'conversationId', 'senderUid', 'payload', 'sentAt'
                          ]);

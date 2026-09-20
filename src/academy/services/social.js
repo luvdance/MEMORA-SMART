@@ -148,7 +148,7 @@ export async function getActiveLearners({ top = 20, excludeUid = null } = {}) {
  * property rather than a bug.
  */
 export async function publishPublicKey(user) {
-  const pair = await getIdentity();
+  const pair = await getIdentity(user.uid);
   const publicKey = await exportPublicKey(pair);
   await setDoc(
     publicKeyRef(user.uid),
@@ -220,7 +220,7 @@ export async function sendMessage(user, theirUid, text) {
   if (!trimmed) return;
 
   const conversationId = conversationIdFor(user.uid, theirUid);
-  const pair = await getIdentity();
+  const pair = await getIdentity(user.uid);
   const theirPublicKey = await getPublicKey(theirUid);
   if (!theirPublicKey) {
     throw new Error(
@@ -272,7 +272,7 @@ export function watchConversation(user, theirUid, onMessages, onError) {
     async (snap) => {
       if (cancelled) return;
       try {
-        const pair = await getIdentity();
+        const pair = await getIdentity(user.uid);
         const theirPublicKey = await getPublicKey(theirUid);
         if (!theirPublicKey) {
           onMessages([]);

@@ -9,7 +9,8 @@ import {
 /**
  * THE ONBOARDING FORM
  *
- * Shown once, between pressing Start course and being enrolled.
+ * Shown between pressing Start course and being enrolled, and again from the
+ * student profile whenever a learner wants to change what is stored.
  *
  * HOW THIS IS BUILT, AND WHY IT LOOKS UNLIKE MOST SIGNUP FORMS
  *
@@ -42,9 +43,26 @@ export default function OnboardingForm({
   onSkip,
   busy = false,
   error = null,
+  /**
+   * Edit mode. The same form, seeded with what is already stored.
+   *
+   * This exists because the chat gate told a learner to "complete your
+   * profile" and there was nowhere to do it: saveProfile was reachable only
+   * from the enrolment page, and an enrolled learner never returns there.
+   * Anyone who skipped the form, or enrolled before it existed, was stuck
+   * with messaging off and no way out. Reusing this component rather than
+   * writing a second editor keeps one set of fields, one validation rule and
+   * one set of purpose statements.
+   */
+  mode = "onboarding",
+  initialValues = null,
+  initialConsent = false,
 }) {
-  const [values, setValues] = useState({ interests: [] });
-  const [consent, setConsent] = useState(false);
+  const editing = mode === "edit";
+  const [values, setValues] = useState(
+    initialValues ? { interests: [], ...initialValues } : { interests: [] }
+  );
+  const [consent, setConsent] = useState(Boolean(initialConsent));
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState(false);
 
@@ -82,13 +100,15 @@ export default function OnboardingForm({
       <header className="ac-ob__head">
         <span className="ac-kicker">
           <i className="fas fa-id-card" aria-hidden="true" />
-          One last thing
+          {editing ? "Your details" : "One last thing"}
         </span>
-        <h1 className="ac-h2">Tell us who we are teaching</h1>
+        <h1 className="ac-h2">
+          {editing ? "Update your details" : "Tell us who we are teaching"}
+        </h1>
         <p className="ac-body">
-          Two questions we need, and a few that help us build the right thing.
-          Every one says what it is for. You can skip the rest and get straight
-          to your course.
+          {editing
+            ? "Change anything here and save. Your age band is the one that decides whether private messaging is available on your account."
+            : "Two questions we need, and a few that help us build the right thing. Every one says what it is for. You can skip the rest and get straight to your course."}
         </p>
       </header>
 
@@ -225,8 +245,8 @@ export default function OnboardingForm({
 
       <div className="ac-ob__actions">
         <button type="submit" className="ac-btn ac-btn--primary ac-btn--lg" disabled={busy}>
-          {busy ? "Saving…" : "Save and start"}
-          {!busy && <i className="fas fa-arrow-right" aria-hidden="true" />}
+          {busy ? "Saving…" : editing ? "Save changes" : "Save and start"}
+          {!busy && !editing && <i className="fas fa-arrow-right" aria-hidden="true" />}
         </button>
         <button
           type="button"
@@ -234,7 +254,7 @@ export default function OnboardingForm({
           onClick={onSkip}
           disabled={busy}
         >
-          I will do this later
+          {editing ? "Cancel" : "I will do this later"}
         </button>
       </div>
 

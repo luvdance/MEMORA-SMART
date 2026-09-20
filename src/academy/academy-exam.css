@@ -2243,3 +2243,66 @@
     justify-content: center;
   }
 }
+
+/* The way out of the chat gate. The notice used to say "complete your
+   profile" with nothing to click, and no route that reached the form. */
+.ac-sp__fix {
+  color: var(--ac-primary);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* ── Profile details ──────────────────────────────────────────────────── */
+.ac-pdetails__gap {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--ac-primary-soft);
+  color: var(--ac-ink-2);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.ac-pdetails__list {
+  margin: 0 0 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px 20px;
+}
+
+.ac-pdetails__list div {
+  border-bottom: 1px solid var(--ac-line-soft);
+  padding-bottom: 8px;
+}
+
+.ac-pdetails__list dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ac-muted);
+  margin-bottom: 3px;
+}
+
+.ac-pdetails__list dd {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ac-ink-2);
+  overflow-wrap: anywhere;
+}
+
+.ac-pdetails__list dd.is-empty {
+  color: var(--ac-muted);
+  font-style: italic;
+}
+
+/* Retry inside a pane notice. Small, inline, and never a dead-end message. */
+.ac-sp__retry {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ac-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}

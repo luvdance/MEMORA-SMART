@@ -278,49 +278,101 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const [chatAllowed, setChatAllowed] = useState(null);
+  /* Kept apart from `error` so a key failure is named as a key failure. */
+  const [keyError, setKeyError] = useState(null);
   const [hidden, setHidden] = useState(false);
   const [working, setWorking] = useState(false);
 
   const available = useMemo(() => isE2eeAvailable(), []);
 
-  /* Everything starts on first open — nothing before it. */
+  /* Everything starts on first open — nothing before it.
+   *
+   * THE PARTS ARE INDEPENDENT ON PURPOSE. This used to be one try block over
+   * a Promise.all, so a single failing read took the whole pane down with it
+   * — and because publishing the key came last, it never ran. The learner's
+   * public key was therefore never written, the other side asked for it, got
+   * nothing, and was told "they have not opened the chat yet". The real cause
+   * was an unrelated leaderboard read failing. Messaging must not depend on
+   * the ranking loading. */
   const load = useCallback(async () => {
     if (!user) return;
     setError(null);
-    try {
-      const me = await getStudent(user.uid);
-      // The under-18 safeguard, read from the record rather than recomputed
-      // here so there is one authoritative value. Undefined (a learner who
-      // has not completed onboarding) is treated as NOT allowed: when we
-      // cannot tell someone's age, the protective default is the right one.
-      setChatAllowed(me?.chatEnabled === true);
-      setHidden(!isOnLeaderboard(me));
-      const [rows, myRank, live, blocks] = await Promise.all([
-        getLeaderboard({ top: 15 }),
-        getMyRank(user.uid, me?.xp || 0),
-        getActiveLearners({ top: 20, excludeUid: user.uid }),
-        getBlockedUids(user.uid),
-      ]);
-      setBoard(rows);
-      setRank(myRank);
-      setActive(live);
-      setBlocked(blocks);
+    setKeyError(null);
 
-      // Publishing a key and announcing presence are also deferred to here,
-      // so a learner who never opens the pane never appears in the active
-      // list and never generates a key.
-      if (available) await publishPublicKey(user).catch(() => {});
-      // Only appear in the active list if they have not hidden themselves.
-      if (isOnLeaderboard(me)) {
-        await announcePresence(user, { student: me, lessonTitle });
+    let me = null;
+    try {
+      me = await getStudent(user.uid);
+    } catch {
+      // Without the record we cannot prove they are an adult, and the
+      // protective default is the closed one.
+      setChatAllowed(false);
+      setError("Could not load your account. Try again.");
+      return;
+    }
+
+    // The under-18 safeguard, read from the record rather than recomputed
+    // here so there is one authoritative value. Undefined (a learner who
+    // has not completed onboarding) is treated as NOT allowed: when we
+    // cannot tell someone's age, the protective default is the right one.
+    setChatAllowed(me?.chatEnabled === true);
+    setHidden(!isOnLeaderboard(me));
+
+    /* The key goes FIRST and on its own. It is what messaging depends on,
+       it is the cheapest write here, and a failure has to be reported as
+       itself rather than mistaken for the other side being absent. */
+    if (available) {
+      try {
+        await publishPublicKey(user);
+      } catch (err) {
+        setKeyError(
+          err?.code === "permission-denied"
+            ? "Messaging is not available yet — the Academy security rules have not been deployed."
+            : "Your encryption key could not be published, so others cannot message you yet."
+        );
       }
-    } catch (err) {
-      setError(err?.message || "Could not load the pane.");
+    }
+
+    const [rows, myRank, live, blocks] = await Promise.allSettled([
+      getLeaderboard({ top: 15 }),
+      getMyRank(user.uid, me?.xp || 0),
+      getActiveLearners({ top: 20, excludeUid: user.uid }),
+      getBlockedUids(user.uid),
+    ]);
+
+    // Settled, not all-or-nothing: an empty list is a usable pane, and a
+    // learner can still message someone even if the board will not load.
+    setBoard(rows.status === "fulfilled" ? rows.value : []);
+    setRank(myRank.status === "fulfilled" ? myRank.value : null);
+    setActive(live.status === "fulfilled" ? live.value : []);
+    setBlocked(blocks.status === "fulfilled" ? blocks.value : []);
+
+    const denied = [rows, live].some(
+      (r) => r.status === "rejected" && r.reason?.code === "permission-denied"
+    );
+    if (denied) {
+      setError(
+        "The leaderboard and active list are unavailable — the Academy security rules have not been deployed."
+      );
+    } else if (rows.status === "rejected" || live.status === "rejected") {
+      setError("Some of this could not load. Try again.");
+    }
+
+    // Only appear in the active list if they have not hidden themselves.
+    if (isOnLeaderboard(me)) {
+      try {
+        await announcePresence(user, { student: me, lessonTitle });
+      } catch {
+        // Not appearing in the active list is a degraded pane, not a broken
+        // one. It must not stop them sending a message.
+      }
     }
   }, [user, lessonTitle, available]);
 
+  /* `board` is set even on failure now, so this no longer needs `error` in
+     the guard — which previously meant one bad load disabled the pane until
+     the learner reloaded the whole lesson. */
   useEffect(() => {
-    if (!open || board !== null || error) return;
+    if (!open || board !== null) return;
     let alive = true;
     (async () => {
       if (alive) await load();
@@ -328,7 +380,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     return () => {
       alive = false;
     };
-  }, [open, board, error, load]);
+  }, [open, board, load]);
 
   /* Heartbeat, only while the pane is open AND they are not hidden.
      Without the `hidden` guard this would re-announce someone who had just
@@ -346,7 +398,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const startChat = async (person) => {
     if (chatAllowed === false) {
       setNotice(
-        "Private messaging is off on your account — see the Messages tab for why."
+        "Private messaging is off on your account — open the Messages tab for why, and how to turn it on."
       );
       setTab("chats");
       return;
@@ -357,7 +409,9 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       const theirs = await getPublicKey(person.id);
       if (!theirs) {
         setNotice(
-          `${person.name} has not opened messages yet, so there is no key to encrypt to. Try again once they have.`
+          keyError
+            ? "Messaging is not working yet on this account — see the note in Messages."
+            : `${person.name} has not opened messages yet, so there is no key to encrypt to. They need to open this pane once.`
         );
         return;
       }
@@ -539,14 +593,32 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                   disabled here rather than falling back to something weaker.
                 </p>
               )}
+              {keyError && (
+                <p className="ac-sp__msg is-error" role="status">
+                  <i className="fas fa-key" aria-hidden="true" /> {keyError}{" "}
+                  <button
+                    type="button"
+                    className="ac-sp__retry"
+                    onClick={() => {
+                      setBoard(null);
+                      setKeyError(null);
+                    }}
+                  >
+                    Try again
+                  </button>
+                </p>
+              )}
               {chatAllowed === false && (
                 <p className="ac-sp__msg is-notice">
                   <i className="fas fa-shield-halved" aria-hidden="true" />{" "}
                   Private messaging is off on your account. These messages are
                   encrypted, so nobody — including us — can read or moderate
                   them, and that is not a safe default for under-18s or for an
-                  account whose age we do not know. Complete your profile if
-                  this is wrong.
+                  account whose age we do not know.{" "}
+                  <a href="/academy/profile" className="ac-sp__fix">
+                    Add your age band on your profile
+                  </a>{" "}
+                  to turn it on.
                 </p>
               )}
               {available && chatAllowed && !chatWith && (
