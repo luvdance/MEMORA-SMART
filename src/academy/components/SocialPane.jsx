@@ -272,6 +272,9 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const [board, setBoard] = useState(null);
   const [rank, setRank] = useState(null);
   const [active, setActive] = useState(null);
+  /* The heartbeat needs the student record but must not re-arm its interval
+     every time that record is refetched, so it reads it from a ref. */
+  const meRef = useRef(null);
   const [blocked, setBlocked] = useState([]);
   const [chatWith, setChatWith] = useState(null);
   const [error, setError] = useState(null);
@@ -309,6 +312,8 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       setError("Could not load your account. Try again.");
       return;
     }
+
+    meRef.current = me;
 
     // The under-18 safeguard, read from the record rather than recomputed
     // here so there is one authoritative value. Undefined (a learner who
@@ -386,14 +391,51 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
      Without the `hidden` guard this would re-announce someone who had just
      hidden themselves, putting them back in the active list 90 seconds
      later — the same self-undoing failure the stored opt-out fixes for the
-     leaderboard. */
+     leaderboard.
+
+     The student record is passed so the merge does not blank out level and
+     badges; see announcePresence for why that mattered. */
   useEffect(() => {
     if (!open || !user || hidden) return;
     const t = setInterval(() => {
-      announcePresence(user, { lessonTitle });
+      announcePresence(user, { student: meRef.current, lessonTitle });
     }, 90 * 1000);
     return () => clearInterval(t);
   }, [open, user, lessonTitle, hidden]);
+
+  /* WHO ELSE IS HERE, ON A LOOP.
+   *
+   * The bug this fixes: getActiveLearners ran once, inside load(), and
+   * load() never ran again — the guard is `board !== null` and closing the
+   * pane does not reset it. So the active list was frozen at the instant the
+   * pane was first opened. Two people studying the same lesson never saw
+   * each other unless the second one happened to arrive first, and both were
+   * told "Nobody else is studying right now" indefinitely.
+   *
+   * Presence counts as active for five minutes, so a 30-second poll notices
+   * someone well inside that window. Reads are capped at 20 documents and
+   * only run while the pane is open, which is the same bargain the rest of
+   * this component makes. */
+  useEffect(() => {
+    if (!open || !user) return;
+    let alive = true;
+
+    const refresh = async () => {
+      try {
+        const live = await getActiveLearners({ top: 20, excludeUid: user.uid });
+        if (alive) setActive(live);
+      } catch {
+        // Leave the last known list up rather than flashing "nobody" at
+        // someone because one poll failed.
+      }
+    };
+
+    const t = setInterval(refresh, 30 * 1000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [open, user]);
 
   const startChat = async (person) => {
     if (chatAllowed === false) {
@@ -567,8 +609,10 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
               {active === null && !error && <p className="ac-sp__msg">Loading…</p>}
               {active !== null && visibleActive.length === 0 && (
                 <p className="ac-sp__msg">
-                  Nobody else is studying right now. You appear here only while
-                  this panel is open.
+                  Nobody else is studying right now. This list checks again
+                  every few seconds, so anyone who arrives will appear on their
+                  own — and like you, they only show up while they have this
+                  panel open.
                 </p>
               )}
               {visibleActive.map((person) => (

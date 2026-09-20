@@ -89,18 +89,24 @@ export const ACTIVE_WINDOW_MS = 5 * 60 * 1000;
 export async function announcePresence(user, { student, lessonTitle } = {}) {
   if (!user?.uid) return;
   try {
-    await setDoc(
-      presenceRef(user.uid),
-      {
-        uid: user.uid,
-        name: student?.displayName || user.displayName || "Memora learner",
-        level: student?.level || null,
-        badges: (student?.badges || []).slice(0, 12),
-        lessonTitle: lessonTitle || null,
-        lastSeen: serverTimestamp(),
-      },
-      { merge: true }
-    );
+    /* The heartbeat calls this every 90s WITHOUT a student record, and this
+       is a merge. Writing `level: student?.level || null` unconditionally
+       therefore overwrote the real level with null and the badges with []
+       on the first tick — so everyone's badges quietly disappeared from the
+       active list a minute and a half after they arrived. Fields we do not
+       have are left out, and merge preserves what is already stored. */
+    const row = {
+      uid: user.uid,
+      name: student?.displayName || user.displayName || "Memora learner",
+      lessonTitle: lessonTitle || null,
+      lastSeen: serverTimestamp(),
+    };
+    if (student) {
+      row.level = student.level || null;
+      row.badges = (student.badges || []).slice(0, 12);
+    }
+
+    await setDoc(presenceRef(user.uid), row, { merge: true });
   } catch {
     /* presence is optional; never let it break a lesson */
   }
