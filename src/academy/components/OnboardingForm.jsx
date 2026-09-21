@@ -198,6 +198,15 @@ export default function OnboardingForm({
                   type={field.type}
                   inputMode={field.type === "tel" ? "tel" : undefined}
                   autoComplete={field.type === "tel" ? "tel" : undefined}
+                  /* maxLength was only wired to the textarea, so a username
+                     could be typed past its limit and only fail on submit. */
+                  maxLength={field.maxLength}
+                  /* A phone keypad capitalises nothing, but a text field on a
+                     phone capitalises the first letter and autocorrects — so
+                     a typed username arrived as "Ada_codes" or worse. */
+                  autoCapitalize={field.type === "text" ? "none" : undefined}
+                  autoCorrect={field.type === "text" ? "off" : undefined}
+                  spellCheck={field.type === "text" ? false : undefined}
                   placeholder={field.placeholder}
                   value={values[field.id] || ""}
                   onChange={(e) => set(field.id, e.target.value)}

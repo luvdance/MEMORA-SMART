@@ -12,12 +12,13 @@ import {
   announcePresence,
   clearPresence,
   blockUser,
-  getActiveLearners,
   getBlockedUids,
   getPublicKey,
   publishPublicKey,
   reportUser,
   sendMessage,
+  startPresenceHeartbeat,
+  subscribeActiveStudents,
   watchConversation,
 } from "../services/social";
 import { conversationFingerprint, isE2eeAvailable } from "../services/e2ee";
@@ -337,41 +338,28 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       }
     }
 
-    const [rows, myRank, live, blocks] = await Promise.allSettled([
+    /* The active list is NOT fetched here — it is a live subscription set up
+       in its own effect below. Everything left is a one-off read. */
+    const [rows, myRank, blocks] = await Promise.allSettled([
       getLeaderboard({ top: 15 }),
       getMyRank(user.uid, me?.xp || 0),
-      getActiveLearners({ top: 20, excludeUid: user.uid }),
       getBlockedUids(user.uid),
     ]);
 
-    // Settled, not all-or-nothing: an empty list is a usable pane, and a
-    // learner can still message someone even if the board will not load.
+    // Settled, not all-or-nothing: an empty board is a usable pane, and a
+    // learner can still message someone even if the ranking will not load.
     setBoard(rows.status === "fulfilled" ? rows.value : []);
     setRank(myRank.status === "fulfilled" ? myRank.value : null);
-    setActive(live.status === "fulfilled" ? live.value : []);
     setBlocked(blocks.status === "fulfilled" ? blocks.value : []);
 
-    const denied = [rows, live].some(
-      (r) => r.status === "rejected" && r.reason?.code === "permission-denied"
-    );
-    if (denied) {
+    if (rows.status === "rejected") {
       setError(
-        "The leaderboard and active list are unavailable — the Academy security rules have not been deployed."
+        rows.reason?.code === "permission-denied"
+          ? "The leaderboard is unavailable on this account."
+          : "The leaderboard could not load. Try again."
       );
-    } else if (rows.status === "rejected" || live.status === "rejected") {
-      setError("Some of this could not load. Try again.");
     }
-
-    // Only appear in the active list if they have not hidden themselves.
-    if (isOnLeaderboard(me)) {
-      try {
-        await announcePresence(user, { student: me, lessonTitle });
-      } catch {
-        // Not appearing in the active list is a degraded pane, not a broken
-        // one. It must not stop them sending a message.
-      }
-    }
-  }, [user, lessonTitle, available]);
+  }, [user, available]);
 
   /* `board` is set even on failure now, so this no longer needs `error` in
      the guard — which previously meant one bad load disabled the pane until
@@ -387,54 +375,48 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     };
   }, [open, board, load]);
 
-  /* Heartbeat, only while the pane is open AND they are not hidden.
+  /* Presence, only while the pane is open AND they are not hidden.
      Without the `hidden` guard this would re-announce someone who had just
      hidden themselves, putting them back in the active list 90 seconds
      later — the same self-undoing failure the stored opt-out fixes for the
      leaderboard.
 
-     The student record is passed so the merge does not blank out level and
-     badges; see announcePresence for why that mattered. */
+     The meta is read through a function so the heartbeat always sees the
+     current lesson and student record without this effect being torn down
+     and rebuilt whenever either changes. The record matters because the
+     write is a merge: sending no record used to blank out level and badges. */
   useEffect(() => {
     if (!open || !user || hidden) return;
-    const t = setInterval(() => {
-      announcePresence(user, { student: meRef.current, lessonTitle });
-    }, 90 * 1000);
-    return () => clearInterval(t);
+    return startPresenceHeartbeat(user, () => ({
+      student: meRef.current,
+      lessonTitle,
+    }));
   }, [open, user, lessonTitle, hidden]);
 
-  /* WHO ELSE IS HERE, ON A LOOP.
+  /* WHO ELSE IS HERE — a live subscription.
    *
-   * The bug this fixes: getActiveLearners ran once, inside load(), and
-   * load() never ran again — the guard is `board !== null` and closing the
-   * pane does not reset it. So the active list was frozen at the instant the
-   * pane was first opened. Two people studying the same lesson never saw
-   * each other unless the second one happened to arrive first, and both were
-   * told "Nobody else is studying right now" indefinitely.
+   * The bug this fixes: the active list was fetched once, inside load(), and
+   * load() never ran again — its guard is `board !== null` and closing the
+   * pane does not reset it. The list was frozen at the instant the pane
+   * first opened, so two people studying the same lesson never saw each
+   * other arrive and both were told "Nobody else is studying right now"
+   * indefinitely.
    *
-   * Presence counts as active for five minutes, so a 30-second poll notices
-   * someone well inside that window. Reads are capped at 20 documents and
-   * only run while the pane is open, which is the same bargain the rest of
-   * this component makes. */
+   * A snapshot listener rather than a poll: someone appears the moment they
+   * arrive, and it costs one connection instead of a read every few seconds.
+   * Only while the pane is open, like everything else here. */
   useEffect(() => {
     if (!open || !user) return;
-    let alive = true;
-
-    const refresh = async () => {
-      try {
-        const live = await getActiveLearners({ top: 20, excludeUid: user.uid });
-        if (alive) setActive(live);
-      } catch {
-        // Leave the last known list up rather than flashing "nobody" at
-        // someone because one poll failed.
-      }
-    };
-
-    const t = setInterval(refresh, 30 * 1000);
-    return () => {
-      alive = false;
-      clearInterval(t);
-    };
+    return subscribeActiveStudents((rows) => setActive(rows), {
+      excludeUid: user.uid,
+      onError: (err) => {
+        if (err?.code === "failed-precondition") {
+          setError(
+            "The active list needs a database index that has not been created yet."
+          );
+        }
+      },
+    });
   }, [open, user]);
 
   const startChat = async (person) => {
@@ -479,9 +461,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       await setLeaderboardVisibility(user, visible);
       if (visible) {
         const me = await getStudent(user.uid);
+        meRef.current = me;
         await announcePresence(user, { student: me, lessonTitle });
+        // Only the board is refetched. `active` belongs to the live
+        // subscription, which reports the change on its own.
         setBoard(null);
-        setActive(null);
       } else {
         await clearPresence(user.uid);
         setBoard((rows) => (rows || []).filter((r) => r.id !== user.uid));

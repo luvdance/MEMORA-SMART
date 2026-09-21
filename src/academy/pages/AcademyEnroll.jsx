@@ -74,11 +74,13 @@ export default function AcademyEnroll() {
       const record = await getStudent(user.uid);
       setStudent(record);
       setStatus("ready");
-    } catch {
+    } catch (err) {
       // They are already enrolled, so a failure here must not look like a
       // failed enrolment. Let them retry or skip.
       setFormError(
-        "Your details could not be saved, but you are enrolled. Try again, or skip and do it from your profile."
+        err?.message === "USERNAME_TAKEN"
+          ? "That username is already taken. Pick another one."
+          : "Your details could not be saved, but you are enrolled. Try again, or skip and do it from your profile."
       );
     } finally {
       setSaving(false);

@@ -23,7 +23,7 @@ import {
 } from "../data/gamification";
 import { getCourseLessons } from "../data/lessons";
 import { getCatalogEntry } from "../data/catalog";
-import { chatDefaultFor } from "../data/onboarding";
+import { chatDefaultFor, publicNameFor, usernameKey } from "../data/onboarding";
 
 /**
  * ACADEMY DATA LAYER
@@ -162,10 +162,46 @@ export async function getStudent(uid) {
  * under-18 default cannot be bypassed by a crafted submission. See
  * chatDefaultFor in data/onboarding.js for why it defaults closed.
  */
+/**
+ * Claim a username, or fail if somebody else already holds it.
+ *
+ * Same trick as the Memora ID: the claim is a DOCUMENT CREATION keyed on the
+ * lower-cased name, and Firestore makes creation atomic on the key. Two
+ * learners submitting the same name at the same moment cannot both succeed.
+ *
+ * Re-claiming your own name is a no-op, so saving the profile again — which
+ * the edit form on the profile page does — does not lock you out of the name
+ * you already hold.
+ */
+async function claimUsername(uid, username) {
+  const key = usernameKey(username);
+  if (!key) throw new Error("A username is required");
+
+  await runTransaction(db, async (tx) => {
+    const ref = doc(db, "usernames", key);
+    const snap = await tx.get(ref);
+
+    if (snap.exists()) {
+      if (snap.data().uid === uid) return; // already mine
+      throw new Error("USERNAME_TAKEN");
+    }
+
+    tx.set(ref, { uid, username: String(username).trim(), claimedAt: serverTimestamp() });
+  });
+
+  return key;
+}
+
 export async function saveProfile(user, answers) {
   if (!user?.uid) throw new Error("Not signed in");
 
+  const username = String(answers.username || "").trim();
+  // Claimed BEFORE the profile is written, so a rejected name never ends up
+  // stored and displayed while the claim says it belongs to someone else.
+  await claimUsername(user.uid, username);
+
   const profile = {
+    username,
     phone: String(answers.phone || "").trim(),
     ageBand: answers.ageBand || null,
     state: answers.state || null,
@@ -183,6 +219,11 @@ export async function saveProfile(user, answers) {
     studentRef(user.uid),
     {
       profile,
+      // Stored top-level as well as inside `profile`, because every public
+      // projection (leaderboard, presence) reads it and none of them should
+      // have to load a whole profile — or be tempted to fall back to the
+      // real name when they cannot find one.
+      username,
       // A safeguard, not a preference: computed from the age band on the
       // server-visible record so the chat UI reads one authoritative value.
       chatEnabled: chatDefaultFor(profile),
@@ -453,9 +494,12 @@ async function publishLeaderboardEntry(uid, student) {
     const level = getLevel(student.xp || 0);
     const row = {
       uid,
-      // Only the display name — never the email, which is what a naive
-      // "show who is top" query would have leaked.
-      name: student.displayName || "Memora learner",
+      // The USERNAME, never displayName — which is the real name from the
+      // Google account. This projection is readable by every signed-in
+      // learner, so publishing displayName here put real full names in front
+      // of strangers. publicNameFor falls back to something anonymous rather
+      // than to the real name.
+      name: publicNameFor(student),
       xp: student.xp || 0,
       level: level.level,
       levelName: level.name,

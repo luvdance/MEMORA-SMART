@@ -124,8 +124,12 @@ export default function AcademyProfile() {
       await saveProfile(user, answers);
       setStudent(await getStudent(user.uid));
       setEditingProfile(false);
-    } catch {
-      setProfileError("Your details could not be saved. Try again.");
+    } catch (err) {
+      setProfileError(
+        err?.message === "USERNAME_TAKEN"
+          ? "That username is already taken. Pick another one."
+          : "Your details could not be saved. Try again."
+      );
     } finally {
       setSavingProfile(false);
     }

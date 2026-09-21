@@ -48,7 +48,65 @@ export const UNDER_18 = "under-18";
  * band. Everything else improves the platform and is optional, which is
  * stated on the form rather than implied by an absent asterisk.
  */
+/**
+ * Names that must not be claimed as a username.
+ *
+ * A learner called "admin" or "memora" in a chat list can impersonate the
+ * platform, and that is the one thing a display name must never be able to
+ * do. Checked case-insensitively against the trimmed value.
+ */
+export const RESERVED_USERNAMES = [
+  "admin", "administrator", "memora", "memorasmart", "memora-smart",
+  "moderator", "mod", "staff", "support", "help", "official", "team",
+  "system", "root", "owner", "tutor", "instructor", "academy",
+];
+
 export const ONBOARDING_FIELDS = [
+  {
+    id: "username",
+    label: "Username",
+    type: "text",
+    required: true,
+    placeholder: "e.g. ada_codes",
+    maxLength: 20,
+    /**
+     * WHY THIS IS FIRST AND REQUIRED
+     *
+     * This is the ONLY name other learners ever see — the leaderboard, the
+     * active list and a chat header all read it. Before it existed those
+     * surfaces published `displayName`, which comes from the Google account
+     * and is a learner's real full name. A teenager studying Excel had their
+     * legal name shown to every stranger on the platform.
+     *
+     * It is required because there is no safe fallback: defaulting to the
+     * real name is the very thing this removes, and defaulting to something
+     * anonymous makes the leaderboard meaningless.
+     */
+    why: "This is the name other students see on the leaderboard and in chat. Your real name is never shown to anyone.",
+    validate: (v) => {
+      const value = String(v || "").trim();
+      if (value.length < 3) return "Pick at least 3 characters.";
+      if (value.length > 20) return "Keep it to 20 characters or fewer.";
+      if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
+        return "Letters, numbers, underscore and full stop only.";
+      }
+      if (/^[._]|[._]$/.test(value)) {
+        return "It cannot start or end with a full stop or underscore.";
+      }
+      // "ada..codes" and "ada__codes" read as near-duplicates of a real
+      // name at a glance, which is the impersonation the reserved list is
+      // also guarding against.
+      if (/[._]{2}/.test(value)) {
+        return "No two dots or underscores in a row.";
+      }
+      // Without this, "admin" and "Memora Support" are claimable and a
+      // learner can pose as the platform in a chat list.
+      if (RESERVED_USERNAMES.includes(value.toLowerCase())) {
+        return "That name is reserved. Please choose another.";
+      }
+      return null;
+    },
+  },
   {
     id: "phone",
     label: "Phone number",
@@ -213,6 +271,30 @@ export function isProfileComplete(profile) {
  * we cannot tell is the protective one, not the permissive one. A learner can
  * still be given access deliberately; this only decides the default.
  */
+/**
+ * The name other learners see. Never the real one.
+ *
+ * Every public surface must call this rather than reaching for displayName,
+ * which is the Google account's real name. The fallback is deliberately
+ * anonymous: showing a real name because a username is missing would defeat
+ * the entire point of having one.
+ */
+/**
+ * The key a username is claimed under.
+ *
+ * Lower-cased, so "Ada_Codes" and "ada_codes" cannot both exist — two names
+ * that look identical in a chat list are the same impersonation problem the
+ * reserved list exists to prevent.
+ */
+export function usernameKey(username) {
+  return String(username || "").trim().toLowerCase();
+}
+
+export function publicNameFor(student) {
+  const username = String(student?.username || student?.profile?.username || "").trim();
+  return username || "Memora learner";
+}
+
 export function chatDefaultFor(profile) {
   if (!profile?.ageBand) return false;
   return profile.ageBand !== UNDER_18;
