@@ -2371,3 +2371,43 @@
   border-radius: 50%;
   background: var(--ac-primary);
 }
+
+/* ── Message sound toggle ─────────────────────────────────────────────────
+   A chime nobody can silence is hostile: people study in libraries, in
+   shared rooms, at night. The control sits in the thread header, where the
+   sound is coming from. */
+.ac-sp__mute {
+  margin-left: auto;
+  flex: none;
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--ac-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ac-sp__mute:hover {
+  background: var(--ac-primary-soft);
+  color: var(--ac-primary);
+}
+
+/* Pressed means muted, so it reads as the state and not just a button. */
+.ac-sp__mute[aria-pressed="true"] {
+  color: var(--ac-primary);
+}
+
+/* Visible to a screen reader, not on screen: the icon alone is not a label. */
+.ac-sp__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

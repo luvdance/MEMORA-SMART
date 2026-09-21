@@ -208,19 +208,42 @@ export function startPresenceHeartbeat(user, getMeta) {
   const announce = () => announcePresence(user, getMeta?.() || {});
   announce();
 
-  const interval = setInterval(announce, HEARTBEAT_MS);
+  let interval = setInterval(announce, HEARTBEAT_MS);
 
+  /**
+   * A BACKGROUNDED TAB STOPS REFRESHING. IT DOES NOT DECLARE ITSELF GONE.
+   *
+   * This used to call clearPresence() the instant visibility was lost, which
+   * made the active list unusable in practice. Anyone with two windows open
+   * -- which is exactly how you test this with two accounts -- had the
+   * unfocused account mark itself offline immediately, so the two could never
+   * see each other. The same thing happened to a real learner who alt-tabbed
+   * to look something up.
+   *
+   * Going quiet is enough. `lastSeen` is what the active query filters on, so
+   * a tab that stops refreshing drops out on its own once PRESENCE_TTL_MS has
+   * passed. That is the honest signal: "not seen for five minutes", rather
+   * than "looked away for a second".
+   *
+   * pagehide still clears at once, because that is a real departure.
+   */
   const onVisibility = () => {
-    if (document.visibilityState === "hidden") clearPresence(user.uid);
-    else announce();
+    if (document.visibilityState === "hidden") {
+      clearInterval(interval);
+      interval = null;
+      return;
+    }
+    announce();
+    if (!interval) interval = setInterval(announce, HEARTBEAT_MS);
   };
+
   const onLeave = () => clearPresence(user.uid);
 
   document.addEventListener("visibilitychange", onVisibility);
   window.addEventListener("pagehide", onLeave);
 
   return () => {
-    clearInterval(interval);
+    if (interval) clearInterval(interval);
     document.removeEventListener("visibilitychange", onVisibility);
     window.removeEventListener("pagehide", onLeave);
     clearPresence(user.uid);
@@ -253,6 +276,13 @@ export function subscribeActiveStudents(
   return onSnapshot(
     q,
     (snap) => {
+      /* The query's cutoff was fixed when this subscription was created, so
+         after the pane has been open a while it stops excluding anyone. The
+         same window is applied again here, against the current clock, so
+         somebody who closed their laptop without a pagehide firing drops off
+         instead of appearing to study for ever. */
+      const freshAfter = Date.now() - PRESENCE_TTL_MS;
+
       const rows = snap.docs
         // `id` and `name` are the shape the pane renders.
         .map((d) => {
@@ -260,6 +290,13 @@ export function subscribeActiveStudents(
           return { ...data, id: d.id, name: data.name || publicNameFor(null) };
         })
         .filter((s) => s.id !== excludeUid)
+        .filter((s) => {
+          // A just-written row has a null timestamp until the server fills
+          // it in, and that row is by definition current -- dropping it
+          // would make someone flicker out the moment they arrive.
+          const seen = s.lastSeen?.toMillis?.();
+          return seen === undefined || seen === null || seen >= freshAfter;
+        })
         .slice(0, MAX_ACTIVE);
       callback(rows);
     },

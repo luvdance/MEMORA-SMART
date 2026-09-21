@@ -27,6 +27,7 @@ import {
   conversationIdFor,
   isE2eeAvailable,
 } from "../services/e2ee";
+import { isMuted, playReceived, playSent, setMuted } from "../services/chime";
 
 /**
  * WHICH THREADS HAVE BEEN READ.
@@ -156,14 +157,35 @@ function ChatThread({ user, person, onBack, onSent }) {
   const [sending, setSending] = useState(false);
   const [safetyCode, setSafetyCode] = useState(null);
   const [showCode, setShowCode] = useState(false);
+  const [muted, setMutedState] = useState(() => isMuted());
   const endRef = useRef(null);
+  /* Which messages this thread has already announced.
+   *
+   * Opening a conversation delivers its whole history in one snapshot. Without
+   * this, every reopen would play a chime per past message — a burst of
+   * beeping for messages the learner has already read. Only ids that appear
+   * AFTER the first snapshot count as new. */
+  const seenRef = useRef(null);
 
   useEffect(() => {
     if (!user || !person) return;
+    // A different conversation starts its own history.
+    seenRef.current = null;
     const stop = watchConversation(
       user,
       person.id,
       (list) => {
+        /* The first snapshot is history, not news: record it silently. */
+        if (seenRef.current === null) {
+          seenRef.current = new Set(list.map((m) => m.id));
+        } else {
+          const arrived = list.filter(
+            (m) => !m.mine && !seenRef.current.has(m.id)
+          );
+          for (const m of list) seenRef.current.add(m.id);
+          if (arrived.length > 0) playReceived();
+        }
+
         setMessages(list);
         setError(null);
       },
@@ -203,6 +225,7 @@ function ChatThread({ user, person, onBack, onSent }) {
     setError(null);
     try {
       await sendMessage(user, person.id, text);
+      playSent();
       setDraft("");
       // Marks the thread read at the moment of sending. Without it the
       // learner's own message bumped `updatedAt` and came straight back as
@@ -230,6 +253,21 @@ function ChatThread({ user, person, onBack, onSent }) {
           <i className="fas fa-chevron-left" aria-hidden="true" /> Back
         </button>
         <strong>{person.name}</strong>
+        <button
+          type="button"
+          className="ac-sp__mute"
+          onClick={() => setMutedState(setMuted(!muted))}
+          aria-pressed={muted}
+          title={muted ? "Turn message sounds on" : "Turn message sounds off"}
+        >
+          <i
+            className={`fas fa-${muted ? "volume-xmark" : "volume-low"}`}
+            aria-hidden="true"
+          />
+          <span className="ac-sp__sr">
+            {muted ? "Turn message sounds on" : "Turn message sounds off"}
+          </span>
+        </button>
       </div>
 
       <p className="ac-sp__crypto">
@@ -323,9 +361,16 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const [board, setBoard] = useState(null);
   const [rank, setRank] = useState(null);
   const [active, setActive] = useState(null);
-  /* The heartbeat needs the student record but must not re-arm its interval
-     every time that record is refetched, so it reads it from a ref. */
+  /* The heartbeat needs the student record and the current lesson, but must
+     not RE-ARM when either changes, so both are read from refs.
+
+     `lessonTitle` used to be a dependency of that effect. When it resolved
+     from undefined to a title the effect tore down -- calling clearPresence
+     -- and immediately re-announced. Two unordered writes to the same
+     document: if the clear landed second, `online` was left false and the
+     learner was invisible until the next heartbeat 90 seconds later. */
   const meRef = useRef(null);
+  const lessonRef = useRef(lessonTitle);
   const [blocked, setBlocked] = useState([]);
   const [chatWith, setChatWith] = useState(null);
   const [error, setError] = useState(null);
@@ -444,13 +489,18 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
      current lesson and student record without this effect being torn down
      and rebuilt whenever either changes. The record matters because the
      write is a merge: sending no record used to blank out level and badges. */
+  /* Kept current without re-arming the heartbeat. */
+  useEffect(() => {
+    lessonRef.current = lessonTitle;
+  }, [lessonTitle]);
+
   useEffect(() => {
     if (!open || !user || hidden || !meReady) return;
     return startPresenceHeartbeat(user, () => ({
       student: meRef.current,
-      lessonTitle,
+      lessonTitle: lessonRef.current,
     }));
-  }, [open, user, lessonTitle, hidden, meReady]);
+  }, [open, user, hidden, meReady]);
 
   /* WHO ELSE IS HERE — a live subscription.
    *
