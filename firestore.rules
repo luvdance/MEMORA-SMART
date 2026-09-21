@@ -6,316 +6,141 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    function isSignedIn() {
+    function isLoggedIn() {
       return request.auth != null;
     }
 
+    function isOwner(userId) {
+      return isLoggedIn() && request.auth.uid == userId;
+    }
+
+    // ── ADMIN — full access ──
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // EXISTING RULES — unchanged
-    // ═══════════════════════════════════════════════════════════════
-
+    // ── USERS ──
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isLoggedIn();
+      allow write: if isOwner(userId);
     }
 
+    // ── CVs ──
     match /cvs/{cvId} {
-      allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow read: if isLoggedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isLoggedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isLoggedIn() && resource.data.ownerId == request.auth.uid;
     }
 
+    // ── PAYMENTS ──
     match /payments/{paymentId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if isLoggedIn() && resource.data.userId == request.auth.uid;
     }
 
+    // ── PENDING TRANSFERS ──
     match /pending_transfers/{transferId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null;
+      allow read: if isLoggedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isLoggedIn() && request.resource.data.userId == request.auth.uid;
     }
 
+    // ── SETTINGS ──
     match /settings/{document=**} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // MEMORA SMART ACADEMY
-    //
-    // TRUST LEVEL: MIXED, and deliberately so.
-    //
-    //   PRACTICE progress (enrollments, per-lesson scores, XP) is written by
-    //   the signed-in client. These rules constrain the SHAPE of those writes
-    //   rather than their honesty.
-    //
-    //   EXAM attempts and CERTIFICATES are written only by the server, via
-    //   the Admin SDK, after it has graded the paper itself and verified the
-    //   candidate from their Firebase ID token. Client writes are denied
-    //   outright. See lib/academy/finalExam/record.js.
-    //
-    // The split is the point: a practice score is a study aid and nobody is
-    // harmed if a learner fudges one, whereas a certificate is a claim made
-    // to an employer and must not be self-issued.
-    //
-    // What these rules DO guarantee:
-    //   · nobody can read another student's record
-    //   · a Memora ID, once issued, can never be changed or reassigned
-    //   · a Memora ID can never be claimed twice (create-only on the key)
-    //   · the ID counter can only ever move forward by one
-    //
-    //   · an exam attempt or certificate can only have come from the server
-    //
-    // What they CANNOT guarantee:
-    //   · that a practice score or XP total is honest. A determined user
-    //     could write themselves a lesson pass. That does not reach the
-    //     certificate, which is graded and written server-side.
-    //
-    // To raise practice progress to the same level, move recordAssessment()
-    // and awardXp() into /api/academy/* behind the same ID-token check that
-    // finalExam.js uses, then deny client writes to enrollments and progress
-    // below.
-    // ═══════════════════════════════════════════════════════════════
-
-    match /students/{uid} {
-      allow read: if isSignedIn() && request.auth.uid == uid;
-
-      allow create: if isSignedIn()
-                    && request.auth.uid == uid
-                    && request.resource.data.uid == uid
-                    && request.resource.data.xp == 0;
-
-      // The Memora ID is permanent: an update may never CHANGE it. The
-      // get(..., default) form also lets a record that somehow exists without
-      // an ID receive its first one, instead of being permanently stuck.
-      allow update: if isSignedIn()
-                    && request.auth.uid == uid
-                    && request.resource.data.memoraId ==
-                       resource.data.get('memoraId', request.resource.data.memoraId);
-
-      allow delete: if false;
-
-      // Enrollments and per-lesson progress are client-written, at the
-      // preview trust level described above.
-      //
-      // These are listed EXPLICITLY and the previous `match /{document=**}`
-      // catch-all is gone on purpose. Firestore grants access if ANY rule
-      // allows it, so a permissive catch-all here could not be narrowed by
-      // adding a stricter rule for a subcollection underneath it — the
-      // catch-all would still win. Exam attempts must be server-only, so the
-      // catch-all had to go rather than be overridden.
-      match /enrollments/{courseId} {
-        allow read, write: if isSignedIn() && request.auth.uid == uid;
-      }
-
-      match /progress/{progressId} {
-        allow read, write: if isSignedIn() && request.auth.uid == uid;
-      }
-
-      // Who this learner has blocked. Private to them: a blocked person must
-      // not be able to discover that they were blocked.
-      match /blocks/{blockedUid} {
-        allow read, write: if isSignedIn() && request.auth.uid == uid;
-      }
-
-      // Exam attempts: readable by the student, written only by the server
-      // through the Admin SDK, which bypasses these rules entirely. A client
-      // cannot write itself a pass, which is what makes the certificate mean
-      // something.
-      match /examAttempts/{attemptId} {
-        allow read: if isSignedIn() && request.auth.uid == uid;
-        allow write: if false;
-      }
-    }
-
-    // ── LEADERBOARD ─────────────────────────────────────────────────
-    //
-    // A deliberately minimal PROJECTION of a student record, and the only
-    // Academy collection any signed-in learner may read in full.
-    //
-    // It exists because the alternative is worse: a leaderboard needs to read
-    // everyone's name and XP, and loosening the read rule on `students` to
-    // allow that would publish every learner's email address and Memora ID
-    // to every other learner. So the board gets its own document holding
-    // nothing but what a board displays.
-    //
-    // `hasOnly` is what keeps that true. Without it this collection would
-    // gradually accumulate whatever a future feature found convenient, and
-    // the privacy boundary would erode one field at a time.
-    match /leaderboard/{uid} {
-      // Any signed-in learner can see the board. Not public: a visitor who
-      // has not signed in has no reason to see a list of students.
-      allow read: if isSignedIn();
-
-      allow create, update: if isSignedIn()
-                    && request.auth.uid == uid
-                    && request.resource.data.uid == uid
-                    && request.resource.data.keys().hasOnly([
-                         'uid', 'name', 'xp', 'level', 'levelName',
-                         'streak', 'updatedAt'
-                       ])
-                    && request.resource.data.xp is int
-                    && request.resource.data.xp >= 0;
-
-      // Opting out. A learner may remove their own row and nobody else's.
-      allow delete: if isSignedIn() && request.auth.uid == uid;
-    }
-
-    // ── SOCIAL: PRESENCE, KEYS AND ENCRYPTED CHAT ───────────────────
-    //
-    // Three more minimal projections, for the same reason the leaderboard has
-    // one: nothing that shows one learner to another may read the student
-    // document, which holds an email and a Memora ID.
-
-    // "Who is around." A heartbeat, not a connected flag — a phone that
-    // loses signal never sends a disconnect, so staleness is the signal.
-    match /presence/{uid} {
-      allow read: if isSignedIn();
-      allow create, update: if isSignedIn()
-                    && request.auth.uid == uid
-                    && request.resource.data.uid == uid
-                    && request.resource.data.keys().hasOnly([
-                         'uid', 'name', 'level', 'badges',
-                         'lessonTitle', 'lastSeen'
-                       ]);
-      allow delete: if isSignedIn() && request.auth.uid == uid;
-    }
-
-    // ECDH public keys. Readable by design — a public key is useless without
-    // its private half, which never leaves the owner's browser. Writable only
-    // by its owner, which is what stops anyone substituting a key they hold
-    // the private half of and reading a conversation.
-    match /publicKeys/{uid} {
-      allow read: if isSignedIn();
-      allow create, update: if isSignedIn()
-                    && request.auth.uid == uid
-                    && request.resource.data.uid == uid
-                    && request.resource.data.keys().hasOnly([
-                         'uid', 'publicKey', 'algorithm', 'updatedAt'
-                       ]);
-      allow delete: if false;
-    }
-
-    // Conversations and their messages.
-    //
-    // These rules control DELIVERY, not secrecy: the message bodies are
-    // already ciphertext when they arrive, so even a mistake here would leak
-    // metadata rather than content. That is the point of encrypting in the
-    // browser — the rules are the second line, not the only one.
-    // Membership is derivable from the id itself: conversationIdFor() in
-    // e2ee.js is the two uids sorted and joined with "__", and both clients
-    // compute it the same way. That matters because the conversation
-    // DOCUMENT does not exist until the first message is sent — and the
-    // previous rule called get() on it and read .data.participants, which
-    // errors on a null get and denies. The effect was that opening any new
-    // thread failed with "insufficient permissions" before anyone had sent
-    // anything, which is precisely when a conversation starts.
-    //
-    // Deriving from the id also removes a billed get() per message read.
-    // It grants nothing extra: a learner is only ever a member of ids that
-    // contain their own uid, and sending still requires senderUid == uid.
-    function inConversationId(cid) {
-      return request.auth.uid in cid.split('__');
-    }
-
+    // ── CONVERSATIONS ──
     match /conversations/{conversationId} {
-      // `resource` is null for a document that does not exist, so the id
-      // check has to come first — it is also the one that works on create.
-      allow read: if isSignedIn()
-                  && (inConversationId(conversationId)
-                      || (resource != null
-                          && request.auth.uid in resource.data.participants));
-
-      // A conversation may only be opened between the writer and one other
-      // person, and the writer must be in it.
-      allow create: if isSignedIn()
-                    && request.auth.uid in request.resource.data.participants
-                    && request.resource.data.participants.size() == 2;
-
-      allow update: if isSignedIn()
-                    && request.auth.uid in resource.data.participants
-                    && request.resource.data.participants == resource.data.participants;
-
-      allow delete: if false;
+      allow read: if isLoggedIn() &&
+        request.auth.uid in resource.data.participants;
+      allow create: if isLoggedIn() &&
+        request.auth.uid in request.resource.data.participants &&
+        request.resource.data.participants.size() >= 2;
+      allow update: if isLoggedIn() &&
+        request.auth.uid in resource.data.participants;
 
       match /messages/{messageId} {
-        // Works on an empty thread, which the get() form did not.
-        allow read: if isSignedIn() && inConversationId(conversationId);
-
-        // Only a participant may send, and only as themselves — so a message
-        // cannot be written into the thread attributed to the other person.
-        allow create: if isSignedIn()
-                      && request.resource.data.senderUid == request.auth.uid
-                      && inConversationId(conversationId)
-                      && request.resource.data.keys().hasOnly([
-                           'conversationId', 'senderUid', 'payload', 'sentAt'
-                         ]);
-
-        // Immutable once sent. Editing someone's history in place would make
-        // the thread untrustworthy, and neither side can verify a change.
-        allow update, delete: if false;
+        allow read: if isLoggedIn() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+        allow create: if isLoggedIn() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants &&
+          request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if isLoggedIn() &&
+          resource.data.senderId == request.auth.uid;
       }
     }
 
-    // Reports about another learner. Write-only from the client: a learner
-    // may file one and may not read anyone's, including their own, so the
-    // collection cannot be used to discover who has been reported.
-    match /reports/{reportId} {
-      allow create: if isSignedIn()
-                    && request.resource.data.byUid == request.auth.uid;
-      allow read, update, delete: if false;
+    // ── PRESENCE ──
+    match /presence/{userId} {
+      allow read: if isLoggedIn();
+      allow write: if isOwner(userId);
     }
 
-    // Memora ID → uid claim. Create-only: Firestore guarantees atomicity on
-    // the document key, so two people cannot claim the same ID. Never
-    // updatable or deletable, so an ID cannot be reassigned.
+    // ── PUBLIC KEYS ──
+    match /publicKeys/{userId} {
+      allow read: if isLoggedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // ── MEMORA IDs — unique student ID counter ──
     match /memoraIds/{memoraId} {
-      allow get: if isSignedIn();
-      allow list: if false;
-      allow create: if isSignedIn()
-                    && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if false;
+      allow read: if isLoggedIn();
+      allow create: if isLoggedIn();
     }
 
-    // Certificates are issued by the server only, after it has graded the
-    // exam and verified the candidate's ID token. Writes are denied here for
-    // everyone; the Admin SDK bypasses these rules, so that route still works
-    // and is the only route.
-    //
-    // A holder may read their own certificate so it can be displayed. `list`
-    // is denied so nobody can enumerate the collection and harvest the names
-    // and email addresses of every graduate.
-    match /certificates/{certificateId} {
-      allow get: if isSignedIn() && resource.data.uid == request.auth.uid;
-      allow list: if false;
-      allow write: if false;
+    match /memoraCounters/{counterId} {
+      allow read: if isLoggedIn();
+      allow write: if isLoggedIn();
     }
 
-    // The certificate number counter. Server-only, like the certificates it
-    // numbers — uniqueness rests on the atomic create of certificates/{id}
-    // inside a transaction, and the counter is only an optimisation.
-    match /counters/certificateId {
-      allow read, write: if false;
+    // ── STUDENTS — main academy collection ──
+    match /students/{userId} {
+      // Student can read and write their own top-level record
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+
+      // Enrollments subcollection
+      match /enrollments/{courseId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+      }
+
+      // Lesson progress subcollection
+      match /progress/{progressId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+
+      // Any other subcollections inside students
+      match /{subcollection}/{docId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
     }
 
-    // The ID sequence. It may only advance by exactly one, so a client cannot
-    // jump the counter — except at a year boundary, where the sequence
-    // restarts at 1 under a new year. Without that second clause every signup
-    // on 1 January would be rejected.
-    match /counters/memoraId {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.seq == 1;
-      allow update: if isSignedIn()
-                    && (
-                      request.resource.data.seq == resource.data.seq + 1
-                      || (
-                        request.resource.data.year != resource.data.year
-                        && request.resource.data.seq == 1
-                      )
-                    );
-      allow delete: if false;
+    // ── ACADEMY COURSES — admin writes, students read ──
+    match /courses/{courseId} {
+      allow read: if isLoggedIn();
+      allow write: if isAdmin();
+
+      match /{subcollection}/{docId} {
+        allow read: if isLoggedIn();
+        allow write: if isAdmin();
+      }
+    }
+
+    // ── LEADERBOARD — any student can read, own entry only to write ──
+    match /leaderboard/{userId} {
+      allow read: if isLoggedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // ── BLOCKS ──
+    match /blocks/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
     }
   }
 }
