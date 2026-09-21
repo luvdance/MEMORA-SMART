@@ -2306,3 +2306,68 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* ── Conversation list ────────────────────────────────────────────────────
+   The Messages tab used to be a dead end: the only way into a chat was the
+   "Active now" list, so a thread vanished the moment the other person closed
+   their pane. This is the way back to what was already said. */
+.ac-sp__threads {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ac-sp__thread-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--ac-line);
+  border-radius: 10px;
+  background: var(--ac-bg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ac-sp__thread-item:hover {
+  border-color: var(--ac-primary);
+  background: var(--ac-primary-soft);
+}
+
+.ac-sp__thread-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ac-sp__thread-meta strong {
+  font-size: 0.86rem;
+  color: var(--ac-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ac-sp__thread-meta em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--ac-muted);
+}
+
+/* Unread reads as weight plus a dot, not colour alone. */
+.ac-sp__thread-item.is-unread strong {
+  font-weight: 700;
+}
+
+.ac-sp__dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ac-primary);
+}

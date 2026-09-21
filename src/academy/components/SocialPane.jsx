@@ -13,6 +13,7 @@ import {
   clearPresence,
   blockUser,
   getBlockedUids,
+  getConversations,
   getPublicKey,
   publishPublicKey,
   reportUser,
@@ -21,7 +22,44 @@ import {
   subscribeActiveStudents,
   watchConversation,
 } from "../services/social";
-import { conversationFingerprint, isE2eeAvailable } from "../services/e2ee";
+import {
+  conversationFingerprint,
+  conversationIdFor,
+  isE2eeAvailable,
+} from "../services/e2ee";
+
+/**
+ * WHICH THREADS HAVE BEEN READ.
+ *
+ * Kept in this browser, not on the server, and deliberately so: the server
+ * cannot read these conversations, so it has no business holding a
+ * per-message read receipt either. A thread counts as unread when it was
+ * touched after the last time this device opened it.
+ *
+ * Every access is wrapped because localStorage throws in a private window
+ * and returns nothing when site data is cleared. An unread dot is a
+ * convenience; losing it must never break the pane.
+ */
+const READ_KEY = "ac-chat-read";
+
+function loadReadMarkers() {
+  try {
+    return JSON.parse(localStorage.getItem(READ_KEY) || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveReadMarker(conversationId, when = Date.now()) {
+  try {
+    const all = loadReadMarkers();
+    all[conversationId] = when;
+    localStorage.setItem(READ_KEY, JSON.stringify(all));
+    return all;
+  } catch {
+    return loadReadMarkers();
+  }
+}
 
 /**
  * THE SOCIAL PANE — leaderboard, who is around, and encrypted chat
@@ -111,7 +149,7 @@ function StudentCard({ person, onMessage, onBlock, onReport, busy }) {
 
 /* ── One conversation ───────────────────────────────────────────────────── */
 
-function ChatThread({ user, person, onBack }) {
+function ChatThread({ user, person, onBack, onSent }) {
   const [messages, setMessages] = useState(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState(null);
@@ -166,8 +204,20 @@ function ChatThread({ user, person, onBack }) {
     try {
       await sendMessage(user, person.id, text);
       setDraft("");
+      // Marks the thread read at the moment of sending. Without it the
+      // learner's own message bumped `updatedAt` and came straight back as
+      // an unread dot on their own conversation.
+      onSent?.(conversationIdFor(user.uid, person.id));
     } catch (err) {
-      setError(err?.message || "The message could not be sent.");
+      /* A refusal is deliberately NOT explained. The rules reject a send to
+         someone who has blocked you, and telling the sender that would hand
+         them the one fact a block is supposed to withhold. They get the same
+         neutral message any delivery failure produces. */
+      setError(
+        err?.code === "permission-denied"
+          ? "That message could not be delivered."
+          : err?.message || "The message could not be sent."
+      );
     } finally {
       setSending(false);
     }
@@ -284,6 +334,14 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const [chatAllowed, setChatAllowed] = useState(null);
   /* Kept apart from `error` so a key failure is named as a key failure. */
   const [keyError, setKeyError] = useState(null);
+  /* The active list is a live subscription; its failures are separate from
+     the one-off reads in load(), and must clear when it recovers. */
+  const [activeError, setActiveError] = useState(null);
+  /* Presence is only announced once the student record is loaded, because
+     the first write has to be a COMPLETE row -- see announcePresence. */
+  const [meReady, setMeReady] = useState(false);
+  const [threads, setThreads] = useState(null);
+  const [readAt, setReadAt] = useState(() => loadReadMarkers());
   const [hidden, setHidden] = useState(false);
   const [working, setWorking] = useState(false);
 
@@ -315,6 +373,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     }
 
     meRef.current = me;
+    setMeReady(true);
 
     // The under-18 safeguard, read from the record rather than recomputed
     // here so there is one authoritative value. Undefined (a learner who
@@ -386,12 +445,12 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
      and rebuilt whenever either changes. The record matters because the
      write is a merge: sending no record used to blank out level and badges. */
   useEffect(() => {
-    if (!open || !user || hidden) return;
+    if (!open || !user || hidden || !meReady) return;
     return startPresenceHeartbeat(user, () => ({
       student: meRef.current,
       lessonTitle,
     }));
-  }, [open, user, lessonTitle, hidden]);
+  }, [open, user, lessonTitle, hidden, meReady]);
 
   /* WHO ELSE IS HERE — a live subscription.
    *
@@ -407,17 +466,49 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
    * Only while the pane is open, like everything else here. */
   useEffect(() => {
     if (!open || !user) return;
-    return subscribeActiveStudents((rows) => setActive(rows), {
-      excludeUid: user.uid,
-      onError: (err) => {
-        if (err?.code === "failed-precondition") {
-          setError(
-            "The active list needs a database index that has not been created yet."
-          );
-        }
+    return subscribeActiveStudents(
+      (rows) => {
+        setActive(rows);
+        // A snapshot arrived, so whatever went wrong before is over. Without
+        // this the message latched: one failure -- including during the
+        // minutes a new index is still building -- pinned "no index" on the
+        // pane for the rest of the session, long after it was true.
+        setActiveError(null);
       },
-    });
+      {
+        excludeUid: user.uid,
+        onError: (err) => {
+          setActiveError(
+            err?.code === "failed-precondition"
+              ? "The active list needs a database index. It may still be building — this clears itself once it is ready."
+              : "The active list could not load just now. It will retry."
+          );
+        },
+      }
+    );
   }, [open, user]);
+
+  /* Existing conversations.
+   *
+   * Without this the only way into a chat was the "Active now" list, so a
+   * thread became unreachable the moment the other person closed their pane
+   * — every conversation was lost as soon as it ended. A chat system has to
+   * let you go back to what was already said. */
+  const loadThreads = useCallback(async () => {
+    if (!user) return;
+    const rows = await getConversations(user.uid);
+    setThreads(rows);
+  }, [user]);
+
+  useEffect(() => {
+    if (!open || !user || tab !== "chats" || threads !== null) return;
+    loadThreads();
+  }, [open, user, tab, threads, loadThreads]);
+
+  const openThread = (person, conversationId) => {
+    setChatWith(person);
+    if (conversationId) setReadAt(saveReadMarker(conversationId));
+  };
 
   const startChat = async (person) => {
     if (chatAllowed === false) {
@@ -487,7 +578,9 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const block = async (person) => {
     await blockUser(user.uid, person.id);
     setBlocked((b) => [...b, person.id]);
-    setNotice(`${person.name} is blocked. They cannot message you.`);
+    setNotice(
+      `${person.name} is blocked. The server now refuses their messages to you, and their conversation is hidden from your list.`
+    );
     if (chatWith?.id === person.id) setChatWith(null);
   };
 
@@ -590,7 +683,14 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
           {/* ── Active now ── */}
           {tab === "active" && (
             <>
-              {active === null && !error && <p className="ac-sp__msg">Loading…</p>}
+              {activeError && (
+                <p className="ac-sp__msg is-error" role="status">
+                  {activeError}
+                </p>
+              )}
+              {active === null && !activeError && (
+                <p className="ac-sp__msg">Loading…</p>
+              )}
               {active !== null && visibleActive.length === 0 && (
                 <p className="ac-sp__msg">
                   Nobody else is studying right now. This list checks again
@@ -650,17 +750,85 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                 </p>
               )}
               {available && chatAllowed && !chatWith && (
-                <p className="ac-sp__msg">
-                  Open <strong>Active now</strong> and choose someone to
-                  message. Conversations are encrypted in your browser, so they
-                  are readable on this device only.
-                </p>
+                <>
+                  {threads === null && (
+                    <p className="ac-sp__msg">Loading your conversations…</p>
+                  )}
+
+                  {threads !== null && threads.length === 0 && (
+                    <p className="ac-sp__msg">
+                      No conversations yet. Open <strong>Active now</strong>
+                      {" "}and choose someone to message. Conversations are
+                      encrypted in your browser, so they are readable on this
+                      device only.
+                    </p>
+                  )}
+
+                  {threads !== null && threads.length > 0 && (
+                    <ul className="ac-sp__threads">
+                      {threads
+                        // A blocked person's thread stays out of the list.
+                        // The messages are still on the device; they are
+                        // simply not offered back to the learner.
+                        .filter((t) => !blocked.includes(t.otherUid))
+                        .map((t) => {
+                          const unread =
+                            (t.updatedAt?.getTime() || 0) > (readAt[t.id] || 0);
+                          return (
+                            <li key={t.id}>
+                              <button
+                                type="button"
+                                className={`ac-sp__thread-item ${
+                                  unread ? "is-unread" : ""
+                                }`}
+                                onClick={() => openThread(t.person, t.id)}
+                              >
+                                <span className="ac-sp__avatar">
+                                  {(t.person.name || "S")
+                                    .charAt(0)
+                                    .toUpperCase()}
+                                </span>
+                                <span className="ac-sp__thread-meta">
+                                  <strong>{t.person.name}</strong>
+                                  <em>
+                                    {t.person.online
+                                      ? "studying now"
+                                      : "not studying now"}
+                                  </em>
+                                </span>
+                                {unread && (
+                                  <span
+                                    className="ac-sp__dot"
+                                    aria-label="New messages"
+                                  />
+                                )}
+                              </button>
+                            </li>
+                          );
+                        })}
+                    </ul>
+                  )}
+
+                  <p className="ac-sp__msg">
+                    Only this device can read these. A conversation opened on
+                    another computer starts empty, because the key never
+                    leaves the browser it was made in.
+                  </p>
+                </>
               )}
               {available && chatAllowed && chatWith && (
                 <ChatThread
                   user={user}
                   person={chatWith}
-                  onBack={() => setChatWith(null)}
+                  onBack={() => {
+                    setChatWith(null);
+                    // Re-read the list so a thread just used moves to the top
+                    // and loses its unread dot.
+                    setThreads(null);
+                  }}
+                  onSent={(conversationId) =>
+                    setReadAt(saveReadMarker(conversationId))
+                  }
                 />
               )}
             </>

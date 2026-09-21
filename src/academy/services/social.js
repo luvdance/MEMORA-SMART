@@ -87,34 +87,84 @@ const messagesRef = (conversationId) =>
 /**
  * Say "I am here", or refresh it.
  *
- * Fields absent from `student` are LEFT OUT rather than written as null. This
- * is a merge, and the 90-second heartbeat does not always hold the student
- * record — writing `level: student?.level ?? 1` unconditionally overwrote the
- * real level and blanked the badges a minute and a half after a learner
- * arrived.
+ * WHY THE FULL WRITE IS A REPLACE, NOT A MERGE
+ *
+ * An older version of this module stored `displayName`, `memoraId` and
+ * `avatar` on presence rows. The security rule now constrains the document to
+ * a fixed field list, and on a MERGE Firestore evaluates the merged RESULT --
+ * so those three legacy fields were still in the payload, failed the rule,
+ * and every write to an existing row was denied. Learners with an old row
+ * could never come online again, and the active list stayed empty while
+ * reporting nothing wrong.
+ *
+ * Replacing the document purges anything not in the current shape. The
+ * heartbeat still merges, but only after a replace has established the shape,
+ * so it can only ever touch allowed fields.
+ *
+ * Fields absent from `student` are LEFT OUT rather than written as null,
+ * because the heartbeat does not always hold the student record -- writing
+ * `level: student?.level ?? 1` unconditionally overwrote the real level and
+ * blanked the badges a minute and a half after a learner arrived.
  */
 export async function announcePresence(user, { student, lessonTitle } = {}) {
   if (!user?.uid) return;
   try {
-    const row = {
-      uid: user.uid,
-      online: true,
-      lessonTitle: lessonTitle || null,
-      lastSeen: serverTimestamp(),
-    };
-
-    // Never fall back to displayName. A row with no username shows as an
-    // anonymous learner, which is the correct failure.
     if (student) {
-      row.name = publicNameFor(student);
-      row.level = student.level ?? null;
-      row.badges = (student.badges || []).slice(0, 12);
+      // The complete row. Never falls back to displayName: a row with no
+      // username shows as an anonymous learner, which is the right failure.
+      await setDoc(presenceRef(user.uid), {
+        uid: user.uid,
+        online: true,
+        name: publicNameFor(student),
+        level: student.level ?? null,
+        badges: (student.badges || []).slice(0, 12),
+        lessonTitle: lessonTitle || null,
+        lastSeen: serverTimestamp(),
+      });
+      return;
     }
 
-    await setDoc(presenceRef(user.uid), row, { merge: true });
+    // A refresh with no record to hand. Safe as a merge because the fields
+    // it touches are all in the allowed set, and it cannot resurrect a
+    // legacy field that a replace has already removed.
+    await setDoc(
+      presenceRef(user.uid),
+      { uid: user.uid, online: true, lastSeen: serverTimestamp() },
+      { merge: true }
+    );
   } catch (err) {
     // Presence is optional; it must never break a lesson.
     console.warn("presence failed:", err?.code || err?.message);
+  }
+}
+
+/**
+ * A learner's public details, by uid.
+ *
+ * Read from `presence`, which every learner who has opened the pane has a row
+ * in, rather than from the leaderboard -- somebody who hid themselves has no
+ * leaderboard row, and a conversation you already have with them should still
+ * show their name.
+ *
+ * Only ever returns the public projection: a username, level and badges. The
+ * student document, which holds the phone number and age band, is readable by
+ * its owner alone.
+ */
+export async function getPublicProfile(uid) {
+  if (!uid) return null;
+  try {
+    const snap = await getDoc(presenceRef(uid));
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    return {
+      id: uid,
+      name: d.name || publicNameFor(null),
+      level: d.level ?? null,
+      badges: d.badges || [],
+      online: d.online === true,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -122,9 +172,15 @@ export async function announcePresence(user, { student, lessonTitle } = {}) {
 export async function clearPresence(uid) {
   if (!uid) return;
   try {
+    /* `uid` is included because the rule requires request.resource.data.uid
+       to match the document id, and on a merge into a document that does not
+       exist yet the merged result would not carry it — producing a
+       permission error for a write that is only trying to tidy up. Spurious
+       permission errors are exactly what made the earlier presence failures
+       so hard to place. */
     await setDoc(
       presenceRef(uid),
-      { online: false, lastSeen: serverTimestamp() },
+      { uid, online: false, lastSeen: serverTimestamp() },
       { merge: true }
     );
   } catch (err) {
@@ -381,18 +437,56 @@ export function watchConversation(user, theirUid, onMessages, onError) {
   };
 }
 
-/** The learner's existing conversations, most recent first. */
+/**
+ * The learner's existing conversations, most recent first.
+ *
+ * DELIBERATELY NOT ordered server-side. `array-contains` plus an `orderBy`
+ * needs a composite index, and an index that has not been created yet fails
+ * the whole query -- which is how the active list ended up reporting an empty
+ * room. `array-contains` alone uses the automatic single-field index, and
+ * thirty threads sort instantly in memory.
+ *
+ * Resolving the other person's name is a separate read per thread, because
+ * the conversation document holds no names. That is the point: it carries the
+ * two uids and a timestamp, and nothing about what was said.
+ */
 export async function getConversations(uid) {
   if (!uid) return [];
   try {
-    const q = query(
-      collection(db, "conversations"),
-      where("participants", "array-contains", uid),
-      orderBy("updatedAt", "desc"),
-      limit(30)
+    const snap = await getDocs(
+      query(
+        collection(db, "conversations"),
+        where("participants", "array-contains", uid),
+        limit(30)
+      )
     );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    const rows = snap.docs.map((d) => {
+      const data = d.data();
+      const participants = data.participants || d.id.split("__");
+      return {
+        id: d.id,
+        otherUid: participants.find((x) => x !== uid) || null,
+        updatedAt: data.updatedAt?.toDate?.() || null,
+      };
+    });
+
+    rows.sort((a, b) => (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0));
+
+    const withNames = await Promise.all(
+      rows
+        .filter((r) => r.otherUid)
+        .map(async (r) => ({
+          ...r,
+          person: (await getPublicProfile(r.otherUid)) || {
+            id: r.otherUid,
+            name: publicNameFor(null),
+            badges: [],
+          },
+        }))
+    );
+
+    return withNames;
   } catch (err) {
     console.warn("getConversations failed:", err?.code || err?.message);
     return [];
@@ -457,6 +551,7 @@ export default {
   subscribeActiveStudents,
   publishPublicKey,
   getPublicKey,
+  getPublicProfile,
   sendMessage,
   watchConversation,
   getConversations,

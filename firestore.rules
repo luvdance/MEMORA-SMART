@@ -77,6 +77,30 @@ service cloud.firestore {
       return isLoggedIn() && request.auth.uid in cid.split('__');
     }
 
+    // The OTHER person in a conversation, worked out from the ID.
+    function otherInConversation(cid) {
+      return cid.split('__')[0] == request.auth.uid
+        ? cid.split('__')[1]
+        : cid.split('__')[0];
+    }
+
+    // Has the recipient blocked the sender?
+    //
+    // This makes a promise the interface was already making. Blocking used to
+    // be filtering on the client: the blocked person could still write to the
+    // conversation and the reader simply did not display it, while the app
+    // told them "they cannot message you". That was false, and a learner
+    // relying on it to get away from someone was owed better.
+    //
+    // exists() in rules is not itself subject to rules, so a private block
+    // list can be consulted here without being readable by the person it
+    // names -- which is the point: a blocked person must not be able to
+    // discover that they were blocked. They get a plain permission error,
+    // the same one any non-member gets.
+    function blockedBy(otherUid) {
+      return exists(/databases/$(database)/documents/students/$(otherUid)/blocks/$(request.auth.uid));
+    }
+
     match /conversations/{conversationId} {
       // `resource` is null for a document that does not exist, so the ID
       // check must come first -- it is also the one that works on create.
@@ -101,6 +125,7 @@ service cloud.firestore {
 
         allow create: if inConversationId(conversationId)
                       && request.resource.data.senderUid == request.auth.uid
+                      && !blockedBy(otherInConversation(conversationId))
                       && request.resource.data.keys().hasOnly([
                            'conversationId', 'senderUid', 'payload', 'sentAt'
                          ]);
