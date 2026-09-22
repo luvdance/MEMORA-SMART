@@ -21,6 +21,7 @@ import {
   startPresenceHeartbeat,
   subscribeActiveStudents,
   watchConversation,
+  startPresenceHeartbeat,
 } from "../services/social";
 import {
   conversationFingerprint,
