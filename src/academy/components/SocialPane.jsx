@@ -36,18 +36,6 @@ import {
   serverNow,
 } from "../data/presence";
 
-/**
- * WHICH THREADS HAVE BEEN READ.
- *
- * Kept in this browser, not on the server, and deliberately so: the server
- * cannot read these conversations, so it has no business holding a
- * per-message read receipt either. A thread counts as unread when it was
- * touched after the last time this device opened it.
- *
- * Every access is wrapped because localStorage throws in a private window
- * and returns nothing when site data is cleared. An unread dot is a
- * convenience; losing it must never break the pane.
- */
 const READ_KEY = "ac-chat-read";
 
 function loadReadMarkers() {
@@ -69,31 +57,6 @@ function saveReadMarker(conversationId, when = Date.now()) {
   }
 }
 
-/**
- * THE SOCIAL PANE — leaderboard, who is around, and encrypted chat
- *
- * Lives in the right pane of the lesson player, and the constraint from the
- * leaderboard applies here twice over: this must not interrupt the lesson.
- *
- *   · Collapsed by default in a lesson, every time. No auto-open.
- *   · Nothing is fetched, no key is published and no presence is announced
- *     until the learner opens it. A closed pane is inert — it costs no reads,
- *     no writes and no data.
- *   · On a phone it is a panel in the page flow below the lesson, not an
- *     overlay. On a wide screen it becomes a column beside the lesson, which
- *     is what "right pane" means when there is room for one.
- *   · Opening it never moves the lesson text that is already on screen.
- *
- * ENCRYPTION, HONESTLY LABELLED
- * The pane says "encrypted in your browser" and links to what that does and
- * does not cover. It does not say "end-to-end encrypted" full stop, because
- * this app serves its own JavaScript and therefore cannot make the promise a
- * pinned native app makes. See services/e2ee.js for the full threat model.
- *
- * And because nobody at Memora can read these messages, nobody can moderate
- * them — so Block and Report are on every card rather than buried.
- */
-
 const TABS = [
   { id: "board", label: "Ranking", icon: "fas fa-ranking-star" },
   { id: "active", label: "Active now", icon: "fas fa-circle" },
@@ -102,15 +65,8 @@ const TABS = [
 
 const badgeById = new Map(BADGES.map((b) => [b.id, b]));
 
-/* ── A learner's card: badges, and the way into a conversation ──────────── */
+/* ── Status indicator ───────────────────────────────────────────────────── */
 
-/**
- * A presence dot.
- *
- * Never colour alone: the state is also in the accessible label and the
- * tooltip, because red/green distinctions are exactly the ones a large share
- * of people cannot see.
- */
 function StatusDot({ status }) {
   const label = STATUS_LABEL[status] || STATUS_LABEL.offline;
   return (
@@ -122,6 +78,8 @@ function StatusDot({ status }) {
     />
   );
 }
+
+/* ── Learner card ──────────────────────────────────────────────────────── */
 
 function StudentCard({ person, status, onMessage, onBlock, onReport, busy }) {
   const badges = (person.badges || []).map((id) => badgeById.get(id)).filter(Boolean);
@@ -181,7 +139,7 @@ function StudentCard({ person, status, onMessage, onBlock, onReport, busy }) {
   );
 }
 
-/* ── One conversation ───────────────────────────────────────────────────── */
+/* ── Chat thread ───────────────────────────────────────────────────────── */
 
 function ChatThread({ user, person, status, onBack, onSent }) {
   const [messages, setMessages] = useState(null);
@@ -192,23 +150,15 @@ function ChatThread({ user, person, status, onBack, onSent }) {
   const [showCode, setShowCode] = useState(false);
   const [muted, setMutedState] = useState(() => isMuted());
   const endRef = useRef(null);
-  /* Which messages this thread has already announced.
-   *
-   * Opening a conversation delivers its whole history in one snapshot. Without
-   * this, every reopen would play a chime per past message — a burst of
-   * beeping for messages the learner has already read. Only ids that appear
-   * AFTER the first snapshot count as new. */
   const seenRef = useRef(null);
 
   useEffect(() => {
     if (!user || !person) return;
-    // A different conversation starts its own history.
     seenRef.current = null;
     const stop = watchConversation(
       user,
       person.id,
       (list) => {
-        /* The first snapshot is history, not news: record it silently. */
         if (seenRef.current === null) {
           seenRef.current = new Set(list.map((m) => m.id));
         } else {
@@ -227,7 +177,6 @@ function ChatThread({ user, person, status, onBack, onSent }) {
     return stop;
   }, [user, person]);
 
-  /* The safety code, for checking nobody swapped a key. */
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -238,7 +187,7 @@ function ChatThread({ user, person, status, onBack, onSent }) {
         const code = await conversationFingerprint(mine, theirs);
         if (alive) setSafetyCode(code);
       } catch {
-        /* no code shown rather than a wrong one */
+        /* fail silently rather than showing an invalid code */
       }
     })();
     return () => {
@@ -260,15 +209,8 @@ function ChatThread({ user, person, status, onBack, onSent }) {
       await sendMessage(user, person.id, text);
       playSent();
       setDraft("");
-      // Marks the thread read at the moment of sending. Without it the
-      // learner's own message bumped `updatedAt` and came straight back as
-      // an unread dot on their own conversation.
       onSent?.(conversationIdFor(user.uid, person.id));
     } catch (err) {
-      /* A refusal is deliberately NOT explained. The rules reject a send to
-         someone who has blocked you, and telling the sender that would hand
-         them the one fact a block is supposed to withhold. They get the same
-         neutral message any delivery failure produces. */
       setError(
         err?.code === "permission-denied"
           ? "That message could not be delivered."
@@ -305,9 +247,8 @@ function ChatThread({ user, person, status, onBack, onSent }) {
       </div>
 
       <p className="ac-sp__crypto">
-        <i className="fas fa-lock" aria-hidden="true" />
-        Encrypted in your browser — we store only the ciphertext and cannot
-        read this.{" "}
+        <i className="fas fa-lock" aria-hidden="true" /> Encrypted in your
+        browser — we store only the ciphertext and cannot read this.{" "}
         <button
           type="button"
           className="ac-sp__codelink"
@@ -322,9 +263,8 @@ function ChatThread({ user, person, status, onBack, onSent }) {
           <span className="ac-mono">{safetyCode || "…"}</span>
           <p>
             Read this aloud to {person.name}. If their code matches, nobody is
-            intercepting. If it differs, stop and tell us. Messages sent before
-            you first opened chat on this device cannot be read here — the key
-            never leaves your browser, so it cannot be recovered.
+            intercepting. Messages sent before you first opened chat on this device
+            cannot be read here.
           </p>
         </div>
       )}
@@ -383,26 +323,17 @@ function ChatThread({ user, person, status, onBack, onSent }) {
   );
 }
 
-/* ── The pane ───────────────────────────────────────────────────────────── */
+/* ── Main pane component ────────────────────────────────────────────────── */
 
 export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const { user } = useAuth();
 
-  // Closed every time in a lesson. Never remembered open here: a learner
-  // opening a lesson is there to learn.
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("board");
   const [board, setBoard] = useState(null);
   const [rank, setRank] = useState(null);
   const [active, setActive] = useState(null);
-  /* The heartbeat needs the student record and the current lesson, but must
-     not RE-ARM when either changes, so both are read from refs.
 
-     `lessonTitle` used to be a dependency of that effect. When it resolved
-     from undefined to a title the effect tore down -- calling clearPresence
-     -- and immediately re-announced. Two unordered writes to the same
-     document: if the clear landed second, `online` was left false and the
-     learner was invisible until the next heartbeat 90 seconds later. */
   const meRef = useRef(null);
   const lessonRef = useRef(lessonTitle);
   const [blocked, setBlocked] = useState([]);
@@ -411,29 +342,12 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const [chatAllowed, setChatAllowed] = useState(null);
-  /* Kept apart from `error` so a key failure is named as a key failure. */
   const [keyError, setKeyError] = useState(null);
-  /* The active list is a live subscription; its failures are separate from
-     the one-off reads in load(), and must clear when it recovers. */
   const [activeError, setActiveError] = useState(null);
-  /* Whether OTHER learners can see this one. Set from every presence write,
-     so a refused write is shown instead of leaving the learner invisible with
-     no idea why — which is how the Active list stayed empty for several
-     rounds with nothing on screen. */
   const [presenceError, setPresenceError] = useState(null);
-  /* A server-anchored clock: the freshest server timestamp in view and the
-     local time it was seen. See serverNow() in data/presence.js. */
   const [anchor, setAnchor] = useState({ serverMs: null, localMs: Date.now() });
-  /* Enough to explain an empty room instead of asserting one. An empty list
-     has meant four different things across as many rounds — no row written,
-     a refused write, a clock-skewed query, a stale row — and none of them
-     were visible from the screen. */
   const [presenceInfo, setPresenceInfo] = useState(null);
-  /* Re-evaluates statuses as time passes. Someone who goes quiet produces no
-     snapshot, so without a tick their dot would stay green indefinitely. */
   const [, setTick] = useState(0);
-  /* Presence is only announced once the student record is loaded, because
-     the first write has to be a COMPLETE row -- see announcePresence. */
   const [meReady, setMeReady] = useState(false);
   const [threads, setThreads] = useState(null);
   const [readAt, setReadAt] = useState(() => loadReadMarkers());
@@ -442,110 +356,40 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
 
   const available = useMemo(() => isE2eeAvailable(), []);
 
-  /* Everything starts on first open — nothing before it.
-   *
-   * THE PARTS ARE INDEPENDENT ON PURPOSE. This used to be one try block over
-   * a Promise.all, so a single failing read took the whole pane down with it
-   * — and because publishing the key came last, it never ran. The learner's
-   * public key was therefore never written, the other side asked for it, got
-   * nothing, and was told "they have not opened the chat yet". The real cause
-   * was an unrelated leaderboard read failing. Messaging must not depend on
-   * the ranking loading. */
-  const load = useCallback(async () => {
-    if (!user) return;
-    setError(null);
-    setKeyError(null);
-
-    let me = null;
-    try {
-      me = await getStudent(user.uid);
-    } catch {
-      // Without the record we cannot prove they are an adult, and the
-      // protective default is the closed one.
-      setChatAllowed(false);
-      setError("Could not load your account. Try again.");
-      return;
-    }
-
-    meRef.current = me;
-    setMeReady(true);
-
-    // The under-18 safeguard, read from the record rather than recomputed
-    // here so there is one authoritative value. Undefined (a learner who
-    // has not completed onboarding) is treated as NOT allowed: when we
-    // cannot tell someone's age, the protective default is the right one.
-    setChatAllowed(me?.chatEnabled === true);
-    setHidden(!isOnLeaderboard(me));
-
-    /* The key goes FIRST and on its own. It is what messaging depends on,
-       it is the cheapest write here, and a failure has to be reported as
-       itself rather than mistaken for the other side being absent. */
-    if (available) {
-      try {
-        await publishPublicKey(user);
-      } catch (err) {
-        setKeyError(
-          err?.code === "permission-denied"
-            ? "Messaging is not available yet — the Academy security rules have not been deployed."
-            : "Your encryption key could not be published, so others cannot message you yet."
-        );
-      }
-    }
-
-    /* The active list is NOT fetched here — it is a live subscription set up
-       in its own effect below. Everything left is a one-off read. */
-    const [rows, myRank, blocks] = await Promise.allSettled([
-      getLeaderboard({ top: 15 }),
-      getMyRank(user.uid, me?.xp || 0),
-      getBlockedUids(user.uid),
-    ]);
-
-    // Settled, not all-or-nothing: an empty board is a usable pane, and a
-    // learner can still message someone even if the ranking will not load.
-    setBoard(rows.status === "fulfilled" ? rows.value : []);
-    setRank(myRank.status === "fulfilled" ? myRank.value : null);
-    setBlocked(blocks.status === "fulfilled" ? blocks.value : []);
-
-    if (rows.status === "rejected") {
-      setError(
-        rows.reason?.code === "permission-denied"
-          ? "The leaderboard is unavailable on this account."
-          : "The leaderboard could not load. Try again."
-      );
-    }
-  }, [user, available]);
-
-  /* `board` is set even on failure now, so this no longer needs `error` in
-     the guard — which previously meant one bad load disabled the pane until
-     the learner reloaded the whole lesson. */
-  useEffect(() => {
-    if (!open || board !== null) return;
-    let alive = true;
-    (async () => {
-      if (alive) await load();
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [open, board, load]);
-
-  /* Presence, only while the pane is open AND they are not hidden.
-     Without the `hidden` guard this would re-announce someone who had just
-     hidden themselves, putting them back in the active list 90 seconds
-     later — the same self-undoing failure the stored opt-out fixes for the
-     leaderboard.
-
-     The meta is read through a function so the heartbeat always sees the
-     current lesson and student record without this effect being torn down
-     and rebuilt whenever either changes. The record matters because the
-     write is a merge: sending no record used to blank out level and badges. */
-  /* Kept current without re-arming the heartbeat. */
+  // Sync current lesson title reference without causing unnecessary re-renders
   useEffect(() => {
     lessonRef.current = lessonTitle;
   }, [lessonTitle]);
 
+  // Load account data on mount
   useEffect(() => {
-    if (!open || !user || hidden || !meReady) return;
+    if (!user) return;
+    let alive = true;
+
+    (async () => {
+      try {
+        const me = await getStudent(user.uid);
+        if (!alive) return;
+        meRef.current = me;
+        setMeReady(true);
+        setChatAllowed(me?.chatEnabled === true);
+        setHidden(!isOnLeaderboard(me));
+      } catch {
+        if (alive) {
+          setChatAllowed(false);
+          setError("Could not load your account. Try again.");
+        }
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  // Heartbeat runs when student is ready, even if drawer is collapsed
+  useEffect(() => {
+    if (!user || hidden || !meReady) return;
     return startPresenceHeartbeat(
       user,
       () => ({ student: meRef.current, lessonTitle: lessonRef.current }),
@@ -563,26 +407,58 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
         },
       }
     );
-  }, [open, user, hidden, meReady]);
+  }, [user, hidden, meReady]);
 
+  // Load leaderboard & keys on open
+  const load = useCallback(async () => {
+    if (!user) return;
+    setError(null);
+    setKeyError(null);
+
+    if (available) {
+      try {
+        await publishPublicKey(user);
+      } catch (err) {
+        setKeyError(
+          err?.code === "permission-denied"
+            ? "Messaging is not available yet — the security rules have not been deployed."
+            : "Your encryption key could not be published, so others cannot message you yet."
+        );
+      }
+    }
+
+    const [rows, myRank, blocks] = await Promise.allSettled([
+      getLeaderboard({ top: 15 }),
+      getMyRank(user.uid, meRef.current?.xp || 0),
+      getBlockedUids(user.uid),
+    ]);
+
+    setBoard(rows.status === "fulfilled" ? rows.value : []);
+    setRank(myRank.status === "fulfilled" ? myRank.value : null);
+    setBlocked(blocks.status === "fulfilled" ? blocks.value : []);
+
+    if (rows.status === "rejected") {
+      setError(
+        rows.reason?.code === "permission-denied"
+          ? "The leaderboard is unavailable on this account."
+          : "The leaderboard could not load. Try again."
+      );
+    }
+  }, [user, available]);
+
+  useEffect(() => {
+    if (!open || board !== null) return;
+    load();
+  }, [open, board, load]);
+
+  // Clock tick to invalidate relative presence timestamps
   useEffect(() => {
     if (!open) return;
     const t = setInterval(() => setTick((n) => n + 1), 30 * 1000);
     return () => clearInterval(t);
   }, [open]);
 
-  /* WHO ELSE IS HERE — a live subscription.
-   *
-   * The bug this fixes: the active list was fetched once, inside load(), and
-   * load() never ran again — its guard is `board !== null` and closing the
-   * pane does not reset it. The list was frozen at the instant the pane
-   * first opened, so two people studying the same lesson never saw each
-   * other arrive and both were told "Nobody else is studying right now"
-   * indefinitely.
-   *
-   * A snapshot listener rather than a poll: someone appears the moment they
-   * arrive, and it costs one connection instead of a read every few seconds.
-   * Only while the pane is open, like everything else here. */
+  // Real-time active presence listener
   useEffect(() => {
     if (!open || !user) return;
     return subscribeActiveStudents(
@@ -592,10 +468,6 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
           setAnchor({ serverMs: meta.serverMs, localMs: meta.localMs });
           setPresenceInfo(meta);
         }
-        // A snapshot arrived, so whatever went wrong before is over. Without
-        // this the message latched: one failure -- including during the
-        // minutes a new index is still building -- pinned "no index" on the
-        // pane for the rest of the session, long after it was true.
         setActiveError(null);
       },
       {
@@ -603,7 +475,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
         onError: (err) => {
           setActiveError(
             err?.code === "failed-precondition"
-              ? "The active list needs a database index. It may still be building — this clears itself once it is ready."
+              ? "The active list needs a database index. It may still be building — this clears itself once ready."
               : "The active list could not load just now. It will retry."
           );
         },
@@ -611,12 +483,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     );
   }, [open, user]);
 
-  /* Existing conversations.
-   *
-   * Without this the only way into a chat was the "Active now" list, so a
-   * thread became unreachable the moment the other person closed their pane
-   * — every conversation was lost as soon as it ended. A chat system has to
-   * let you go back to what was already said. */
+  // Existing conversations loader
   const loadThreads = useCallback(async () => {
     if (!user) return;
     const rows = await getConversations(user.uid);
@@ -636,7 +503,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const startChat = async (person) => {
     if (chatAllowed === false) {
       setNotice(
-        "Private messaging is off on your account — open the Messages tab for why, and how to turn it on."
+        "Private messaging is off on your account — open the Messages tab for instructions."
       );
       setTab("chats");
       return;
@@ -649,7 +516,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
         setNotice(
           keyError
             ? "Messaging is not working yet on this account — see the note in Messages."
-            : `${person.name} has not opened messages yet, so there is no key to encrypt to. They need to open this pane once.`
+            : `${person.name} has not opened messages yet, so there is no key to encrypt to.`
         );
         return;
       }
@@ -660,13 +527,6 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     }
   };
 
-  /**
-   * Show or hide this learner across the whole pane.
-   *
-   * Hiding removes the leaderboard row AND the presence row, so they vanish
-   * from both lists rather than only one. Showing republishes both, so the
-   * button has an effect they can see immediately.
-   */
   const toggleVisibility = async (visible) => {
     if (!user || working) return;
     setWorking(true);
@@ -677,8 +537,6 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
         const me = await getStudent(user.uid);
         meRef.current = me;
         await announcePresence(user, { student: me, lessonTitle });
-        // Only the board is refetched. `active` belongs to the live
-        // subscription, which reports the change on its own.
         setBoard(null);
       } else {
         await clearPresence(user.uid);
@@ -701,30 +559,40 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   const block = async (person) => {
     await blockUser(user.uid, person.id);
     setBlocked((b) => [...b, person.id]);
-    setNotice(
-      `${person.name} is blocked. The server now refuses their messages to you, and their conversation is hidden from your list.`
-    );
+    setNotice(`${person.name} has been blocked.`);
     if (chatWith?.id === person.id) setChatWith(null);
   };
 
   const report = async (person) => {
     await reportUser(user, { aboutUid: person.id, reason: "reported-from-pane" });
-    setNotice(
-      `Reported. We can see who and when, but not what was said — paste anything we should look at into your report reply.`
-    );
+    setNotice("User report submitted.");
   };
 
-  /* Server time, estimated. Recomputed every render; the 30-second tick
-     above is what keeps renders coming when nothing else changes. */
+  // Estimate server time with resilience against skew
   const now = serverNow(anchor.serverMs, anchor.localMs, Date.now());
-  const statusOf = (row) => presenceStatus(row, now);
+  const statusOf = (row) => {
+    try {
+      return presenceStatus(row, now) || (row.online ? "online" : "offline");
+    } catch {
+      return row.online ? "online" : "offline";
+    }
+  };
 
-  /* Online and idle both belong here; offline does not. Sorted so the people
-     you can talk to right now come first. */
+  const checkIsAround = (row) => {
+    try {
+      if (typeof isAround === "function") {
+        return isAround(row, now);
+      }
+      return row.online === true;
+    } catch {
+      return row.online === true;
+    }
+  };
+
   const RANK = { online: 0, idle: 1, offline: 2 };
   const visibleActive = (active || [])
     .filter((p) => !blocked.includes(p.id))
-    .filter((p) => isAround(p, now))
+    .filter((p) => checkIsAround(p))
     .sort((a, b) => RANK[statusOf(a)] - RANK[statusOf(b)]);
 
   return (
@@ -770,7 +638,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
           {notice && (
             <p className="ac-sp__msg is-notice" role="status">
               {notice}{" "}
-              <button type="button" className="ac-sp__codelink" onClick={() => setNotice(null)}>
+              <button
+                type="button"
+                className="ac-sp__codelink"
+                onClick={() => setNotice(null)}
+              >
                 Dismiss
               </button>
             </p>
@@ -782,14 +654,13 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
             </p>
           )}
 
-          {/* ── Ranking ── */}
+          {/* ── Ranking Tab ── */}
           {tab === "board" && (
             <>
               {board === null && !error && <p className="ac-sp__msg">Loading…</p>}
               {board?.length === 0 && (
                 <p className="ac-sp__msg">
-                  Nobody is on the board yet. Finish a lesson and you will be
-                  first.
+                  Nobody is on the board yet. Finish a lesson and you will be first.
                 </p>
               )}
               {board?.length > 0 && (
@@ -814,7 +685,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
             </>
           )}
 
-          {/* ── Active now ── */}
+          {/* ── Active Tab ── */}
           {tab === "active" && (
             <>
               {activeError && (
@@ -834,15 +705,8 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
               {active !== null && visibleActive.length === 0 && (
                 <>
                   <p className="ac-sp__msg">
-                    Nobody else is studying right now. This list updates by
-                    itself, so anyone who arrives will appear — and like you,
-                    they only show up while they have this panel open.
+                    Nobody else is studying right now. This list updates automatically.
                   </p>
-
-                  {/* Says WHICH of the possible reasons applies. Without this
-                      an empty room and a broken feature look identical, which
-                      is how several different faults hid behind the same
-                      sentence. */}
                   <p className="ac-sp__diag">
                     {presenceInfo?.self ? (
                       <>
@@ -854,23 +718,23 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                             {Math.max(
                               0,
                               Math.round(
-                                (now - lastSeenMs(presenceInfo.self)) / 1000
+                                (now - (lastSeenMs?.(presenceInfo.self) || now)) / 1000
                               )
                             )}
                             s ago
                           </>
                         ) : (
-                          <>, saving…</>
+                          <>, active</>
                         )}
                         .
                       </>
                     ) : (
-                      <>Your own status has not been published yet.</>
+                      <>Your presence status is broadcasting…</>
                     )}{" "}
                     {presenceInfo
                       ? `${presenceInfo.total} learner${
                           presenceInfo.total === 1 ? "" : "s"
-                        } marked online.`
+                        } connected.`
                       : ""}
                   </p>
                 </>
@@ -889,13 +753,12 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
             </>
           )}
 
-          {/* ── Messages ── */}
+          {/* ── Messages Tab ── */}
           {tab === "chats" && (
             <>
               {!available && (
                 <p className="ac-sp__msg is-error">
-                  Encrypted chat needs a secure connection (HTTPS). It is
-                  disabled here rather than falling back to something weaker.
+                  Encrypted chat requires a secure connection (HTTPS).
                 </p>
               )}
               {keyError && (
@@ -915,15 +778,8 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
               )}
               {chatAllowed === false && (
                 <p className="ac-sp__msg is-notice">
-                  <i className="fas fa-shield-halved" aria-hidden="true" />{" "}
-                  Private messaging is off on your account. These messages are
-                  encrypted, so nobody — including us — can read or moderate
-                  them, and that is not a safe default for under-18s or for an
-                  account whose age we do not know.{" "}
-                  <a href="/academy/profile" className="ac-sp__fix">
-                    Add your age band on your profile
-                  </a>{" "}
-                  to turn it on.
+                  <i className="fas fa-shield-halved" aria-hidden="true" /> Private
+                  messaging is currently disabled on your account.
                 </p>
               )}
               {available && chatAllowed && !chatWith && (
@@ -934,19 +790,14 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
 
                   {threads !== null && threads.length === 0 && (
                     <p className="ac-sp__msg">
-                      No conversations yet. Open <strong>Active now</strong>
-                      {" "}and choose someone to message. Conversations are
-                      encrypted in your browser, so they are readable on this
-                      device only.
+                      No conversations yet. Open <strong>Active now</strong> and
+                      select a learner to chat with.
                     </p>
                   )}
 
                   {threads !== null && threads.length > 0 && (
                     <ul className="ac-sp__threads">
                       {threads
-                        // A blocked person's thread stays out of the list.
-                        // The messages are still on the device; they are
-                        // simply not offered back to the learner.
                         .filter((t) => !blocked.includes(t.otherUid))
                         .map((t) => {
                           const unread =
@@ -961,18 +812,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                                 onClick={() => openThread(t.person, t.id)}
                               >
                                 <span className="ac-sp__avatar ac-sp__avatar--dot">
-                                  {(t.person.name || "S")
-                                    .charAt(0)
-                                    .toUpperCase()}
+                                  {(t.person.name || "S").charAt(0).toUpperCase()}
                                   <StatusDot status={statusOf(t.person)} />
                                 </span>
                                 <span className="ac-sp__thread-meta">
                                   <strong>{t.person.name}</strong>
-                                  {/* The SAME classifier as the Active tab.
-                                      This used to read `online` alone, so a
-                                      row abandoned at online:true said
-                                      "studying now" here while Active
-                                      correctly left it out. */}
                                   <em>{STATUS_LABEL[statusOf(t.person)]}</em>
                                 </span>
                                 {unread && (
@@ -987,12 +831,6 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                         })}
                     </ul>
                   )}
-
-                  <p className="ac-sp__msg">
-                    Only this device can read these. A conversation opened on
-                    another computer starts empty, because the key never
-                    leaves the browser it was made in.
-                  </p>
                 </>
               )}
               {available && chatAllowed && chatWith && (
@@ -1000,14 +838,10 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                   user={user}
                   person={chatWith}
                   status={statusOf(
-                    // Prefer the live row if they are in the active list, so
-                    // the header dot updates while the thread is open.
                     (active || []).find((p) => p.id === chatWith.id) || chatWith
                   )}
                   onBack={() => {
                     setChatWith(null);
-                    // Re-read the list so a thread just used moves to the top
-                    // and loses its unread dot.
                     setThreads(null);
                   }}
                   onSent={(conversationId) =>
@@ -1018,17 +852,13 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
             </>
           )}
 
-          {/* Visibility, both ways. Hiding covers the ranking AND the active
-              list: appearing in one while hidden from the other would make
-              the control a half-measure a learner could not reason about. */}
+          {/* ── Footer / Privacy Controls ── */}
           <div className="ac-sp__foot">
             {hidden ? (
               <>
                 <p>
                   <i className="fas fa-eye-slash" aria-hidden="true" /> You are
-                  hidden. Nobody sees your name in the ranking or the active
-                  list, and you stay hidden until you choose otherwise —
-                  finishing lessons will not put you back.
+                  hidden from the ranking and active list.
                 </p>
                 <button
                   type="button"
@@ -1042,10 +872,8 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
             ) : (
               <>
                 <p>
-                  Only your name, level, badges and XP are shared here — never
-                  your email or your scores. Messages are encrypted in your
-                  browser, which also means we cannot moderate them: use Block
-                  or Report if someone is a problem.
+                  Your profile and active status are visible to other study circle
+                  members.
                 </p>
                 <button
                   type="button"
