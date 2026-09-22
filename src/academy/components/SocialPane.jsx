@@ -589,6 +589,27 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     }
   };
 
+  /**
+   * Status for a row that did NOT come from the live subscription.
+   *
+   * The Messages list is fetched once, when the tab opens, so every person in
+   * it carries a `lastSeen` frozen at that instant. Ageing a frozen timestamp
+   * against a clock that keeps advancing turned every conversation Idle after
+   * three minutes and Offline after ten, while the learner was sitting there
+   * online the whole time. The Active tab never showed this because its rows
+   * arrive by snapshot and are always current.
+   *
+   * So: use the live row when the subscription has this person, and otherwise
+   * read the flag as it was stored rather than computing an age from a
+   * timestamp that has stopped moving.
+   */
+  const storedStatus = (person) => {
+    const live = (active || []).find((p) => p.id === person?.id);
+    if (live) return statusOf(live);
+    if (person?.online !== true) return "offline";
+    return person.status === "idle" ? "idle" : "online";
+  };
+
   const RANK = { online: 0, idle: 1, offline: 2 };
   const visibleActive = (active || [])
     .filter((p) => !blocked.includes(p.id))
@@ -823,11 +844,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                               >
                                 <span className="ac-sp__avatar ac-sp__avatar--dot">
                                   {(t.person.name || "S").charAt(0).toUpperCase()}
-                                  <StatusDot status={statusOf(t.person)} />
+                                  <StatusDot status={storedStatus(t.person)} />
                                 </span>
                                 <span className="ac-sp__thread-meta">
                                   <strong>{t.person.name}</strong>
-                                  <em>{STATUS_LABEL[statusOf(t.person)]}</em>
+                                  <em>{STATUS_LABEL[storedStatus(t.person)]}</em>
                                 </span>
                                 {unread && (
                                   <span
@@ -847,9 +868,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                 <ChatThread
                   user={user}
                   person={chatWith}
-                  status={statusOf(
-                    (active || []).find((p) => p.id === chatWith.id) || chatWith
-                  )}
+                  status={storedStatus(chatWith)}
                   onBack={() => {
                     setChatWith(null);
                     setThreads(null);
