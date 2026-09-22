@@ -31,6 +31,7 @@ import { isMuted, playReceived, playSent, setMuted } from "../services/chime";
 import {
   STATUS_LABEL,
   isAround,
+  lastSeenMs,
   presenceStatus,
   serverNow,
 } from "../data/presence";
@@ -423,6 +424,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   /* A server-anchored clock: the freshest server timestamp in view and the
      local time it was seen. See serverNow() in data/presence.js. */
   const [anchor, setAnchor] = useState({ serverMs: null, localMs: Date.now() });
+  /* Enough to explain an empty room instead of asserting one. An empty list
+     has meant four different things across as many rounds — no row written,
+     a refused write, a clock-skewed query, a stale row — and none of them
+     were visible from the screen. */
+  const [presenceInfo, setPresenceInfo] = useState(null);
   /* Re-evaluates statuses as time passes. Someone who goes quiet produces no
      snapshot, so without a tick their dot would stay green indefinitely. */
   const [, setTick] = useState(0);
@@ -580,9 +586,12 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   useEffect(() => {
     if (!open || !user) return;
     return subscribeActiveStudents(
-      (rows, nextAnchor) => {
+      (rows, meta) => {
         setActive(rows);
-        if (nextAnchor) setAnchor(nextAnchor);
+        if (meta) {
+          setAnchor({ serverMs: meta.serverMs, localMs: meta.localMs });
+          setPresenceInfo(meta);
+        }
         // A snapshot arrived, so whatever went wrong before is over. Without
         // this the message latched: one failure -- including during the
         // minutes a new index is still building -- pinned "no index" on the
@@ -823,12 +832,48 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                 <p className="ac-sp__msg">Loading…</p>
               )}
               {active !== null && visibleActive.length === 0 && (
-                <p className="ac-sp__msg">
-                  Nobody else is studying right now. This list checks again
-                  every few seconds, so anyone who arrives will appear on their
-                  own — and like you, they only show up while they have this
-                  panel open.
-                </p>
+                <>
+                  <p className="ac-sp__msg">
+                    Nobody else is studying right now. This list updates by
+                    itself, so anyone who arrives will appear — and like you,
+                    they only show up while they have this panel open.
+                  </p>
+
+                  {/* Says WHICH of the possible reasons applies. Without this
+                      an empty room and a broken feature look identical, which
+                      is how several different faults hid behind the same
+                      sentence. */}
+                  <p className="ac-sp__diag">
+                    {presenceInfo?.self ? (
+                      <>
+                        You are published as{" "}
+                        <strong>{presenceInfo.self.name}</strong>
+                        {presenceInfo.self.lastSeen ? (
+                          <>
+                            , last seen{" "}
+                            {Math.max(
+                              0,
+                              Math.round(
+                                (now - lastSeenMs(presenceInfo.self)) / 1000
+                              )
+                            )}
+                            s ago
+                          </>
+                        ) : (
+                          <>, saving…</>
+                        )}
+                        .
+                      </>
+                    ) : (
+                      <>Your own status has not been published yet.</>
+                    )}{" "}
+                    {presenceInfo
+                      ? `${presenceInfo.total} learner${
+                          presenceInfo.total === 1 ? "" : "s"
+                        } marked online.`
+                      : ""}
+                  </p>
+                </>
               )}
               {visibleActive.map((person) => (
                 <StudentCard

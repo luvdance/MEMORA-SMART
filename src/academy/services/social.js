@@ -12,7 +12,6 @@ import {
   onSnapshot,
   getDocs,
   serverTimestamp,
-  Timestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import {
@@ -24,6 +23,7 @@ import {
   getIdentity,
 } from "./e2ee";
 import { publicNameFor } from "../data/onboarding";
+import { freshestSeen } from "../data/presence";
 
 /**
  * PRESENCE, PUBLIC KEYS AND ENCRYPTED MESSAGING
@@ -85,68 +85,72 @@ const messagesRef = (conversationId) =>
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /**
- * Say "I am here", or refresh it.
+ * The last complete row written for each account, in this browser.
  *
- * WHY THE FULL WRITE IS A REPLACE, NOT A MERGE
+ * EVERY presence write is a full replace, and this is what makes that safe.
  *
- * An older version of this module stored `displayName`, `memoraId` and
- * `avatar` on presence rows. The security rule now constrains the document to
- * a fixed field list, and on a MERGE Firestore evaluates the merged RESULT --
- * so those three legacy fields were still in the payload, failed the rule,
- * and every write to an existing row was denied. Learners with an old row
- * could never come online again, and the active list stayed empty while
- * reporting nothing wrong.
+ * The rule pins the document to a fixed field list. On a MERGE, Firestore
+ * evaluates the MERGED RESULT — so any row still carrying the fields an older
+ * build wrote (displayName, memoraId, avatar) failed that check and the write
+ * was denied. Only the first write of a session replaced the document; every
+ * heartbeat after it merged, and failed. `lastSeen` froze, the learner aged
+ * out of the Active list, and nothing said why.
  *
- * Replacing the document purges anything not in the current shape. The
- * heartbeat still merges, but only after a replace has established the shape,
- * so it can only ever touch allowed fields.
- *
- * Fields absent from `student` are LEFT OUT rather than written as null,
- * because the heartbeat does not always hold the student record -- writing
- * `level: student?.level ?? 1` unconditionally overwrote the real level and
- * blanked the badges a minute and a half after a learner arrived.
+ * A replace cannot be refused for fields it does not send. Keeping the last
+ * complete row means a heartbeat with no student record to hand still writes
+ * the real username rather than resetting it to "Memora learner".
  */
-export async function announcePresence(user, { student, lessonTitle } = {}) {
-  if (!user?.uid) return;
-  try {
-    if (student) {
-      // The complete row. Never falls back to displayName: a row with no
-      // username shows as an anonymous learner, which is the right failure.
-await setDoc(presenceRef(user.uid), {
-        uid: user.uid,
-        online: true,
-        name: publicNameFor(student),
-        level: student.level ?? null,
-        badges: (student.badges || []).slice(0, 12),
-        lessonTitle: lessonTitle || null,
-        lastSeen: serverTimestamp(),
-      });
-      return { ok: true };
-    }
+const lastRow = new Map();
 
-    await setDoc(
-      presenceRef(user.uid),
-      { uid: user.uid, online: true, lastSeen: serverTimestamp() },
-      { merge: true }
-    );
+/**
+ * Say "I am here", refresh it, or mark this learner idle.
+ *
+ * Returns { ok, code } rather than swallowing failures: presence failing
+ * silently is how the Active list spent several rounds empty with nothing on
+ * screen to explain it.
+ */
+export async function announcePresence(
+  user,
+  { student, lessonTitle, status = "online" } = {}
+) {
+  if (!user?.uid) return { ok: false, code: "no-user" };
+
+  const previous = lastRow.get(user.uid);
+
+  // Never fall back to displayName, which is the learner's real name. With
+  // no record and no earlier row they show as anonymous — the right failure.
+  const row = {
+    uid: user.uid,
+    online: true,
+    status: status === "idle" ? "idle" : "online",
+    name: student ? publicNameFor(student) : previous?.name || publicNameFor(null),
+    level: student ? student.level ?? null : previous?.level ?? null,
+    badges: student ? (student.badges || []).slice(0, 12) : previous?.badges || [],
+    lessonTitle:
+      lessonTitle !== undefined ? lessonTitle || null : previous?.lessonTitle ?? null,
+  };
+
+  try {
+    // No `merge` — see lastRow above.
+    await setDoc(presenceRef(user.uid), { ...row, lastSeen: serverTimestamp() });
+    lastRow.set(user.uid, row);
     return { ok: true };
   } catch (err) {
     console.warn("presence failed:", err?.code || err?.message);
-    return { ok: false, code: err?.code, message: err?.message };
+    return { ok: false, code: err?.code || "unknown", message: err?.message };
   }
 }
 
 /**
  * A learner's public details, by uid.
  *
- * Read from `presence`, which every learner who has opened the pane has a row
- * in, rather than from the leaderboard -- somebody who hid themselves has no
- * leaderboard row, and a conversation you already have with them should still
- * show their name.
+ * Returns the raw `online`, `status` and `lastSeen` so the caller runs the
+ * SAME presenceStatus() the Active list uses. Returning a precomputed boolean
+ * is what let the Messages tab say "studying now" about somebody the Active
+ * tab had already retired.
  *
- * Only ever returns the public projection: a username, level and badges. The
- * student document, which holds the phone number and age band, is readable by
- * its owner alone.
+ * Only the public projection: username, level, badges, presence. The student
+ * document, which holds the phone number and age band, is its owner's alone.
  */
 export async function getPublicProfile(uid) {
   if (!uid) return null;
@@ -160,103 +164,161 @@ export async function getPublicProfile(uid) {
       level: d.level ?? null,
       badges: d.badges || [],
       online: d.online === true,
+      status: d.status || null,
+      lastSeen: d.lastSeen || null,
+      lessonTitle: d.lessonTitle || null,
     };
   } catch {
     return null;
   }
 }
 
-/** Stop appearing in the active list. */
+/**
+ * Leave the active list.
+ *
+ * A full replace, for the same reason as announcePresence: a merge onto a
+ * legacy row is refused. It needs the last row to do that without wiping the
+ * username, so a learner who never announced in this browser is skipped —
+ * there is nothing of theirs to take down, and presenceStatus() retires any
+ * row an earlier session left behind.
+ */
 export async function clearPresence(uid) {
-  if (!uid) return;
+  if (!uid) return { ok: false, code: "no-user" };
+  const previous = lastRow.get(uid);
+  if (!previous) return { ok: true, skipped: true };
+
   try {
-    /* `uid` is included because the rule requires request.resource.data.uid
-       to match the document id, and on a merge into a document that does not
-       exist yet the merged result would not carry it — producing a
-       permission error for a write that is only trying to tidy up. Spurious
-       permission errors are exactly what made the earlier presence failures
-       so hard to place. */
-    await setDoc(
-      presenceRef(uid),
-      { uid, online: false, lastSeen: serverTimestamp() },
-      { merge: true }
-    );
+    await setDoc(presenceRef(uid), {
+      ...previous,
+      uid,
+      online: false,
+      status: "offline",
+      lastSeen: serverTimestamp(),
+    });
+    return { ok: true };
   } catch (err) {
     console.warn("clearPresence failed:", err?.code || err?.message);
+    return { ok: false, code: err?.code || "unknown" };
   }
 }
 
 /**
- * Keep presence current while the pane is open, and drop it when the learner
- * leaves.
+ * Keep presence current while the pane is open.
  *
- * `visibilitychange` matters on phones: a backgrounded tab is throttled and
- * `beforeunload` is unreliable on iOS, so without it someone who switched
- * apps stayed listed as studying for the full five minutes.
+ * ═══════════════════════════════════════════════════════════════════════════
+ * THE PAGE LIFECYCLE, AND WHY IPHONES WERE INVISIBLE
  *
- * `getMeta` is a function rather than a value so the heartbeat always reads
- * the CURRENT lesson and student record without the interval being torn down
- * and rebuilt every time either changes.
+ * `pagehide` used to call clearPresence(), setting online:false. On a desktop
+ * that fires when you close the tab. On iOS Safari it fires every time you
+ * switch apps, switch tabs or lock the screen — the page is put in the
+ * back/forward cache and `event.persisted` is true.
+ *
+ * So an iPhone marked itself OFFLINE the moment the learner looked away. The
+ * active query only returns online:true rows, so they did not appear as idle:
+ * they disappeared. And checking the other account means looking away, which
+ * made it impossible to ever see them. Nothing about iOS blocks this — it was
+ * this handler.
+ *
+ * Now:
+ *   hidden / persisted pagehide  → "idle", stop refreshing. They may be back
+ *                                  in a second, and idle is the honest word.
+ *   pageshow from the cache      → "online" again, resume refreshing.
+ *   real unload                  → offline, which is a real departure.
+ *
+ * A row that stops refreshing retires on its own through presenceStatus(),
+ * so nothing depends on a goodbye that a phone may never send.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * `getMeta` is a function so the heartbeat always reads the CURRENT lesson
+ * and student record without the interval being rebuilt when either changes.
+ * `onResult` receives every write's { ok, code }.
  *
  * Returns a stop function.
  */
 export function startPresenceHeartbeat(user, getMeta, { onResult } = {}) {
   if (!user?.uid) return () => {};
 
-  const announce = async () => {
-    const result = await announcePresence(user, getMeta?.() || {});
+  const announce = async (status = "online") => {
+    const result = await announcePresence(user, { ...(getMeta?.() || {}), status });
     onResult?.(result);
+    return result;
   };
-  announce();
 
-  let interval = setInterval(announce, HEARTBEAT_MS);
+  announce("online");
+  let interval = setInterval(() => announce("online"), HEARTBEAT_MS);
 
-  /**
-   * A BACKGROUNDED TAB STOPS REFRESHING. IT DOES NOT DECLARE ITSELF GONE.
-   *
-   * This used to call clearPresence() the instant visibility was lost, which
-   * made the active list unusable in practice. Anyone with two windows open
-   * -- which is exactly how you test this with two accounts -- had the
-   * unfocused account mark itself offline immediately, so the two could never
-   * see each other. The same thing happened to a real learner who alt-tabbed
-   * to look something up.
-   *
-   * Going quiet is enough. `lastSeen` is what the active query filters on, so
-   * a tab that stops refreshing drops out on its own once PRESENCE_TTL_MS has
-   * passed. That is the honest signal: "not seen for five minutes", rather
-   * than "looked away for a second".
-   *
-   * pagehide still clears at once, because that is a real departure.
-   */
+  const stopBeating = () => {
+    if (interval) clearInterval(interval);
+    interval = null;
+  };
+
+  const startBeating = () => {
+    if (!interval) interval = setInterval(() => announce("online"), HEARTBEAT_MS);
+  };
+
+  const goIdle = () => {
+    stopBeating();
+    announce("idle");
+  };
+
   const onVisibility = () => {
     if (document.visibilityState === "hidden") {
-      clearInterval(interval);
-      interval = null;
+      goIdle();
       return;
     }
-    announce();
-    if (!interval) interval = setInterval(announce, HEARTBEAT_MS);
+    announce("online");
+    startBeating();
   };
 
-  const onLeave = () => clearPresence(user.uid);
+  // persisted === true means the page is being cached, not destroyed. That is
+  // the ordinary case on iOS, and it is not a departure.
+  const onPageHide = (event) => {
+    if (event?.persisted) {
+      goIdle();
+      return;
+    }
+    stopBeating();
+    clearPresence(user.uid);
+  };
+
+  // Restored from the back/forward cache: no reload runs, so without this the
+  // learner would stay idle until they navigated.
+  const onPageShow = (event) => {
+    if (!event?.persisted) return;
+    announce("online");
+    startBeating();
+  };
 
   document.addEventListener("visibilitychange", onVisibility);
-  window.addEventListener("pagehide", onLeave);
+  window.addEventListener("pagehide", onPageHide);
+  window.addEventListener("pageshow", onPageShow);
 
   return () => {
-    if (interval) clearInterval(interval);
+    stopBeating();
     document.removeEventListener("visibilitychange", onVisibility);
-    window.removeEventListener("pagehide", onLeave);
+    window.removeEventListener("pagehide", onPageHide);
+    window.removeEventListener("pageshow", onPageShow);
     clearPresence(user.uid);
   };
 }
 
 /**
- * Who is studying right now, live.
+ * Who is around, live — most recent first.
  *
- * Needs a composite index on presence (online, lastSeen). A missing index
- * fails with `failed-precondition`, reported distinctly because the fix is a
- * one-off console action that no code change can substitute for.
+ * NO TIME CUT-OFF IS SENT TO THE SERVER. It used to send
+ * `lastSeen >= (local now − 5 min)`: a cut-off computed from the LEARNER'S
+ * clock, compared against SERVER timestamps. A clock a few minutes fast put
+ * it in the server's future and the list came back empty for every account on
+ * that machine, with nothing to say why. Ordering and limiting already keep
+ * the result small; which rows count as current is decided by presenceStatus()
+ * against a server-anchored clock.
+ *
+ * The second callback argument carries that anchor — the freshest server
+ * timestamp in the snapshot, INCLUDING this learner's own row — plus enough
+ * to explain an empty list: how many rows the query returned, and this
+ * learner's own row as the server has it.
+ *
+ * Uses the (online, lastSeen) composite index.
  *
  * Returns an unsubscribe function.
  */
@@ -264,59 +326,44 @@ export function subscribeActiveStudents(
   callback,
   { excludeUid = null, onError } = {}
 ) {
-  const cutoff = Timestamp.fromMillis(Date.now() - PRESENCE_TTL_MS);
-
   const q = query(
     collection(db, "presence"),
     where("online", "==", true),
-    where("lastSeen", ">=", cutoff),
     orderBy("lastSeen", "desc"),
-    limit(MAX_ACTIVE + 1)
+    limit(MAX_ACTIVE * 2)
   );
 
   return onSnapshot(
     q,
     (snap) => {
-      // Freshest server timestamp — used instead of the device clock
-      const serverMs = Math.max(
-        0,
-        ...snap.docs.map((d) => d.data().lastSeen?.toMillis?.() || 0)
-      );
-      const localMs = Date.now();
-      const anchor = serverMs ? { serverMs, localMs } : null;
+      const all = snap.docs.map((d) => {
+        const data = d.data();
+        return { ...data, id: d.id, name: data.name || publicNameFor(null) };
+      });
 
-      const now = serverMs ? Math.max(serverMs, localMs) : localMs;
-      const freshAfter = now - PRESENCE_TTL_MS;
-
-      const rows = snap.docs
-        .map((d) => {
-          const data = d.data();
-          return { ...data, id: d.id, name: data.name || publicNameFor(null) };
-        })
-        .filter((s) => s.id !== excludeUid)
-        .filter((s) => {
-          // Null timestamp = just written, so it's current
-          const seen = s.lastSeen?.toMillis?.();
-          return seen === undefined || seen === null || seen >= freshAfter;
-        })
-        .slice(0, MAX_ACTIVE);
-
-      callback(rows, anchor);
+      callback(all.filter((r) => r.id !== excludeUid), {
+        serverMs: freshestSeen(all),
+        localMs: Date.now(),
+        total: all.length,
+        self: all.find((r) => r.id === excludeUid) || null,
+      });
     },
     (err) => {
       if (err?.code === "failed-precondition") {
         console.warn(
-          "presence: composite index missing — presence | online ASC | lastSeen ASC"
+          "presence: composite index missing.\n" +
+            "Firebase Console → Firestore → Indexes → Composite:\n" +
+            "  Collection: presence | online ASC | lastSeen ASC"
         );
       } else {
         console.warn("presence subscription error:", err?.code || err?.message);
       }
       onError?.(err);
-      callback([], null);
+      callback([], { serverMs: null, localMs: Date.now(), total: 0, self: null });
     }
   );
 }
-//add a new comment to test the commit
+
 /* ═══════════════════════════════════════════════════════════════════════════
    PUBLIC KEYS
    ═══════════════════════════════════════════════════════════════════════════ */

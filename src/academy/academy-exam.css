@@ -2579,3 +2579,20 @@
     justify-content: center;
   }
 }
+
+/* Why the room is empty. Quiet, but present — an empty list and a broken
+   feature used to look exactly the same. */
+.ac-sp__diag {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--ac-surface-2, #f6f7fb);
+  border: 1px dashed var(--ac-line);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ac-muted);
+}
+
+.ac-sp__diag strong {
+  color: var(--ac-ink-2);
+}
