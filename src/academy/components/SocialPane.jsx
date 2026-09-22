@@ -28,6 +28,12 @@ import {
   isE2eeAvailable,
 } from "../services/e2ee";
 import { isMuted, playReceived, playSent, setMuted } from "../services/chime";
+import {
+  STATUS_LABEL,
+  isAround,
+  presenceStatus,
+  serverNow,
+} from "../data/presence";
 
 /**
  * WHICH THREADS HAVE BEEN READ.
@@ -97,16 +103,42 @@ const badgeById = new Map(BADGES.map((b) => [b.id, b]));
 
 /* ── A learner's card: badges, and the way into a conversation ──────────── */
 
-function StudentCard({ person, onMessage, onBlock, onReport, busy }) {
+/**
+ * A presence dot.
+ *
+ * Never colour alone: the state is also in the accessible label and the
+ * tooltip, because red/green distinctions are exactly the ones a large share
+ * of people cannot see.
+ */
+function StatusDot({ status }) {
+  const label = STATUS_LABEL[status] || STATUS_LABEL.offline;
+  return (
+    <span
+      className={`ac-sp__status ac-sp__status--${status || "offline"}`}
+      role="img"
+      aria-label={label}
+      title={label}
+    />
+  );
+}
+
+function StudentCard({ person, status, onMessage, onBlock, onReport, busy }) {
   const badges = (person.badges || []).map((id) => badgeById.get(id)).filter(Boolean);
 
   return (
     <div className="ac-sp__card">
       <div className="ac-sp__cardhead">
-        <span className="ac-sp__avatar">{(person.name || "S").charAt(0).toUpperCase()}</span>
+        <span className="ac-sp__avatar ac-sp__avatar--dot">
+          {(person.name || "S").charAt(0).toUpperCase()}
+          <StatusDot status={status} />
+        </span>
         <div>
           <strong>{person.name}</strong>
           <span className="ac-sp__meta">
+            <span className={`ac-sp__statustext is-${status}`}>
+              {STATUS_LABEL[status] || STATUS_LABEL.offline}
+            </span>
+            {person.levelName || person.level || person.lessonTitle ? " · " : null}
             {person.levelName || person.level ? (
               <>{person.levelName || `Level ${person.level}`}</>
             ) : null}
@@ -150,7 +182,7 @@ function StudentCard({ person, onMessage, onBlock, onReport, busy }) {
 
 /* ── One conversation ───────────────────────────────────────────────────── */
 
-function ChatThread({ user, person, onBack, onSent }) {
+function ChatThread({ user, person, status, onBack, onSent }) {
   const [messages, setMessages] = useState(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState(null);
@@ -252,6 +284,7 @@ function ChatThread({ user, person, onBack, onSent }) {
         <button type="button" className="ac-sp__back" onClick={onBack}>
           <i className="fas fa-chevron-left" aria-hidden="true" /> Back
         </button>
+        <StatusDot status={status} />
         <strong>{person.name}</strong>
         <button
           type="button"
@@ -382,6 +415,17 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   /* The active list is a live subscription; its failures are separate from
      the one-off reads in load(), and must clear when it recovers. */
   const [activeError, setActiveError] = useState(null);
+  /* Whether OTHER learners can see this one. Set from every presence write,
+     so a refused write is shown instead of leaving the learner invisible with
+     no idea why — which is how the Active list stayed empty for several
+     rounds with nothing on screen. */
+  const [presenceError, setPresenceError] = useState(null);
+  /* A server-anchored clock: the freshest server timestamp in view and the
+     local time it was seen. See serverNow() in data/presence.js. */
+  const [anchor, setAnchor] = useState({ serverMs: null, localMs: Date.now() });
+  /* Re-evaluates statuses as time passes. Someone who goes quiet produces no
+     snapshot, so without a tick their dot would stay green indefinitely. */
+  const [, setTick] = useState(0);
   /* Presence is only announced once the student record is loaded, because
      the first write has to be a COMPLETE row -- see announcePresence. */
   const [meReady, setMeReady] = useState(false);
@@ -496,11 +540,30 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
 
   useEffect(() => {
     if (!open || !user || hidden || !meReady) return;
-    return startPresenceHeartbeat(user, () => ({
-      student: meRef.current,
-      lessonTitle: lessonRef.current,
-    }));
+    return startPresenceHeartbeat(
+      user,
+      () => ({ student: meRef.current, lessonTitle: lessonRef.current }),
+      {
+        onResult: (result) => {
+          if (result?.ok) {
+            setPresenceError(null);
+            return;
+          }
+          setPresenceError(
+            result?.code === "permission-denied"
+              ? "Other learners cannot see you right now — the database refused your status update. Messaging still works."
+              : "Other learners cannot see you right now. This retries on its own."
+          );
+        },
+      }
+    );
   }, [open, user, hidden, meReady]);
+
+  useEffect(() => {
+    if (!open) return;
+    const t = setInterval(() => setTick((n) => n + 1), 30 * 1000);
+    return () => clearInterval(t);
+  }, [open]);
 
   /* WHO ELSE IS HERE — a live subscription.
    *
@@ -517,8 +580,9 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
   useEffect(() => {
     if (!open || !user) return;
     return subscribeActiveStudents(
-      (rows) => {
+      (rows, nextAnchor) => {
         setActive(rows);
+        if (nextAnchor) setAnchor(nextAnchor);
         // A snapshot arrived, so whatever went wrong before is over. Without
         // this the message latched: one failure -- including during the
         // minutes a new index is still building -- pinned "no index" on the
@@ -641,7 +705,18 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     );
   };
 
-  const visibleActive = (active || []).filter((p) => !blocked.includes(p.id));
+  /* Server time, estimated. Recomputed every render; the 30-second tick
+     above is what keeps renders coming when nothing else changes. */
+  const now = serverNow(anchor.serverMs, anchor.localMs, Date.now());
+  const statusOf = (row) => presenceStatus(row, now);
+
+  /* Online and idle both belong here; offline does not. Sorted so the people
+     you can talk to right now come first. */
+  const RANK = { online: 0, idle: 1, offline: 2 };
+  const visibleActive = (active || [])
+    .filter((p) => !blocked.includes(p.id))
+    .filter((p) => isAround(p, now))
+    .sort((a, b) => RANK[statusOf(a)] - RANK[statusOf(b)]);
 
   return (
     <aside className={`ac-sp ac-sp--${variant} ${open ? "is-open" : ""}`}>
@@ -738,6 +813,12 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                   {activeError}
                 </p>
               )}
+              {presenceError && (
+                <p className="ac-sp__msg is-error" role="status">
+                  <i className="fas fa-eye-slash" aria-hidden="true" />{" "}
+                  {presenceError}
+                </p>
+              )}
               {active === null && !activeError && (
                 <p className="ac-sp__msg">Loading…</p>
               )}
@@ -753,6 +834,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                 <StudentCard
                   key={person.id}
                   person={person}
+                  status={statusOf(person)}
                   busy={busy}
                   onMessage={startChat}
                   onBlock={block}
@@ -833,18 +915,20 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                                 }`}
                                 onClick={() => openThread(t.person, t.id)}
                               >
-                                <span className="ac-sp__avatar">
+                                <span className="ac-sp__avatar ac-sp__avatar--dot">
                                   {(t.person.name || "S")
                                     .charAt(0)
                                     .toUpperCase()}
+                                  <StatusDot status={statusOf(t.person)} />
                                 </span>
                                 <span className="ac-sp__thread-meta">
                                   <strong>{t.person.name}</strong>
-                                  <em>
-                                    {t.person.online
-                                      ? "studying now"
-                                      : "not studying now"}
-                                  </em>
+                                  {/* The SAME classifier as the Active tab.
+                                      This used to read `online` alone, so a
+                                      row abandoned at online:true said
+                                      "studying now" here while Active
+                                      correctly left it out. */}
+                                  <em>{STATUS_LABEL[statusOf(t.person)]}</em>
                                 </span>
                                 {unread && (
                                   <span
@@ -870,6 +954,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
                 <ChatThread
                   user={user}
                   person={chatWith}
+                  status={statusOf(
+                    // Prefer the live row if they are in the active list, so
+                    // the header dot updates while the thread is open.
+                    (active || []).find((p) => p.id === chatWith.id) || chatWith
+                  )}
                   onBack={() => {
                     setChatWith(null);
                     // Re-read the list so a thread just used moves to the top

@@ -162,9 +162,13 @@ service cloud.firestore {
       allow create, update: if isOwner(userId)
                     && request.resource.data.uid == userId
                     && request.resource.data.keys().hasOnly([
-                         'uid', 'online', 'name', 'level', 'badges',
+                         'uid', 'online', 'status', 'name', 'level', 'badges',
                          'lessonTitle', 'lastSeen'
-                       ]);
+                       ])
+                    // online / idle / offline. Constrained, so the field
+                    // cannot be used to carry anything else.
+                    && (!('status' in request.resource.data)
+                        || request.resource.data.status in ['online', 'idle', 'offline']);
       allow delete: if isOwner(userId);
     }
 

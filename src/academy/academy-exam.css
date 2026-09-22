@@ -2411,3 +2411,171 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ── Presence dots: online / idle / offline ───────────────────────────────
+   Never colour alone — each dot carries an accessible label and a tooltip,
+   and the card repeats the state in words. Idle is hollow as well as amber,
+   so it still differs from online for someone who cannot tell the colours
+   apart. */
+.ac-sp__avatar--dot {
+  position: relative;
+}
+
+.ac-sp__status {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+/* On an avatar, pinned to the corner with a ring so it reads against it. */
+.ac-sp__avatar--dot .ac-sp__status {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  box-shadow: 0 0 0 2px var(--ac-bg);
+}
+
+.ac-sp__status--online {
+  background: #16a34a;
+}
+
+.ac-sp__status--idle {
+  background: var(--ac-bg);
+  border: 2.5px solid #d97706;
+}
+
+.ac-sp__status--offline {
+  background: #9ca3af;
+}
+
+.ac-sp__statustext {
+  font-weight: 600;
+}
+
+.ac-sp__statustext.is-online {
+  color: #15803d;
+}
+
+.ac-sp__statustext.is-idle {
+  color: #b45309;
+}
+
+.ac-sp__statustext.is-offline {
+  color: var(--ac-muted);
+}
+
+/* ── Continue learning ────────────────────────────────────────────────────
+   The first thing a returning learner sees, above the headline. It used to
+   be a button at the very bottom of a long sales page. Built to be found at
+   a glance: the course, how far they are, what is next, and one obvious
+   button. */
+.ac-continue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin: 0 0 28px;
+  padding: 18px 20px;
+  border: 1.5px solid var(--ac-primary);
+  border-radius: 16px;
+  background: var(--ac-primary-soft);
+  box-shadow: 0 10px 30px -18px rgba(59, 82, 240, 0.55);
+}
+
+.ac-continue__body {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.ac-continue__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ac-primary);
+}
+
+.ac-continue__course {
+  margin: 4px 0 10px;
+  font-size: 1.2rem;
+  line-height: 1.25;
+  color: var(--ac-ink);
+}
+
+.ac-continue__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(59, 82, 240, 0.14);
+  overflow: hidden;
+}
+
+.ac-continue__bar span {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: var(--ac-primary);
+  transition: width 0.4s ease;
+}
+
+.ac-continue__meta {
+  margin: 8px 0 0;
+  font-size: 0.86rem;
+  color: var(--ac-text);
+  overflow-wrap: anywhere;
+}
+
+.ac-continue__meta strong {
+  color: var(--ac-ink-2);
+}
+
+.ac-continue__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  flex: none;
+}
+
+.ac-continue__all {
+  font-size: 0.8rem;
+  color: var(--ac-primary);
+  text-decoration: underline;
+}
+
+/* On a phone the button takes the full width, so it is the obvious target.
+
+   border-box is load-bearing here. `.ac-btn--lg` carries its own horizontal
+   padding, and under content-box sizing `width: 100%` meant 100% PLUS that
+   padding — the button came out wider than the card, pushed the card past
+   the screen edge, and gave the whole landing page a horizontal scroll on
+   exactly the devices most learners use. */
+.ac-continue,
+.ac-continue * {
+  box-sizing: border-box;
+}
+
+.ac-continue {
+  max-width: 100%;
+}
+
+@media (max-width: 560px) {
+  .ac-continue {
+    padding: 16px;
+  }
+  .ac-continue__actions {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .ac-continue__actions .ac-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

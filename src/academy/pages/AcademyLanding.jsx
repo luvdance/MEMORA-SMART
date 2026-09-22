@@ -6,6 +6,7 @@ import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import MediaSlot from "../components/MediaSlot";
 import BetaBadge from "../components/BetaBadge";
+import ContinueLearning from "../components/ContinueLearning";
 import ACADEMY_MEDIA from "../academyMedia";
 import {
   CATALOG,
@@ -150,6 +151,10 @@ export default function AcademyLanding() {
   const [category, setCategory] = useState("all");
   const [activeMonth, setActiveMonth] = useState(flagship.course.months[0].month);
   const [openFaq, setOpenFaq] = useState(0);
+  /* Whether this learner has a course in progress. `null` while checking,
+     so the hero does not flash "Enroll now" at someone it is about to
+     welcome back. Signed-out visitors resolve to false immediately. */
+  const [returning, setReturning] = useState(user ? null : false);
 
   useSEO({
     title:
@@ -195,6 +200,8 @@ export default function AcademyLanding() {
         <section className="ac-hero">
           <div className="ac-container ac-hero__inner">
             <div className="ac-hero__copy">
+              <ContinueLearning user={user} onResolved={setReturning} />
+
               <span className="ac-eyebrow">
                 <i className="fas fa-graduation-cap" aria-hidden="true" />
                 Memora Smart Academy
@@ -245,13 +252,20 @@ export default function AcademyLanding() {
                     exactly one way into the course from anywhere on this
                     page. Replaced a "How it works" anchor, whose section is
                     still reachable from the nav. */}
-                <button
-                  className="ac-btn ac-btn--ghost ac-btn--lg"
-                  onClick={() => enroll()}
-                >
-                  Enroll now
-                  <i className="fas fa-user-plus" aria-hidden="true" />
-                </button>
+                {/* Enrolling is onboarding. A learner who already has a
+                    course gets the Continue card above instead, and is not
+                    asked to "enroll" in the place they already study.
+                    Hidden while that is still being checked, rather than
+                    shown and then snatched away. */}
+                {returning === false && (
+                  <button
+                    className="ac-btn ac-btn--ghost ac-btn--lg"
+                    onClick={() => enroll()}
+                  >
+                    Enroll now
+                    <i className="fas fa-user-plus" aria-hidden="true" />
+                  </button>
+                )}
               </div>
 
               <p className="ac-hero__note">
