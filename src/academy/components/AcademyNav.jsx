@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/memora logo.PNG";
 import { useAuth } from "../../context/AuthContext";
@@ -34,7 +34,9 @@ const STUDENT_LINKS = [
 export default function AcademyNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user } = useAuth();
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef(null);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,6 +62,34 @@ export default function AcademyNav() {
     };
   }, [menuOpen]);
 
+  /* The account menu closes on an outside click, on Escape and on any
+     navigation. Without the outside-click and Escape handlers a dropdown is
+     a trap on a touch device, where there is no cursor to move away. */
+  useEffect(() => {
+    if (!accountOpen) return;
+
+    const onPointerDown = (e) => {
+      if (!accountRef.current?.contains(e.target)) setAccountOpen(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setAccountOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [accountOpen]);
+
+  // Any navigation dismisses both menus, so neither is left open over a page
+  // the learner has already moved on from.
+  useEffect(() => {
+    setAccountOpen(false);
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   const close = () => setMenuOpen(false);
   const isActive = (to) => location.pathname === to.split("#")[0];
 
@@ -69,6 +99,40 @@ export default function AcademyNav() {
    * that silently picked Data Analysis was telling the learner one thing and
    * doing another; with no slug this routes to the chooser, where they pick.
    */
+  /**
+   * WHERE "LOG IN" GOES.
+   *
+   * It used to call enroll(), which routes to /academy/enroll — the course
+   * chooser. So tapping "Log in" showed a list of courses and never offered
+   * anywhere to sign in. enroll() does close the mobile sheet, so the
+   * navigation was visible; it simply went to the wrong place, on every
+   * device.
+   *
+   * `from` is the page they were on, so signing in returns them to the
+   * Academy. AuthPage defaults to the CV dashboard, which is the wrong place
+   * to land someone who was reading a course page.
+   */
+  const login = () => {
+    close();
+    setAccountOpen(false);
+    navigate("/auth", {
+      state: { from: `${location.pathname}${location.hash || ""}` },
+    });
+  };
+
+  const signOut = async () => {
+    setAccountOpen(false);
+    close();
+    try {
+      await logout();
+    } finally {
+      // Back to the public Academy either way. Staying put after signing out
+      // leaves a learner looking at an empty copy of their own dashboard,
+      // and a failed sign-out must not trap them on it.
+      navigate("/academy");
+    }
+  };
+
   const enroll = () => {
     close();
     startAcademyJourney(navigate, user);
@@ -132,12 +196,67 @@ export default function AcademyNav() {
                  for adding a second course.
                  It also avoids a Firestore read on every page load just to
                  decide what the button should say. */
-              <Link to="/academy/profile" className="ac-nav__avatar" title="Your profile">
-                {user.photoURL ? <img src={user.photoURL} alt="" /> : initial}
-              </Link>
+              /* The badge was a plain link straight to the profile, which
+                 left no way to sign out anywhere in the Academy. It is now a
+                 menu: profile, and a way out. */
+              <div className="ac-nav__account" ref={accountRef}>
+                <button
+                  type="button"
+                  className="ac-nav__avatar"
+                  onClick={() => setAccountOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={accountOpen}
+                  aria-label="Your account"
+                >
+                  {user.photoURL ? <img src={user.photoURL} alt="" /> : initial}
+                </button>
+
+                {accountOpen && (
+                  <div className="ac-nav__menu" role="menu">
+                    <p className="ac-nav__menuwho">
+                      {/* The account they are signed in AS. Two accounts on
+                          one machine is this audience's normal case, and
+                          "log out" is the wrong thing to click if you are
+                          not sure which one you are in. */}
+                      <span>Signed in as</span>
+                      <strong>{user.displayName || user.email}</strong>
+                    </p>
+
+                    <Link
+                      to="/academy/profile"
+                      role="menuitem"
+                      className="ac-nav__menuitem"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <i className="fas fa-user" aria-hidden="true" />
+                      Your profile
+                    </Link>
+
+                    <Link
+                      to="/academy/learn"
+                      role="menuitem"
+                      className="ac-nav__menuitem"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <i className="fas fa-graduation-cap" aria-hidden="true" />
+                      My learning
+                    </Link>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="ac-nav__menuitem is-signout"
+                      onClick={signOut}
+                    >
+                      <i className="fas fa-arrow-right-from-bracket" aria-hidden="true" />
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <>
-                <button className="ac-nav__login" onClick={enroll}>
+                <button className="ac-nav__login" onClick={login}>
                   Log in
                 </button>
                 <button className="ac-btn ac-btn--primary" onClick={enroll}>
@@ -204,19 +323,41 @@ export default function AcademyNav() {
 
         <div className="ac-sheet__actions">
           {user ? (
-            <Link
-              to="/academy/learn"
-              className="ac-btn ac-btn--primary ac-btn--block"
-              onClick={close}
-            >
-              Continue learning
-            </Link>
+            <>
+              <Link
+                to="/academy/learn"
+                className="ac-btn ac-btn--primary ac-btn--block"
+                onClick={close}
+              >
+                Continue learning
+              </Link>
+              <Link
+                to="/academy/profile"
+                className="ac-btn ac-btn--ghost ac-btn--block"
+                onClick={close}
+              >
+                Your profile
+              </Link>
+              {/* The desktop account menu lives in .ac-nav__actions, which is
+                  display:none below 1000px — so without this there is no way
+                  to sign out on a phone at all. */}
+              <button
+                className="ac-btn ac-btn--ghost ac-btn--block ac-sheet__signout"
+                onClick={signOut}
+              >
+                <i className="fas fa-arrow-right-from-bracket" aria-hidden="true" />
+                Log out
+              </button>
+              <p className="ac-sheet__who">
+                Signed in as {user.displayName || user.email}
+              </p>
+            </>
           ) : (
             <>
               <button className="ac-btn ac-btn--primary ac-btn--block" onClick={enroll}>
                 Enroll now
               </button>
-              <button className="ac-btn ac-btn--ghost ac-btn--block" onClick={enroll}>
+              <button className="ac-btn ac-btn--ghost ac-btn--block" onClick={login}>
                 Log in
               </button>
             </>

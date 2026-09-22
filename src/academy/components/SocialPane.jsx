@@ -779,7 +779,17 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
               {chatAllowed === false && (
                 <p className="ac-sp__msg is-notice">
                   <i className="fas fa-shield-halved" aria-hidden="true" /> Private
-                  messaging is currently disabled on your account.
+                  messaging is off on your account. These messages are encrypted,
+                  so nobody — including us — can read or moderate them, and that
+                  is not a safe default for under-18s or for an account whose age
+                  we do not know.{" "}
+                  {/* The instruction has to be reachable. Saying it is
+                      disabled without saying how to enable it leaves the
+                      learner with a dead end and no way to act. */}
+                  <a href="/academy/profile" className="ac-sp__fix">
+                    Add your age band on your profile
+                  </a>{" "}
+                  to turn it on.
                 </p>
               )}
               {available && chatAllowed && !chatWith && (
