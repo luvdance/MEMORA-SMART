@@ -112,7 +112,7 @@ export async function announcePresence(user, { student, lessonTitle } = {}) {
     if (student) {
       // The complete row. Never falls back to displayName: a row with no
       // username shows as an anonymous learner, which is the right failure.
-      await setDoc(presenceRef(user.uid), {
+await setDoc(presenceRef(user.uid), {
         uid: user.uid,
         online: true,
         name: publicNameFor(student),
@@ -121,20 +121,18 @@ export async function announcePresence(user, { student, lessonTitle } = {}) {
         lessonTitle: lessonTitle || null,
         lastSeen: serverTimestamp(),
       });
-      return;
+      return { ok: true };
     }
 
-    // A refresh with no record to hand. Safe as a merge because the fields
-    // it touches are all in the allowed set, and it cannot resurrect a
-    // legacy field that a replace has already removed.
     await setDoc(
       presenceRef(user.uid),
       { uid: user.uid, online: true, lastSeen: serverTimestamp() },
       { merge: true }
     );
+    return { ok: true };
   } catch (err) {
-    // Presence is optional; it must never break a lesson.
     console.warn("presence failed:", err?.code || err?.message);
+    return { ok: false, code: err?.code, message: err?.message };
   }
 }
 
@@ -202,10 +200,13 @@ export async function clearPresence(uid) {
  *
  * Returns a stop function.
  */
-export function startPresenceHeartbeat(user, getMeta) {
+export function startPresenceHeartbeat(user, getMeta, { onResult } = {}) {
   if (!user?.uid) return () => {};
 
-  const announce = () => announcePresence(user, getMeta?.() || {});
+  const announce = async () => {
+    const result = await announcePresence(user, getMeta?.() || {});
+    onResult?.(result);
+  };
   announce();
 
   let interval = setInterval(announce, HEARTBEAT_MS);
@@ -276,42 +277,42 @@ export function subscribeActiveStudents(
   return onSnapshot(
     q,
     (snap) => {
-      /* The query's cutoff was fixed when this subscription was created, so
-         after the pane has been open a while it stops excluding anyone. The
-         same window is applied again here, against the current clock, so
-         somebody who closed their laptop without a pagehide firing drops off
-         instead of appearing to study for ever. */
-      const freshAfter = Date.now() - PRESENCE_TTL_MS;
+      // Freshest server timestamp — used instead of the device clock
+      const serverMs = Math.max(
+        0,
+        ...snap.docs.map((d) => d.data().lastSeen?.toMillis?.() || 0)
+      );
+      const localMs = Date.now();
+      const anchor = serverMs ? { serverMs, localMs } : null;
+
+      const now = serverMs ? Math.max(serverMs, localMs) : localMs;
+      const freshAfter = now - PRESENCE_TTL_MS;
 
       const rows = snap.docs
-        // `id` and `name` are the shape the pane renders.
         .map((d) => {
           const data = d.data();
           return { ...data, id: d.id, name: data.name || publicNameFor(null) };
         })
         .filter((s) => s.id !== excludeUid)
         .filter((s) => {
-          // A just-written row has a null timestamp until the server fills
-          // it in, and that row is by definition current -- dropping it
-          // would make someone flicker out the moment they arrive.
+          // Null timestamp = just written, so it's current
           const seen = s.lastSeen?.toMillis?.();
           return seen === undefined || seen === null || seen >= freshAfter;
         })
         .slice(0, MAX_ACTIVE);
-      callback(rows);
+
+      callback(rows, anchor);
     },
     (err) => {
       if (err?.code === "failed-precondition") {
         console.warn(
-          "presence: composite index missing.\n" +
-            "Firebase Console → Firestore → Indexes → Composite:\n" +
-            "  Collection: presence | online ASC | lastSeen ASC"
+          "presence: composite index missing — presence | online ASC | lastSeen ASC"
         );
       } else {
         console.warn("presence subscription error:", err?.code || err?.message);
       }
       onError?.(err);
-      callback([]);
+      callback([], null);
     }
   );
 }
