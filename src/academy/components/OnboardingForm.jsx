@@ -2,6 +2,8 @@ import { useState } from "react";
 import {
   CONSENT,
   ONBOARDING_FIELDS,
+  ONBOARDING_GROUPS,
+  REQUIRED_FIELDS,
   UNDER_18,
   validateProfile,
 } from "../data/onboarding";
@@ -95,6 +97,14 @@ export default function OnboardingForm({
 
   const isMinor = values.ageBand === UNDER_18;
 
+  // Answered, not merely present: a whitespace-only string is not an answer.
+  const requiredDone = REQUIRED_FIELDS.filter((id) =>
+    String(values[id] ?? "").trim()
+  ).length;
+  const requiredPercent = Math.round(
+    (requiredDone / REQUIRED_FIELDS.length) * 100
+  );
+
   return (
     <form className="ac-ob" onSubmit={submit} noValidate>
       <header className="ac-ob__head">
@@ -108,8 +118,22 @@ export default function OnboardingForm({
         <p className="ac-body">
           {editing
             ? "Change anything here and save. Your age band is the one that decides whether private messaging is available on your account."
-            : "Two questions we need, and a few that help us build the right thing. Every one says what it is for. You can skip the rest and get straight to your course."}
+            : "Three questions we need, and a few that help us build the right thing. Every one says what it is for, and you can skip the rest and get straight to your course."}
         </p>
+
+        {/* The requirement, measured. Ten questions with three that matter
+            used to look like ten questions that all mattered; this says how
+            far through the obligation you actually are. */}
+        <div className="ac-ob__meter" aria-live="polite">
+          <div className="ac-ob__meterbar" aria-hidden="true">
+            <span style={{ width: `${requiredPercent}%` }} />
+          </div>
+          <span className="ac-ob__metertext">
+            {requiredDone === REQUIRED_FIELDS.length
+              ? "All three answered — the rest is optional"
+              : `${requiredDone} of ${REQUIRED_FIELDS.length} needed answers given`}
+          </span>
+        </div>
       </header>
 
       {/* What we already know, shown rather than silently held. */}
@@ -125,8 +149,31 @@ export default function OnboardingForm({
         <p>From your account. Change these on your profile at any time.</p>
       </div>
 
-      <div className="ac-ob__fields">
-        {ONBOARDING_FIELDS.map((field) => {
+      {ONBOARDING_GROUPS.map((group, groupIndex) => {
+        const groupFields = group.fields
+          .map((id) => ONBOARDING_FIELDS.find((f) => f.id === id))
+          .filter(Boolean);
+        const groupRequired = groupFields.some((f) => f.required);
+
+        return (
+          <fieldset className="ac-ob__group" key={group.id}>
+            <legend className="ac-ob__grouphead">
+              <span className="ac-ob__groupno">{groupIndex + 1}</span>
+              <span className="ac-ob__grouptext">
+                <strong>{group.title}</strong>
+                <em>{group.blurb}</em>
+              </span>
+              <span
+                className={`ac-ob__grouptag ${
+                  groupRequired ? "is-required" : ""
+                }`}
+              >
+                {groupRequired ? "Needed" : "Optional"}
+              </span>
+            </legend>
+
+            <div className="ac-ob__fields">
+              {groupFields.map((field) => {
           const invalid = Boolean(errors[field.id]);
           const id = `ob-${field.id}`;
 
@@ -231,8 +278,11 @@ export default function OnboardingForm({
               )}
             </div>
           );
-        })}
-      </div>
+              })}
+            </div>
+          </fieldset>
+        );
+      })}
 
       <label className="ac-ob__consent">
         <input

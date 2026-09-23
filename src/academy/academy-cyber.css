@@ -1,0 +1,1660 @@
+/* ══════════════════════════════════════════════════════════════
+   CYBERSECURITY PRACTICE KIT
+
+   Imported by academy.css alongside academy-learn.css, so it
+   inherits the same tokens and cascade position.
+
+   Nine simulators sharing one visual language with the analytics
+   ones in academy-learn.css: a tinted task strip at the top, the
+   working area in the middle, and a check bar at the bottom whose
+   feedback turns green or red. A learner who has used the pivot
+   simulator should not have to learn a new interface to use the
+   firewall.
+
+   The pieces every simulator shares are grouped, so a change to
+   the task strip or the check bar applies to all nine rather than
+   to whichever ones somebody remembered to update.
+══════════════════════════════════════════════════════════════ */
+
+.ac-phish,
+.ac-pcap,
+.ac-perm,
+.ac-fw,
+.ac-hunt,
+.ac-risk,
+.ac-term,
+.ac-crypto,
+.ac-decide {
+  margin: 22px 0;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ac-phish__task,
+.ac-pcap__task,
+.ac-perm__task,
+.ac-fw__task,
+.ac-hunt__task,
+.ac-risk__task,
+.ac-term__task,
+.ac-crypto__task,
+.ac-decide__task {
+  padding: 14px 16px;
+  background: var(--ac-tint, #f6f7fc);
+  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-phish__task p,
+.ac-pcap__task p,
+.ac-perm__task p,
+.ac-fw__task p,
+.ac-hunt__task p,
+.ac-risk__task p,
+.ac-term__task p,
+.ac-crypto__task p,
+.ac-decide__task p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ac-phish__check,
+.ac-pcap__check,
+.ac-perm__check,
+.ac-fw__check,
+.ac-hunt__check,
+.ac-risk__check,
+.ac-term__check,
+.ac-crypto__check,
+.ac-decide__check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border-top: 1px solid var(--ac-line, #e5e8f2);
+  background: #fafbfe;
+}
+
+.ac-phish__btn,
+.ac-pcap__btn,
+.ac-perm__btn,
+.ac-fw__btn,
+.ac-hunt__btn,
+.ac-risk__btn,
+.ac-term__btn,
+.ac-crypto__btn,
+.ac-decide__btn {
+  padding: 9px 18px;
+  min-height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--ac-gradient, linear-gradient(96deg, #566dff, #a026ff));
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ac-phish__btn:active,
+.ac-pcap__btn:active,
+.ac-perm__btn:active,
+.ac-fw__btn:active,
+.ac-hunt__btn:active,
+.ac-risk__btn:active,
+.ac-term__btn:active,
+.ac-crypto__btn:active,
+.ac-decide__btn:active {
+  transform: scale(0.97);
+}
+
+.ac-decide__btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ac-phish__feedback,
+.ac-pcap__feedback,
+.ac-perm__feedback,
+.ac-fw__feedback,
+.ac-hunt__feedback,
+.ac-risk__feedback,
+.ac-term__feedback,
+.ac-crypto__feedback,
+.ac-decide__feedback {
+  margin: 0;
+  flex: 1 1 240px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.ac-phish__feedback.is-ok,
+.ac-pcap__feedback.is-ok,
+.ac-perm__feedback.is-ok,
+.ac-fw__feedback.is-ok,
+.ac-hunt__feedback.is-ok,
+.ac-risk__feedback.is-ok,
+.ac-term__feedback.is-ok,
+.ac-crypto__feedback.is-ok,
+.ac-decide__feedback.is-ok {
+  color: #15803d;
+}
+
+.ac-phish__feedback.is-bad,
+.ac-pcap__feedback.is-bad,
+.ac-perm__feedback.is-bad,
+.ac-fw__feedback.is-bad,
+.ac-hunt__feedback.is-bad,
+.ac-risk__feedback.is-bad,
+.ac-term__feedback.is-bad,
+.ac-crypto__feedback.is-bad,
+.ac-decide__feedback.is-bad {
+  color: #b91c1c;
+}
+
+.ac-pcap__hint,
+.ac-hunt__hint {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ac-muted, #7a819b);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PHISHING TRIAGE — a message, inspected part by part
+══════════════════════════════════════════════════════════════ */
+
+.ac-phish__mail {
+  padding: 14px 16px;
+}
+
+.ac-phish__headers {
+  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.ac-phish__part {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  border-left: 3px solid transparent;
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ac-phish__part:disabled {
+  cursor: default;
+}
+
+.ac-phish__part:not(:disabled):hover {
+  background: #f6f7fc;
+}
+
+.ac-phish__part--header + .ac-phish__part--header {
+  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+}
+
+.ac-phish__part--body {
+  border: 1px solid transparent;
+  border-left-width: 3px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+/* Before marking: what the learner has selected.
+   After marking: hit, missed and false alarm are distinguished,
+   because "you got 2 of 3" without saying which teaches nothing. */
+.ac-phish__part.is-picked {
+  background: #eef1ff;
+  border-left-color: var(--ac-primary, #3b52f0);
+}
+
+.ac-phish__part.is-hit {
+  background: #eefcf3;
+  border-left-color: #15803d;
+}
+
+.ac-phish__part.is-missed {
+  background: #fff7ed;
+  border-left-color: #c2410c;
+}
+
+.ac-phish__part.is-false {
+  background: #fef2f2;
+  border-left-color: #b91c1c;
+}
+
+.ac-phish__row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.ac-phish__label {
+  flex: 0 0 62px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-phish__value {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  color: var(--ac-ink, #0d1130);
+  word-break: break-all;
+}
+
+.ac-phish__body {
+  display: block;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-phish__linktext {
+  display: inline-block;
+  color: var(--ac-primary, #3b52f0);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* The real destination, shown under the link text. Seeing the two
+   side by side is the entire lesson of that atom. */
+.ac-phish__href {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  color: var(--ac-muted, #7a819b);
+  word-break: break-all;
+}
+
+.ac-phish__why {
+  display: block;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: rgba(194, 65, 12, 0.08);
+  color: #9a3412;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.ac-phish__why i {
+  margin-right: 6px;
+}
+
+.ac-phish__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-phish__verdict {
+  margin: 0;
+  padding: 13px 16px;
+  border-top: 1px solid var(--ac-line, #e5e8f2);
+  background: #f6f7fc;
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+.ac-phish__verdict i {
+  margin-right: 8px;
+  color: var(--ac-primary, #3b52f0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PACKET CAPTURE — Wireshark in miniature
+══════════════════════════════════════════════════════════════ */
+
+.ac-pcap__filterbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
+  background: #fbfbfe;
+}
+
+.ac-pcap__filterlabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-pcap__filter {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 8px 11px;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  background: #fff;
+}
+
+.ac-pcap__filter:focus {
+  outline: none;
+  border-color: var(--ac-primary, #3b52f0);
+  box-shadow: 0 0 0 3px rgba(59, 82, 240, 0.14);
+}
+
+.ac-pcap__filter.is-bad {
+  border-color: #b91c1c;
+}
+
+.ac-pcap__apply,
+.ac-pcap__clear {
+  padding: 8px 14px;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ac-ink, #0d1130);
+  cursor: pointer;
+}
+
+.ac-pcap__apply {
+  background: var(--ac-primary-soft, #eef1ff);
+  border-color: #c7cde6;
+}
+
+.ac-pcap__error {
+  margin: 0;
+  padding: 10px 16px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.ac-pcap__tablewrap {
+  overflow-x: auto;
+}
+
+.ac-pcap__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+
+.ac-pcap__table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-family: var(--ac-font, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+  background: #fbfbfe;
+  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-pcap__table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
+  color: var(--ac-ink-2, #2a3050);
+}
+
+.ac-pcap__row {
+  cursor: pointer;
+}
+
+.ac-pcap__row:hover {
+  background: #f6f7fc;
+}
+
+.ac-pcap__row.is-selected {
+  background: #eef1ff;
+  box-shadow: inset 3px 0 0 var(--ac-primary, #3b52f0);
+}
+
+/* Wireshark colours rows by protocol, and learners who go on to the
+   real tool recognise the scheme. Kept deliberately close. */
+.ac-pcap__row--dns td {
+  color: #1d4ed8;
+}
+
+.ac-pcap__row--http td {
+  color: #15803d;
+}
+
+.ac-pcap__row--tls td {
+  color: #7c3aed;
+}
+
+.ac-pcap__info {
+  white-space: normal;
+  min-width: 220px;
+}
+
+.ac-pcap__empty {
+  padding: 18px 12px;
+  text-align: center;
+  font-family: var(--ac-font, sans-serif);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ac-muted, #7a819b);
+  white-space: normal;
+}
+
+.ac-pcap__count,
+.ac-pcap__note {
+  margin: 0;
+  padding: 9px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ac-muted, #7a819b);
+  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+}
+
+.ac-pcap__selected {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ac-primary, #3b52f0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UNIX PERMISSIONS — nine bits, and who each one lets in
+══════════════════════════════════════════════════════════════ */
+
+.ac-perm__file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
+  background: #fbfbfe;
+}
+
+.ac-perm__file i {
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-perm__ls {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  color: var(--ac-ink, #0d1130);
+  word-break: break-all;
+}
+
+.ac-perm__gridwrap {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, 1fr);
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.ac-perm__grid {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.ac-perm__grid th {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+  text-align: center;
+}
+
+.ac-perm__grid th.ac-perm__who,
+.ac-perm__who {
+  text-align: left;
+  font-size: 12.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ac-ink, #0d1130);
+  white-space: nowrap;
+}
+
+/* The row that leaks, coloured so the eye goes there first. */
+.ac-perm__who--other {
+  color: #b91c1c;
+}
+
+.ac-perm__grid td {
+  padding: 4px;
+  text-align: center;
+}
+
+.ac-perm__bit {
+  width: 44px;
+  height: 38px;
+  border: 2px solid var(--ac-line, #e5e8f2);
+  border-radius: 8px;
+  background: #fff;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ac-muted, #7a819b);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ac-perm__bit:not(:disabled):hover {
+  border-color: #c7cde6;
+}
+
+.ac-perm__bit:disabled {
+  cursor: default;
+}
+
+.ac-perm__bit.is-on {
+  background: var(--ac-primary-soft, #eef1ff);
+  border-color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, #3b52f0);
+}
+
+.ac-perm__readout {
+  padding: 12px 14px;
+  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border-radius: 10px;
+  background: #fbfbfe;
+}
+
+.ac-perm__octal {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ac-perm__octal-label {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-perm__octal strong {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 22px;
+  color: var(--ac-ink, #0d1130);
+  letter-spacing: 0.06em;
+}
+
+/* The sentence naming who this lets in. This is the teaching, so it
+   is given as much weight as the octal beside it. */
+.ac-perm__says {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-perm__alarm {
+  margin: 10px 0 0;
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.ac-perm__alarm i {
+  margin-right: 6px;
+}
+
+.ac-perm__context {
+  margin: 0;
+  padding: 0 16px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ac-muted, #7a819b);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FIREWALL — first match wins, and you can see it happen
+══════════════════════════════════════════════════════════════ */
+
+.ac-fw__rules {
+  padding: 12px 16px;
+}
+
+.ac-fw__rulehead,
+.ac-fw__rule {
+  display: grid;
+  grid-template-columns: 28px 78px 56px 1fr 1fr 74px 78px;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.ac-fw__rulehead {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-fw__rule {
+  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border-radius: 9px;
+  margin-top: 6px;
+  background: #fff;
+  position: relative;
+}
+
+.ac-fw__rule code {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  color: var(--ac-ink-2, #2a3050);
+  word-break: break-all;
+}
+
+/* A rule no packet ever reaches. Faded and dashed, because a rule
+   that cannot fire is the bug this simulator exists to reveal. */
+.ac-fw__rule.is-dead {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.ac-fw__rule--default {
+  background: #fbfbfe;
+  border-style: dashed;
+  grid-template-columns: 28px 78px 56px 1fr 1fr 74px 1fr;
+}
+
+.ac-fw__num {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-weight: 700;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-fw__action {
+  padding: 5px 0;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.ac-fw__action:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.ac-fw__action--allow {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ac-fw__action--deny {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ac-fw__move {
+  display: flex;
+  gap: 4px;
+}
+
+.ac-fw__move button {
+  width: 30px;
+  height: 28px;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ac-ink-2, #2a3050);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.ac-fw__move button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ac-fw__move button:not(:disabled):hover {
+  background: #f6f7fc;
+}
+
+.ac-fw__dead,
+.ac-fw__implicit {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-fw__trafficwrap {
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+  background: #fbfbfe;
+  overflow-x: auto;
+}
+
+.ac-fw__trafficlabel,
+.ac-hunt__loglabel {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-fw__traffic {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ac-fw__traffic th {
+  padding: 6px 8px;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-fw__traffic td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
+  color: var(--ac-ink-2, #2a3050);
+}
+
+.ac-fw__traffic tr.is-wrong {
+  background: #fff5f5;
+}
+
+.ac-fw__traffic code {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+}
+
+.ac-fw__verdict {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ac-fw__verdict.is-allow {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ac-fw__verdict.is-deny {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ac-fw__by {
+  font-size: 11px;
+  color: var(--ac-muted, #7a819b);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DETECTION BUILDER — a rule, and the log it fires on
+══════════════════════════════════════════════════════════════ */
+
+.ac-hunt__builder {
+  padding: 13px 16px;
+}
+
+.ac-hunt__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.ac-hunt__join {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ac-primary, #3b52f0);
+  min-width: 62px;
+}
+
+.ac-hunt__row select,
+.ac-hunt__row input {
+  padding: 7px 9px;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 12.5px;
+  background: #fff;
+  color: var(--ac-ink, #0d1130);
+  min-width: 0;
+}
+
+.ac-hunt__row input {
+  flex: 1 1 130px;
+}
+
+.ac-hunt__threshold {
+  max-width: 90px;
+  flex: 0 0 90px !important;
+}
+
+.ac-hunt__row input:disabled {
+  background: #f6f7fc;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-hunt__row select:focus,
+.ac-hunt__row input:focus {
+  outline: none;
+  border-color: var(--ac-primary, #3b52f0);
+  box-shadow: 0 0 0 3px rgba(59, 82, 240, 0.14);
+}
+
+.ac-hunt__drop,
+.ac-hunt__add {
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  background: #fff;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--ac-ink-2, #2a3050);
+}
+
+.ac-hunt__drop {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
+
+.ac-hunt__add {
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.ac-hunt__add i {
+  margin-right: 5px;
+}
+
+.ac-hunt__row--threshold {
+  padding-top: 8px;
+  border-top: 1px dashed var(--ac-line, #e5e8f2);
+}
+
+/* The rule as a SIEM would print it. Shown so that what the learner
+   built with dropdowns is recognisable as a query they will later
+   have to type. */
+.ac-hunt__query {
+  margin: 0 16px 12px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  background: #16121f;
+  color: #d9f99d;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.ac-hunt__logwrap {
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+  background: #fbfbfe;
+  overflow-x: auto;
+}
+
+.ac-hunt__log {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ac-hunt__log th {
+  padding: 6px 8px;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  white-space: nowrap;
+}
+
+.ac-hunt__log td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
+  color: var(--ac-ink-2, #2a3050);
+  white-space: nowrap;
+}
+
+/* Amber for an alert on ordinary activity, green for an alert on the
+   attack. The learner can see the false positive rate rather than
+   being told it. */
+.ac-hunt__log tr.is-attack td {
+  font-weight: 600;
+}
+
+.ac-hunt__log tr.is-alerting {
+  background: #fff7ed;
+}
+
+.ac-hunt__log tr.is-alerting.is-attack {
+  background: #eefcf3;
+}
+
+.ac-hunt__truth {
+  font-size: 11px;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-hunt__fire {
+  color: #15803d;
+  font-weight: 700;
+  font-size: 11.5px;
+}
+
+.ac-hunt__fire i {
+  margin-right: 4px;
+}
+
+.ac-hunt__quiet {
+  color: var(--ac-muted, #7a819b);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RISK RANKING — the scanner's order beside the real one
+══════════════════════════════════════════════════════════════ */
+
+.ac-risk__list {
+  padding: 12px 16px;
+}
+
+.ac-risk__finding {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+
+.ac-risk__finding.is-settled {
+  border-color: #bbf7d0;
+  background: #fbfffc;
+}
+
+.ac-risk__finding.is-wrong {
+  border-color: #fecaca;
+  background: #fffafa;
+}
+
+.ac-risk__facts h4 {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ac-ink, #0d1130);
+  line-height: 1.45;
+}
+
+.ac-risk__meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ac-risk__cvss,
+.ac-risk__exposure,
+.ac-risk__data {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.ac-risk__cvss {
+  background: #eef1ff;
+  color: var(--ac-primary, #3b52f0);
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-weight: 700;
+}
+
+.ac-risk__exposure {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.ac-risk__data {
+  background: #f6f7fc;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-risk__bands {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ac-risk__band {
+  padding: 6px 10px;
+  border: 2px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ac-muted, #7a819b);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ac-risk__band:not(:disabled):hover {
+  border-color: #c7cde6;
+}
+
+.ac-risk__band:disabled {
+  cursor: default;
+}
+
+.ac-risk__band--critical.is-chosen {
+  border-color: #b91c1c;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ac-risk__band--high.is-chosen {
+  border-color: #c2410c;
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.ac-risk__band--medium.is-chosen {
+  border-color: #b58a00;
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.ac-risk__band--low.is-chosen {
+  border-color: #15803d;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ac-risk__why {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding-top: 9px;
+  border-top: 1px dashed var(--ac-line, #e5e8f2);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--ac-text, #4c5370);
+}
+
+/* The two lists side by side. This comparison is the point of the
+   whole exercise, so it gets its own band at the bottom. */
+.ac-risk__compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--ac-line, #e5e8f2);
+  background: #fbfbfe;
+}
+
+.ac-risk__comparelabel {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-risk__compare ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ac-risk__compare li {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ac-ink-2, #2a3050);
+}
+
+.ac-risk__compare strong {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  color: var(--ac-primary, #3b52f0);
+}
+
+.ac-risk__tag {
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.ac-risk__tag--critical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ac-risk__tag--high {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.ac-risk__tag--medium {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.ac-risk__tag--low {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TERMINAL — a recording, styled as one
+══════════════════════════════════════════════════════════════ */
+
+.ac-term__window {
+  margin: 14px 16px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ac-term__chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #241d33;
+}
+
+.ac-term__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4c4166;
+}
+
+.ac-term__title {
+  margin-left: 8px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  color: #a79bc4;
+}
+
+.ac-term__screen {
+  padding: 12px 14px;
+  background: #16121f;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #f4f1ff;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.ac-term__note {
+  margin: 0 0 10px;
+  color: #a79bc4;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.ac-term__entry {
+  margin-bottom: 8px;
+}
+
+.ac-term__line {
+  margin: 0;
+  word-break: break-all;
+}
+
+.ac-term__prompt {
+  color: #7ee787;
+  margin-right: 6px;
+}
+
+.ac-term__out {
+  margin: 2px 0 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #d5cfe6;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.ac-term__out.is-error {
+  color: #ff9a9a;
+}
+
+.ac-term__inputline {
+  display: flex;
+  align-items: baseline;
+}
+
+.ac-term__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: #f4f1ff;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.7;
+  caret-color: #7ee787;
+}
+
+.ac-term__input:focus {
+  outline: none;
+}
+
+/* The honesty strip: this is a recording, and here is everything it
+   can answer. Placed outside the dark window so it reads as the
+   platform speaking rather than as terminal output. */
+.ac-term__available {
+  margin: 0;
+  padding: 0 16px 14px;
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-term__suggest {
+  padding: 2px 8px;
+  margin: 0 3px 3px 0;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 20px;
+  background: #fbfbfe;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: var(--ac-ink-2, #2a3050);
+  cursor: pointer;
+}
+
+.ac-term__suggest:hover {
+  background: var(--ac-primary-soft, #eef1ff);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CRYPTO LAB — real digests, styled to look like output
+══════════════════════════════════════════════════════════════ */
+
+.ac-crypto__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.ac-crypto__box,
+.ac-crypto__stolen,
+.ac-crypto__candidates {
+  display: block;
+}
+
+.ac-crypto__stolen,
+.ac-crypto__candidates {
+  padding: 14px 16px 0;
+}
+
+.ac-crypto__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-crypto__input,
+.ac-crypto__saltinput {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.ac-crypto__input:focus,
+.ac-crypto__saltinput:focus {
+  outline: none;
+  border-color: var(--ac-primary, #3b52f0);
+  box-shadow: 0 0 0 3px rgba(59, 82, 240, 0.14);
+}
+
+.ac-crypto__digest {
+  display: block;
+  margin-top: 8px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  background: #16121f;
+  color: #7ee787;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.ac-crypto__digest--sm {
+  margin-top: 0;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+.ac-crypto__avalanche {
+  margin: 0;
+  padding: 0 16px 14px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-crypto__saltnote {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-crypto__words {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.ac-crypto__word {
+  padding: 7px 12px;
+  border: 2px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  background: #fff;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--ac-ink-2, #2a3050);
+  cursor: pointer;
+}
+
+.ac-crypto__word:hover {
+  border-color: #c7cde6;
+}
+
+.ac-crypto__word.is-picked {
+  border-color: var(--ac-primary, #3b52f0);
+  background: var(--ac-primary-soft, #eef1ff);
+}
+
+.ac-crypto__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 14px 0 0;
+}
+
+.ac-crypto__table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted, #7a819b);
+  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-crypto__table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
+  vertical-align: middle;
+}
+
+.ac-crypto__table code {
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  color: var(--ac-ink, #0d1130);
+}
+
+/* The line inviting the learner to verify a digest with sha256sum.
+   It is the reason to trust everything else on the page. */
+.ac-crypto__real,
+.ac-crypto__note {
+  margin: 0;
+  padding: 11px 16px;
+  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-crypto__real i {
+  margin-right: 7px;
+  color: var(--ac-primary, #3b52f0);
+}
+
+.ac-crypto__real code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #f6f7fc;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DECISION — a graded judgement call
+══════════════════════════════════════════════════════════════ */
+
+.ac-decide__scenario {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-decide__question {
+  margin: 9px 0 0 !important;
+  font-weight: 700;
+  color: var(--ac-ink, #0d1130);
+}
+
+.ac-decide__options {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ac-decide__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 11px 13px;
+  border: 2px solid var(--ac-line, #e5e8f2);
+  border-radius: 10px;
+  background: #fff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ac-decide__option:hover {
+  border-color: #c7cde6;
+}
+
+.ac-decide__option.is-picked {
+  border-color: var(--ac-primary, #3b52f0);
+  background: var(--ac-primary-soft, #eef1ff);
+}
+
+.ac-decide__option.is-correct {
+  border-color: #15803d;
+  background: #eefcf3;
+}
+
+/* Options already tried and ruled out stay visible but recede, so a
+   learner can see what they have eliminated. */
+.ac-decide__option.is-ruled-out {
+  border-color: #e5e8f2;
+  background: #fafafa;
+  opacity: 0.62;
+}
+
+.ac-decide__marker {
+  flex: 0 0 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f6f7fc;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-decide__option.is-picked .ac-decide__marker {
+  background: #fff;
+  color: var(--ac-primary, #3b52f0);
+}
+
+.ac-decide__option.is-correct .ac-decide__marker {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ac-decide__option.is-ruled-out .ac-decide__marker {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ac-decide__text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ac-ink-2, #2a3050);
+}
+
+.ac-decide__aftermath {
+  margin: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--ac-line, #e5e8f2);
+  background: #f6f7fc;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-decide__aftermath i {
+  margin-right: 8px;
+  color: var(--ac-primary, #3b52f0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NARROW SCREENS
+   Most of this course is read on a phone, so every simulator has
+   to remain usable at 360px. The firewall collapses its column
+   grid rather than scrolling horizontally, because a rule you have
+   to scroll to read is a rule you cannot reorder confidently.
+══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 720px) {
+  .ac-perm__gridwrap {
+    grid-template-columns: 1fr;
+  }
+
+  .ac-risk__finding {
+    grid-template-columns: 1fr;
+  }
+
+  .ac-fw__rulehead {
+    display: none;
+  }
+
+  .ac-fw__rule,
+  .ac-fw__rule--default {
+    grid-template-columns: 34px 1fr 1fr;
+    row-gap: 4px;
+  }
+
+  .ac-fw__move {
+    grid-column: 3;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 560px) {
+  .ac-phish__row {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ac-phish__label {
+    flex: none;
+  }
+
+  .ac-phish__btn,
+  .ac-pcap__btn,
+  .ac-perm__btn,
+  .ac-fw__btn,
+  .ac-hunt__btn,
+  .ac-risk__btn,
+  .ac-term__btn,
+  .ac-crypto__btn,
+  .ac-decide__btn {
+    width: 100%;
+  }
+
+  .ac-hunt__row {
+    gap: 6px;
+  }
+
+  .ac-hunt__join {
+    min-width: 100%;
+  }
+
+  .ac-term__screen {
+    font-size: 11.5px;
+  }
+}

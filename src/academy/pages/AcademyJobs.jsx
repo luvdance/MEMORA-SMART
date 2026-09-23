@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import useSEO from "../../hooks/useSEO";
 import AcademyNav from "../components/AcademyNav";
+import { ERROR_CODES, reportError } from "../services/errors";
 import AcademyFooter from "../components/AcademyFooter";
 import { getCourseLessons } from "../data/lessons";
 import {
@@ -82,7 +83,11 @@ export default function AcademyJobs() {
         });
 
         const res = await fetch(`/api/academy/jobs?${params}`);
-        if (!res.ok) throw new Error((await res.json()).error || "Could not load jobs");
+        if (!res.ok) {
+          const failure = new Error("jobs-load-failed");
+          failure.code = "unavailable";
+          throw failure;
+        }
 
         const payload = await res.json();
         if (!alive) return;
@@ -90,7 +95,7 @@ export default function AcademyJobs() {
         setState("ready");
       } catch (err) {
         if (!alive) return;
-        setError(err.message);
+        setError(reportError("jobs:load", err, ERROR_CODES.UNAVAILABLE).message);
         setState("error");
       }
     })();

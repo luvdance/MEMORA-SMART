@@ -4,7 +4,9 @@ import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import { useAuth } from "../../context/AuthContext";
 import { getAllProgress } from "../services/academyService";
+import { ERROR_CODES, reportError } from "../services/errors";
 import { getCourseOutline } from "../data/lessons/index.js";
+import { certificationState } from "../data/certification";
 import "../academy.css";
 
 /**
@@ -35,6 +37,7 @@ import "../academy.css";
 
 const API = "/api/academy/final-exam";
 const STORE = "mst-final-exam-attempt";
+
 
 /* ── The case stimulus, as a plain scrollable table ─────────────────────
  * Not the interactive ExcelGrid: that component self-checks and reveals its
@@ -234,7 +237,44 @@ function Result({ result, onRetake }) {
         </div>
       )}
 
-      {result.passed && !result.certificate?.issued && (
+      {/* Withheld on purpose: the paper was passed but the course was not
+          finished. Distinguished from a failure to allocate a number, because
+          the two need completely different things from the candidate. */}
+      {result.passed && result.certificateWithheld && (
+        <div className="ac-fx__cert is-withheld">
+          <i className="fas fa-lock" aria-hidden="true" />
+          <div>
+            <strong>You passed the paper. The certificate is not issued.</strong>
+            <p>
+              {result.certificateWithheld.reason === "course-incomplete" ? (
+                <>
+                  The certificate states that you completed the course, so it is
+                  only issued once you have.
+                  {typeof result.certificateWithheld.passedModules === "number" && (
+                    <>
+                      {" "}
+                      You have passed{" "}
+                      {result.certificateWithheld.passedModules} of{" "}
+                      {result.certificateWithheld.requiredModules} required
+                      modules.
+                    </>
+                  )}{" "}
+                  This result stays on your record — finish the remaining
+                  modules and the certificate is issued without resitting.
+                </>
+              ) : (
+                <>
+                  We could not confirm your course progress just now, so nothing
+                  has been issued. Your result is saved. Reload your profile in a
+                  moment, or contact us if it does not appear.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {result.passed && !result.certificate?.issued && !result.certificateWithheld && (
         <div className="ac-fx__cert is-pending">
           <i className="fas fa-hourglass-half" aria-hidden="true" />
           <div>
@@ -330,6 +370,15 @@ export default function FinalExam() {
   const [secondsLeft, setSecondsLeft] = useState(null);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [readiness, setReadiness] = useState(null);
+  // Until the check has run we do not know, and not knowing must read as
+  // locked rather than as open.
+  const [readinessChecked, setReadinessChecked] = useState(false);
+  /* The gate. Anything other than a confirmed "ready" is locked, so a failed
+     progress read, an unfinished course and a course with no exam all close
+     the door rather than leaving it ajar. The server checks this again before
+     issuing a certificate — see checkEligibility in finalExam/record.js —
+     because this one runs in a browser. */
+  const locked = readiness?.state !== "ready";
 
   const topRef = useRef(null);
 
@@ -376,7 +425,7 @@ export default function FinalExam() {
         setPhase("brief");
       } catch (err) {
         if (alive) {
-          setError(err.message);
+          setError(reportError("exam:resume", err).message);
           setPhase("brief");
         }
       }
@@ -387,36 +436,41 @@ export default function FinalExam() {
     };
   }, []);
 
-  /* Has the candidate finished the course? Advisory, not a hard gate: the
-   * exam is theirs to attempt, but they should know if they are early. */
+  /* Has the candidate finished the course?
+   *
+   * THIS IS NOW A LOCK, NOT A WARNING. It was advisory, on the reasoning that
+   * somebody already working in data might reasonably want to sit the exam
+   * early. But a certificate that can be attempted before the course does not
+   * certify the course, and the certificate is a claim made to an employer.
+   *
+   * It also did not work. The old check read `p.assessmentPassed || p.completed`
+   * and no progress document has ever carried either field — recordAssessment
+   * writes the result nested under `assessment`. So the set of passed lessons
+   * was always empty, every module was always outstanding, and every candidate
+   * was warned they had finished nothing no matter how much they had done.
+   *
+   * `certificationState` now owns that definition, so this page and the
+   * profile can never disagree about whether somebody is eligible. */
   useEffect(() => {
     if (!user || !briefing) return;
     let alive = true;
-    getAllProgress(user.uid, "data-analysis")
+    getAllProgress(user.uid, briefing.courseId)
       .then((progress) => {
         if (!alive) return;
-        // getAllProgress returns a map keyed by lessonId, not a list.
-        const done = new Set(
-          Object.values(progress || {})
-            .filter((p) => p.assessmentPassed || p.completed)
-            .map((p) => p.lessonId)
+        setReadiness(
+          certificationState({
+            courseId: briefing.courseId,
+            outline: getCourseOutline(briefing.courseId),
+            progressByLesson: progress || {},
+          })
         );
-        // The outline is grouped by month, so flatten to modules first.
-        const modules = (getCourseOutline("data-analysis") || []).flatMap(
-          (month) => month.modules
-        );
-        const required = new Set(briefing.requiresModules || []);
-        const outstanding = modules
-          .filter(
-            (m) =>
-              required.has(m.id) &&
-              m.lessons.length > 0 &&
-              !m.lessons.every((l) => done.has(l.id))
-          )
-          .map((m) => m.title);
-        setReadiness({ outstanding });
       })
-      .catch(() => setReadiness(null));
+      // A failed read must not silently unlock the exam, so an unknown state
+      // is treated as locked rather than as ready.
+      .catch(() => setReadiness({ state: "locked", outstanding: [], percent: 0 }))
+      .finally(() => {
+        if (alive) setReadinessChecked(true);
+      });
     return () => {
       alive = false;
     };
@@ -462,6 +516,10 @@ export default function FinalExam() {
   }
 
   const start = useCallback(async () => {
+    // Belt and braces. The button is not rendered while locked, so reaching
+    // here means the state changed underneath us or somebody called it
+    // directly from the console. Either way, do not serve a paper.
+    if (locked) return;
     setBusy(true);
     setError(null);
     try {
@@ -478,11 +536,11 @@ export default function FinalExam() {
       writeStored({ seed: p.seed, answers: {}, endsAt });
       topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
-      setError(err.message);
+      setError(reportError("exam:start", err, ERROR_CODES.UNAVAILABLE).message);
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [locked]);
 
   const change = useCallback(
     (itemId, value) => {
@@ -522,8 +580,11 @@ export default function FinalExam() {
         body: JSON.stringify({ seed: paper.seed, answers }),
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `Could not submit (${res.status})`);
+        // The API's message describes the request. The candidate needs to
+        // know their answers are safe and that they can submit again.
+        const failure = new Error("exam-submit-failed");
+        failure.code = "unavailable";
+        throw failure;
       }
       const marked = await res.json();
       setResult(marked);
@@ -532,7 +593,7 @@ export default function FinalExam() {
       topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       setError(
-        `${err.message}. Your answers are still here — check your connection and submit again.`
+        `${reportError("exam:submit", err, ERROR_CODES.UNAVAILABLE).message} Your answers are still here — nothing has been lost.`
       );
       if (auto) setSecondsLeft(0);
     } finally {
@@ -636,32 +697,85 @@ export default function FinalExam() {
               ))}
             </ul>
 
-            {readiness?.outstanding?.length > 0 && (
-              <p className="ac-fx__warn">
-                <i className="fas fa-triangle-exclamation" aria-hidden="true" />{" "}
-                You have not finished {readiness.outstanding.length} of the{" "}
-                {briefing.requiresModules.length} modules this exam covers. You
-                can still sit it, but the questions assume all of them.
+            {/* The gate. Locked until every module the exam covers has been
+                passed, and explicit about what is left rather than saying
+                "not yet" and leaving the candidate to work out why. */}
+            {!readinessChecked ? (
+              <p className="ac-fx__checking">
+                <i className="fas fa-spinner fa-spin" aria-hidden="true" />{" "}
+                Checking your progress…
               </p>
-            )}
+            ) : locked ? (
+              <div className="ac-fx__locked">
+                <div className="ac-fx__lockedhead">
+                  <i className="fas fa-lock" aria-hidden="true" />
+                  <div>
+                    <strong>The exam is not open to you yet</strong>
+                    <p>
+                      It certifies the whole of {briefing.courseTitle}, so it
+                      opens once you have passed every module it covers. There
+                      is no waiting period and no approval to ask for: it
+                      unlocks the moment you finish.
+                    </p>
+                  </div>
+                </div>
 
-            <div className="ac-fx__actions">
-              <button
-                type="button"
-                className="ac-btn ac-btn--primary"
-                onClick={start}
-                disabled={busy}
-              >
-                {busy ? "Generating your paper…" : "Start the exam"}
-              </button>
-              <Link className="ac-btn ac-btn--ghost" to="/academy/learn">
-                Not yet — back to the course
-              </Link>
-            </div>
-            <p className="ac-fx__nokey">
-              The clock starts when you press Start. Your answers are saved as
-              you go, so a reload or a dropped connection will not lose them.
-            </p>
+                <div className="ac-fx__lockedbar" aria-hidden="true">
+                  <span style={{ width: `${readiness?.percent || 0}%` }} />
+                </div>
+                <p className="ac-fx__lockedcount">
+                  {readiness?.doneCount ?? 0} of {readiness?.requiredCount ?? 0}{" "}
+                  required modules passed
+                </p>
+
+                {readiness?.outstanding?.length > 0 && (
+                  <details className="ac-fx__outstanding">
+                    <summary>
+                      {readiness.outstanding.length} module
+                      {readiness.outstanding.length === 1 ? "" : "s"} still to pass
+                    </summary>
+                    <ul>
+                      {readiness.outstanding.map((title) => (
+                        <li key={title}>{title}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+
+                <div className="ac-fx__actions">
+                  <Link className="ac-btn ac-btn--primary" to="/academy/learn">
+                    Carry on with the course
+                    <i className="fas fa-arrow-right" aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="ac-fx__ready">
+                  <i className="fas fa-circle-check" aria-hidden="true" /> You
+                  have passed every module this exam covers. It is open to you.
+                </p>
+
+                <div className="ac-fx__actions">
+                  <button
+                    type="button"
+                    className="ac-btn ac-btn--primary"
+                    onClick={start}
+                    disabled={busy}
+                  >
+                    {busy ? "Generating your paper…" : "Start the exam"}
+                  </button>
+                  <Link className="ac-btn ac-btn--ghost" to="/academy/learn">
+                    Not yet — back to the course
+                  </Link>
+                </div>
+                <p className="ac-fx__nokey">
+                  The clock starts when you press Start. Your answers are saved
+                  as you go, so a reload or a dropped connection will not lose
+                  them.
+                </p>
+              </>
+            )}
           </div>
         )}
 

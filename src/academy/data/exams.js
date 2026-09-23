@@ -134,6 +134,95 @@ export const EXAMS = [
     ],
     url: "https://pythoninstitute.org/pcap",
   },
+
+  /* ── Cybersecurity ─────────────────────────────────────────────────────
+   * Deliberately only three, and deliberately not OSCP. Week 16 argues at
+   * length that an advanced offensive certification straight after a first
+   * course is an expensive mistake, and it would be incoherent to argue that
+   * in the lesson and then surface the card for it in the player.
+   *
+   * The order matches the roadmap in Week 16: something that gets you past a
+   * filter, then one aligned to the work you want.
+   * ────────────────────────────────────────────────────────────────────── */
+  {
+    id: "isc2-cc",
+    preparedBy: ["cs-w1-fundamentals", "cs-w2-accounts", "cs-w3-data", "cs-w4-networking"],
+    code: "CC",
+    name: "Certified in Cybersecurity",
+    provider: "ISC2",
+    level: "Entry",
+    icon: "fas fa-shield-halved",
+    accent: "#1d4ed8",
+    courseId: "cybersecurity",
+    readyAfter: "cs-w4-networking",
+    summary:
+      "An entry-level certification covering exactly the ground of Month 1. ISC2 has at times offered it free to a limited number of candidates, so check their current position before paying for anything.",
+    validates: [
+      "Security principles",
+      "Access control concepts",
+      "Network security",
+      "Incident response and business continuity",
+      "Security operations",
+    ],
+    url: "https://www.isc2.org/certifications/cc",
+  },
+  {
+    id: "comptia-security-plus",
+    preparedBy: [
+      "cs-w1-fundamentals",
+      "cs-w2-accounts",
+      "cs-w3-data",
+      "cs-w4-networking",
+      "cs-w5-hardening",
+      "cs-w6-networks",
+      "cs-w7-software",
+      "cs-w8-web",
+    ],
+    code: "SY0-701",
+    name: "CompTIA Security+",
+    provider: "CompTIA",
+    level: "Entry",
+    icon: "fas fa-lock",
+    accent: "#c2410c",
+    courseId: "cybersecurity",
+    readyAfter: "cs-w8-web",
+    summary:
+      "The certification most commonly filtered on for a first security role. Months 1 and 2 cover most of its syllabus, and it is the one worth having before you start applying.",
+    validates: [
+      "General security concepts",
+      "Threats, vulnerabilities and mitigations",
+      "Security architecture",
+      "Security operations",
+      "Security programme management and oversight",
+    ],
+    url: "https://www.comptia.org/certifications/security",
+  },
+  {
+    id: "comptia-cysa-plus",
+    preparedBy: [
+      "cs-w9-ethical-hacking",
+      "cs-w10-vulnerabilities",
+      "cs-w11-soc",
+      "cs-w12-incident-response",
+    ],
+    code: "CS0-003",
+    name: "CompTIA CySA+",
+    provider: "CompTIA",
+    level: "Intermediate",
+    icon: "fas fa-magnifying-glass-chart",
+    accent: "#1a7f8c",
+    courseId: "cybersecurity",
+    readyAfter: "cs-w12-incident-response",
+    summary:
+      "The analyst certification, aimed squarely at the work in Month 3: vulnerability management, detection, triage and incident response. Take Security+ first.",
+    validates: [
+      "Security operations",
+      "Vulnerability management",
+      "Incident response and management",
+      "Reporting and communication",
+    ],
+    url: "https://www.comptia.org/certifications/cybersecurity-analyst",
+  },
 ];
 
 /* ── Readiness ──────────────────────────────────────────────────────── */

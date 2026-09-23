@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { recordAssessment } from "../services/academyService";
+import { ERROR_CODES, reportError } from "../services/errors";
 
 /**
  * ASSESSMENT PANEL
@@ -42,7 +43,14 @@ export default function AssessmentPanel({
     // and let a learner memorise positions instead of answers.
     fetch(`/api/academy/assessment?lessonId=${encodeURIComponent(lesson.id)}`)
       .then(async (res) => {
-        if (!res.ok) throw new Error((await res.json()).error || "Could not load");
+        // The API's own message describes the request, not the learner's
+        // situation ("lessonId is required"), so it is logged and discarded
+        // rather than shown. The status is what tells us how to classify it.
+        if (!res.ok) {
+          const failure = new Error("assessment-load-failed");
+          failure.code = res.status === 404 ? "not-found" : "unavailable";
+          throw failure;
+        }
         return res.json();
       })
       .then((data) => {
@@ -52,7 +60,7 @@ export default function AssessmentPanel({
       })
       .catch((err) => {
         if (!alive) return;
-        setError(err.message);
+        setError(reportError("assessment:load", err, ERROR_CODES.UNAVAILABLE));
         setState("error");
       });
 
@@ -69,7 +77,11 @@ export default function AssessmentPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lessonId: lesson.id, answers }),
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Grading failed");
+      if (!res.ok) {
+        const failure = new Error("assessment-grade-failed");
+        failure.code = res.status === 404 ? "not-found" : "unavailable";
+        throw failure;
+      }
 
       const graded = await res.json();
       setResult(graded);
@@ -80,7 +92,7 @@ export default function AssessmentPanel({
       if (saved.leveledUp) flash(`Level up — ${saved.newLevel.name}!`, "fas fa-star");
       if (graded.passed) onPassed?.(graded);
     } catch (err) {
-      setError(err.message);
+      setError(reportError("assessment:grade", err, ERROR_CODES.UNAVAILABLE));
       setState("error");
     }
   }
@@ -142,17 +154,18 @@ export default function AssessmentPanel({
         <div className="ac-assess__banner ac-assess__banner--fail">
           <i className="fas fa-triangle-exclamation" aria-hidden="true" />
           <div>
-            <strong>The knowledge check could not load</strong>
-            <span>{error}</span>
+            <strong>{error?.title || "The knowledge check could not load"}</strong>
+            <span>{error?.message}</span>
           </div>
         </div>
         <p className="ac-body ac-body--muted">
-          Questions are graded on the server so the answers stay off your device.
-          If you are running locally, make sure the dev server is running.
+          Nothing you have completed is lost. Your atoms and any earlier passes
+          on this lesson are saved.
         </p>
         <button className="ac-btn ac-btn--ghost" onClick={() => setAttempt((n) => n + 1)}>
           Try again
         </button>
+        <span className="ac-assess__code">Reference {error?.code}</span>
       </div>
     );
   }

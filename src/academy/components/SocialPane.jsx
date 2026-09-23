@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { reportError } from "../services/errors";
 import { BADGES } from "../data/gamification";
 import {
   getLeaderboard,
@@ -172,7 +173,9 @@ function ChatThread({ user, person, status, onBack, onSent }) {
         setMessages(list);
         setError(null);
       },
-      (err) => setError(err?.message || "Could not load this conversation.")
+      // A live-listener failure can carry the path it was denied on. The
+      // learner gets the outcome, which is all they can act on anyway.
+      (err) => setError(reportError("chat:listen", err).message)
     );
     return stop;
   }, [user, person]);
@@ -211,11 +214,7 @@ function ChatThread({ user, person, status, onBack, onSent }) {
       setDraft("");
       onSent?.(conversationIdFor(user.uid, person.id));
     } catch (err) {
-      setError(
-        err?.code === "permission-denied"
-          ? "That message could not be delivered."
-          : err?.message || "The message could not be sent."
-      );
+      setError(reportError("chat:send", err).message);
     } finally {
       setSending(false);
     }
@@ -399,10 +398,11 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
             setPresenceError(null);
             return;
           }
+          // Both outcomes read the same on purpose. Which one a learner hit
+          // is our diagnostic, not their problem, and naming the refusal told
+          // them what the storage layer was and that it had said no.
           setPresenceError(
-            result?.code === "permission-denied"
-              ? "Other learners cannot see you right now — the database refused your status update. Messaging still works."
-              : "Other learners cannot see you right now. This retries on its own."
+            "Other learners cannot see you right now. This retries on its own, and messaging still works."
           );
         },
       }
@@ -419,10 +419,12 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
       try {
         await publishPublicKey(user);
       } catch (err) {
+        // Was: "the security rules have not been deployed". That is a
+        // deployment status, told to a student, and it is neither their
+        // business nor anything they can do something about.
+        reportError("chat:publishKey", err);
         setKeyError(
-          err?.code === "permission-denied"
-            ? "Messaging is not available yet — the security rules have not been deployed."
-            : "Your encryption key could not be published, so others cannot message you yet."
+          "Your encryption key could not be published, so others cannot message you yet. This retries when you reopen the panel."
         );
       }
     }
@@ -438,11 +440,7 @@ export default function SocialPane({ lessonTitle = null, variant = "lesson" }) {
     setBlocked(blocks.status === "fulfilled" ? blocks.value : []);
 
     if (rows.status === "rejected") {
-      setError(
-        rows.reason?.code === "permission-denied"
-          ? "The leaderboard is unavailable on this account."
-          : "The leaderboard could not load. Try again."
-      );
+      setError(reportError("chat:leaderboard", rows.reason).message);
     }
   }, [user, available]);
 

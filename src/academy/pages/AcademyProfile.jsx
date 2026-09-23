@@ -5,16 +5,15 @@ import useSEO from "../../hooks/useSEO";
 import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import StudentStats from "../components/StudentStats";
-import BetaBadge from "../components/BetaBadge";
-import CertificateCard from "../components/CertificateCard";
+import CourseRecord from "../components/CourseRecord";
 import OnboardingForm from "../components/OnboardingForm";
 import { ONBOARDING_FIELDS, isProfileComplete } from "../data/onboarding";
-import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
+import { getCatalogEntry } from "../data/catalog";
 import { getCourseLessons, getCourseOutline } from "../data/lessons";
 import {
   calculateProgress,
   getAllProgress,
-  getCertificate,
+  getCertificates,
   getEnrollments,
   getExamAttempts,
   getStudent,
@@ -35,7 +34,8 @@ export default function AcademyProfile() {
   const [student, setStudent] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [progressByCourse, setProgressByCourse] = useState({});
-  const [certificate, setCertificate] = useState(null);
+  // Plural. Certification is per course, so a student may hold several.
+  const [certificates, setCertificates] = useState([]);
   const [examAttempts, setExamAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -50,13 +50,13 @@ export default function AcademyProfile() {
 
     (async () => {
       try {
-        const [record, list, cert, attempts] = await Promise.all([
+        const [record, list, certs, attempts] = await Promise.all([
           getStudent(user.uid),
           getEnrollments(user.uid),
           // Both are server-written and read-only here. A missing one is the
           // normal case for anyone who has not sat the exam, so neither is
           // allowed to fail the page load.
-          getCertificate(user.uid).catch(() => null),
+          getCertificates(user.uid).catch(() => []),
           getExamAttempts(user.uid).catch(() => []),
         ]);
         if (!alive) return;
@@ -73,7 +73,7 @@ export default function AcademyProfile() {
         setStudent(record);
         setEnrollments(list);
         setProgressByCourse(progress);
-        setCertificate(cert);
+        setCertificates(certs);
         setExamAttempts(attempts);
       } finally {
         if (alive) setLoading(false);
@@ -125,11 +125,8 @@ export default function AcademyProfile() {
       setStudent(await getStudent(user.uid));
       setEditingProfile(false);
     } catch (err) {
-      setProfileError(
-        err?.message === "USERNAME_TAKEN"
-          ? "That username is already taken. Pick another one."
-          : "Your details could not be saved. Try again."
-      );
+      // One mapping table decides what a learner is told, everywhere.
+      setProfileError(reportError("saveProfile", err).message);
     } finally {
       setSavingProfile(false);
     }
@@ -166,6 +163,33 @@ export default function AcademyProfile() {
             </div>
           </header>
 
+          {/* At a glance. The record-level facts, which StudentStats does not
+              cover — it shows XP, level, streak and atoms. Average score used
+              to appear only inside the certification line, where it was a
+              footnote to a sentence about something else. */}
+          {!loading && student && (
+            <div className="ac-glance">
+              <div className="ac-glance__item">
+                <strong>{enrollments.length}</strong>
+                <span>{enrollments.length === 1 ? "Course" : "Courses"}</span>
+              </div>
+              <div className="ac-glance__item">
+                <strong>{student.lessonsCompleted || 0}</strong>
+                <span>Lessons passed</span>
+              </div>
+              <div className="ac-glance__item">
+                <strong>{averageScore === null ? "—" : `${averageScore}%`}</strong>
+                <span>Average score</span>
+              </div>
+              <div className="ac-glance__item">
+                <strong>{certificates.length}</strong>
+                <span>
+                  {certificates.length === 1 ? "Certificate" : "Certificates"}
+                </span>
+              </div>
+            </div>
+          )}
+
           {loading && (
             <div className="ac-boot ac-boot--inline">
               <i className="fas fa-spinner fa-spin" aria-hidden="true" />
@@ -177,125 +201,78 @@ export default function AcademyProfile() {
             <>
               <StudentStats student={student} />
 
-              {/* ── PER-COURSE RECORD ── */}
-              <section className="ac-learn__section">
-                <h2 className="ac-learn__title">Course record</h2>
+              {/* ── MY COURSES ────────────────────────────────────────────
+                   Every course the student has enrolled on, each collapsed to
+                   a single summary row. Opening one shows that course's
+                   journey and its own certification state.
 
-                {enrollments.length === 0 && (
+                   Certification is rendered inside each course rather than in
+                   a section of its own, because a certificate belongs to an
+                   enrolment. A student on two courses has two independent
+                   certification states, and one shared line could not have
+                   described both. */}
+              <section className="ac-learn__section">
+                <h2 className="ac-learn__title">
+                  My courses
+                  {enrollments.length > 0 && (
+                    <span className="ac-learn__count">
+                      {enrollments.length}
+                    </span>
+                  )}
+                  <Link className="ac-learn__add" to="/academy/enroll">
+                    <i className="fas fa-plus" aria-hidden="true" />
+                    Add a course
+                  </Link>
+                </h2>
+
+                {enrollments.length === 0 ? (
                   <div className="ac-empty ac-empty--panel">
+                    <i className="fas fa-graduation-cap ac-empty__icon" aria-hidden="true" />
+                    <h3>No courses yet</h3>
                     <p className="ac-body">
-                      You are not enrolled on any course yet.
+                      Your Memora ID is ready. Enrol on a course and it appears
+                      here, with your progress and your certification tracked
+                      separately for each one.
                     </p>
-                    <Link className="ac-btn ac-btn--primary" to="/academy#courses">
+                    <Link className="ac-btn ac-btn--primary" to="/academy/enroll">
                       Browse the courses
                     </Link>
                   </div>
-                )}
+                ) : (
+                  <div className="ac-courses">
+                    {enrollments.map((enrollment, index) => {
+                      const entry = getCatalogEntry(enrollment.courseId);
+                      if (!entry) return null;
 
-                {enrollments.map((enrollment) => {
-                  const entry = getCatalogEntry(enrollment.courseId);
-                  if (!entry) return null;
-
-                  const lessons = getCourseLessons(enrollment.courseId);
-                  const outline = getCourseOutline(enrollment.courseId);
-                  const progress = progressByCourse[enrollment.courseId] || {};
-                  const completed = enrollment.completedLessons || [];
-                  const percent = calculateProgress(enrollment.courseId, completed);
-
-                  return (
-                    <article className="ac-record" key={enrollment.courseId}>
-                      <div className="ac-record__head">
-                        <div>
-                          <h3>
-                            {entry.title}
-                            <BetaBadge beta={entry.beta} note={BETA_NOTE} />
-                          </h3>
-                          <p>{entry.subtitle}</p>
-                        </div>
-                        <div className="ac-record__percent">
-                          <strong>{percent}%</strong>
-                          <span>
-                            {completed.length} of {lessons.length} lessons
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="ac-resume__bar">
-                        <div
-                          className="ac-resume__fill"
-                          style={{ width: `${percent}%` }}
+                      return (
+                        <CourseRecord
+                          key={enrollment.courseId}
+                          courseId={enrollment.courseId}
+                          entry={entry}
+                          lessons={getCourseLessons(enrollment.courseId)}
+                          outline={getCourseOutline(enrollment.courseId)}
+                          progress={progressByCourse[enrollment.courseId] || {}}
+                          completedLessons={enrollment.completedLessons || []}
+                          percent={calculateProgress(
+                            enrollment.courseId,
+                            enrollment.completedLessons || []
+                          )}
+                          certificate={
+                            certificates.find(
+                              (c) => c.courseId === enrollment.courseId
+                            ) || null
+                          }
+                          examAttempts={examAttempts.filter(
+                            (a) => a.courseId === enrollment.courseId || !a.courseId
+                          )}
+                          /* The most recently active course opens on arrival,
+                             so the common case needs no click at all. */
+                          defaultOpen={index === 0 && enrollments.length === 1}
                         />
-                      </div>
-
-                      <table className="ac-record__table">
-                        <thead>
-                          <tr>
-                            <th>Lesson</th>
-                            <th>Atoms</th>
-                            <th>Attempts</th>
-                            <th>Best score</th>
-                            <th>Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {lessons.map((lesson) => {
-                            const p = progress[lesson.id];
-                            const atoms = p?.atomsCompleted?.length || 0;
-                            const a = p?.assessment;
-                            const status = a?.passed
-                              ? "Passed"
-                              : a?.attempts
-                              ? "Not yet passed"
-                              : atoms > 0
-                              ? "In progress"
-                              : "Not started";
-
-                            return (
-                              <tr key={lesson.id}>
-                                <td>
-                                  <Link
-                                    to={`/academy/learn/${enrollment.courseId}/${lesson.id}`}
-                                  >
-                                    {lesson.title}
-                                  </Link>
-                                  <em>{lesson.moduleTitle}</em>
-                                </td>
-                                <td>
-                                  {atoms}/{lesson.atoms.length}
-                                </td>
-                                <td>{a?.attempts || 0}</td>
-                                <td>
-                                  {typeof a?.bestScore === "number"
-                                    ? `${a.bestScore}%`
-                                    : "—"}
-                                </td>
-                                <td>
-                                  <span
-                                    className={`ac-recordstatus ac-recordstatus--${status
-                                      .toLowerCase()
-                                      .replace(/[^a-z]+/g, "-")}`}
-                                  >
-                                    {status}
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-
-                      {/* Modules still being authored, stated plainly */}
-                      {outline.some((m) => m.modules.some((mod) => !mod.ready)) && (
-                        <p className="ac-record__pending">
-                          <i className="fas fa-circle-info" aria-hidden="true" />
-                          Later modules of this programme are still being written.
-                          Your progress is measured against the lessons published
-                          so far.
-                        </p>
-                      )}
-                    </article>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
               </section>
 
               {/* ── YOUR DETAILS ──────────────────────────────────────────
@@ -370,88 +347,6 @@ export default function AcademyProfile() {
                 )}
               </section>
 
-              {/* ── CERTIFICATE STATUS ── */}
-              <section className="ac-learn__section">
-                <h2 className="ac-learn__title">Certification</h2>
-                {/* The real record, read from the server-written documents.
-                    Nothing here is inferred from lesson progress: a
-                    certificate exists or it does not. */}
-                {certificate ? (
-                  /* Only ever rendered when a server-issued certificate
-                     document exists — see CertificateCard for why that is the
-                     only acceptable gate. Pass `onDownload` once the PDF
-                     generator is in; the card owns the button either way. */
-                  <CertificateCard certificate={certificate} />
-                ) : (
-                  <div className="ac-certstatus">
-                    <i className="fas fa-certificate" aria-hidden="true" />
-                    <div>
-                      <strong>Not yet issued</strong>
-                      <p>
-                        A certificate is issued when you pass the final
-                        certification exam.
-                        {averageScore !== null && (
-                          <> Your average assessment score so far is {averageScore}%.</>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {examAttempts.length > 0 && (
-                  <table className="ac-record__table ac-fx__attempts">
-                    <thead>
-                      <tr>
-                        <th>Exam attempt</th>
-                        <th>Score</th>
-                        <th>Result</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {examAttempts.map((a, i) => (
-                        <tr key={a.id}>
-                          <td>
-                            Attempt {examAttempts.length - i}
-                            {a.submittedAt?.toDate && (
-                              <em>
-                                {" "}
-                                {a.submittedAt.toDate().toLocaleDateString()}
-                              </em>
-                            )}
-                          </td>
-                          <td>{a.score}%</td>
-                          <td>
-                            {a.passed
-                              ? "Passed"
-                              : a.verdict === "domain-floor"
-                              ? "A section below minimum"
-                              : "Not passed"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-
-                {/* The exam is not gated on completion: it warns a candidate
-                    who is early rather than hiding itself, because someone who
-                    already works in data may reasonably want to sit it. */}
-                <div className="ac-certstatus">
-                  <i className="fas fa-file-pen" aria-hidden="true" />
-                  <div>
-                    <strong>Final certification exam</strong>
-                    <p>
-                      32 questions across Excel, Power BI and Python, built on
-                      real company case studies. Every paper is generated for
-                      the candidate, so no two are the same and every retake is
-                      a new exam.
-                    </p>
-                    <Link className="ac-btn ac-btn--primary" to="/academy/exam">
-                      Read the exam briefing
-                    </Link>
-                  </div>
-                </div>
-              </section>
             </>
           )}
         </div>

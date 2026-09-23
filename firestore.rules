@@ -3,7 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+      return request.auth != null && 
+             request.auth.token != null && 
+             request.auth.token.admin == true;
     }
 
     function isLoggedIn() {
@@ -56,54 +58,21 @@ service cloud.firestore {
     }
 
     // ── CONVERSATIONS ──
-    //
-    // Membership comes from the conversation ID, not from a get() on the
-    // parent document. conversationIdFor() in e2ee.js is the two uids sorted
-    // and joined with "__", and both clients compute it identically.
-    //
-    // WHY NOT get(): the parent does not exist until the first message is
-    // sent, and get() on a missing document returns null -- so reading
-    // .data.participants errored, and the rule DENIED. Every first message
-    // failed; every later one failed too, because sendMessage was writing
-    // { lastMessage, lastMessageAt, lastSenderId } with no participants field
-    // at all. The admin account appeared to work only because the isAdmin()
-    // rule at the top bypasses all of this, which made a total failure look
-    // like a one-way one.
-    //
-    // Deriving from the ID also removes a billed get() per message read, and
-    // grants nothing extra: a learner is only ever a member of IDs that
-    // contain their own uid, and sending still requires senderUid == uid.
     function inConversationId(cid) {
       return isLoggedIn() && request.auth.uid in cid.split('__');
     }
 
-    // The OTHER person in a conversation, worked out from the ID.
     function otherInConversation(cid) {
       return cid.split('__')[0] == request.auth.uid
         ? cid.split('__')[1]
         : cid.split('__')[0];
     }
 
-    // Has the recipient blocked the sender?
-    //
-    // This makes a promise the interface was already making. Blocking used to
-    // be filtering on the client: the blocked person could still write to the
-    // conversation and the reader simply did not display it, while the app
-    // told them "they cannot message you". That was false, and a learner
-    // relying on it to get away from someone was owed better.
-    //
-    // exists() in rules is not itself subject to rules, so a private block
-    // list can be consulted here without being readable by the person it
-    // names -- which is the point: a blocked person must not be able to
-    // discover that they were blocked. They get a plain permission error,
-    // the same one any non-member gets.
     function blockedBy(otherUid) {
       return exists(/databases/$(database)/documents/students/$(otherUid)/blocks/$(request.auth.uid));
     }
 
     match /conversations/{conversationId} {
-      // `resource` is null for a document that does not exist, so the ID
-      // check must come first -- it is also the one that works on create.
       allow read: if inConversationId(conversationId)
                   || (isLoggedIn() && resource != null
                       && request.auth.uid in resource.data.participants);
@@ -112,15 +81,12 @@ service cloud.firestore {
                     && request.auth.uid in request.resource.data.participants
                     && request.resource.data.participants.size() == 2;
 
-      // A member may bump updatedAt, but may not rewrite who is in the
-      // conversation.
       allow update: if inConversationId(conversationId)
                     && request.resource.data.participants == resource.data.participants;
 
       allow delete: if false;
 
       match /messages/{messageId} {
-        // Works on an empty thread, which the get() form did not.
         allow read: if inConversationId(conversationId);
 
         allow create: if inConversationId(conversationId)
@@ -130,18 +96,11 @@ service cloud.firestore {
                            'conversationId', 'senderUid', 'payload', 'sentAt'
                          ]);
 
-        // Immutable once sent. Editing history in place would make a thread
-        // untrustworthy, and neither side can verify a change.
         allow update, delete: if false;
       }
     }
 
     // ── USERNAME CLAIMS ──
-    //
-    // Readable so the form can say a name is taken. Create-only per key:
-    // Firestore is atomic on document creation, so two learners cannot claim
-    // the same name. Never updatable or deletable, so a claim cannot be
-    // reassigned to somebody else.
     match /usernames/{usernameKey} {
       allow read: if isLoggedIn();
       allow create: if isLoggedIn()
@@ -150,12 +109,6 @@ service cloud.firestore {
     }
 
     // ── PRESENCE ──
-    //
-    // A minimal public projection. `name` is a USERNAME, never the real name
-    // from the account provider. hasOnly is what keeps it minimal as the code
-    // changes around it: without it, any field a future client decides to
-    // write -- an email, a phone number, a real name -- becomes readable by
-    // every signed-in learner.
     match /presence/{userId} {
       allow get: if isLoggedIn();
       allow list: if isLoggedIn();
@@ -165,18 +118,12 @@ service cloud.firestore {
                          'uid', 'online', 'status', 'name', 'level', 'badges',
                          'lessonTitle', 'lastSeen'
                        ])
-                    // online / idle / offline. Constrained, so the field
-                    // cannot be used to carry anything else.
                     && (!('status' in request.resource.data)
                         || request.resource.data.status in ['online', 'idle', 'offline']);
       allow delete: if isOwner(userId);
     }
 
     // ── PUBLIC KEYS ──
-    //
-    // Readable by design: a public key is useless without its private half,
-    // and others need it in order to encrypt. Not deletable -- removing
-    // someone's key would silently stop anyone being able to message them.
     match /publicKeys/{userId} {
       allow read: if isLoggedIn();
       allow create, update: if isOwner(userId)
@@ -187,52 +134,43 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ── MEMORA IDs — atomic unique ID generation ──
+    // ── MEMORA IDs & COUNTERS ──
     match /memoraIds/{memoraId} {
       allow read: if isLoggedIn();
       allow create: if isLoggedIn();
     }
 
+    // Fixed: matches doc(db, "counters", "memoraId") in ensureStudent()
+    match /counters/{counterId} {
+      allow read, write: if isLoggedIn();
+    }
+
     match /memoraCounters/{counterId} {
-      allow read: if isLoggedIn();
-      allow write: if isLoggedIn();
+      allow read, write: if isLoggedIn();
     }
 
     // ── STUDENTS — main academy collection ──
     match /students/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow list: if isLoggedIn() && request.auth.uid == userId;
+      allow create, update: if isOwner(userId);
 
       // Enrollments subcollection
       match /enrollments/{courseId} {
-        allow read: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId);
+        allow read, write: if isOwner(userId);
       }
 
       // Lesson progress subcollection
       match /progress/{progressId} {
-        allow read: if isOwner(userId);
-        allow write: if isOwner(userId);
+        allow read, write: if isOwner(userId);
       }
 
-      // Who this learner has blocked. Private to them: a blocked person
-      // must not be able to discover that they were blocked.
+      // Blocks
       match /blocks/{blockedUid} {
         allow read, write: if isOwner(userId);
       }
 
-      // EXAM ATTEMPTS ARE SERVER-ONLY. This is the path the code actually
-      // uses -- academyService reads students/{uid}/examAttempts -- and the
-      // "catch-all for any other subcollections" that used to sit here made
-      // it CLIENT-WRITABLE. A learner could write their own passing attempt,
-      // which would make every certificate meaningless.
-      //
-      // A catch-all also could not have been narrowed by adding a stricter
-      // rule underneath it: Firestore grants access if ANY rule allows it, so
-      // the permissive one would still win. It had to go rather than be
-      // overridden.
+      // Final exam attempts (server-only write)
       match /examAttempts/{attemptId} {
         allow read: if isOwner(userId);
         allow write: if false;
@@ -250,13 +188,7 @@ service cloud.firestore {
       }
     }
 
-    // ── LEADERBOARD — any student reads, own entry writes ──
-    //
-    // The only Academy collection every signed-in learner may read in full,
-    // and deliberately a minimal projection: `name` is the USERNAME, with no
-    // email, no phone and no score history. hasOnly is the part that keeps it
-    // that way -- an unconstrained write rule means whatever the client sends
-    // becomes visible to everyone.
+    // ── LEADERBOARD ──
     match /leaderboard/{userId} {
       allow read: if isLoggedIn();
       allow create, update: if isOwner(userId)
@@ -266,43 +198,28 @@ service cloud.firestore {
                          'streak', 'updatedAt'
                        ])
                     && request.resource.data.xp is int;
-      // Leaving the board is how a learner opts out of it.
       allow delete: if isOwner(userId);
     }
 
-    // ── BLOCKS ──
-    //
-    // Blocks live at students/{uid}/blocks, which is private to the learner
-    // by construction. This top-level collection is from an earlier shape and
-    // is closed rather than left readable.
+    // ── BLOCKS (legacy top-level) ──
     match /blocks/{userId}/{document=**} {
       allow read, write: if false;
     }
 
-    // ── REPORTS — any logged-in user creates, admin reads ──
-    //
-    // byUid must be the person filing it. Without that check a learner could
-    // file reports in somebody else's name. Not client-readable at all -- not
-    // even your own -- so the collection cannot be used to work out who has
-    // been reported.
+    // ── REPORTS ──
     match /reports/{reportId} {
       allow create: if isLoggedIn()
                     && request.resource.data.byUid == request.auth.uid;
       allow read, update, delete: if false;
     }
 
-    // ── CERTIFICATES — server-written, student reads own ──
+    // ── CERTIFICATES ──
     match /certificates/{certId} {
       allow read: if isLoggedIn() &&
         resource.data.uid == request.auth.uid;
     }
 
-    // ── FINAL EXAM ATTEMPTS — server-written only ──
-    //
-    // Nothing reads or writes this top-level collection: attempts live at
-    // students/{uid}/examAttempts, which is where the rule that matters is.
-    // Kept closed rather than deleted, so a stray write here cannot create a
-    // second, unprotected home for exam results.
+    // ── FINAL EXAM ATTEMPTS ──
     match /examAttempts/{attemptId} {
       allow read, write: if false;
     }

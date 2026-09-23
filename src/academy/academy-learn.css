@@ -44,6 +44,54 @@
   color: #c2751a;
 }
 
+/* ── Safe failure surfaces ────────────────────────────────────────────────
+   Every failure a learner can see renders through services/errors.js: a
+   title, one or two plain sentences, an honest retry, and a reference code.
+
+   The reference code is deliberately quiet. It is ours — "ACA-PERM-01", not
+   the provider's — so it identifies the case in our logs and support without
+   telling anybody what the underlying system is or which control refused. It
+   is the only technical string on the screen, and it is small on purpose:
+   useful when somebody writes in, ignorable when they do not. */
+.ac-boot__actions,
+.ac-welcome__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ac-boot__code,
+.ac-welcome__code {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ac-muted);
+}
+
+/* "Or take another course as well" — the quiet route to a second enrolment,
+   placed under the primary action because it is never the main thing a
+   learner came here to do. */
+.ac-welcome__browse {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ac-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ac-welcome__browse:hover {
+  color: var(--ac-primary-dark);
+}
+
 .ac-empty {
   text-align: center;
   padding: 60px 24px;

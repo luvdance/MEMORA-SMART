@@ -9,6 +9,8 @@
 /* Student-facing screens. Must come before any rule, per the CSS spec. */
 @import "./academy-learn.css";
 @import "./academy-exam.css";
+@import "./academy-cyber.css";
+@import "./academy-profile.css";
 
 .academy {
   /* Brand — same family as the main site gradient (#6699FF → #9D00FF),

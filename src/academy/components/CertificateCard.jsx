@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { reportError } from "../services/errors";
 
 /**
  * THE CERTIFICATE CARD
@@ -61,7 +62,9 @@ export default function CertificateCard({ certificate, onDownload }) {
     try {
       await onDownload(certificate);
     } catch (err) {
-      setError(err?.message || "The download could not be produced.");
+      // The generator is supplied by the caller and may throw anything at
+      // all, including a stack. Only our own sentence reaches the card.
+      setError(reportError("certificate:download", err).message);
     } finally {
       setBusy(false);
     }

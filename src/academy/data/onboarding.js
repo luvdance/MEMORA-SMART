@@ -244,6 +244,46 @@ export const REQUIRED_FIELDS = ONBOARDING_FIELDS.filter((f) => f.required).map(
 );
 
 /**
+ * THE FORM, IN THREE PARTS.
+ *
+ * Ten questions in one unbroken column read as an interrogation, and the
+ * three that are actually needed were lost among the seven that are not. A
+ * learner scanning it could not tell where the obligation ended.
+ *
+ * Grouping fixes that without removing anything: the first group is the whole
+ * requirement and says so, and the two after it are visibly optional. The
+ * ordering is also the order the answers matter in — who you are, how you
+ * will study, what you want from it.
+ *
+ * Data rather than markup, so the form cannot drift from the field list. The
+ * test suite asserts every field appears in exactly one group, which is what
+ * stops a new question being added to ONBOARDING_FIELDS and silently never
+ * being rendered.
+ */
+export const ONBOARDING_GROUPS = [
+  {
+    id: "identity",
+    title: "Who you are",
+    blurb:
+      "The only three we need. Your username is how other learners see you, and your age decides one privacy setting.",
+    fields: ["username", "phone", "ageBand"],
+  },
+  {
+    id: "context",
+    title: "How you will be studying",
+    blurb:
+      "This shapes the course itself — what we build for a phone, and what we can assume you have to hand.",
+    fields: ["state", "device", "situation", "education"],
+  },
+  {
+    id: "goals",
+    title: "What you want out of it",
+    blurb: "Tells us what to teach next, and what you were hoping for.",
+    fields: ["interests", "goal", "source"],
+  },
+];
+
+/**
  * The consent. Separate from the fields, and separate from getting the
  * course: a learner who says no still enrols.
  */

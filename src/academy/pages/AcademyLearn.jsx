@@ -71,7 +71,15 @@ export default function AcademyLearn() {
     };
   }, [user]);
 
-  // The single most recently active enrollment drives the resume card
+  /**
+   * The resume card follows the MOST RECENTLY ACTIVE enrolment.
+   *
+   * `enrollments[0]` is that, because getEnrollments() sorts by recency. It
+   * did not used to: the collection came back in document-key order, which is
+   * course-slug order, so once a second course existed a learner was resumed
+   * into whichever slug sorted first rather than the one they last touched.
+   * The comment here claimed otherwise, which is how it survived so long.
+   */
   const active = useMemo(() => {
     if (!enrollments.length) return null;
     const enrollment = enrollments[0];
@@ -201,8 +209,10 @@ export default function AcademyLearn() {
                     <span className="ac-resume__eyebrow">Get started</span>
                     <h2>Choose your first course</h2>
                     <p className="ac-resume__crumb">
-                      You have a Memora ID and no enrollment yet. Pick a course
-                      below and your first lesson opens immediately.
+                      Your Memora ID is ready and you are not on a course yet.
+                      Pick one below and your first lesson opens immediately —
+                      you can take as many as you like, and each is tracked
+                      and certified separately.
                     </p>
                   </div>
                 </section>

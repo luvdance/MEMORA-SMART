@@ -5,18 +5,42 @@ import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import { getCatalogEntry } from "../data/catalog";
 import { getCourseLessons, getAuthoredStats } from "../data/lessons";
-import { enroll, getStudent, saveProfile } from "../services/academyService";
+import {
+  enroll,
+  getEnrollment,
+  getStudent,
+  saveProfile,
+} from "../services/academyService";
+import { ERROR_CODES, reportError, toUserError } from "../services/errors";
 import { isProfileComplete } from "../data/onboarding";
 import OnboardingForm from "../components/OnboardingForm";
 import "../academy.css";
 
 /**
- * Enrollment + welcome.
+ * ENROLMENT
  *
- * The one moment the Memora ID is presented properly. Most platforms drop you
- * straight into lesson one; showing the learner they now have a permanent
- * academic identity is what makes this feel like an institution rather than a
- * video library.
+ * ── WHAT THIS PAGE IS AND IS NOT ─────────────────────────────────────────
+ * This page enrols an EXISTING student on ONE course. It does not sign anybody
+ * up. By the time it renders, AcademyRoute has already guaranteed the Student
+ * entity exists with a Memora ID, because that is the sign-up step and it
+ * happens on arrival at any signed-in Academy page.
+ *
+ * That split matters for the second enrolment. Previously this page created
+ * the student as a side effect of enrolling and announced it, so a learner
+ * taking their second course was told their Memora ID was being issued — a
+ * thing that had already happened months earlier. Now the identity is shown
+ * as what it is: something they already have, which every course they take
+ * and every certificate they earn hangs off.
+ *
+ * ── ORDER OF OPERATIONS ──────────────────────────────────────────────────
+ * Enrolment commits FIRST, then the profile questions, and deliberately so:
+ * putting a form between a learner and the course they just asked for is how
+ * you lose them, and closing the tab halfway through the form should leave
+ * them enrolled rather than stranded.
+ *
+ * The profile step belongs to the STUDENT, not to the enrolment, so it is
+ * asked once ever. A learner enrolling on their second course goes straight
+ * to the confirmation.
  */
 export default function AcademyEnroll() {
   const { slug } = useParams();
@@ -32,31 +56,30 @@ export default function AcademyEnroll() {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState(null);
+  // Distinguishes "welcome to your first course" from "you are on another
+  // one". Without it the second enrolment reads like the first.
+  const [returning, setReturning] = useState(false);
 
-  /**
-   * Enrolment happens FIRST, then the questions.
-   *
-   * Deliberately that order. Putting a form between a learner and the course
-   * they just asked for is how you lose them, and if they close the tab
-   * halfway through the form they should still be enrolled rather than
-   * stranded. So the enrolment is committed immediately and the profile step
-   * is shown afterwards — skippable, and offered again next time.
-   */
   useEffect(() => {
     if (!user || !entry) return;
     let alive = true;
 
     (async () => {
       try {
+        // Was this course already theirs? Asked before enrolling, because
+        // enroll() is idempotent and would otherwise hide the difference.
+        const already = await getEnrollment(user.uid, slug);
+
         await enroll(user, slug);
         const record = await getStudent(user.uid);
         if (!alive) return;
+
         setStudent(record);
+        setReturning(Boolean(already));
         setStatus(isProfileComplete(record?.profile) ? "ready" : "profile");
       } catch (err) {
         if (!alive) return;
-        console.error("Enrollment failed", err);
-        setError(err);
+        setError(reportError("enroll", err));
         setStatus("error");
       }
     })();
@@ -75,12 +98,14 @@ export default function AcademyEnroll() {
       setStudent(record);
       setStatus("ready");
     } catch (err) {
-      // They are already enrolled, so a failure here must not look like a
-      // failed enrolment. Let them retry or skip.
+      // They are already enrolled, so a failure here must never look like a
+      // failed enrolment. The message says so explicitly, and says nothing
+      // about why the write failed.
+      const safe = reportError("saveProfile", err);
       setFormError(
-        err?.message === "USERNAME_TAKEN"
-          ? "That username is already taken. Pick another one."
-          : "Your details could not be saved, but you are enrolled. Try again, or skip and do it from your profile."
+        safe.code === ERROR_CODES.USERNAME_TAKEN
+          ? safe.message
+          : "You are enrolled, and your details did not save. Try again, or skip and finish this from your profile later."
       );
     } finally {
       setSaving(false);
@@ -88,12 +113,14 @@ export default function AcademyEnroll() {
   };
 
   if (!entry) {
+    const missing = toUserError(null, ERROR_CODES.NOT_FOUND);
     return (
       <div className="academy">
         <AcademyNav />
         <main className="ac-section">
           <div className="ac-container ac-empty">
-            <h1 className="ac-h2">That course does not exist</h1>
+            <h1 className="ac-h2">{missing.title}</h1>
+            <p className="ac-body">{missing.message}</p>
             <a className="ac-btn ac-btn--primary" href="/academy#courses">
               See the courses
             </a>
@@ -105,6 +132,8 @@ export default function AcademyEnroll() {
   }
 
   const first = lessons[0];
+  const firstName =
+    (student?.displayName || user?.displayName || "").split(" ")[0] || "student";
 
   return (
     <div className="academy">
@@ -116,26 +145,39 @@ export default function AcademyEnroll() {
             <div className="ac-welcome__card">
               <i className="fas fa-spinner fa-spin ac-welcome__spinner" aria-hidden="true" />
               <h1>Setting up your place…</h1>
-              <p>Issuing your Memora ID and enrolling you on {entry.title}.</p>
+              {/* Says only what is happening: a course is being added to an
+                  account that already exists. */}
+              <p>Adding {entry.title} to your courses.</p>
             </div>
           )}
 
           {status === "error" && (
             <div className="ac-welcome__card">
               <i className="fas fa-triangle-exclamation ac-welcome__spinner" aria-hidden="true" />
-              <h1>We could not complete your enrollment</h1>
-              <p>
-                {error?.code === "permission-denied"
-                  ? "The Academy security rules have not been deployed yet. Deploy firestore.rules and try again."
-                  : error?.message}
-              </p>
-              <button className="ac-btn ac-btn--ghost" onClick={() => window.location.reload()}>
-                Try again
-              </button>
+              <h1>{error?.title}</h1>
+              <p>{error?.message}</p>
+              <div className="ac-welcome__actions">
+                {error?.canRetry && (
+                  <button
+                    className="ac-btn ac-btn--primary"
+                    onClick={() => window.location.reload()}
+                  >
+                    Try again
+                  </button>
+                )}
+                <button
+                  className="ac-btn ac-btn--ghost"
+                  onClick={() => navigate("/academy/courses")}
+                >
+                  See the courses
+                </button>
+              </div>
+              <span className="ac-welcome__code">Reference {error?.code}</span>
             </div>
           )}
 
-          {/* Enrolled, but we have not met them yet. */}
+          {/* Enrolled, and we have not met them yet. A STUDENT-level step,
+              asked once ever, not once per course. */}
           {status === "profile" && (
             <OnboardingForm
               email={student?.email || user?.email}
@@ -149,12 +191,13 @@ export default function AcademyEnroll() {
 
           {status === "ready" && (
             <div className="ac-welcome__card">
-              <span className="ac-kicker">Welcome to the Academy</span>
+              <span className="ac-kicker">
+                {returning ? "Already enrolled" : "You are enrolled"}
+              </span>
               <h1>
-                Welcome,{" "}
-                {(student?.displayName || user?.displayName || "").split(" ")[0] ||
-                  "student"}
-                .
+                {returning
+                  ? `${entry.title} is waiting for you, ${firstName}.`
+                  : `You are on ${entry.title}, ${firstName}.`}
               </h1>
 
               <div className="ac-idcard">
@@ -163,8 +206,9 @@ export default function AcademyEnroll() {
                   {student?.memoraId || "—"}
                 </strong>
                 <span className="ac-idcard__note">
-                  This is yours permanently. It identifies you on every course you
-                  take and on every certificate you earn.
+                  Yours permanently, across every course you take. Each course is
+                  tracked separately under it, and each certificate you earn names
+                  the course it was earned on.
                 </span>
               </div>
 
@@ -207,8 +251,19 @@ export default function AcademyEnroll() {
                     : navigate("/academy/learn")
                 }
               >
-                {first ? "Start your first lesson" : "Go to My Learning"}
+                {first
+                  ? returning
+                    ? "Back to the course"
+                    : "Start your first lesson"
+                  : "Go to My Learning"}
                 <i className="fas fa-arrow-right" aria-hidden="true" />
+              </button>
+
+              <button
+                className="ac-welcome__browse"
+                onClick={() => navigate("/academy/courses")}
+              >
+                Or take another course as well
               </button>
             </div>
           )}

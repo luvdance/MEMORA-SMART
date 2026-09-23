@@ -7,29 +7,25 @@
  * Someone forty lessons in had to scroll past the whole sales pitch, or dig
  * through the nav, to carry on. This decides what to offer them instead.
  *
- * Pure — the curriculum helpers are passed in rather than imported alongside
- * Firebase — so it runs under Node against the real course in the self-test.
+ * ── NOW A THIN LAYER ─────────────────────────────────────────────────────
+ * The selection logic moved to data/enrollment.js, which owns the entity
+ * model. It lived here first because there was only ever one course to pick
+ * from; with several open courses, "which enrolment" is a question about the
+ * Student-to-Enrollment relationship rather than about this one banner, and
+ * two copies of that answer would drift.
+ *
+ * This module stays because its callers are stable and its name says what the
+ * landing page wants. It re-exports rather than reimplements.
  */
 
-/** Milliseconds from a Firestore Timestamp, its plain form, a Date or null. */
-function toMs(v) {
-  if (!v) return 0;
-  if (typeof v.toMillis === "function") return v.toMillis();
-  if (v instanceof Date) return v.getTime();
-  if (typeof v === "number") return v;
-  if (typeof v.seconds === "number") return v.seconds * 1000;
-  return 0;
-}
+export {
+  progressOf,
+  listEnrollments,
+  sortByRecency,
+  toMs,
+} from "./enrollment.js";
 
-/**
- * The same arithmetic as calculateProgress() in academyService, which cannot
- * be imported here because that module loads the Firebase client.
- */
-export function progressOf(lessons, completedLessons = []) {
-  if (!lessons?.length) return 0;
-  const done = lessons.filter((l) => completedLessons.includes(l.id)).length;
-  return Math.round((done / lessons.length) * 100);
-}
+import { pickResumable, listEnrollments } from "./enrollment.js";
 
 /**
  * The course to put in front of a returning learner, or null.
@@ -41,39 +37,16 @@ export function progressOf(lessons, completedLessons = []) {
  * Only courses that are OPEN. An enrolment in a course that has since been
  * paused must not produce a button into a player that cannot serve it.
  *
- * Returns { slug, title, percent, finished, lesson, href, otherCount }.
+ * `otherCount` is kept for callers that only render one card. Components that
+ * can show the learner every course they have started should call
+ * `listEnrollments` instead and offer the choice.
  */
-export function pickContinue(
-  enrollments,
-  { getCatalogEntry, getCourseLessons, getResumeLesson }
-) {
-  const candidates = (enrollments || [])
-    .map((e) => ({ e, entry: getCatalogEntry(e.courseId) }))
-    .filter(({ entry }) => entry && entry.status === "open")
-    .sort(
-      (a, b) =>
-        toMs(b.e.updatedAt || b.e.enrolledAt) - toMs(a.e.updatedAt || a.e.enrolledAt)
-    );
+export function pickContinue(enrollments, helpers) {
+  const all = listEnrollments(enrollments, helpers);
+  const first = pickResumable(enrollments, helpers);
+  if (!first) return null;
 
-  if (candidates.length === 0) return null;
-
-  const { e, entry } = candidates[0];
-  const lessons = getCourseLessons(e.courseId);
-  const percent = progressOf(lessons, e.completedLessons || []);
-  const lesson = getResumeLesson(e.courseId, e);
-  const finished = lesson === null;
-
-  return {
-    slug: e.courseId,
-    title: entry.title,
-    percent,
-    finished,
-    lesson: lesson ? { id: lesson.id, title: lesson.title } : null,
-    // A finished course has no resume target, so it goes to the course
-    // overview for review rather than to a lesson that does not exist.
-    href: lesson ? `/academy/learn/${e.courseId}/${lesson.id}` : "/academy/learn",
-    otherCount: candidates.length - 1,
-  };
+  return { ...first, otherCount: all.length - 1 };
 }
 
-export default { pickContinue, progressOf };
+export default { pickContinue, listEnrollments };

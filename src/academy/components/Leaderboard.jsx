@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { reportError } from "../services/errors";
 import {
   getLeaderboard,
   getMyRank,
@@ -96,7 +97,9 @@ export default function Leaderboard({
         setMyRank(rank);
       } catch (err) {
         if (!alive) return;
-        setError(err?.message || "The leaderboard could not be loaded.");
+        // A provider message here could name the collection and the rule
+        // that refused. The learner needs one sentence and no detail.
+        setError(reportError("leaderboard", err).message);
       }
     })();
 

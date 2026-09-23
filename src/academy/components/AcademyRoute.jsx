@@ -2,13 +2,21 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ensureStudent } from "../services/academyService";
+import { ERROR_CODES, reportError } from "../services/errors";
 
 /**
  * Guard for every signed-in Academy page.
  *
- * Beyond the usual auth check it guarantees a student record exists — so
- * people who registered before the Academy launched get a Memora ID on their
- * first visit and no backfill script is ever needed.
+ * ── THIS IS THE SIGN-UP STEP ─────────────────────────────────────────────
+ * Beyond the usual auth check it guarantees the Student entity exists, with a
+ * Memora ID, for anybody who reaches any signed-in Academy page. That is what
+ * makes sign-up a separate thing from enrolment: you become a student by
+ * arriving, not by committing to a course.
+ *
+ * It also means people who registered before the Academy launched are given a
+ * Memora ID on their first visit, so no backfill script is ever needed.
+ *
+ * Enrolment is a different operation entirely — see data/enrollment.js.
  */
 export default function AcademyRoute({ children }) {
   const { user, loading } = useAuth();
@@ -29,8 +37,9 @@ export default function AcademyRoute({ children }) {
       })
       .catch((err) => {
         if (!alive) return;
-        console.error("Academy: could not create student record", err);
-        setError(err);
+        // The real error goes to the console; only the safe shape reaches
+        // state, so there is no path by which it can be rendered.
+        setError(reportError("ensureStudent", err, ERROR_CODES.NO_STUDENT_RECORD));
         setStatus("error");
       });
 
@@ -58,15 +67,24 @@ export default function AcademyRoute({ children }) {
     return (
       <div className="academy ac-boot ac-boot--error">
         <i className="fas fa-triangle-exclamation" aria-hidden="true" />
-        <h2>We could not open your student record</h2>
-        <p>
-          {error?.code === "permission-denied"
-            ? "The Academy security rules have not been deployed yet. Deploy firestore.rules and reload."
-            : error?.message || "Something went wrong."}
-        </p>
-        <a className="ac-btn ac-btn--primary" href="/academy">
-          Back to the Academy
-        </a>
+        <h2>{error?.title}</h2>
+        <p>{error?.message}</p>
+        <div className="ac-boot__actions">
+          {error?.canRetry && (
+            <button
+              className="ac-btn ac-btn--primary"
+              onClick={() => window.location.reload()}
+            >
+              Try again
+            </button>
+          )}
+          <a className="ac-btn ac-btn--ghost" href="/academy">
+            Back to the Academy
+          </a>
+        </div>
+        {/* The internal code, for support. Meaningless to an attacker and the
+            one thing that makes a help request answerable. */}
+        <span className="ac-boot__code">Reference {error?.code}</span>
       </div>
     );
   }

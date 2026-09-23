@@ -1,4 +1,5 @@
 import DATA_ANALYSIS_COURSE from "./dataAnalysisCourse.js";
+import CYBERSECURITY_COURSE from "./cybersecurityCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -84,6 +85,32 @@ export const CATALOG = [
       "Clean messy data, build dashboards people actually use, and defend your findings to a business. Our flagship programme.",
     covers: ["Microsoft Excel", "Power BI", "Python", "Dashboards", "Capstone project"],
     course: DATA_ANALYSIS_COURSE,
+  },
+  {
+    id: "cybersecurity",
+    code: "CS-101",
+    slug: "cybersecurity",
+    title: "Cybersecurity",
+    subtitle: "Beginner to Pro",
+    // Listed under Digital Skills rather than a security category of its own:
+    // one course does not justify a category that would sit empty beside it on
+    // the filter bar. Move it when a second security course opens.
+    category: "skills",
+    icon: "fas fa-shield-halved",
+    status: "open",
+    beta: true,
+    level: "Beginner → Pro",
+    summary:
+      "How attacks actually happen and how to stop them. Sixteen weeks from your first virtual machine to an authorised penetration test and a SOC detection you wrote yourself.",
+    covers: [
+      "Linux hardening",
+      "Networks & Wireshark",
+      "OWASP Top 10",
+      "Penetration testing",
+      "SIEM & incident response",
+      "Capstone project",
+    ],
+    course: CYBERSECURITY_COURSE,
   },
   {
     id: "web-development",
@@ -214,20 +241,6 @@ export const CATALOG = [
     summary:
       "Word, Excel and PowerPoint to a standard an employer expects, taught for people starting from zero.",
     covers: ["Word", "Excel", "PowerPoint", "Professional documents"],
-  },
-  {
-    id: "cybersecurity",
-    code: "CS-101",
-    slug: "cybersecurity",
-    title: "Cybersecurity",
-    category: "skills",
-    icon: "fas fa-shield-halved",
-    status: "planned",
-    beta: true,
-    level: "Beginner → Intermediate",
-    summary:
-      "How attacks actually happen and the practical habits that stop them, for individuals and small teams.",
-    covers: ["Threat basics", "Safe practice", "Network fundamentals", "Incident response"],
   },
 ];
 

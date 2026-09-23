@@ -1,4 +1,5 @@
 import DATA_ANALYSIS_COURSE from "../dataAnalysisCourse.js";
+import CYBERSECURITY_COURSE from "../cybersecurityCourse.js";
 import { LESSONS as FOUNDATIONS } from "./m1-data-foundations.js";
 import { LESSONS as EXCEL_SETUP } from "./m1-excel-setup.js";
 import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
@@ -21,12 +22,30 @@ import { LESSONS as TRANSFORM } from "./m4-transform.js";
 import { LESSONS as VISUAL_ANALYSIS } from "./m4-visual-analysis.js";
 import { LESSONS as CAPSTONE } from "./m4-capstone.js";
 
+// ── Cybersecurity, one file per week ──────────────────────────────────────
+import { LESSONS as CS_W1 } from "./cs-w1-fundamentals.js";
+import { LESSONS as CS_W2 } from "./cs-w2-accounts.js";
+import { LESSONS as CS_W3 } from "./cs-w3-data.js";
+import { LESSONS as CS_W4 } from "./cs-w4-networking.js";
+import { LESSONS as CS_W5 } from "./cs-w5-hardening.js";
+import { LESSONS as CS_W6 } from "./cs-w6-networks.js";
+import { LESSONS as CS_W7 } from "./cs-w7-software.js";
+import { LESSONS as CS_W8 } from "./cs-w8-web.js";
+import { LESSONS as CS_W9 } from "./cs-w9-ethical-hacking.js";
+import { LESSONS as CS_W10 } from "./cs-w10-vulnerabilities.js";
+import { LESSONS as CS_W11 } from "./cs-w11-soc.js";
+import { LESSONS as CS_W12 } from "./cs-w12-incident-response.js";
+import { LESSONS as CS_W13 } from "./cs-w13-privacy-grc.js";
+import { LESSONS as CS_W14 } from "./cs-w14-cloud.js";
+import { LESSONS as CS_W15 } from "./cs-w15-capstone.js";
+import { LESSONS as CS_W16 } from "./cs-w16-career.js";
+
 /**
  * LESSON REGISTRY
  *
- * The curriculum in dataAnalysisCourse.js lists every module that will exist.
- * This registry lists the modules whose lessons are actually WRITTEN. The two
- * are deliberately separate, so the UI can always tell a learner the truth:
+ * Each course's curriculum file lists every module that will exist. This
+ * registry lists the modules whose lessons are actually WRITTEN. The two are
+ * deliberately separate, so the UI can always tell a learner the truth:
  * "this module is ready" versus "this module is still being written".
  *
  * Adding content = import the file and add one entry. Nothing else changes.
@@ -62,6 +81,39 @@ const REGISTRY = {
     "m4-visual-analysis": VISUAL_ANALYSIS,
     "m4-capstone": CAPSTONE,
   },
+
+  cybersecurity: {
+    "cs-w1-fundamentals": CS_W1,
+    "cs-w2-accounts": CS_W2,
+    "cs-w3-data": CS_W3,
+    "cs-w4-networking": CS_W4,
+    "cs-w5-hardening": CS_W5,
+    "cs-w6-networks": CS_W6,
+    "cs-w7-software": CS_W7,
+    "cs-w8-web": CS_W8,
+    "cs-w9-ethical-hacking": CS_W9,
+    "cs-w10-vulnerabilities": CS_W10,
+    "cs-w11-soc": CS_W11,
+    "cs-w12-incident-response": CS_W12,
+    "cs-w13-privacy-grc": CS_W13,
+    "cs-w14-cloud": CS_W14,
+    "cs-w15-capstone": CS_W15,
+    "cs-w16-career": CS_W16,
+  },
+};
+
+/**
+ * Curricula, by slug.
+ *
+ * This used to be a single hardcoded reference to the Data Analysis course, so
+ * every helper below silently returned nothing for any other slug — a second
+ * course could be added to the catalog and its lessons would not load, with no
+ * error anywhere to say why. Adding a course now means adding one line here
+ * and one block above.
+ */
+const CURRICULA = {
+  [DATA_ANALYSIS_COURSE.slug]: DATA_ANALYSIS_COURSE,
+  [CYBERSECURITY_COURSE.slug]: CYBERSECURITY_COURSE,
 };
 
 /**
@@ -82,7 +134,7 @@ export function getCourseLessons(courseSlug) {
 }
 
 function buildCourseLessons(courseSlug) {
-  const course = courseSlug === DATA_ANALYSIS_COURSE.slug ? DATA_ANALYSIS_COURSE : null;
+  const course = CURRICULA[courseSlug] || null;
   if (!course) return [];
 
   const byModule = REGISTRY[courseSlug] || {};
@@ -118,7 +170,7 @@ export function getCourseOutline(courseSlug) {
 }
 
 function buildCourseOutline(courseSlug) {
-  const course = courseSlug === DATA_ANALYSIS_COURSE.slug ? DATA_ANALYSIS_COURSE : null;
+  const course = CURRICULA[courseSlug] || null;
   if (!course) return [];
 
   const byModule = REGISTRY[courseSlug] || {};

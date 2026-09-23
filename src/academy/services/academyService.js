@@ -24,6 +24,8 @@ import {
 import { getCourseLessons } from "../data/lessons";
 import { getCatalogEntry } from "../data/catalog";
 import { chatDefaultFor, publicNameFor, usernameKey } from "../data/onboarding";
+import { enrollmentRef as enrollmentRefFor, sortByRecency } from "../data/enrollment";
+import { AcademyError } from "./errors";
 
 /**
  * ACADEMY DATA LAYER
@@ -235,10 +237,49 @@ export async function saveProfile(user, answers) {
   return profile;
 }
 
-/* ── Enrollment ─────────────────────────────────────────────────────────── */
+/* ── Enrollment ─────────────────────────────────────────────────────────────
+ *
+ * SIGN-UP AND ENROLMENT ARE SEPARATE OPERATIONS ON SEPARATE ENTITIES.
+ *
+ * ensureStudent() above creates the Student: once, for life, with a Memora ID.
+ * enroll() below creates an Enrollment: one per course, as many as the learner
+ * wants, each with its own progress and its own certificate.
+ *
+ * enroll() used to call ensureStudent() itself, which made enrolling the thing
+ * that brought a student into existence. That is the wrong way round — it left
+ * anyone who signed up and browsed without committing to a course with no
+ * student record at all, and it re-ran the identity step on every subsequent
+ * enrolment. Identity is now established by AcademyRoute on any signed-in
+ * Academy page, and enrolment ASSERTS it rather than creating it.
+ *
+ * See data/enrollment.js for the full entity model.
+ * ──────────────────────────────────────────────────────────────────────── */
 
+/**
+ * Enrol an existing student on a course.
+ *
+ * Idempotent: enrolling twice returns the existing enrolment rather than
+ * resetting progress, so a stale tab or a double-tap cannot wipe a course.
+ *
+ * Throws AcademyError("NO_STUDENT_RECORD") if sign-up has not happened, and
+ * AcademyError("COURSE_NOT_OPEN") for a course that cannot be enrolled on —
+ * both mapped to learner-safe copy by services/errors.js.
+ */
 export async function enroll(user, courseSlug) {
-  await ensureStudent(user);
+  if (!user?.uid) throw new AcademyError("Not signed in");
+
+  const entry = getCatalogEntry(courseSlug);
+  // Guarded here rather than in the page, because this is the boundary that
+  // writes. A crafted URL must not create an enrolment in a course that has
+  // no lessons to serve.
+  if (!entry || entry.status !== "open") {
+    throw new AcademyError("COURSE_NOT_OPEN");
+  }
+
+  // The Student must already exist. Enrolment joins a student to a course; it
+  // does not bring the student into being.
+  const student = await getStudent(user.uid);
+  if (!student?.memoraId) throw new AcademyError("NO_STUDENT_RECORD");
 
   const ref = enrollmentRef(user.uid, courseSlug);
   const snap = await getDoc(ref);
@@ -254,8 +295,14 @@ export async function enroll(user, courseSlug) {
     // but it is stamped on the enrolment so a certificate, a support query or
     // an export can say exactly which course this was without depending on a
     // title that may later be reworded.
-    courseCode: getCatalogEntry(courseSlug)?.code || null,
+    courseCode: entry.code || null,
+    // Both permanent ids, composed. This one string identifies this person on
+    // this course for the life of the Academy, and is what a certificate is
+    // issued against.
+    enrollmentRef: enrollmentRefFor(student.memoraId, entry.code),
+    memoraId: student.memoraId,
     enrolledAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
     status: "active",
     position: first
       ? { moduleId: first.moduleId, lessonId: first.id, atomIndex: 0 }
@@ -273,10 +320,24 @@ export async function getEnrollment(uid, courseSlug) {
   return snap.exists() ? snap.data() : null;
 }
 
+/**
+ * Every course this student is enrolled on, most recently active first.
+ *
+ * Sorted HERE rather than by the caller. Reading the collection raw returns
+ * documents in key order, which is course slug order — so "cybersecurity"
+ * came back before "data-analysis" and a learner who had touched neither
+ * recently was resumed into whichever course sorted first. Callers that took
+ * `[0]` as "the active one" were relying on alphabetical accident.
+ */
 export async function getEnrollments(uid) {
   if (!uid) return [];
   const snap = await getDocs(collection(db, "students", uid, "enrollments"));
-  return snap.docs.map((d) => d.data());
+  return sortByRecency(snap.docs.map((d) => d.data()));
+}
+
+/** Whether this student is enrolled on a course, without loading the record. */
+export async function isEnrolled(uid, courseSlug) {
+  return Boolean(await getEnrollment(uid, courseSlug));
 }
 
 /* ── Progress ───────────────────────────────────────────────────────────── */
@@ -623,8 +684,8 @@ export async function getExamAttempts(uid, examId = "mst-da-final") {
  * relies on the query being constrained to the caller's own uid — which is
  * exactly the condition the rule checks.
  */
-export async function getCertificate(uid, courseSlug = "data-analysis") {
-  if (!uid) return null;
+export async function getCertificate(uid, courseSlug) {
+  if (!uid || !courseSlug) return null;
   const q = query(
     collection(db, "certificates"),
     where("uid", "==", uid),
@@ -640,6 +701,29 @@ export async function getCertificate(uid, courseSlug = "data-analysis") {
     // A rules rejection here means no certificate is readable, which is the
     // same outcome for the UI as not having one.
     return null;
+  }
+}
+
+/**
+ * Every certificate this student holds, one per course they have completed.
+ *
+ * Certification is per ENROLMENT, not per student: a learner with three
+ * enrolments can earn three certificates, each naming its own course and
+ * carrying that course's silent id. There is no such thing as "the" student
+ * certificate, which is why `getCertificate` no longer defaults to a course —
+ * it defaulted to data-analysis, so a Cybersecurity graduate asking for their
+ * certificate was silently asked about a course they may never have taken.
+ */
+export async function getCertificates(uid) {
+  if (!uid) return [];
+  const q = query(collection(db, "certificates"), where("uid", "==", uid));
+  try {
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch {
+    // Same reasoning as above: unreadable and absent are the same outcome
+    // for the UI, and neither is something to explain to a learner.
+    return [];
   }
 }
 

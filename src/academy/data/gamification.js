@@ -46,6 +46,21 @@ export const XP = {
  * `npm run test:academy` recomputes this from the real curriculum and fails
  * if the top level drifts outside a sane band of it — so adding a month of
  * content can never silently re-break the ladder.
+ *
+ * ── A SECOND OPEN COURSE ─────────────────────────────────────────────────
+ * XP is held on the student, not on the enrolment, so one ladder serves every
+ * course. Opening Cybersecurity made that visible: it is a shorter read (63
+ * lessons, 310 atoms, ~10,345 XP) because its hours are in the weekly labs
+ * rather than on the page. Against a ladder whose top sat at 80% of the Data
+ * Analysis budget, a learner could finish the whole of a course promising
+ * "Beginner → Pro" and stop one level short of Professional.
+ *
+ * So the rule is now explicit: the top level must be reachable by completing
+ * ANY open course, which means calibrating against the SMALLEST of them. This
+ * figure stays the reference budget because it is the largest, and the top
+ * share was lowered from 0.8 to 0.7 to clear the smallest. Thresholds moved
+ * DOWN, so no existing learner was demoted, which is the constraint the note
+ * below actually protects.
  */
 export const COURSE_XP_BUDGET = 13980;
 
@@ -67,7 +82,9 @@ export const LEVELS = [
   { level: 3, name: "Beginner", minXp: 700, share: 0.05 },
   { level: 4, name: "Intermediate", minXp: 2516, share: 0.18 },
   { level: 5, name: "Advanced", minXp: 6291, share: 0.45 },
-  { level: 6, name: "Professional", minXp: 11184, share: 0.8 },
+  // 0.7 of the reference budget is 9,786, which the shortest open course
+  // (~10,345) clears on completion. See the note above COURSE_XP_BUDGET.
+  { level: 6, name: "Professional", minXp: 9786, share: 0.7 },
 ];
 
 export function getLevel(xp = 0) {

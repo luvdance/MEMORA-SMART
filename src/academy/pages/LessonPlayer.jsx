@@ -17,6 +17,17 @@ import DaxSim from "../components/DaxSim";
 import CodeTrace from "../components/CodeTrace";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
+// The cybersecurity kit. Same contract as the analytics sims above: the
+// read-only prop demonstrates, the `…Exercise` prop grades and gates.
+import PhishInspect from "../components/PhishInspect";
+import PacketTrace from "../components/PacketTrace";
+import PermissionsSim from "../components/PermissionsSim";
+import FirewallSim from "../components/FirewallSim";
+import LogHunt from "../components/LogHunt";
+import RiskGrid from "../components/RiskGrid";
+import TerminalSim from "../components/TerminalSim";
+import CryptoLab from "../components/CryptoLab";
+import DecisionCheck from "../components/DecisionCheck";
 import BetaBadge from "../components/BetaBadge";
 import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getExamForModule } from "../data/exams";
@@ -159,9 +170,32 @@ export default function LessonPlayer() {
       atom?.chartChoice ||
       atom?.queryExercise ||
       atom?.modelExercise ||
-      atom?.codeExercise) &&
+      atom?.codeExercise ||
+      atom?.phishExercise ||
+      atom?.captureExercise ||
+      atom?.permsExercise ||
+      atom?.firewallExercise ||
+      atom?.huntExercise ||
+      atom?.riskExercise ||
+      atom?.terminalExercise ||
+      atom?.cryptoExercise ||
+      atom?.decision) &&
       !solved.has(atom.id)
   );
+
+  /**
+   * One handler for every graded practice. Each sim used to inline its own
+   * copy of this, which is four lines duplicated eight times and a place for
+   * one of them to quietly stop recording.
+   */
+  const markSolved = useCallback(() => {
+    if (!atom) return;
+    setSolved((prev) => new Set(prev).add(atom.id));
+    setPracticeWarning(false);
+    completePractice(user, slug, lesson.id, atom.id).catch((err) =>
+      console.error("Could not save practice", err)
+    );
+  }, [atom, user, slug, lesson]);
 
   async function handleGotIt() {
     if (!atom) return;
@@ -174,7 +208,8 @@ export default function LessonPlayer() {
       // never points at something off screen.
       document
         .querySelector(
-          ".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model, .ac-trace"
+          ".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model, .ac-trace, " +
+            ".ac-phish, .ac-pcap, .ac-perm, .ac-fw, .ac-hunt, .ac-risk, .ac-term, .ac-crypto, .ac-decide"
         )
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -445,6 +480,109 @@ export default function LessonPlayer() {
                 />
               )}
 
+              {/* ── CYBERSECURITY KIT ──────────────────────────────────
+                  Same contract throughout: the plain prop demonstrates, the
+                  `…Exercise` prop grades and gates the Got it button. Keyed
+                  per atom for the same reason ExcelGrid is — useState only
+                  runs its initialiser on mount, so a reused component would
+                  keep the previous atom's state. */}
+
+              {/* A message, inspected part by part. */}
+              {(atom.phish || atom.phishExercise) && (
+                <PhishInspect
+                  key={atom.id}
+                  {...(atom.phish || atom.phishExercise)}
+                  readOnly={Boolean(atom.phish && !atom.phishExercise)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* Wireshark in miniature, with the real display-filter syntax. */}
+              {(atom.capture || atom.captureExercise) && (
+                <PacketTrace
+                  key={atom.id}
+                  {...(atom.capture || atom.captureExercise)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* The nine permission bits, and who each one lets in. */}
+              {(atom.perms || atom.permsExercise) && (
+                <PermissionsSim
+                  key={atom.id}
+                  {...(atom.perms || atom.permsExercise)}
+                  readOnly={Boolean(atom.perms && !atom.permsExercise)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* Rules evaluated top down against real traffic. */}
+              {(atom.firewall || atom.firewallExercise) && (
+                <FirewallSim
+                  key={atom.id}
+                  {...(atom.firewall || atom.firewallExercise)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* A detection rule, run against a log that contains both an
+                  attack and an ordinary Monday. */}
+              {(atom.hunt || atom.huntExercise) && (
+                <LogHunt
+                  key={atom.id}
+                  {...(atom.hunt || atom.huntExercise)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* Findings prioritised by risk rather than by scanner score. */}
+              {(atom.risk || atom.riskExercise) && (
+                <RiskGrid
+                  key={atom.id}
+                  {...(atom.risk || atom.riskExercise)}
+                  readOnly={Boolean(atom.risk && !atom.riskExercise)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* A recorded terminal. Never an emulator — see TerminalSim. */}
+              {(atom.terminal || atom.terminalExercise) && (
+                <TerminalSim
+                  key={atom.id}
+                  {...(atom.terminal || atom.terminalExercise)}
+                  exercise={atom.terminalExercise || null}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* Real SHA-256, computed in the browser. */}
+              {(atom.crypto || atom.cryptoExercise) && (
+                <CryptoLab
+                  key={atom.id}
+                  {...(atom.crypto || atom.cryptoExercise)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* A judgement call, graded inline. The part of security that is
+                  decisions rather than commands. */}
+              {atom.decision && (
+                <DecisionCheck
+                  key={atom.id}
+                  {...atom.decision}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
               {atom.example && (
                 <div className="ac-note ac-note--example">
                   <span className="ac-note__label">Example</span>
@@ -493,6 +631,55 @@ export default function LessonPlayer() {
                         The relationship is not right yet. Pick the joining
                         column in each table and press{" "}
                         <em>Check my model</em>.
+                      </>
+                    ) : atom.phishExercise ? (
+                      <>
+                        You have not marked what gives this message away yet.
+                        Click the parts that should stop you trusting it and
+                        press <em>Check my findings</em>.
+                      </>
+                    ) : atom.captureExercise ? (
+                      <>
+                        You have not found the packet yet. Narrow the capture
+                        with a display filter, click the row that answers the
+                        question, and press <em>Check my answer</em>.
+                      </>
+                    ) : atom.permsExercise ? (
+                      <>
+                        The permissions do not meet the requirement yet. Toggle
+                        the bits and press <em>Check my permissions</em>.
+                      </>
+                    ) : atom.firewallExercise ? (
+                      <>
+                        Some traffic is still getting the wrong verdict. Reorder
+                        or change the rules and press <em>Check my policy</em>.
+                      </>
+                    ) : atom.huntExercise ? (
+                      <>
+                        Your rule does not catch the attack cleanly yet. Adjust
+                        the conditions and press <em>Check my detection</em>.
+                      </>
+                    ) : atom.riskExercise ? (
+                      <>
+                        The findings are not prioritised correctly yet. Weigh
+                        the context, not just the score, and press{" "}
+                        <em>Check my priorities</em>.
+                      </>
+                    ) : atom.terminalExercise ? (
+                      <>
+                        You have not run the command that answers this yet. Try
+                        it at the prompt and press <em>Check my work</em>.
+                      </>
+                    ) : atom.cryptoExercise ? (
+                      <>
+                        The lab is not satisfied yet. Work the task in the
+                        panel above and press the check button under it.
+                      </>
+                    ) : atom.decision ? (
+                      <>
+                        You have not made the call yet. Choose the option you
+                        would actually go with and press{" "}
+                        <em>Check my call</em>.
                       </>
                     ) : (
                       <>
