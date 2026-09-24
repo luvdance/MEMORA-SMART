@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { reportError } from "../services/errors";
-import {
-  UNREADABLE_COPY,
-  groupThread,
-  unreadableReason,
-} from "../data/chatHistory";
 import { BADGES } from "../data/gamification";
 import {
   getLeaderboard,
@@ -31,7 +26,6 @@ import {
 import {
   conversationFingerprint,
   conversationIdFor,
-  identityCreatedAt,
   isE2eeAvailable,
 } from "../services/e2ee";
 import { isMuted, playReceived, playSent, setMuted } from "../services/chime";
@@ -146,30 +140,6 @@ function StudentCard({ person, status, onMessage, onBlock, onReport, busy }) {
   );
 }
 
-/**
- * One run of messages that cannot be decrypted.
- *
- * Deliberately quiet: this is not an error and there is nothing to retry. It
- * states what happened, whose side it happened on where that is knowable, and
- * that messages from here on are unaffected — which is the thing a learner
- * actually needs to know.
- */
-function UnreadableRun({ count, reason }) {
-  const copy = UNREADABLE_COPY[reason];
-  return (
-    <div className="ac-sp__locked">
-      <i className="fas fa-lock" aria-hidden="true" />
-      <div>
-        <strong>{copy.title}</strong>
-        <p>{copy.detail}</p>
-        <span className="ac-sp__lockedcount">
-          {count} earlier {count === 1 ? "message" : "messages"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 /* ── Chat thread ───────────────────────────────────────────────────────── */
 
 function ChatThread({ user, person, status, onBack, onSent }) {
@@ -179,12 +149,6 @@ function ChatThread({ user, person, status, onBack, onSent }) {
   const [sending, setSending] = useState(false);
   const [safetyCode, setSafetyCode] = useState(null);
   const [showCode, setShowCode] = useState(false);
-  /* Evidence for explaining unreadable history, not a status to display.
-     `rotated` means this device replaced a previously published key; `keyAge`
-     is when this device's key was created. Together they decide which side
-     changed, so the thread can say so instead of blaming the browser for what
-     is usually the other person's reinstall. */
-  const [keyFacts, setKeyFacts] = useState({ rotated: false, keyAge: null });
   const [muted, setMutedState] = useState(() => isMuted());
   const endRef = useRef(null);
   const seenRef = useRef(null);
@@ -220,10 +184,7 @@ function ChatThread({ user, person, status, onBack, onSent }) {
     let alive = true;
     (async () => {
       try {
-        const { publicKey: mine, rotated } = await publishPublicKey(user);
-        const keyAge = await identityCreatedAt(user.uid);
-        if (alive) setKeyFacts({ rotated: Boolean(rotated), keyAge });
-
+        const { publicKey: mine } = await publishPublicKey(user);
         const theirs = await getPublicKey(person.id);
         if (!theirs || !alive) return;
         const code = await conversationFingerprint(mine, theirs);
@@ -236,6 +197,18 @@ function ChatThread({ user, person, status, onBack, onSent }) {
       alive = false;
     };
   }, [user, person]);
+
+  /* What this device can actually open.
+   *
+   * decryptMessage returns null rather than throwing for a message encrypted
+   * to a key this device does not hold — which happens whenever either side
+   * signs in somewhere new or clears their browser. Those are dropped here, so
+   * the thread shows the conversation rather than a column of notices about
+   * one. null while loading, so the empty state does not flash. */
+  const readable = useMemo(
+    () => (messages === null ? null : messages.filter((m) => m.text !== null)),
+    [messages]
+  );
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "nearest" });
@@ -285,8 +258,7 @@ function ChatThread({ user, person, status, onBack, onSent }) {
       </div>
 
       <p className="ac-sp__crypto">
-        <i className="fas fa-lock" aria-hidden="true" /> Encrypted in your
-        browser — we store only the ciphertext and cannot read this.{" "}
+        <i className="fas fa-lock" aria-hidden="true" /> End-to-end encrypted{" "}
         <button
           type="button"
           className="ac-sp__codelink"
@@ -309,36 +281,23 @@ function ChatThread({ user, person, status, onBack, onSent }) {
 
       <div className="ac-sp__messages">
         {messages === null && <p className="ac-sp__msg">Opening…</p>}
-        {messages?.length === 0 && (
+        {readable?.length === 0 && (
           <p className="ac-sp__msg">
             No messages yet. Ask your question — {person.name} will see it next
             time they are on.
           </p>
         )}
-        {/* Runs of unreadable messages collapse into one explanation. Nine
-            identical alarming lines said nothing nine times and buried the
-            messages that could be read. */}
-        {messages &&
-          groupThread(messages).map((entry) =>
-            entry.kind === "message" ? (
-              <div
-                key={entry.message.id}
-                className={`ac-sp__bubble ${entry.message.mine ? "is-mine" : ""}`}
-              >
-                {entry.message.text}
-              </div>
-            ) : (
-              <UnreadableRun
-                key={entry.ids[0]}
-                count={entry.count}
-                reason={unreadableReason({
-                  rotated: keyFacts.rotated,
-                  identityCreatedAt: keyFacts.keyAge,
-                  sentAt: entry.sentAt,
-                })}
-              />
-            )
-          )}
+        {/* Messages this device cannot decrypt are simply not shown.
+            They first rendered one warning line each, then one grouped
+            explanation; both were noise in a thread. A message that cannot be
+            opened is not something the reader can act on, and the panel
+            already says the conversation is end-to-end encrypted, which is the
+            whole reason older messages sometimes do not appear. */}
+        {readable?.map((m) => (
+          <div key={m.id} className={`ac-sp__bubble ${m.mine ? "is-mine" : ""}`}>
+            {m.text}
+          </div>
+        ))}
         <div ref={endRef} />
       </div>
 

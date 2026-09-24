@@ -1003,54 +1003,6 @@
   border-color: #c3cbf5;
 }
 
-/* A run of messages that cannot be decrypted, collapsed into one entry.
-   Replaces .ac-sp__bubble.is-unreadable, which styled EVERY undecryptable
-   message as its own amber bubble — so a thread whose key had changed became
-   a column of identical warnings with the readable messages lost among them.
-
-   Deliberately not amber and not a bubble. This is not an error and not
-   something either person said; it is a note about the thread, so it reads as
-   the interface speaking rather than as a failed message. */
-.ac-sp__locked {
-  align-self: stretch;
-  display: flex;
-  gap: 11px;
-  padding: 12px 13px;
-  border-radius: 12px;
-  background: var(--ac-tint);
-  border: 1px dashed var(--ac-line);
-}
-
-.ac-sp__locked > i {
-  flex: none;
-  margin-top: 2px;
-  font-size: 0.8rem;
-  color: var(--ac-muted);
-}
-
-.ac-sp__locked strong {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--ac-ink-2);
-}
-
-.ac-sp__locked p {
-  margin: 4px 0 0;
-  font-size: 0.76rem;
-  line-height: 1.55;
-  color: var(--ac-muted);
-}
-
-.ac-sp__lockedcount {
-  display: block;
-  margin-top: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ac-muted);
-}
-
 .ac-sp__composer {
   display: flex;
   gap: 8px;
