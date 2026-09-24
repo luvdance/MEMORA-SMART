@@ -268,10 +268,43 @@ export function subscribeActiveStudents(
    PUBLIC KEYS
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/**
+ * Publish this browser's public key so others can write to you.
+ *
+ * ── ROTATION IS DETECTED, NOT SILENT ─────────────────────────────────────
+ * This runs on every chat open. Normally it republishes the identical key and
+ * nothing changes. But if this browser had to generate a fresh keypair — a new
+ * device, a cleared site, or storage the browser evicted, which some do after
+ * a period of disuse — it silently replaced the published key and every
+ * message either side had ever sent became undecryptable, for both of them,
+ * permanently. Nobody was told, and the chat simply filled with a line about a
+ * key the browser did not have.
+ *
+ * So the previously published key is read first and compared. `rotated` says
+ * this account's key changed on this device, which is the one fact that
+ * explains the whole thread going unreadable, and the interface can say so
+ * once instead of repeating a cryptographic detail per message.
+ *
+ * It is NOT an error and nothing is retried: the new key is correct and
+ * current, and going forward everything works. What is lost is the past, and
+ * that is a property of end-to-end encryption rather than a fault.
+ */
 export async function publishPublicKey(user) {
   if (!user?.uid) throw new Error("Not signed in");
   const pair = await getIdentity(user.uid);
   const publicKey = await exportPublicKey(pair);
+
+  // Read before write. A failure here must not stop the key being published —
+  // messaging working matters more than knowing whether it rotated.
+  let previous = null;
+  try {
+    const snap = await getDoc(publicKeyRef(user.uid));
+    previous = snap.exists() ? snap.data().publicKey || null : null;
+  } catch {
+    previous = null;
+  }
+
+  const rotated = Boolean(previous && previous !== publicKey);
 
   await setDoc(
     publicKeyRef(user.uid),
@@ -279,12 +312,13 @@ export async function publishPublicKey(user) {
       uid: user.uid,
       publicKey,
       algorithm: "ECDH-P256",
+      ...(rotated ? { rotatedAt: serverTimestamp() } : {}),
       updatedAt: serverTimestamp(),
     },
     { merge: true }
   );
 
-  return { pair, publicKey };
+  return { pair, publicKey, rotated };
 }
 
 export async function getPublicKey(uid) {

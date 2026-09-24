@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { reportError } from "../services/errors";
+import {
+  UNREADABLE_COPY,
+  groupThread,
+  unreadableReason,
+} from "../data/chatHistory";
 import { BADGES } from "../data/gamification";
 import {
   getLeaderboard,
@@ -26,6 +31,7 @@ import {
 import {
   conversationFingerprint,
   conversationIdFor,
+  identityCreatedAt,
   isE2eeAvailable,
 } from "../services/e2ee";
 import { isMuted, playReceived, playSent, setMuted } from "../services/chime";
@@ -140,6 +146,30 @@ function StudentCard({ person, status, onMessage, onBlock, onReport, busy }) {
   );
 }
 
+/**
+ * One run of messages that cannot be decrypted.
+ *
+ * Deliberately quiet: this is not an error and there is nothing to retry. It
+ * states what happened, whose side it happened on where that is knowable, and
+ * that messages from here on are unaffected — which is the thing a learner
+ * actually needs to know.
+ */
+function UnreadableRun({ count, reason }) {
+  const copy = UNREADABLE_COPY[reason];
+  return (
+    <div className="ac-sp__locked">
+      <i className="fas fa-lock" aria-hidden="true" />
+      <div>
+        <strong>{copy.title}</strong>
+        <p>{copy.detail}</p>
+        <span className="ac-sp__lockedcount">
+          {count} earlier {count === 1 ? "message" : "messages"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* ── Chat thread ───────────────────────────────────────────────────────── */
 
 function ChatThread({ user, person, status, onBack, onSent }) {
@@ -149,6 +179,12 @@ function ChatThread({ user, person, status, onBack, onSent }) {
   const [sending, setSending] = useState(false);
   const [safetyCode, setSafetyCode] = useState(null);
   const [showCode, setShowCode] = useState(false);
+  /* Evidence for explaining unreadable history, not a status to display.
+     `rotated` means this device replaced a previously published key; `keyAge`
+     is when this device's key was created. Together they decide which side
+     changed, so the thread can say so instead of blaming the browser for what
+     is usually the other person's reinstall. */
+  const [keyFacts, setKeyFacts] = useState({ rotated: false, keyAge: null });
   const [muted, setMutedState] = useState(() => isMuted());
   const endRef = useRef(null);
   const seenRef = useRef(null);
@@ -184,7 +220,10 @@ function ChatThread({ user, person, status, onBack, onSent }) {
     let alive = true;
     (async () => {
       try {
-        const { publicKey: mine } = await publishPublicKey(user);
+        const { publicKey: mine, rotated } = await publishPublicKey(user);
+        const keyAge = await identityCreatedAt(user.uid);
+        if (alive) setKeyFacts({ rotated: Boolean(rotated), keyAge });
+
         const theirs = await getPublicKey(person.id);
         if (!theirs || !alive) return;
         const code = await conversationFingerprint(mine, theirs);
@@ -276,20 +315,30 @@ function ChatThread({ user, person, status, onBack, onSent }) {
             time they are on.
           </p>
         )}
-        {messages?.map((m) => (
-          <div
-            key={m.id}
-            className={`ac-sp__bubble ${m.mine ? "is-mine" : ""} ${
-              m.text === null ? "is-unreadable" : ""
-            }`}
-          >
-            {m.text === null ? (
-              <em>Encrypted with a key this browser does not have.</em>
+        {/* Runs of unreadable messages collapse into one explanation. Nine
+            identical alarming lines said nothing nine times and buried the
+            messages that could be read. */}
+        {messages &&
+          groupThread(messages).map((entry) =>
+            entry.kind === "message" ? (
+              <div
+                key={entry.message.id}
+                className={`ac-sp__bubble ${entry.message.mine ? "is-mine" : ""}`}
+              >
+                {entry.message.text}
+              </div>
             ) : (
-              m.text
-            )}
-          </div>
-        ))}
+              <UnreadableRun
+                key={entry.ids[0]}
+                count={entry.count}
+                reason={unreadableReason({
+                  rotated: keyFacts.rotated,
+                  identityCreatedAt: keyFacts.keyAge,
+                  sentAt: entry.sentAt,
+                })}
+              />
+            )
+          )}
         <div ref={endRef} />
       </div>
 

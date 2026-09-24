@@ -14,6 +14,7 @@ import {
 } from "firebase/auth";
 import { initUserDoc } from "../utils/userService";
 import { track, identify, resetAnalytics } from "../utils/analytics";
+import { clearKeyCache } from "../academy/services/e2ee";
 
 const AuthContext = createContext();
 
@@ -78,6 +79,13 @@ export function AuthProvider({ children }) {
   // ── LOGOUT ──
   const logout = async () => {
     resetAnalytics();
+    // Derived chat keys live in memory for the session. The cache is keyed on
+    // both parties' public keys, so a second account could not have read the
+    // first's threads through it — but e2ee.js documented this call as a
+    // second line of defence and nothing was making it. On a shared laptop,
+    // which is this audience's common case, "documented but not wired up" is
+    // the worst of both: the reasoning looks handled and is not.
+    clearKeyCache();
     await signOut(auth);
   };
 

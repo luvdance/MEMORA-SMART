@@ -75,6 +75,27 @@ const STORE = "keys";
 const LEGACY_KEY_ID = "identity";
 const keyIdFor = (uid) => `identity:${uid}`;
 
+/**
+ * When this browser's key for an account was created.
+ *
+ * Stored beside the keypair, because without it a message that fails to
+ * decrypt is indistinguishable from a message that was tampered with, and the
+ * chat could only say "encrypted with a key this browser does not have" — for
+ * every message, forever, with no indication of why or what to do.
+ *
+ * With it, the two ordinary causes can be told apart and named:
+ *
+ *   sent BEFORE this key existed   this browser is new to the account, or its
+ *                                  storage was cleared. History is not
+ *                                  recoverable here and never will be.
+ *   sent AFTER it                  the other person's device key changed since
+ *                                  — they reinstalled, or cleared their data.
+ *
+ * Neither is an error, and neither is the learner's fault. They are facts
+ * about end-to-end encryption that the interface has to be able to state.
+ */
+const metaIdFor = (uid) => `identity-meta:${uid}`;
+
 /* ── Availability ───────────────────────────────────────────────────────── */
 
 /**
@@ -191,7 +212,29 @@ export async function getIdentity(uid) {
   );
 
   await idbPut(id, pair);
+  // Written AFTER the key, so a failure here leaves us without a timestamp
+  // rather than claiming a key exists that does not. A missing timestamp is
+  // handled: identityCreatedAt returns null and the caller says less rather
+  // than something wrong.
+  await idbPut(metaIdFor(uid), { createdAt: Date.now() });
   return pair;
+}
+
+/**
+ * When this browser's key for an account was created, or null.
+ *
+ * Null means either that the key predates this record being kept, or that
+ * writing it failed. Callers must treat null as "cannot tell" and say nothing
+ * about causes, rather than guessing.
+ */
+export async function identityCreatedAt(uid) {
+  if (!isE2eeAvailable() || !uid) return null;
+  try {
+    const meta = await idbGet(metaIdFor(uid));
+    return typeof meta?.createdAt === "number" ? meta.createdAt : null;
+  } catch {
+    return null;
+  }
 }
 
 /** The public half, base64, for publishing so others can write to you. */
@@ -376,6 +419,7 @@ export default {
   isE2eeAvailable,
   clearKeyCache,
   getIdentity,
+  identityCreatedAt,
   hasIdentity,
   exportPublicKey,
   deriveConversationKey,
