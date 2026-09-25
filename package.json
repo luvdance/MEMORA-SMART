@@ -10,6 +10,7 @@
     "validate:content": "node lib/academy/validateContent.mjs",
     "test:academy": "node lib/academy/selfTest.mjs",
     "test:exam": "node lib/academy/finalExam/selfTest.mjs",
+    "test:maths": "node lib/academy/maths/selfTest.mjs",
     "test:e2ee": "node lib/academy/e2eeSelfTest.mjs",
     "preview": "vite preview"
   },

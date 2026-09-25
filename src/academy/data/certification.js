@@ -84,6 +84,18 @@ export const CERTIFICATION = {
    * and empty: `examFor()` returning null is what produces the "unavailable"
    * state, and that state says so honestly instead of showing a learner a
    * locked exam that does not exist.
+   *
+   * Mathematics is absent for the same reason, and for one more that is
+   * specific to it. `outstandingModules()` below deliberately EXCLUDES
+   * modules whose lessons are not written yet, so that a learner is never
+   * blocked by content that does not exist. That is right while a course is
+   * being built and wrong for a certificate: with four of the thirty-two
+   * maths modules written, an exam added today would unlock after Month 1 and
+   * issue a certificate covering an eighth of the course.
+   *
+   * So the maths exam is added when the maths content is complete, not
+   * before. Until then the profile says "no certification exam yet", which is
+   * true, rather than offering one that would certify the wrong thing.
    */
 };
 

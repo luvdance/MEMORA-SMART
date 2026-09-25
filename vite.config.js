@@ -126,6 +126,42 @@ function academyApi() {
           respond(502, { error: 'Could not reach the job sources', detail: err.message })
         }
       })
+
+      // Mathematics. Reuses the production handler verbatim through the same
+      // req/res shim the final exam uses, so the dev server and Vercel cannot
+      // drift apart on the one endpoint that holds every maths answer.
+      server.middlewares.use('/api/academy/maths', async (req, res) => {
+        try {
+          const mod = await server.ssrLoadModule('/lib/academy/maths/api/maths.js')
+          const url = new URL(req.url, 'http://localhost')
+          const query = Object.fromEntries(url.searchParams.entries())
+
+          let body = {}
+          if (req.method === 'POST') {
+            let raw = ''
+            for await (const chunk of req) raw += chunk
+            body = JSON.parse(raw || '{}')
+          }
+
+          const shim = {
+            status(code) {
+              res.statusCode = code
+              return shim
+            },
+            json(payload) {
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify(payload))
+              return shim
+            },
+            setHeader: (k, v) => res.setHeader(k, v),
+          }
+          await mod.default({ method: req.method, query, body }, shim)
+        } catch (err) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
     },
   }
 }

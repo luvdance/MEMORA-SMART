@@ -1,5 +1,6 @@
 import DATA_ANALYSIS_COURSE from "./dataAnalysisCourse.js";
 import CYBERSECURITY_COURSE from "./cybersecurityCourse.js";
+import MATHEMATICS_COURSE from "./mathematicsCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -111,6 +112,31 @@ export const CATALOG = [
       "Capstone project",
     ],
     course: CYBERSECURITY_COURSE,
+  },
+  {
+    id: "mathematics",
+    code: "MA-101",
+    slug: "mathematics",
+    title: "Mathematics",
+    subtitle: "Elementary to University-Ready",
+    category: "skills",
+    icon: "fas fa-square-root-variable",
+    status: "open",
+    beta: true,
+    level: "Foundations → SS3",
+    // Its own player. See the PLAYER note above.
+    player: "/academy/maths",
+    summary:
+      "Start below JSS1 and finish past SS3. The language of the subject, then number, algebra, geometry, trigonometry and calculus - explained, worked, drilled and assessed, through to a certification exam and a university bridge.",
+    covers: [
+      "Number & numeration",
+      "Algebra",
+      "Geometry & mensuration",
+      "Trigonometry",
+      "Statistics & probability",
+      "WAEC / NECO / JAMB technique",
+    ],
+    course: MATHEMATICS_COURSE,
   },
   {
     id: "web-development",

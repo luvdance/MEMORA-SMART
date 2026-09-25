@@ -28,6 +28,10 @@ import RiskGrid from "../components/RiskGrid";
 import TerminalSim from "../components/TerminalSim";
 import CryptoLab from "../components/CryptoLab";
 import DecisionCheck from "../components/DecisionCheck";
+// The mathematics drill. Same contract as every sim above: generated questions
+// that must be answered correctly before the atom advances, with a repair loop
+// behind a wrong answer. See components/MathsDrill.jsx.
+import MathsDrill from "../components/MathsDrill";
 import BetaBadge from "../components/BetaBadge";
 import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getExamForModule } from "../data/exams";
@@ -179,6 +183,7 @@ export default function LessonPlayer() {
       atom?.riskExercise ||
       atom?.terminalExercise ||
       atom?.cryptoExercise ||
+      atom?.drill ||
       atom?.decision) &&
       !solved.has(atom.id)
   );
@@ -209,7 +214,7 @@ export default function LessonPlayer() {
       document
         .querySelector(
           ".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model, .ac-trace, " +
-            ".ac-phish, .ac-pcap, .ac-perm, .ac-fw, .ac-hunt, .ac-risk, .ac-term, .ac-crypto, .ac-decide"
+            ".ac-phish, .ac-pcap, .ac-perm, .ac-fw, .ac-hunt, .ac-risk, .ac-term, .ac-crypto, .ac-decide, .ac-drill"
         )
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -583,6 +588,18 @@ export default function LessonPlayer() {
                 />
               )}
 
+              {/* MATHEMATICS. Generated practice on one skill, with the
+                  repair loop that will not release a wrong answer. Keyed per
+                  atom for the same reason every sim above is. */}
+              {atom.drill && (
+                <MathsDrill
+                  key={atom.id}
+                  {...atom.drill}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
               {atom.example && (
                 <div className="ac-note ac-note--example">
                   <span className="ac-note__label">Example</span>
@@ -674,6 +691,13 @@ export default function LessonPlayer() {
                       <>
                         The lab is not satisfied yet. Work the task in the
                         panel above and press the check button under it.
+                      </>
+                    ) : atom.drill ? (
+                      <>
+                        The practice above is not finished yet. Work through
+                        each question and press <em>Check my answer</em>. If you
+                        get one wrong you will be given a fresh one on the same
+                        idea — that is the part that makes it stick.
                       </>
                     ) : atom.decision ? (
                       <>

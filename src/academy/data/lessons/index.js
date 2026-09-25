@@ -1,5 +1,6 @@
 import DATA_ANALYSIS_COURSE from "../dataAnalysisCourse.js";
 import CYBERSECURITY_COURSE from "../cybersecurityCourse.js";
+import MATHEMATICS_COURSE from "../mathematicsCourse.js";
 import { LESSONS as FOUNDATIONS } from "./m1-data-foundations.js";
 import { LESSONS as EXCEL_SETUP } from "./m1-excel-setup.js";
 import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
@@ -21,6 +22,14 @@ import { LESSONS as PANDAS } from "./m4-pandas.js";
 import { LESSONS as TRANSFORM } from "./m4-transform.js";
 import { LESSONS as VISUAL_ANALYSIS } from "./m4-visual-analysis.js";
 import { LESSONS as CAPSTONE } from "./m4-capstone.js";
+
+// ── Mathematics, one file per module ──────────────────────────────────────
+import { LESSONS as MA_M1_WELCOME } from "./ma-m1-welcome.js";
+import { LESSONS as MA_M1_LANGUAGE } from "./ma-m1-language.js";
+import { LESSONS as MA_M1_NUMBERS } from "./ma-m1-numbers.js";
+import { LESSONS as MA_M1_PLACE_VALUE } from "./ma-m1-place-value.js";
+import { LESSONS as MA_M2_OPERATIONS } from "./ma-m2-operations.js";
+import { LESSONS as MA_M2_FACTORS } from "./ma-m2-factors.js";
 
 // ── Cybersecurity, one file per week ──────────────────────────────────────
 import { LESSONS as CS_W1 } from "./cs-w1-fundamentals.js";
@@ -82,6 +91,15 @@ const REGISTRY = {
     "m4-capstone": CAPSTONE,
   },
 
+  mathematics: {
+    "ma-m1-welcome": MA_M1_WELCOME,
+    "ma-m1-language": MA_M1_LANGUAGE,
+    "ma-m1-numbers": MA_M1_NUMBERS,
+    "ma-m1-place-value": MA_M1_PLACE_VALUE,
+    "ma-m2-operations": MA_M2_OPERATIONS,
+    "ma-m2-factors": MA_M2_FACTORS,
+  },
+
   cybersecurity: {
     "cs-w1-fundamentals": CS_W1,
     "cs-w2-accounts": CS_W2,
@@ -114,6 +132,7 @@ const REGISTRY = {
 const CURRICULA = {
   [DATA_ANALYSIS_COURSE.slug]: DATA_ANALYSIS_COURSE,
   [CYBERSECURITY_COURSE.slug]: CYBERSECURITY_COURSE,
+  [MATHEMATICS_COURSE.slug]: MATHEMATICS_COURSE,
 };
 
 /**

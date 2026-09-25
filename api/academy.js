@@ -1,6 +1,7 @@
 import assessment from "../lib/academy/api/assessment.js";
 import finalExam from "../lib/academy/api/finalExam.js";
 import jobs from "../lib/academy/api/jobs.js";
+import maths from "../lib/academy/maths/api/maths.js";
 
 /**
  * One function for every /api/academy/* route.
@@ -14,6 +15,7 @@ import jobs from "../lib/academy/api/jobs.js";
  *   /api/academy/assessment → /api/academy?action=assessment
  *   /api/academy/final-exam → /api/academy?action=final-exam
  *   /api/academy/jobs       → /api/academy?action=jobs
+ *   /api/academy/maths      → /api/academy?action=maths
  *
  * Do NOT reintroduce a `[action].js` dynamic route here. Vercel did not match
  * those filenames on this project: GET fell through to the SPA catch-all
@@ -22,7 +24,7 @@ import jobs from "../lib/academy/api/jobs.js";
  *
  * Add a route by adding an entry here AND a rewrite in vercel.json.
  */
-const routes = { assessment, "final-exam": finalExam, jobs };
+const routes = { assessment, "final-exam": finalExam, jobs, maths };
 
 export default async function handler(req, res) {
   const { action } = req.query || {};
