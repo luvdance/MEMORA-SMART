@@ -36,7 +36,7 @@ export const LESSONS = [
     subtitle: "The only thing separating a professional from a defendant",
     estimatedMinutes: 13,
     intro:
-      "There is no technical difference between a penetration test and an intrusion. The packets are identical, the tools are identical, and the logs look the same. The only difference is a document, signed before you started, by somebody entitled to sign it. This lesson is that document.",
+      "There is no technical difference between a penetration test and an intrusion. The packets are identical, the tools are identical, and the logs look the same. The only difference is a document, signed before you started, by somebody entitled to sign it. This lesson is that document. Week 1 gave you the principle, that unauthorised access is the offence. From here the question is practical: who signs, what the signature covers, and what you do when the engagement meets something nobody planned for.",
 
     atoms: [
       {

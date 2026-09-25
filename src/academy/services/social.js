@@ -306,13 +306,18 @@ export async function publishPublicKey(user) {
 
   const rotated = Boolean(previous && previous !== publicKey);
 
+  // The written shape is fixed by firestore.rules, which allowlists exactly
+  // these four keys via hasOnly(). merge:true does not exempt it: the rule sees
+  // the POST-merge document, so one extra field fails the whole write and the
+  // key never publishes — which reads to the learner as "nobody can message
+  // me". Rotation is returned to the caller instead of being stored; if it ever
+  // needs persisting, the rule has to allow the field in the same change.
   await setDoc(
     publicKeyRef(user.uid),
     {
       uid: user.uid,
       publicKey,
       algorithm: "ECDH-P256",
-      ...(rotated ? { rotatedAt: serverTimestamp() } : {}),
       updatedAt: serverTimestamp(),
     },
     { merge: true }

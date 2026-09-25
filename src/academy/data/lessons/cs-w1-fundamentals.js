@@ -27,13 +27,197 @@ export const SECTION_ID = "cs-s1-foundations";
 
 export const LESSONS = [
   /* ═══════════════════════════════════════════════════════════════════
+     LESSON 0 · the grounding
+     ───────────────────────────────────────────────────────────────────
+     Deliberately numbered l0 rather than renumbering l1 to l64. Lesson
+     ids are the key that progress records, assessments and the final
+     exam all reference, so renumbering would orphan every learner who
+     has already started. Only `order` moves.
+
+     This lesson exists because the course used to open on trade-offs and
+     reach the law in Week 9. Nothing before Week 9 asks a learner to
+     touch a system they do not own, so that was defensible. It was still
+     the wrong order: a learner who gets curious in Week 8 has by then
+     read eight weeks about how attacks work and nothing about what they
+     are permitted to do. Week 9 keeps the engagement-specific depth.
+     This is the grounding it assumes.
+  ═══════════════════════════════════════════════════════════════════ */
+  {
+    id: "cs-l0-what-cybersecurity-is",
+    moduleId: "cs-w1-fundamentals",
+    sectionId: SECTION_ID,
+    order: 1,
+    title: "What Cybersecurity Is",
+    subtitle: "The field, the law, and what you are allowed to do",
+    estimatedMinutes: 12,
+    intro:
+      "Before any technique, you need two things. A clear idea of what this field actually is, because the popular picture of it is wrong in ways that will mislead you. And a clear idea of what you may lawfully do, because the difference between a security professional and a defendant is usually a document rather than a skill. This lesson is the ground everything else in the course stands on.",
+
+    atoms: [
+      {
+        id: "a-cs-what-security-is",
+        title: "What the field actually is",
+        explain:
+          "Cybersecurity is the practice of protecting information, and the systems that hold it, from people who want to read it, change it, destroy it, or stop the people who need it from reaching it. That is the whole definition. Everything else in this course is a technique in service of it.",
+        why: "The popular image is somebody in a hood breaking into a bank. That is one small and heavily supervised corner of the work. The great majority of the job runs the other direction: designing systems that hold up, watching for trouble, and cleaning up afterwards. If you came here to learn to break in, you will spend most of these sixteen weeks building.",
+        analogy:
+          "Nobody calls a structural engineer a demolition expert. Some of them do study how buildings fall down, and they study it so the ones they design stay up.",
+        mistake:
+          "Thinking of security as a specialism bolted on at the end. A system is secure or not because of how it was built, and a team added at the end can only report on decisions somebody else already made.",
+      },
+      {
+        id: "a-cs-what-you-defend",
+        title: "You are not defending computers",
+        explain:
+          "You are defending what the computers carry, and what people do with them. The machine is replaceable. A hospital's patient records are not. Neither is a bank's ability to move money on a Monday morning, or a school's exam results, or a small business's only copy of its invoices.",
+        why: "This changes what you protect first. If you think the job is protecting machines, you spend on the expensive servers. If you think the job is protecting what the organisation cannot operate without, you often find that sitting on an unremarkable laptop nobody backs up.",
+        table: {
+          caption: "The same incident, seen two ways.",
+          headers: ["What was attacked", "What was actually lost"],
+          rows: [
+            ["A clinic's file server", "Patients turned away because nobody could confirm what they were prescribed"],
+            ["A payment gateway", "Every merchant on it stopped trading for the day"],
+            ["A staff email account", "The supplier who paid an invoice into the attacker's account"],
+            ["A university portal", "Results for thirty thousand students, and trust in all of them"],
+          ],
+          note: "In every row the technical target and the real damage are different things. The second column is what you are defending, and it is what a report to management has to talk about.",
+        },
+      },
+      {
+        id: "a-cs-the-work",
+        title: "What the work actually looks like",
+        explain:
+          "The field is broad enough that two people can both be security professionals and share almost no daily tasks. It helps to know the shape of it early, because you are choosing a direction whether or not you notice.",
+        table: {
+          caption: "The main areas, and where this course covers each.",
+          headers: ["Area", "What it involves", "Covered in"],
+          rows: [
+            ["Security operations", "Watching for attacks in progress and responding to them", "Weeks 11 and 12"],
+            ["Offensive security", "Testing a system with permission, to find what an attacker would find", "Weeks 9 and 10"],
+            ["Application security", "Finding and fixing weaknesses in software before it ships", "Weeks 7 and 8"],
+            ["Network and infrastructure", "Designing systems so one breach does not become ten", "Weeks 4, 5 and 6"],
+            ["Governance, risk and compliance", "Policy, law, audit, and proving that controls actually work", "Week 13"],
+            ["Digital forensics", "Reconstructing what happened, in a form that holds up later", "Week 12"],
+            ["Cloud security", "The same problems, on infrastructure you do not own", "Week 14"],
+          ],
+          note: "Almost nobody starts in offensive security. It is the most visible area and the smallest, and it assumes most of the others.",
+        },
+      },
+      {
+        id: "a-cs-the-law",
+        title: "The legal framework",
+        explain:
+          "One principle carries almost all of it. Accessing a computer system without authorisation is an offence. Not damaging it. Not stealing from it. Accessing it. Every jurisdiction you are likely to work in states some version of that, and the wording differs far less than people expect.",
+        why: "Two consequences catch beginners, and both are worth reading twice. Intent to cause harm is generally not required, so \"I was only looking\" is not a defence. And access includes probing, so a scan a system answers has accessed it. The offence is complete at that point.",
+        table: {
+          caption: "The same principle, in the laws you are most likely to meet.",
+          headers: ["Where", "The law", "What it makes an offence"],
+          rows: [
+            ["Nigeria", "Cybercrimes (Prohibition, Prevention, etc.) Act 2015", "Unauthorised access to a computer system, and unauthorised interception or modification of data"],
+            ["United Kingdom", "Computer Misuse Act 1990", "Unauthorised access, access with intent to commit a further offence, and unauthorised modification"],
+            ["United States", "Computer Fraud and Abuse Act", "Access without authorisation, or exceeding the access you were given"],
+            ["African Union", "Malabo Convention 2014", "A common framework member states adopt into their own national law"],
+            ["Council of Europe", "Budapest Convention 2001", "The treaty most cross-border cybercrime cooperation runs through"],
+          ],
+          note: "Data protection law is a separate question, covered in Week 13. Breaking into a system and mishandling personal data are different offences, and either can happen without the other.",
+        },
+        mistake:
+          "Assuming that a system being obviously insecure is a kind of invitation. It is not, in any of these jurisdictions. An unlocked door is still not permission to walk in.",
+      },
+      {
+        id: "a-cs-authorisation",
+        title: "The only three places you may practise",
+        explain:
+          "Everything you learn in this course has to be practised somewhere. There are exactly three lawful somewheres, and anything outside them is the offence described in the previous atom.",
+        example:
+          "  1. Your own lab.\n     The virtual machine you build later this week. You own it, it is\n     isolated, and you can break it as thoroughly as you like.\n\n  2. Targets built to be attacked.\n     Deliberately vulnerable applications, and the training platforms\n     that host them. Read each one's terms. They define what is\n     permitted, and they are the authorisation.\n\n  3. A system you have written permission to test.\n     From somebody with authority over it, naming the targets, the\n     dates and what is allowed. Week 9 covers how that document is\n     written and who can sign it.",
+        why: "Notice what is absent. Your employer's network, because you work there. Your school's portal, because you are a student. A friend's site, because they said it was fine on the phone. A company that runs a bug bounty, outside the scope that bounty defines. None of those is authorisation, and the first two are where most beginners get into real trouble.",
+        decision: {
+          scenario:
+            "You are logged into your school's results portal. You notice the address ends in /results?student=40881, and 40881 is your own number. You change it to 40882 out of curiosity and another student's results load. You did not expect that to work.",
+          question: "What do you do now?",
+          options: [
+            {
+              id: "a",
+              text: "Try a few more numbers to confirm the pattern, then report it with the evidence",
+              whyWrong:
+                "Every additional request is a further unauthorised access, and each one is a separate instance of the offence. Confirming the pattern is precisely the step researchers have been prosecuted for. You already know enough to report, and a second example adds nothing the school cannot verify itself.",
+            },
+            {
+              id: "b",
+              text: "Stop immediately, write down the single address you saw and what appeared, and report it to a named person at the school",
+              why: "You report the thing that already happened without extending it. One observed instance is a complete report, because the school can reproduce it on their own system in a second. This is both the strongest position legally and the most useful thing you can hand them.",
+            },
+            {
+              id: "c",
+              text: "Post a screenshot in the student group so the school is forced to act",
+              whyWrong:
+                "The screenshot exposes another student's results, which harms somebody who had no part in this. It also hands a working technique to everyone reading, before there is any fix. If the school ignores a responsible report, escalation is available later. It is not the first move.",
+            },
+            {
+              id: "d",
+              text: "Say nothing. You were not meant to see it, so reporting admits you did something wrong",
+              whyWrong:
+                "The access already happened, and staying quiet does not undo it. It leaves every other student exposed for as long as nobody speaks. Reporting promptly and honestly is a mitigating fact, and silence followed by later discovery looks far worse.",
+            },
+          ],
+          correct: "b",
+          aftermath:
+            "A number in an address that turns out to be somebody else's record is one of the most common accidental findings there is. The instinct to check it twice more is what turns an accident into a decision.",
+        },
+      },
+      {
+        id: "a-cs-roe-outline",
+        title: "Rules of engagement, in outline",
+        explain:
+          "When testing is authorised, the permission is written down as rules of engagement. It is the document that says what may be touched, when, by what means, and what happens when something goes wrong. You will not write one for a while. You should know what it contains now, because this is the shape authorisation takes in practice.",
+        example:
+          "  Authorised targets        the exact hosts and applications\n  Explicitly out of scope   including anything owned by a third party\n  Permitted techniques      and the ones that are forbidden\n  Testing window            dates, times, and the timezone\n  Emergency contacts        both sides, reachable out of hours\n  Stop conditions           what halts testing immediately\n  Evidence handling         how findings and any data are stored, then destroyed\n  Reporting                 what is delivered, to whom, and by when",
+        why: "Most of that document exists for the moment something unexpected happens, and something unexpected always happens. A test causes an outage. You find that somebody else broke in before you. You find real customer data. Each of those needs an answer agreed in advance, because deciding in the moment is how good intentions turn into incidents.",
+        mistake:
+          "Treating rules of engagement as paperwork delaying the interesting part. The scoping conversation it forces is where you learn that staging shares a database with production, which is the kind of fact that decides whether a test is safe at all.",
+      },
+      {
+        id: "a-cs-disclosure",
+        title: "When you find something you were not looking for",
+        explain:
+          "It will happen. You will notice a weakness in something you use as an ordinary customer, student or member of staff. There is a settled way to handle it, and following it is what separates a researcher from a suspect.",
+        example:
+          "  Stop.             Do not probe further to confirm. You have enough.\n  Take nothing.     Do not download, copy or keep any data you saw.\n  Write it down.    What you did, what appeared, and when. Once.\n  Find the owner.   A security contact, a security.txt file, or a\n                    named person. Not a public channel.\n  Report plainly.   The observation. Not a demand, and not a threat.\n  Give them time.   Weeks, not hours. Ninety days is a common norm.\n  Do not publish.   Not until it is fixed, and preferably with them.",
+        why: "Notice that the first two steps are restraint rather than action. The most common way a good-faith finding turns into a prosecution is the reporter gathering more proof than the report required. A single observed instance is a complete report.",
+        mistake:
+          "Asking for payment. A request for money in exchange for the details reads as extortion whatever you meant by it, and it is how several well-intentioned people have ended up under investigation. If the organisation runs a bug bounty, use it. If it does not, report anyway and expect nothing.",
+      },
+      {
+        id: "a-cs-ethics",
+        title: "Ethics, which asks more of you than the law does",
+        explain:
+          "The law sets the floor. The profession expects more, because this work gives you access to other people's private lives as a side effect of doing it properly. You will read messages you were not meant to read and see data you have no interest in.",
+        why: "The obligations that follow are not complicated, and every one of them is easier to hold to if you decide on it now rather than in the moment. Look at only what the task requires. Say nothing about what you saw to anyone outside the engagement. Report honestly, including the findings that make your own work look unnecessary. Say so when you are out of your depth.",
+        table: {
+          caption: "Legal and ethical are different tests, and you need to pass both.",
+          headers: ["Situation", "Lawful?", "Acceptable?"],
+          rows: [
+            ["Reading a colleague's file the permissions left open to everyone", "Usually yes", "No. Access being possible is not a reason to use it"],
+            ["Testing a client's system exactly as authorised, and finding nothing", "Yes", "Yes. Report that plainly rather than padding it"],
+            ["Keeping a copy of client data after the engagement, as proof of work", "Often not", "No. Evidence handling is agreed in advance, and it ends in deletion"],
+            ["Telling a friend which company you found a serious flaw in", "Probably", "No. Confidentiality outlasts the engagement"],
+          ],
+        },
+        mistake:
+          "Reading \"not illegal\" as \"fine\". Almost every serious reputational failure in this field was technically permitted at the moment it happened.",
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
      LESSON 1
   ═══════════════════════════════════════════════════════════════════ */
   {
     id: "cs-l1-security-is-a-tradeoff",
     moduleId: "cs-w1-fundamentals",
     sectionId: SECTION_ID,
-    order: 1,
+    order: 2,
     title: "Security Is a Trade-off",
     subtitle: "Not a product, and never a finished job",
     estimatedMinutes: 10,
@@ -199,7 +383,7 @@ export const LESSONS = [
     id: "cs-l2-cia-triad",
     moduleId: "cs-w1-fundamentals",
     sectionId: SECTION_ID,
-    order: 2,
+    order: 3,
     title: "The CIA Triad",
     subtitle: "Three words that organise the whole field",
     estimatedMinutes: 10,
@@ -327,7 +511,7 @@ export const LESSONS = [
     id: "cs-l3-how-attacks-happen",
     moduleId: "cs-w1-fundamentals",
     sectionId: SECTION_ID,
-    order: 3,
+    order: 4,
     title: "How Attacks Actually Happen",
     subtitle: "The four shapes you will meet again and again",
     estimatedMinutes: 9,
@@ -445,7 +629,7 @@ export const LESSONS = [
     id: "cs-l4-your-lab",
     moduleId: "cs-w1-fundamentals",
     sectionId: SECTION_ID,
-    order: 4,
+    order: 5,
     title: "Building Your Lab",
     subtitle: "A machine you are allowed to break",
     estimatedMinutes: 12,

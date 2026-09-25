@@ -157,11 +157,16 @@ export const CYBERSECURITY_COURSE = {
           order: 1,
           title: "Week 1 · Fundamentals & the Threat Landscape",
           summary:
-            "What security actually is, who is attacking and why, and the lab you will spend sixteen weeks in.",
-          atoms: 18,
+            "What the field is, what the law permits you to do, who is attacking and why, and the lab you will spend sixteen weeks in.",
+          atoms: 26,
           harvardAnchor:
             "Frames the whole course as CS50 does: security as a relative, risk-based discipline rather than a product you buy.",
           topics: [
+            "What cybersecurity is, and what the work actually involves",
+            "The legal framework: unauthorised access as the offence",
+            "Authorisation, and the only three lawful places to practise",
+            "Rules of engagement, and responsible disclosure",
+            "Professional ethics, which ask more than the law does",
             "Security as risk, reward, cost and benefit",
             "The CIA triad",
             "Attack surface, threats, vulnerabilities, risk",
