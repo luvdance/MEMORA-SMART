@@ -22,10 +22,10 @@ export const SECTION_ID = "ma-s2-factors";
 
 export const LESSONS = [
   /* ═══════════════════════════════════════════════════════════════════
-     LESSON 21
+     LESSON 29
   ═══════════════════════════════════════════════════════════════════ */
   {
-    id: "ma-l21-factors-multiples",
+    id: "ma-l29-factors-multiples",
     moduleId: "ma-m2-factors",
     sectionId: SECTION_ID,
     order: 1,
@@ -41,6 +41,8 @@ export const LESSONS = [
         title: "A factor divides exactly",
         explain:
           "A factor of a number divides into it with nothing left over. 3 is a factor of 12 because 12 ÷ 3 = 4 exactly. 5 is not, because 12 ÷ 5 leaves a remainder.",
+        origin:
+          "Factors are studied systematically for the first time in Euclid's Elements, written in Alexandria around three hundred years before the common era. Books seven to nine of the Elements are entirely about whole numbers: factors, multiples, primes and how to find a highest common factor. That method, now called the Euclidean algorithm, is still the one computers use today, more than two thousand three hundred years later. Very little in any subject has that kind of shelf life.",
         why: "Factors are the building blocks. Simplifying a fraction means dividing top and bottom by a common factor; factorising an expression means pulling out a common factor. Both of those are Month 3 and Month 6, and both are this idea.",
         example:
           "  24 chairs in equal rows:\n\n    1 row of 24      ●●●●●●●●●●●●●●●●●●●●●●●●\n    2 rows of 12\n    3 rows of 8\n    4 rows of 6\n    6 rows of 4\n    8 rows of 3\n   12 rows of 2\n   24 rows of 1\n\n  Factors of 24:  1, 2, 3, 4, 6, 8, 12, 24\n\n  5 is missing because 24 chairs will not make equal rows of 5.",
@@ -56,7 +58,7 @@ export const LESSONS = [
         example:
           "  Factors of 36, in pairs:\n\n    1 × 36\n    2 × 18\n    3 × 12\n    4 × 9\n    6 × 6      ← the pair has met. Stop.\n\n  Factors: 1, 2, 3, 4, 6, 9, 12, 18, 36\n\n  Testing 7 and 8 is unnecessary: anything above 6 has already\n  appeared as the partner of something below it.",
         mistake:
-          "Forgetting 1 and the number itself. Both are always factors of every number, and it is having ONLY those two that makes a number prime.",
+          "Forgetting 1 and the number itself. Both are always factors of every number, and it is having ONLY those two that makes a number prime, which is the word for a number with no factors except 1 and itself.",
         drill: {
           skill: "L0-N3.1",
           count: 3,
@@ -99,7 +101,7 @@ export const LESSONS = [
         id: "a-ma-fa-square",
         title: "Squares, cubes and their roots",
         explain:
-          "A square number is a whole number multiplied by itself: 1, 4, 9, 16, 25, 36, 49, 64, 81, 100. A cube number is one multiplied by itself three times: 1, 8, 27, 64, 125. The square root undoes the squaring.",
+          "You met the raised number in Month 1, counting how many tens make a place value column. Here it does the same job for other numbers. A square number is a whole number multiplied by itself, so 1, 4, 9, 16, 25, 36, 49, 64, 81, 100. A cube number is one multiplied by itself three times, so 1, 8, 27, 64, 125. Going the other way, the square root of a number is what was squared to get it, so the square root of 49 is 7.",
         why: "Square numbers are worth knowing on sight to 15², because they are what make surds simplify in Month 7, what make the difference of two squares factorise in Month 6, and what Pythagoras' theorem is entirely made of in Month 8.",
         table: {
           caption: "The ones worth knowing without thinking.",
@@ -127,10 +129,10 @@ export const LESSONS = [
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     LESSON 22
+     LESSON 30
   ═══════════════════════════════════════════════════════════════════ */
   {
-    id: "ma-l22-divisibility",
+    id: "ma-l30-divisibility",
     moduleId: "ma-m2-factors",
     sectionId: SECTION_ID,
     order: 2,
@@ -196,7 +198,7 @@ export const LESSONS = [
           "Divisibility rules are how you find factors quickly, and finding factors quickly is how you simplify a fraction, spot a common factor in an algebraic expression, or decide whether a quadratic will factorise neatly.",
         why: "In an exam with no calculator, being able to see that 4,713 is a multiple of 3 in two seconds is the difference between simplifying a fraction and abandoning it. The rules pay for themselves many times over in Months 2 and 5.",
         example:
-          "  Simplify  actually 258/369.\n\n  Both are odd, so 2 is out.\n  2 + 5 + 8 = 15  →  258 is divisible by 3\n  3 + 6 + 9 = 18  →  369 is divisible by 3\n\n  258 ÷ 3 = 86,  369 ÷ 3 = 123   →   86/123\n\n  8 + 6 = 14, not a multiple of 3. 86 is even, 123 is not.\n  Try 41:  86 = 2 × 43,  123 = 3 × 41. No common factor.\n\n  So 86/123 is in its lowest terms.",
+          "  THE EVERYDAY USE: sharing with nothing over.\n\n  ₦7,236 is to be shared equally among some\n  workers. Will it divide exactly?\n\n    Among 2?   It is even.             Yes\n    Among 3?   7+2+3+6 = 18, in the 3s.  Yes\n    Among 4?   The last two are 36,\n               and 36 is in the 4s.      Yes\n    Among 9?   7+2+3+6 = 18, in the 9s.  Yes\n    Among 5?   It does not end 0 or 5.   No\n\n  Four checks in your head, and no division\n  attempted at all. That is the point of the\n  rules: they tell you whether to bother.\n\n\n  THE EXAM USE: cancelling a fraction.\n\n  Simplify 258/369.\n\n    Both odd, so 2 is out.\n    2+5+8 = 15, so 258 is in the 3s.\n    3+6+9 = 18, so 369 is in the 3s.\n\n    258 ÷ 3 = 86,  369 ÷ 3 = 123\n\n    So 258/369 = 86/123\n\n    8+6 = 14, not in the 3s. 86 is even and\n    123 is not. Nothing left to cancel.\n\n  Finished: 86/123",
         practice: {
           prompt: "Without dividing, decide whether 5,832 is divisible by 2, 3, 4, 6 and 9.",
           answer:
@@ -230,10 +232,10 @@ export const LESSONS = [
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     LESSON 23
+     LESSON 31
   ═══════════════════════════════════════════════════════════════════ */
   {
-    id: "ma-l23-primes",
+    id: "ma-l31-primes",
     moduleId: "ma-m2-factors",
     sectionId: SECTION_ID,
     order: 3,
@@ -249,6 +251,8 @@ export const LESSONS = [
         title: "A prime has exactly two factors",
         explain:
           "A prime number has exactly two different factors: 1 and itself. 13 is prime. 12 is not, because it has six. A number with more than two factors is called COMPOSITE.",
+        origin:
+          "Euclid proved something remarkable about primes: there is no largest one. However far you count, there is always another prime beyond it. His argument is short enough to follow in a few lines and it has never been improved on. Primes were treated as a curiosity for most of history, and they are now the basis of nearly all secure communication. When your phone connects to a bank, the security rests on the fact that multiplying two very large primes is easy and undoing it is not.",
         why: "The definition says 'exactly two', and that phrasing is doing real work. It is what rules out 1, which has only one factor, and it is what makes prime factorisation unique, which is the property the rest of the topic depends on.",
         table: {
           caption: "The primes below 100, which are worth recognising on sight.",
@@ -284,10 +288,12 @@ export const LESSONS = [
         id: "a-ma-fa-testing",
         title: "Testing a number for primeness",
         explain:
-          "To test a number under 100, try dividing by 2, 3, 5 and 7. If none of them divides it, it is prime. For larger numbers, test the primes up to the square root.",
-        why: "You stop at the square root for the same reason factor pairs stop there: if a number has a factor above its square root, it must also have the partner below it, and you would have found that one first.",
+          "To test a number under 100, try dividing by 2, 3, 5 and 7. If none of them divides it, the number is prime. For larger numbers the rule is: keep testing primes until you reach one which, multiplied by itself, passes the number you are testing. Then you can stop.",
+        origin:
+          "The method of crossing out multiples to leave the primes behind is named after Eratosthenes, who was chief librarian at Alexandria in the third century before the common era. He is better remembered for something else: by comparing the shadow cast at noon in two Egyptian cities, he calculated the distance around the Earth, and came within a few per cent of the modern figure. The same habit of mind produced both, which is looking for a pattern that lets you avoid doing all the work.",
+        why: "You may stop there for the same reason factor pairs turn around in the middle: if a number has a large factor, that factor has a small partner, and you would have met the small one first. So once the small candidates are exhausted, there is nothing left to find. Month 7 gives this stopping point its proper name and its symbol. The rule works now without either.",
         example:
-          "  Is 97 prime?\n\n    √97 ≈ 9.8, so test the primes up to 9: 2, 3, 5, 7\n\n    2?  97 is odd              no\n    3?  9 + 7 = 16             no\n    5?  does not end 0 or 5    no\n    7?  7 × 13 = 91, 7 × 14 = 98   no\n\n    97 is prime.\n\n  There is no need to try 11, 13 or anything larger.",
+          "  Is 97 prime?\n\n  First, which primes do I even need to test?\n  Multiply each one by itself:\n\n    2 x 2   = 4      below 97, so test 2\n    3 x 3   = 9      below 97, so test 3\n    5 x 5   = 25     below 97, so test 5\n    7 x 7   = 49     below 97, so test 7\n    11 x 11 = 121    PAST 97, so stop here\n\n  So there are four tests to do:\n\n    2?  97 is odd                    no\n    3?  9 + 7 = 16, not in the 3s    no\n    5?  does not end in 0 or 5       no\n    7?  7 x 13 = 91, 7 x 14 = 98     no\n\n    97 is prime.\n\n  Nothing above 7 needed trying at all.",
         mistake:
           "Testing every number up to the number itself. For 97 that is 95 unnecessary divisions, and under exam time pressure it is the difference between finishing the question and not.",
       },
@@ -296,6 +302,8 @@ export const LESSONS = [
         title: "Prime factorisation with a factor tree",
         explain:
           "Every whole number above 1 can be written as a product of primes, in exactly one way. A factor tree finds it: split the number into any two factors, then keep splitting anything that is not yet prime.",
+        origin:
+          "The fact that every number breaks into primes in exactly one way is important enough to be called the fundamental theorem of arithmetic. It is essentially present in Euclid, and it was stated and proved carefully by Carl Friedrich Gauss in 1801, in a book he published at twenty four. The word fundamental is not decoration: a great deal of later mathematics depends on that uniqueness, and the reason 1 is excluded from the primes is precisely to protect it.",
         why: "This is the tool the next lesson runs on, and it is the tool that simplifies surds in Month 7. It is also a striking fact in its own right: it does not matter which split you start with, the primes at the bottom always come out the same.",
         example:
           "        360\n       /   \\\n      4     90\n     / \\   /  \\\n    2   2 9    10\n         / \\   / \\\n        3   3 2   5\n\n  360 = 2 × 2 × 3 × 3 × 2 × 5\n      = 2 × 2 × 2 × 3 × 3 × 5\n\n  In index form:  360 = 2³ × 3² × 5\n\n  Starting with 360 = 36 × 10 instead gives the same primes.\n  It always does.",
@@ -328,10 +336,10 @@ export const LESSONS = [
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     LESSON 24
+     LESSON 32
   ═══════════════════════════════════════════════════════════════════ */
   {
-    id: "ma-l24-hcf-lcm",
+    id: "ma-l32-hcf-lcm",
     moduleId: "ma-m2-factors",
     sectionId: SECTION_ID,
     order: 4,
@@ -347,9 +355,11 @@ export const LESSONS = [
         title: "The highest common factor",
         explain:
           "The HCF of two numbers is the largest number that divides into both of them exactly. Write each number as a product of primes, take the primes they share, each to the LOWEST power it appears to, and multiply.",
+        origin:
+          "Euclid's method for finding a highest common factor does not require you to factorise anything, which matters when the numbers are large. You divide the bigger by the smaller, then divide the smaller by the remainder, and keep going until the remainder is zero; the last non zero remainder is the highest common factor. It is one of the oldest algorithms still in everyday use, and it runs inside the device you are reading this on.",
         why: "The HCF is what fully simplifies a fraction in one step, and it is what you pull out when factorising in Month 6. Dividing 36/48 by their HCF of 12 gives 3/4 immediately, rather than by two or three rounds of halving.",
         example:
-          "  HCF of 36 and 48\n\n    36 = 2² × 3²\n    48 = 2⁴ × 3\n\n    Shared primes: 2 and 3\n    Lowest power of 2:  2²  (from 36)\n    Lowest power of 3:  3¹  (from 48)\n\n    HCF = 2² × 3 = 12\n\n  Check: 36 ÷ 12 = 3 and 48 ÷ 12 = 4, both whole.  ✓\n\n  And 36/48 = 3/4 in one step.",
+          "  WHAT IT IS FOR:\n\n  A tailor has 36 metres of one cloth and 48\n  metres of another. She wants to cut them all\n  into pieces of the same length, as long as\n  possible, with nothing left over.\n\n  The piece length must divide into 36 AND\n  into 48, and she wants the biggest one that\n  does. That is exactly the HCF.\n\n\n  FINDING IT:\n\n    36 = 2² × 3²\n    48 = 2⁴ × 3\n\n    Shared primes: 2 and 3\n    Lowest power of 2:  2²   (from 36)\n    Lowest power of 3:  3¹   (from 48)\n\n    HCF = 2² × 3 = 12\n\n  So she cuts 12 metre pieces:\n\n    36 ÷ 12 = 3 pieces\n    48 ÷ 12 = 4 pieces\n\n  Both whole, nothing wasted, and no longer\n  piece would divide both.\n\n  And the same 12 simplifies 36/48 to 3/4 in\n  one step, which is Month 3's use for it.",
         mistake:
           "Taking the highest power instead of the lowest. That gives a number that does not divide into both, the quickest check is that the HCF can never be bigger than the smaller of the two numbers.",
         drill: {
@@ -366,7 +376,7 @@ export const LESSONS = [
           "The LCM of two numbers is the smallest number that both of them divide into. Take every prime that appears in either factorisation, each to the HIGHEST power it appears to, and multiply.",
         why: "The LCM is the common denominator when adding fractions in Month 3, and it is what 'when do these two cycles coincide' questions are asking for. Using the LCM rather than just multiplying the denominators keeps the numbers small and the simplifying short.",
         example:
-          "  LCM of 6 and 8\n\n    6 = 2 × 3\n    8 = 2³\n\n    Highest power of 2:  2³\n    Highest power of 3:  3\n\n    LCM = 2³ × 3 = 24\n\n  Check: 24 ÷ 6 = 4 and 24 ÷ 8 = 3, both whole.  ✓\n\n  Note that 6 × 8 = 48 is ALSO a common multiple, just not\n  the lowest one. It counts the shared factor of 2 twice.",
+          "  WHAT IT IS FOR:\n\n  At a park, one bus leaves every 6 minutes\n  and another every 8 minutes. They have just\n  left together. When do they next leave\n  together?\n\n  The answer must be in the 6 times table AND\n  the 8 times table, and you want the first\n  such time. That is exactly the LCM.\n\n\n  FINDING IT:\n\n    6 = 2 × 3\n    8 = 2³\n\n    Highest power of 2:  2³\n    Highest power of 3:  3\n\n    LCM = 2³ × 3 = 24\n\n  So they leave together again after 24\n  minutes.\n\n    24 ÷ 6 = 4 trips of the first bus\n    24 ÷ 8 = 3 trips of the second\n\n  Note that 6 × 8 = 48 is also a time they\n  leave together, and it is not the FIRST one.\n  Multiplying the two numbers counts the\n  shared factor of 2 twice over.\n\n  Notice the difference from the last atom.\n  The HCF was a piece SMALLER than both\n  numbers. The LCM is a time LARGER than both.",
         mistake:
           "Multiplying the two numbers together. That always gives a common multiple and gives the LOWEST one only when the two share no factors at all.",
         drill: {

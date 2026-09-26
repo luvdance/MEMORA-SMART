@@ -252,6 +252,39 @@ export const L1_MODULES = [
   },
 
   {
+    code: "L1-A3",
+    level: "L1",
+    strand: "A",
+    title: "Patterns and sequences",
+    summary:
+      "Spotting a rule in a run of numbers and writing it down. The first real act of generalisation, and the thing algebra exists for.",
+    because:
+      "A position-to-term rule is the first time a letter earns its place rather than being imposed. Students who meet the nth term as a formula to memorise find every later generalisation arbitrary.",
+    needs: ["L1-A1.3"],
+    atoms: [
+      a(
+        "Continuing a sequence",
+        "continue a sequence and say what the rule is in words",
+        { exams: ALL }
+      ),
+      a(
+        "Term-to-term rules",
+        "describe a sequence by what is done to each term to get the next",
+        { exams: ALL }
+      ),
+      a(
+        "The nth term of a linear sequence",
+        "find the nth term of a linear sequence, and use it to find any term",
+        { exams: ALL }
+      ),
+      a(
+        "Special sequences",
+        "recognise square, cube and triangular number sequences and continue them",
+        { exams: ALL }
+      ),
+    ],
+  },
+  {
     code: "L1-G1",
     level: "L1",
     strand: "G",

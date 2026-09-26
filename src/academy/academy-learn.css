@@ -942,8 +942,22 @@
   font-size: 13px;
   line-height: 1.65;
   color: var(--ac-ink);
-  white-space: pre-wrap;
+  /* pre, not pre-wrap: a worked example is laid out in columns, and wrapping a
+     long line shifts everything after it and destroys the alignment. Scrolling
+     sideways keeps every column where the author put it. */
+  white-space: pre;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* On a narrow screen, shrink the example rather than making the reader scroll
+   every line. At 11.5px a 360px phone fits about fifty characters, which covers
+   the large majority of the worked examples in the course. */
+@media (max-width: 480px) {
+  .ac-note pre {
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
 }
 
 .ac-note__label {
@@ -963,6 +977,15 @@
 
 .ac-note--why .ac-note__label {
   color: var(--ac-primary);
+}
+
+.ac-note--origin {
+  background: #f4f6f2;
+  border-color: #dde5d6;
+}
+
+.ac-note--origin .ac-note__label {
+  color: #4a6b3a;
 }
 
 .ac-note--analogy {

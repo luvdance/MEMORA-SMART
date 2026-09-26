@@ -50,6 +50,8 @@ export const LESSONS = [
         title: "Carrying is just place value doing its job",
         explain:
           "When a column adds to more than 9, it cannot fit in one column. The excess carries into the next column to the left, because ten of any column is exactly one of the column above it.",
+        origin:
+          "Written column arithmetic is not the only way this has ever been done, and for most of history it was not the usual way. Calculation happened on an abacus or a counting board, and the numerals recorded the answer afterwards. Doing the working itself on paper only became normal in Europe after Hindu and Arabic numerals arrived, and there was a long argument between the abacists, who calculated with counters, and the algorists, who calculated with the new digits. The algorists won because their working could be checked afterwards. An abacus leaves no record of how it got there.",
         why: "Carrying is not a trick. Ten units are one ten; ten tens are one hundred. Every carry is that fact being used. Students who see it as a rule to remember tend to forget the carry under pressure; students who see what it is do not.",
         example:
           "    ¹\n    4 7\n  + 3 8\n  ───────\n    8 5\n\n  Units:  7 + 8 = 15  →  write 5, carry 1 ten\n  Tens:   4 + 3 + 1 = 8\n\nThe carried 1 is one TEN, which is why it is written above\nthe tens column and not anywhere else.",
@@ -127,9 +129,11 @@ export const LESSONS = [
         title: "What multiplication actually means",
         explain:
           "7 × 8 means seven lots of eight, or equally eight lots of seven. Both give 56, and the fact that the order does not matter is a genuine property of multiplication rather than a coincidence.",
+        origin:
+          "The multiplication sign is younger than Shakespeare. It was introduced by the English clergyman and mathematician William Oughtred in a book published in 1631. Before that, multiplication was written out in words or indicated by placing quantities side by side. Leibniz later objected to the symbol on the grounds that it looked too much like the letter x, which is why a dot is often used instead, and why in algebra we simply write the letters together.",
         why: "Knowing the order does not matter halves the tables you have to learn: once you know 7 × 8, you know 8 × 7 for free. It also means you can choose the easier version, since 2 × 47 is the same as 47 × 2, and one of those is much faster in your head.",
         example:
-          "  7 × 8  as seven rows of eight:\n\n    ● ● ● ● ● ● ● ●\n    ● ● ● ● ● ● ● ●\n    ● ● ● ● ● ● ● ●\n    ● ● ● ● ● ● ● ●\n    ● ● ● ● ● ● ● ●\n    ● ● ● ● ● ● ● ●\n    ● ● ● ● ● ● ● ●\n\n  Turn the page sideways and it is eight rows of seven.\n  Same dots. 56 either way.",
+          "  A pack of sachet water holds 8 sachets.\n  You buy 7 packs. How many sachets?\n\n  Multiplying is a short way of adding the\n  same amount over and over:\n\n    8 + 8 + 8 + 8 + 8 + 8 + 8  =  56\n\n    which is what 7 × 8 = 56 means.\n\n\n  NOW STACK THE PACKS UP AND LOOK AT THEM:\n\n    pack 1   o o o o o o o o\n    pack 2   o o o o o o o o\n    pack 3   o o o o o o o o\n    pack 4   o o o o o o o o\n    pack 5   o o o o o o o o\n    pack 6   o o o o o o o o\n    pack 7   o o o o o o o o\n\n  Seven rows of eight.\n\n  Turn the whole stack a quarter turn and it\n  becomes eight rows of seven. Not one sachet\n  went anywhere, so it is still 56.\n\n  That is why 7 × 8 and 8 × 7 are the same,\n  and it is why learning one table fact quietly\n  hands you a second one.",
         analogy:
           "A crate holds 7 rows of 8 bottles. Rotating the crate does not change how many bottles are in it.",
       },
@@ -173,6 +177,8 @@ export const LESSONS = [
         title: "Long multiplication is place value in a layout",
         explain:
           "To multiply 348 × 24, split the 24 into 20 + 4, multiply by each part, and add the results. The written layout is simply a way of keeping that organised.",
+        origin:
+          "The layout you were taught is one of several that have been used. Medieval Europe used a method called the galley or scratch method, and India and the Arab world used a grid sometimes called lattice multiplication, where the digits are written into a grid of boxes split by diagonals. Both give the same answers. The column layout won because it takes less paper and because it makes the carrying visible, and paper was expensive.",
         why: "The placeholder zero on the second row is the whole reason the method works. That row is 348 × 20, not 348 × 2, and without the zero it is ten times too small. Students who know why the zero is there stop forgetting it.",
         example:
           "      3 4 8\n    ×   2 4\n    ─────────\n    1 3 9 2        ← 348 × 4\n    6 9 6 0        ← 348 × 20   (note the zero)\n    ─────────\n    8 3 5 2\n\n  Check by estimating:  350 × 25 ≈ 8,750.\n  8,352 is the right size. ✓",
@@ -233,6 +239,8 @@ export const LESSONS = [
         title: "Two questions, one operation",
         explain:
           "Division answers two different-sounding questions with the same calculation. 'Share 12 among 3' asks how big each share is. 'How many 3s fit into 12?' asks how many shares there are. Both are 12 ÷ 3 = 4.",
+        origin:
+          "The division sign, which is a short horizontal line with a dot above and below, is called an obelus and was first used for division by the Swiss mathematician Johann Rahn in 1659. It is not used in most of the world today: outside school textbooks, division is usually written as a fraction. That is worth knowing early, because it means the fraction bar and the division sign are the same instruction, which is the fact the whole of Month 3 rests on.",
         why: "Recognising both readings is what makes dividing by a fraction make sense in Month 3. '3 ÷ 1/2' is nonsense as sharing, since you cannot share among half a person, but it is perfectly clear as 'how many halves fit into 3?'. The answer is 6.",
         example:
           "  12 ÷ 3\n\n  Sharing:   12 items shared among 3 people\n             ●●●●  ●●●●  ●●●●     → 4 each\n\n  Grouping:  how many groups of 3 fit into 12?\n             ●●● ●●● ●●● ●●●      → 4 groups\n\nSame answer, two different pictures. Keep both.",
@@ -298,9 +306,9 @@ export const LESSONS = [
         title: "Why you cannot divide by zero",
         explain:
           "12 ÷ 0 asks 'how many zeros fit into 12?'. No number of zeros ever adds up to 12, so there is no answer. Not a very large one, and not infinity. The question has no answer at all.",
-        why: "It matters far beyond arithmetic. In Month 6 an algebraic fraction is undefined wherever its denominator is zero, and in Month 8 a vertical line has no gradient for the same reason. Every one of those is this fact.",
+        why: "It matters far beyond arithmetic. In Month 6 a fraction with letters in it is undefined wherever its bottom number is zero, and in Month 8 a vertical line has no gradient for the same reason. Every one of those is this fact.",
         example:
-          "  12 ÷ 4 = 3   because  4 × 3 = 12\n  12 ÷ 2 = 6   because  2 × 6 = 12\n  12 ÷ 0 = ?   because  0 × ? = 12\n\nThere is no number that multiplies by 0 to give 12,\nbecause anything times zero is zero. So there is no answer.",
+          "  Dividing is sharing out. Ask it that way.\n\n    ₦12,000 shared among 4 people\n    ₦12,000 ÷ 4 = ₦3,000 each\n\n    Check it: 4 × ₦3,000 = ₦12,000  ✓\n\n    ₦12,000 shared among 2 people\n    ₦12,000 ÷ 2 = ₦6,000 each\n\n    Check it: 2 × ₦6,000 = ₦12,000  ✓\n\n\n  NOW SHARE IT AMONG NOBODY.\n\n    ₦12,000 ÷ 0 = ?\n\n  Whatever answer you propose, the check has to\n  work the same way round:\n\n    0 × (your answer) would have to be 12,000\n\n  But nothing at all times zero gives anything\n  except zero. Zero people cannot be holding\n  ₦12,000 between them.\n\n  So there is no answer. Not a very big answer,\n  and not zero. No number fits at all, so the\n  question simply has no answer.\n\n  Notice what settled it: the CHECK. That is\n  why the previous atom insisted on checking a\n  division by multiplying back.",
         mistake:
           "Writing 12 ÷ 0 = 0. Zero is the answer to 0 ÷ 12, which is a different and perfectly reasonable question.",
       },
@@ -329,6 +337,8 @@ export const LESSONS = [
         title: "Why an order is needed at all",
         explain:
           "Without an agreed order, 2 + 3 × 4 has two defensible answers and mathematics stops being a language. The convention exists so that an expression written in Lagos means the same thing when it is read in Lisbon.",
+        origin:
+          "The order of operations is not ancient. It settled gradually through the 1600s and 1700s as algebraic notation became standard, because printers and writers needed to agree on what an expression meant without brackets everywhere. The word BODMAS is far more recent still: it is a twentieth century teaching device, and different countries teach different acronyms for the same convention. The convention is real and the acronym is a memory aid somebody made up, which is worth knowing when the acronym seems to give an odd answer.",
         why: "It is not arbitrary in the way a spelling convention is arbitrary. 3 × 4 is a single quantity, being three lots of four, and the expression 2 + 3 × 4 means 'two, plus that quantity'. The order rule is a description of how the expression is built, not a rule imposed on top of it.",
         example:
           "  Left to right:   2 + 3 = 5,  then 5 × 4 = 20\n  By convention:   3 × 4 = 12, then 2 + 12 = 14\n\n  Which is right? 14, universally, and for a reason:\n\n  'A bottle of water costs ₦2. I buy 3 crates of 4 bottles.'\n  The 3 × 4 belongs together; it is the number of bottles.",
@@ -384,9 +394,9 @@ export const LESSONS = [
           "  As a fraction:        8 + 4\n                        ─────   =  12/3  =  4\n                        6 − 3\n\n  Typed carelessly:  8 + 4 ÷ 6 − 3  =  8 + 0.667 − 3  =  5.667\n\n  Typed correctly:   (8 + 4) ÷ (6 − 3)  =  4",
         practice: {
           prompt:
-            "The quadratic formula has a fraction bar under the whole of −b ± √(b² − 4ac). What must you type into a calculator to evaluate it correctly?",
+            "A price of 4,500 naira is shared equally between 2 + 1 people. A student types 4500 ÷ 2 + 1 into a calculator and gets 2,251. What went wrong, and what should have been typed?",
           answer:
-            "Brackets around the entire numerator and around the entire denominator: (−b + √(b² − 4ac)) ÷ (2a). Without them the calculator divides only the last term by 2 and then by a, which is the commonest source of wrong roots in Month 7.",
+            "The calculator obeyed the order of operations exactly: it divided 4,500 by 2, giving 2,250, and then added 1. The student meant to divide by the whole of 2 + 1, and a calculator cannot read an intention. The keys needed are 4500 ÷ (2 + 1), which gives 1,500. Whenever a division is meant to act on a whole sum, that sum needs brackets round it, and this stays true for every formula you will meet later, however long it gets.",
         },
       },
       {

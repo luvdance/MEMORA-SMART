@@ -336,6 +336,17 @@ export default function LessonPlayer() {
                   can generalise it, instead of copying one worked example. */}
               {atom.syntax && <FormulaSyntax syntax={atom.syntax} />}
 
+              {/* Where the idea came from. Placed before "why it matters"
+                  because for most topics the history is the reason: an idea
+                  that was invented to solve a named problem is much easier to
+                  hold than a rule presented with no cause. */}
+              {atom.origin && (
+                <div className="ac-note ac-note--origin">
+                  <span className="ac-note__label">Where it came from</span>
+                  <p>{atom.origin}</p>
+                </div>
+              )}
+
               {atom.why && (
                 <div className="ac-note ac-note--why">
                   <span className="ac-note__label">Why it matters</span>

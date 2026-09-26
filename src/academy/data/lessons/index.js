@@ -29,7 +29,17 @@ import { LESSONS as MA_M1_LANGUAGE } from "./ma-m1-language.js";
 import { LESSONS as MA_M1_NUMBERS } from "./ma-m1-numbers.js";
 import { LESSONS as MA_M1_PLACE_VALUE } from "./ma-m1-place-value.js";
 import { LESSONS as MA_M2_OPERATIONS } from "./ma-m2-operations.js";
+import { LESSONS as MA_M2_PROPERTIES } from "./ma-m2-properties.js";
+import { LESSONS as MA_M2_NEGATIVES } from "./ma-m2-negatives.js";
 import { LESSONS as MA_M2_FACTORS } from "./ma-m2-factors.js";
+import { LESSONS as MA_M3_FRACTIONS } from "./ma-m3-fractions.js";
+import { LESSONS as MA_M3_DECIMALS } from "./ma-m3-decimals.js";
+import { LESSONS as MA_M3_PERCENTAGES } from "./ma-m3-percentages.js";
+import { LESSONS as MA_M3_APPROXIMATION } from "./ma-m3-approximation.js";
+import { LESSONS as MA_M4_RATIO } from "./ma-m4-ratio.js";
+import { LESSONS as MA_M4_MEASUREMENT } from "./ma-m4-measurement.js";
+import { LESSONS as MA_M4_PATTERNS } from "./ma-m4-patterns.js";
+import { LESSONS as MA_M4_ALGEBRA1 } from "./ma-m4-algebra1.js";
 
 // ── Cybersecurity, one file per week ──────────────────────────────────────
 import { LESSONS as CS_W1 } from "./cs-w1-fundamentals.js";
@@ -97,7 +107,17 @@ const REGISTRY = {
     "ma-m1-numbers": MA_M1_NUMBERS,
     "ma-m1-place-value": MA_M1_PLACE_VALUE,
     "ma-m2-operations": MA_M2_OPERATIONS,
+    "ma-m2-properties": MA_M2_PROPERTIES,
+    "ma-m2-negatives": MA_M2_NEGATIVES,
     "ma-m2-factors": MA_M2_FACTORS,
+    "ma-m3-fractions": MA_M3_FRACTIONS,
+    "ma-m3-decimals": MA_M3_DECIMALS,
+    "ma-m3-percentages": MA_M3_PERCENTAGES,
+    "ma-m3-approximation": MA_M3_APPROXIMATION,
+    "ma-m4-ratio": MA_M4_RATIO,
+    "ma-m4-measurement": MA_M4_MEASUREMENT,
+    "ma-m4-patterns": MA_M4_PATTERNS,
+    "ma-m4-algebra1": MA_M4_ALGEBRA1,
   },
 
   cybersecurity: {

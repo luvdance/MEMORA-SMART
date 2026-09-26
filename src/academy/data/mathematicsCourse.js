@@ -161,7 +161,7 @@ export const MATHEMATICS_COURSE = {
           title: "Starting Mathematics",
           summary:
             "What mathematics actually is, where it lives in an ordinary Nigerian day, the real reasons it feels hard, and the eight rules that decide whether studying it works.",
-          atoms: 20,
+          atoms: 29,
           topics: [
             "What mathematics is, and what it is not",
             "Why arithmetic is one room in a large house",
@@ -183,7 +183,7 @@ export const MATHEMATICS_COURSE = {
           title: "The Language of Mathematics",
           summary:
             "What the question is telling you to do. Evaluate, simplify, solve, express, hence — each one is a specific instruction, and students lose marks answering the wrong one.",
-          atoms: 22,
+          atoms: 21,
           topics: [
             "Why the wording is not decoration",
             "Evaluate: find the numerical value",
@@ -227,7 +227,7 @@ export const MATHEMATICS_COURSE = {
           title: "Place Value and Whole Numbers",
           summary:
             "What a digit is worth depends on where it sits. Everything numerical rests on this, and it is the first thing to go missing.",
-          atoms: 20,
+          atoms: 21,
           topics: [
             "Digits, numerals and numbers",
             "Place and value",
@@ -257,7 +257,7 @@ export const MATHEMATICS_COURSE = {
           title: "The Four Operations and BODMAS",
           summary:
             "Addition, subtraction, multiplication and division to fluency — then the order they must be done in, and why the order is not a matter of opinion.",
-          atoms: 24,
+          atoms: 20,
           topics: [
             "Addition and subtraction with regrouping",
             "Times tables to instant recall",
@@ -316,7 +316,7 @@ export const MATHEMATICS_COURSE = {
           title: "Factors, Multiples and Primes",
           summary:
             "How numbers are built. HCF, LCM, prime factorisation, simplifying fractions and later surds all start in this module.",
-          atoms: 22,
+          atoms: 20,
           topics: [
             "Factors and factor pairs",
             "Multiples",
@@ -385,7 +385,7 @@ export const MATHEMATICS_COURSE = {
           title: "Percentages",
           summary:
             "Per cent means per hundred. Everything in this module is that one sentence applied carefully, including the commercial arithmetic WAEC keeps flagging.",
-          atoms: 22,
+          atoms: 20,
           topics: [
             "Percentage as a fraction over a hundred",
             "Converting between fractions, decimals and percentages",
