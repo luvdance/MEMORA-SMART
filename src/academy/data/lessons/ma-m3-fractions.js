@@ -167,7 +167,7 @@ export const LESSONS = [
     moduleId: "ma-m3-fractions",
     sectionId: SECTION_ID,
     order: 2,
-    title: "Comparing, Adding and Subtracting",
+    title: "Comparing, Adding and Subtracting Fractions",
     subtitle: "Why a common denominator is not a rule but a necessity",
     estimatedMinutes: 16,
     intro:
@@ -289,7 +289,7 @@ export const LESSONS = [
     sectionId: SECTION_ID,
     order: 3,
     title: "Multiplying and Dividing Fractions",
-    subtitle: "The easy one, the surprising one, and why turning it upside down works",
+    subtitle: "Why multiplying fractions is easier than adding them, and why dividing turns the second fraction over",
     estimatedMinutes: 16,
     intro:
       "Here is an oddity worth naming at the start. Multiplying fractions is easier than adding them, which is the opposite of how whole numbers behave. And dividing them is the one rule in school mathematics most people can carry out and almost nobody can explain. By the end of this lesson you will be able to explain it.",

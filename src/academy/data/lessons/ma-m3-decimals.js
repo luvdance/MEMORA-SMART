@@ -35,7 +35,7 @@ export const LESSONS = [
     moduleId: "ma-m3-decimals",
     sectionId: SECTION_ID,
     order: 1,
-    title: "The Chart Carried Rightwards",
+    title: "Place Value to the Right of the Point",
     subtitle: "Tenths, hundredths, thousandths, and why 0.8 beats 0.75",
     estimatedMinutes: 14,
     intro:

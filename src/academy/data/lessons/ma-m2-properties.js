@@ -32,8 +32,8 @@ export const LESSONS = [
     moduleId: "ma-m2-properties",
     sectionId: SECTION_ID,
     order: 1,
-    title: "Does the Order Matter?",
-    subtitle: "Commutative and associative, and the two operations that obey neither",
+    title: "Does the Order of a Calculation Matter?",
+    subtitle: "Commutative and associative, and why subtraction and division follow neither",
     estimatedMinutes: 14,
     intro:
       "3 + 5 and 5 + 3 both give 8. So do 3 × 5 and 5 × 3. But 3 − 5 and 5 − 3 are nowhere near each other. This lesson is about which operations you may reorder and regroup, and which will punish you for trying.",
@@ -109,7 +109,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pr-in-algebra",
-        title: "Where these two show up in algebra",
+        title: "Where commutativity and associativity show up in algebra",
         explain:
           "When you collect like terms and write 3x + 5x as 5x + 3x without worrying, that is commutativity. When you write 2 + 3 + x with no brackets, that is associativity. They are used silently in almost every line of algebra you will write.",
         why: "Naming them now means that later, when a question asks why a step was allowed, you have an answer. In Month 9 that matters directly: university mathematics begins by stating these properties explicitly, because it studies systems where some of them fail.",
@@ -160,7 +160,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pr-why-true",
-        title: "Why it is true, as a picture",
+        title: "Why the distributive law is true, as a picture",
         explain:
           "Draw a rectangle 3 tall and (4 + 5) wide. Its area is 3 × 9. Now cut it down the middle into a 3 by 4 piece and a 3 by 5 piece. The two pieces together are the same rectangle, so the areas must be equal.",
         why: "Once you have seen this picture, the law stops being something to remember. It is obvious, and obvious things are not forgotten under exam pressure. The same picture reappears in Month 6 for expanding double brackets, where it becomes a rectangle cut both ways.",
@@ -171,7 +171,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pr-mental-distributive",
-        title: "Using it in your head",
+        title: "Using the distributive law in your head",
         explain:
           "Any awkward multiplication can be split into an easy one plus an easy one. 7 × 103 is 7 × 100 plus 7 × 3. 6 × 98 is 6 × 100 minus 6 × 2.",
         why: "This is the most immediately useful thing in the module. It turns multiplications that look like they need paper into ones that do not, and it is the same law you will use on brackets in Month 6.",
@@ -197,7 +197,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pr-like-terms",
-        title: "Collecting like terms is this law too",
+        title: "Collecting like terms is the distributive law too",
         explain:
           "3x + 5x = 8x looks like a separate rule about letters. It is not. It is the distributive law read backwards: 3x + 5x = (3 + 5)x = 8x.",
         why: "This explains why you may add 3x and 5x and may not add 3x and 5y. The x can be taken outside as a common factor; there is nothing common to take out of 3x + 5y. The rule about like terms is not a rule at all, it is a consequence.",
@@ -230,7 +230,7 @@ export const LESSONS = [
     sectionId: SECTION_ID,
     order: 3,
     title: "Identity and Inverse",
-    subtitle: "The two ideas that solving an equation is made of",
+    subtitle: "Zero, one, and the opposites that undo an operation",
     estimatedMinutes: 14,
     intro:
       "Every equation you will ever solve is solved by the same two moves: undo what was done, and use the fact that adding zero or multiplying by one changes nothing. This lesson names those two moves.",
@@ -283,7 +283,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pr-balance",
-        title: "Why you must do it to both sides",
+        title: "Why you must do the same thing to both sides",
         explain:
           "An equation is a claim that two things are equal. Doing something to one side and not the other breaks the claim, so the new line is simply false and everything after it is worthless.",
         why: "Students who learn the phrase move it over and change the sign often cannot say why the sign changes. It changes because you added the additive inverse to both sides, and the term on the original side became zero. Nothing moved anywhere.",
@@ -362,7 +362,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pr-why-algebra",
-        title: "Why all of this is what lets letters work",
+        title: "Why these six properties are what let letters work",
         explain:
           "Algebra writes x where a number will go, and then manipulates the expression without knowing which number it is. That is only legal because the properties hold for every number, so any move justified by a property is justified for all values of x at once.",
         why: "This is the answer to the question students ask most often and are rarely given: why are we allowed to do this to a letter? Because 3(x + 2) = 3x + 6 is not a fact about x. It is the distributive law, which holds for every real number, and x is standing in for a real number.",

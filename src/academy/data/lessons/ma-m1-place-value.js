@@ -237,7 +237,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pv-standard-preview",
-        title: "Where this goes next",
+        title: "Where place value goes next",
         explain:
           "In Month 5 the same place value idea gets a name, standard form, and a rule. 4,000,000 is written 4 × 10⁶, using exactly the powers of ten you met earlier in this lesson. Very small numbers work the same way in the other direction, using a raised number with a minus sign in front of it, and that half waits for Month 5 because it needs decimals first.",
         why: "Standard form is not a new topic. It is this topic with shorter notation, and students who understand place value meet it as an abbreviation rather than as something to memorise.",
@@ -262,7 +262,7 @@ export const LESSONS = [
     moduleId: "ma-m1-place-value",
     sectionId: SECTION_ID,
     order: 3,
-    title: "Comparing and Ordering",
+    title: "Comparing and Ordering Whole Numbers",
     subtitle: "Which is bigger, and how you can tell at a glance",
     estimatedMinutes: 12,
     intro:

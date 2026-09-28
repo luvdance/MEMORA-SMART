@@ -151,7 +151,7 @@ export const LESSONS = [
     moduleId: "ma-m1-numbers",
     sectionId: SECTION_ID,
     order: 2,
-    title: "Below Zero",
+    title: "Negative Numbers: Counting Below Zero",
     subtitle: "Why negative numbers had to be invented",
     estimatedMinutes: 13,
     intro:
@@ -249,7 +249,7 @@ export const LESSONS = [
     moduleId: "ma-m1-numbers",
     sectionId: SECTION_ID,
     order: 3,
-    title: "Between the Whole Numbers",
+    title: "Fractions and Decimals: the Numbers in Between",
     subtitle: "Fractions, decimals, and why they are the same thing",
     estimatedMinutes: 14,
     intro:
@@ -353,7 +353,7 @@ export const LESSONS = [
     atoms: [
       {
         id: "a-ma-n-root-two",
-        title: "The number that broke the Pythagoreans",
+        title: "A length that cannot be written as a fraction",
         explain:
           "Take a square whose sides are each 1 unit long, and draw the line from one corner to the opposite corner. That line has a definite length. It turns out to be the number which, multiplied by itself, gives exactly 2. And that number cannot be written as one whole number over another, no matter how large you allow the two numbers to be.",
         origin:

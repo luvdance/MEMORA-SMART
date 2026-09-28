@@ -102,7 +102,7 @@ export const LESSONS = [
         id: "a-ma-lang-simplify",
         title: "Simplify: same value, tidier form",
         explain:
-          "Simplify means: write the same thing in its neatest form. The value does not change; the appearance does. You are not looking for a number. You are looking for the shortest correct way to write what is already there. An equation is a piece of mathematics WITH an equals sign, claiming that the two sides are worth the same. An expression has no equals sign. That single difference decides which instruction can be used on it.",
+          "Simplify means: write the same thing in its neatest form. The value does not change; the appearance does. You are not looking for a number. You are looking for the shortest correct way to write what is already there. An equation is a piece of mathematics WITH an equals sign, claiming that the two sides are worth the same. An expression has no equals sign. That one distinction decides which instruction can be used on it.",
         why: "Simplify is the instruction most often confused with solve. Simplify has no equals sign to work across and produces an EXPRESSION, which is the name for a piece of mathematics with no equals sign in it. Solve has an equation and produces a VALUE. A student who 'solves' 3x + 4x by writing x = 0 has misread the instruction badly enough to lose every mark.",
         table: {
           caption: "What counts as simplified, by topic.",
@@ -204,7 +204,7 @@ export const LESSONS = [
           ],
         },
         example:
-          "(a) Work out 24 × 7.                               [2 marks]\n\n      24 × 7 = 168\n\n(b) Hence work out 24 × 70.                        [1 mark]\n\n  Using (a):   24 × 70 is ten times 24 × 7\n               so it is 1,680\n\nOne line. A candidate who ignores 'hence' sets out the whole\nmultiplication again and spends four times as long on a\nquestion worth half as many marks.\n\nThe same thing happens in every later paper, with harder\nparts (a). The word is doing the same job each time: it is\ntelling you that the work is already on the page.",
+          "(a) Work out 24 × 7.                               [2 marks]\n\n      24 × 7 = 168\n\n(b) Hence work out 24 × 70.                        [1 mark]\n\n  Using (a):   24 × 70 is ten times 24 × 7\n               so it is 1,680\n\nOne line. A candidate who ignores 'hence' sets out the whole\nmultiplication again and spends four times as long on a\nquestion worth fewer marks.\n\nThe same thing happens in every later paper, with harder\nparts (a). The word is doing the same job each time: it is\ntelling you that the work is already on the page.",
         mistake:
           "Treating the parts of a question as unrelated. If a question has parts (a), (b), (c), assume each one is a step toward the next until the wording tells you otherwise.",
       },
@@ -249,7 +249,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-lang-form-words",
-        title: "The small phrases that change the answer",
+        title: "Short phrases that tell you what form the answer must take",
         explain:
           "A handful of short phrases each change what a complete answer looks like. They are easy to skim past, and each one is a mark.",
         why: "These are not stylistic preferences. Each of them is testing something specific: whether you can simplify, whether you know an exact value from an approximate one, whether you can read an instruction at all.",
@@ -347,7 +347,7 @@ export const LESSONS = [
         title: "Factors are what multiply together",
         explain:
           "A FACTOR is something that multiplies. In 6 = 2 × 3, the factors are 2 and 3. In 5xy, the factors are 5, x and y. Terms add; factors multiply. Those are the two ways a mathematical object can be built.",
-        why: "'Factorise' means: rewrite this sum as a product. That is the whole instruction, turn something made by adding into something made by multiplying. Knowing that terms add and factors multiply is what makes 'factorise' mean something rather than being a procedure you copy.",
+        why: "'Factorise' means: rewrite this sum as a product, and a product is simply the answer to a multiplication. That is the whole instruction, turn something made by adding into something made by multiplying. Knowing that terms add and factors multiply is what makes 'factorise' mean something rather than being a procedure you copy.",
         example:
           "Expanding turns factors into terms:\n\n  3(x + 2)   =   3x + 6\n  └ factors ┘     └ terms ┘\n\nFactorising turns terms back into factors:\n\n  3x + 6     =   3(x + 2)\n  └ terms ┘      └ factors ┘\n\nThe two instructions are exact opposites, which is why they are\ntaught together and why confusing them is so easy.",
         analogy:
@@ -360,7 +360,7 @@ export const LESSONS = [
           "Four different objects, and the instruction you can apply depends on which one you have. An EXPRESSION has no equals sign. An EQUATION has one and is true for particular values. An IDENTITY has one and is true for all values. A FORMULA is a rule linking quantities.",
         origin:
           "Telling these four objects apart mattered enough that a separate symbol was invented for the identity. The three barred sign, which you will meet later, was introduced in the 1800s precisely because an equation true for one value of x and a statement true for every value of x are different kinds of claim and were being written the same way. When notation grows a new symbol, it is almost always because two genuinely different ideas had been sharing one.",
-        why: "This is the test that tells you whether 'solve' is even possible. No equals sign means nothing to solve, the instruction must be simplify, expand, factorise or evaluate instead. Knowing which object is in front of you rules out three quarters of the possible instructions immediately.",
+        why: "This is the test that tells you whether 'solve' is even possible. No equals sign means nothing to solve, the instruction must be simplify, expand, factorise or evaluate instead. Knowing which object is in front of you rules out most of the possible instructions immediately.",
         table: {
           caption: "Four objects, four sets of instructions.",
           headers: ["Object", "Example", "What you can be asked"],
@@ -466,7 +466,7 @@ export const LESSONS = [
             ["Change from ₦1,000", "More than ₦1,000", "Added instead of subtracting"],
             ["A length in metres", "0.000004", "Converted the wrong way"],
             ["The total of several items", "Less than one of them", "Subtracted instead of adding"],
-            ["An average of the set 4, 7, 9", "12", "Outside the data entirely"],
+            ["The number of people on a bus", "7.5", "A count came out as a fraction"],
           ],
         },
         mistake:

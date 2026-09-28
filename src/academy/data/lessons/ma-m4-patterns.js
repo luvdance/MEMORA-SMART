@@ -114,8 +114,8 @@ export const LESSONS = [
     moduleId: "ma-m4-patterns",
     sectionId: SECTION_ID,
     order: 2,
-    title: "Two Kinds of Rule",
-    subtitle: "Why one of them cannot answer the question you most want to ask",
+    title: "Two Kinds of Rule for a Sequence",
+    subtitle: "Why a term-to-term rule cannot find the hundredth term",
     estimatedMinutes: 15,
     intro:
       "There are two completely different ways to describe a sequence, and they are not equally useful. One tells you how to get from each term to the next. The other tells you how to get from a POSITION straight to its term. This lesson is about why the second one is worth the trouble of finding.",
@@ -182,7 +182,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-pt-why-algebra",
-        title: "This is what algebra is for",
+        title: "Writing a rule down is what algebra is for",
         explain:
           "The letter n in 3n + 2 is not decoration and it is not a mystery. It stands for whichever position you are asked about, and it exists because there is no ordinary number that means that.",
         why: "This is the honest answer to the question students ask in Month 6, which is why do we use letters. The letter appeared here because a genuine need for it appeared, and everything in the algebra module ahead is the same move applied to other situations.",
@@ -282,7 +282,7 @@ export const LESSONS = [
     sectionId: SECTION_ID,
     order: 4,
     title: "Sequences Worth Recognising",
-    subtitle: "Squares, cubes, triangles, and the one that grows in plants",
+    subtitle: "Square, cube and triangular numbers, and the Fibonacci sequence",
     estimatedMinutes: 15,
     intro:
       "A handful of sequences turn up so often that recognising them on sight is worth real time in an exam. None of them has a constant difference, so the method of the last lesson does not apply, and they have to be known rather than derived.",

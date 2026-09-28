@@ -441,7 +441,7 @@ export const LESSONS = [
       },
       {
         id: "a-ma-al-where-next",
-        title: "Where this goes",
+        title: "Where algebra goes after this module",
         explain:
           "Everything algebraic in the remaining five months is this module made harder. Brackets get expanded, fractions appear in equations, two equations get solved together, and the letter appears squared, and the balance rule governs all of it.",
         why: "Knowing that nothing fundamentally new is coming is worth saying. The methods in the next five months are extensions rather than replacements, and a student who is solid here has the foundation for all of them.",
