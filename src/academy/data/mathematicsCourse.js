@@ -160,18 +160,19 @@ export const MATHEMATICS_COURSE = {
           order: 1,
           title: "Starting Mathematics",
           summary:
-            "Start by proving to yourself that you can already do arithmetic. Then see exactly where mathematics stops for most people, and why that stopping point is a topic nobody taught you rather than anything about your ability.",
+            "Start by proving to yourself that you can already do arithmetic, and see why the place mathematics stopped for you is a topic nobody taught you rather than anything about your ability. Then where the subject turns up in an ordinary day, why it went wrong before, and how to study it so that it works this time, ending with the road ahead.",
           atoms: 22,
           topics: [
             "Five sums you can already answer, and what that proves",
             "The four places where mathematics usually stops: fractions, negatives, decimals, letters",
             "Why 2x + 6 = 12 needs arithmetic you already have, plus one rule",
             "Mathematics as many topics, each answering a different everyday question",
-            "The nine month road, and the three promises this course makes",
-            "Money, time and measuring in an ordinary Nigerian day",
             "Where mathematics began: counting, and the oldest marks we have",
-            "Six reasons mathematics went wrong before, none of them about ability",
+            "Money, time and measuring in an ordinary Nigerian day, and the doors mathematics opens",
+            "Why one early gap causes trouble later, and five reasons mathematics went wrong before",
+            "The way out: understanding rather than remembering",
             "Five study habits, and why each one works",
+            "The nine month road, how every lesson works, and what Module 2 starts with",
           ],
         },
         {
