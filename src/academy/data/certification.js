@@ -96,6 +96,15 @@ export const CERTIFICATION = {
    * So the maths exam is added when the maths content is complete, not
    * before. Until then the profile says "no certification exam yet", which is
    * true, rather than offering one that would certify the wrong thing.
+   *
+   * Object Oriented Programming (JavaScript) is absent for the first reason:
+   * all sixteen weeks are written, but no certification exam bank exists for
+   * it yet. Its lesson checks and capstone are live; the exam is not.
+   *
+   * Forex Trading is absent for the same reason. Its graduation standard is
+   * the Week 16 lab assessment (plan, case study and presentation, judged on
+   * risk calculations, records and rule adherence, never on profit), which a
+   * timed multiple-choice exam could not replace in any case.
    */
 };
 

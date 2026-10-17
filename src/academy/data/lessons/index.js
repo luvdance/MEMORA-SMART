@@ -1,6 +1,8 @@
 import DATA_ANALYSIS_COURSE from "../dataAnalysisCourse.js";
 import CYBERSECURITY_COURSE from "../cybersecurityCourse.js";
 import MATHEMATICS_COURSE from "../mathematicsCourse.js";
+import JAVASCRIPT_COURSE from "../javascriptCourse.js";
+import FOREX_COURSE from "../forexCourse.js";
 import { LESSONS as FOUNDATIONS } from "./m1-data-foundations.js";
 import { LESSONS as EXCEL_SETUP } from "./m1-excel-setup.js";
 import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
@@ -25,6 +27,12 @@ import { LESSONS as CAPSTONE } from "./m4-capstone.js";
 
 // ── Mathematics: one file per module, registered in ma-registry.js ──────────
 import { MATHS_LESSONS } from "./ma-registry.js";
+
+// ── Object Oriented Programming (JavaScript): one file per week ─────────────
+import { JAVASCRIPT_LESSONS } from "./js-registry.js";
+
+// ── Forex Trading: one file per week, registered in fx-registry.js ─────────
+import { FOREX_LESSONS } from "./fx-registry.js";
 
 // ── Cybersecurity, one file per week ──────────────────────────────────────
 import { LESSONS as CS_W1 } from "./cs-w1-fundamentals.js";
@@ -88,6 +96,10 @@ const REGISTRY = {
 
   mathematics: MATHS_LESSONS,
 
+  javascript: JAVASCRIPT_LESSONS,
+
+  "forex-trading": FOREX_LESSONS,
+
   cybersecurity: {
     "cs-w1-fundamentals": CS_W1,
     "cs-w2-accounts": CS_W2,
@@ -121,6 +133,8 @@ const CURRICULA = {
   [DATA_ANALYSIS_COURSE.slug]: DATA_ANALYSIS_COURSE,
   [CYBERSECURITY_COURSE.slug]: CYBERSECURITY_COURSE,
   [MATHEMATICS_COURSE.slug]: MATHEMATICS_COURSE,
+  [JAVASCRIPT_COURSE.slug]: JAVASCRIPT_COURSE,
+  [FOREX_COURSE.slug]: FOREX_COURSE,
 };
 
 /**

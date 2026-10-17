@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { isPythonReady, runPython } from "../pyodideRunner";
+import { runJavaScript } from "../jsRunner";
 
 /**
  * PREDICT THE OUTPUT
@@ -18,6 +19,10 @@ import { isPythonReady, runPython } from "../pyodideRunner";
  * multi-megabyte WASM download, which is a real cost for a learner on metered
  * mobile data — and prediction tests comprehension better than autocomplete
  * does anyway.
+ *
+ * Two languages. `language: "javascript"` runs in a sandboxed Web Worker with
+ * nothing to download, so every JavaScript snippet can be edited and run; the
+ * default is Python, which keeps every existing lesson exactly as it was.
  *
  * Three modes:
  *   codeDemo   read-only: the code and its output, side by side
@@ -57,6 +62,8 @@ function CodeBlock({ code, highlight = [] }) {
 
 export default function CodeTrace({
   code,
+  language = "python",
+  module = false,
   runnable = false,
   packages = [],
   highlight,
@@ -71,6 +78,13 @@ export default function CodeTrace({
   alreadySolved = false,
 }) {
   const graded = Boolean(question);
+  const isJs = language === "javascript";
+  // Pseudocode is read and dry-run by hand, never executed: that is the skill
+  // it exists to build. JavaScript costs nothing to run, so every JS snippet
+  // is runnable.
+  const isPseudo = language === "pseudocode";
+  const canRun = !isPseudo && (runnable || isJs);
+  const raisesLabel = isJs ? "JavaScript throws" : "Python raises";
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState(() =>
     alreadySolved && graded
@@ -92,7 +106,9 @@ export default function CodeTrace({
     setBusy("Starting…");
     setLive(null);
     try {
-      const out = await runPython(editable, { packages, onProgress: setBusy });
+      const out = isJs
+        ? await runJavaScript(editable, { strict: module })
+        : await runPython(editable, { packages, onProgress: setBusy });
       setLive(out);
     } catch (err) {
       setLive({ stdout: "", error: err.message || String(err) });
@@ -101,7 +117,10 @@ export default function CodeTrace({
     }
   };
 
-  const target = raises || expectedOutput || "";
+  // A snippet can print some lines and THEN throw. The learner predicts both,
+  // in order, because "how far did it get?" is half of reading an error.
+  const target =
+    raises && expectedOutput ? `${expectedOutput}\n${raises}` : raises || expectedOutput || "";
 
   const check = () => {
     if (!answer.trim()) {
@@ -128,7 +147,9 @@ export default function CodeTrace({
     <div className="ac-trace">
       {graded && (
         <div className="ac-trace__task">
-          <span className="ac-note__label">Predict the output</span>
+          <span className="ac-note__label">
+            {isPseudo ? "Dry-run the algorithm" : "Predict the output"}
+          </span>
           <p>{question}</p>
         </div>
       )}
@@ -169,13 +190,21 @@ export default function CodeTrace({
         </div>
       )}
 
-      {runnable && (
+      {canRun && (
         <div className="ac-trace__live">
           {!liveOpen ? (
             <div className="ac-trace__live-intro">
               <button className="ac-trace__run-open" onClick={() => setLiveOpen(true)}>
                 Run this for real
               </button>
+              {isJs ? (
+                <p>
+                  Runs instantly in a sandbox inside this page. Nothing is
+                  downloaded, and nothing you type can touch the Academy. Change
+                  a line, run it again, and see what changes.
+                </p>
+              ) : (
+              <>
               <p>
                 {isPythonReady()
                   ? "Python is already loaded in this tab — running is instant."
@@ -191,6 +220,8 @@ export default function CodeTrace({
               >
                 Open a free Colab notebook and paste the code instead
               </a>
+              </>
+              )}
             </div>
           ) : (
             <>
@@ -201,7 +232,7 @@ export default function CodeTrace({
                 onChange={(e) => setEditable(e.target.value)}
                 rows={Math.min(18, String(editable).split(/\n/).length + 1)}
                 spellCheck={false}
-                aria-label="Editable Python code"
+                aria-label={isJs ? "Editable JavaScript code" : "Editable Python code"}
               />
               <div className="ac-trace__actions">
                 <button className="ac-trace__btn" onClick={runIt} disabled={Boolean(busy)}>
@@ -221,8 +252,12 @@ export default function CodeTrace({
               {live && (
                 <div className="ac-trace__out">
                   <span className="ac-trace__out-label">
-                    {live.error ? "Your code raised" : "Your output"}
+                    {live.error ? (isJs ? "Your code threw" : "Your code raised") : "Your output"}
                   </span>
+                  {/* JavaScript reports what printed BEFORE the error too,
+                      because "how far did it get?" is the first debugging
+                      question a beginner should learn to ask. */}
+                  {isJs && live.error && live.stdout && <pre>{live.stdout}</pre>}
                   {(live.error || live.stdout) && (
                     <pre className={live.error ? "is-error" : undefined}>
                       {live.error || live.stdout}
@@ -249,7 +284,7 @@ export default function CodeTrace({
       {graded && (
         <div className="ac-trace__answer">
           <label htmlFor="ac-trace-input" className="ac-trace__out-label">
-            What does it print?
+            {isPseudo ? "What does the algorithm OUTPUT?" : "What does it print?"}
           </label>
           <textarea
             id="ac-trace-input"
@@ -281,7 +316,7 @@ export default function CodeTrace({
           {(revealed || result?.ok) && (
             <div className="ac-trace__out">
               <span className="ac-trace__out-label">
-                {raises ? "Python raises" : "Actual output"}
+                {raises ? raisesLabel : "Actual output"}
               </span>
               <pre className={raises ? "is-error" : undefined}>{target}</pre>
             </div>

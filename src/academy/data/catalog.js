@@ -1,6 +1,8 @@
 import DATA_ANALYSIS_COURSE from "./dataAnalysisCourse.js";
 import CYBERSECURITY_COURSE from "./cybersecurityCourse.js";
 import MATHEMATICS_COURSE from "./mathematicsCourse.js";
+import JAVASCRIPT_COURSE from "./javascriptCourse.js";
+import FOREX_COURSE from "./forexCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -137,6 +139,56 @@ export const CATALOG = [
       "WAEC / NECO / JAMB technique",
     ],
     course: MATHEMATICS_COURSE,
+  },
+  {
+    id: "javascript",
+    code: "JS-101",
+    slug: "javascript",
+    title: "Object Oriented Programming (JavaScript)",
+    subtitle: "Logic first, then JavaScript to React",
+    category: "web",
+    icon: "fab fa-js",
+    status: "open",
+    beta: true,
+    level: "Absolute beginner → Job-ready",
+    summary:
+      "Learn to think like a programmer before you type a line: algorithms, pseudocode and flowcharts first, then JavaScript from variables to closures, classes and inheritance, the browser and APIs, and finally React. Every code example is run and verified.",
+    covers: [
+      "Programming logic",
+      "JavaScript & Node.js",
+      "Objects, classes & OOP",
+      "DOM, events & storage",
+      "APIs & async/await",
+      "Git, Vite & React",
+      "Capstone project",
+    ],
+    course: JAVASCRIPT_COURSE,
+  },
+  {
+    id: "forex-trading",
+    code: "FX-101",
+    slug: "forex-trading",
+    title: "Forex Trading",
+    subtitle: "Foundations to professional practice",
+    // Under Digital Skills for the same reason as Cybersecurity: one course
+    // does not justify a finance category of its own on the filter bar.
+    category: "skills",
+    icon: "fas fa-money-bill-trend-up",
+    status: "open",
+    beta: true,
+    level: "Complete beginner → Professional practice",
+    summary:
+      "Five months from your first currency quote to a tested, written trading plan. Real tools from Week 1 (an MT5 demo account, TradingView and a journal), risk mathematics before any strategy, and a four-week practical lab. Assessed on process, never on profit, and no promise that anyone becomes profitable.",
+    covers: [
+      "MT5 demo account & TradingView",
+      "Pips, lots, leverage & position sizing",
+      "Price action & technical analysis",
+      "Fundamentals & the economic calendar",
+      "Strategy building & backtesting",
+      "Trading psychology & risk governance",
+      "Four-week practical trading lab",
+    ],
+    course: FOREX_COURSE,
   },
   {
     id: "web-development",

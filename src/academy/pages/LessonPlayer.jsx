@@ -33,6 +33,11 @@ import DecisionCheck from "../components/DecisionCheck";
 // behind a wrong answer. See components/MathsDrill.jsx.
 import MathsDrill from "../components/MathsDrill";
 import MathsVisual from "../components/MathsVisual";
+// The forex kit: calculations, candlestick charts and an order ticket. Same
+// contract again — read-only props demonstrate, `…Exercise` props gate.
+import FxCalc from "../components/FxCalc";
+import CandleExercise, { CandleView } from "../components/CandleChart";
+import OrderTicket from "../components/OrderTicket";
 import BetaBadge from "../components/BetaBadge";
 import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getExamForModule } from "../data/exams";
@@ -185,6 +190,9 @@ export default function LessonPlayer() {
       atom?.terminalExercise ||
       atom?.cryptoExercise ||
       atom?.drill ||
+      atom?.calcExercise ||
+      atom?.candleExercise ||
+      atom?.ticketExercise ||
       atom?.decision) &&
       !solved.has(atom.id)
   );
@@ -215,7 +223,8 @@ export default function LessonPlayer() {
       document
         .querySelector(
           ".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model, .ac-trace, " +
-            ".ac-phish, .ac-pcap, .ac-perm, .ac-fw, .ac-hunt, .ac-risk, .ac-term, .ac-crypto, .ac-decide, .ac-drill"
+            ".ac-phish, .ac-pcap, .ac-perm, .ac-fw, .ac-hunt, .ac-risk, .ac-term, .ac-crypto, .ac-decide, .ac-drill, " +
+            ".ac-fxcalc, .ac-candles--exercise, .ac-ticket"
         )
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -589,6 +598,35 @@ export default function LessonPlayer() {
                 />
               )}
 
+              {/* FOREX. A chart to read, then a sum to work, a chart to mark
+                  or an order to place. The chart renders before any decision
+                  below it, so a decision can ask about the candles on screen. */}
+              {atom.candles && <CandleView key={`${atom.id}-chart`} {...atom.candles} />}
+              {atom.candleExercise && (
+                <CandleExercise
+                  key={atom.id}
+                  {...atom.candleExercise}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+              {atom.calcExercise && (
+                <FxCalc
+                  key={atom.id}
+                  {...atom.calcExercise}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+              {atom.ticketExercise && (
+                <OrderTicket
+                  key={atom.id}
+                  {...atom.ticketExercise}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
               {/* A judgement call, graded inline. The part of security that is
                   decisions rather than commands. */}
               {atom.decision && (
@@ -716,6 +754,22 @@ export default function LessonPlayer() {
                       <>
                         The lab is not satisfied yet. Work the task in the
                         panel above and press the check button under it.
+                      </>
+                    ) : atom.calcExercise ? (
+                      <>
+                        The calculation above is not right yet. Work it one
+                        step at a time and press <em>Check my answer</em>.
+                      </>
+                    ) : atom.candleExercise ? (
+                      <>
+                        The chart is not marked correctly yet. Select the
+                        candles that meet the definition and press{" "}
+                        <em>Check my candles</em>.
+                      </>
+                    ) : atom.ticketExercise ? (
+                      <>
+                        The order does not match the plan yet. Fix the ticket
+                        and send it again.
                       </>
                     ) : atom.drill ? (
                       <>

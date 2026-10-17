@@ -1,0 +1,454 @@
+/* ══════════════════════════════════════════════════════════════
+   FOREX PRACTICE KIT
+
+   Imported by academy.css alongside academy-cyber.css, and built
+   in the same visual language: a tinted task strip, the working
+   area, a check bar whose feedback turns green or red. The check
+   buttons and feedback lines reuse .ac-decide__btn and
+   .ac-decide__feedback from academy-cyber.css on purpose, so the
+   forex tools look like every other graded practice.
+
+     .ac-fxcalc    Work it out — a numeric calculation
+     .ac-candles   Candlestick chart, read-only or click-to-answer
+     .ac-ticket    Order ticket, laid out like MetaTrader 5
+══════════════════════════════════════════════════════════════ */
+
+.ac-fxcalc,
+.ac-candles--exercise,
+.ac-ticket {
+  margin: 22px 0;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ac-fxcalc__task,
+.ac-candles__task,
+.ac-ticket__task {
+  padding: 14px 16px;
+  background: var(--ac-tint, #f6f7fc);
+  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-fxcalc__task p,
+.ac-candles__task p,
+.ac-ticket__task p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ac-ink-2, #2a3050);
+  white-space: pre-line;
+}
+
+.ac-fxcalc__question {
+  font-weight: 700;
+  color: var(--ac-ink, #0d1130) !important;
+}
+
+/* ── Work it out ─────────────────────────────────────────────── */
+
+.ac-fxcalc__check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+}
+
+.ac-fxcalc__field {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  flex: 0 1 260px;
+}
+
+.ac-fxcalc__field input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  font: 600 15px var(--ac-mono, monospace);
+  color: var(--ac-ink, #0d1130);
+  background: transparent;
+}
+
+.ac-fxcalc__field input:focus {
+  outline: none;
+}
+
+.ac-fxcalc__field:focus-within {
+  border-color: var(--ac-primary, #3b52f0);
+  box-shadow: 0 0 0 3px var(--ac-primary-soft, #eef1ff);
+}
+
+.ac-fxcalc__unit {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ac-muted, #7a819b);
+  background: var(--ac-tint, #f6f7fc);
+  border-left: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-fxcalc .ac-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ac-fxcalc__btn,
+.ac-ticket__place {
+  padding: 9px 18px;
+  min-height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--ac-gradient, linear-gradient(96deg, #566dff, #a026ff));
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ac-fxcalc__btn:disabled,
+.ac-ticket__place:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ac-fxcalc__feedback {
+  margin: 0;
+  padding: 0 16px 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.ac-fxcalc__feedback.is-ok {
+  color: #15803d;
+}
+
+.ac-fxcalc__feedback.is-bad {
+  color: #b91c1c;
+}
+
+.ac-fxcalc__hint {
+  margin: 0;
+  padding: 0 16px 12px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-fxcalc__hint i {
+  color: #b45309;
+  margin-right: 4px;
+}
+
+.ac-fxcalc__working {
+  margin: 0;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--ac-line, #e5e8f2);
+  background: #fafbfe;
+}
+
+.ac-fxcalc__working pre {
+  margin: 6px 0 0;
+  font: 13px/1.6 var(--ac-mono, monospace);
+  white-space: pre-wrap;
+  color: var(--ac-ink-2, #2a3050);
+}
+
+/* ── Candlestick chart ───────────────────────────────────────── */
+
+.ac-candles {
+  margin: 22px 0;
+}
+
+figure.ac-candles {
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ac-candles__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px 0;
+  font-size: 13px;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-candles__head strong {
+  color: var(--ac-ink, #0d1130);
+  font-size: 14px;
+}
+
+.ac-candles__legend {
+  color: #b45309;
+}
+
+.ac-candles__count {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.ac-candles__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ac-candles figcaption {
+  padding: 0 14px 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-candles__grid {
+  stroke: #eef0f7;
+  stroke-width: 1;
+}
+
+.ac-candles__axis {
+  font: 10px var(--ac-mono, monospace);
+  fill: #94a3b8;
+}
+
+.ac-candles__label {
+  font: 700 10px var(--ac-font, sans-serif);
+}
+
+.ac-candles__tag {
+  font: 700 10px var(--ac-font, sans-serif);
+  fill: var(--ac-ink-2, #2a3050);
+}
+
+.ac-candles__ma {
+  fill: none;
+  stroke: #b45309;
+  stroke-width: 1.8;
+}
+
+.ac-candles__wick {
+  stroke-width: 1.4;
+}
+
+.ac-candles__candle.is-up .ac-candles__wick,
+.ac-candles__candle.is-up .ac-candles__body {
+  stroke: #15803d;
+  fill: #16a34a;
+}
+
+.ac-candles__candle.is-down .ac-candles__wick,
+.ac-candles__candle.is-down .ac-candles__body {
+  stroke: #b91c1c;
+  fill: #dc2626;
+}
+
+.ac-candles__hit {
+  fill: transparent;
+}
+
+.ac-candles__candle:hover .ac-candles__hit {
+  fill: rgba(59, 82, 240, 0.06);
+}
+
+.ac-candles__candle.is-selected .ac-candles__hit {
+  fill: rgba(59, 82, 240, 0.16);
+}
+
+.ac-candles__candle.is-answer .ac-candles__hit {
+  stroke: #b45309;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.ac-candles__check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border-top: 1px solid var(--ac-line, #e5e8f2);
+  background: #fafbfe;
+}
+
+.ac-candles__check .ac-fxcalc__hint {
+  flex: 1 1 100%;
+  padding: 0;
+}
+
+/* ── Order ticket ────────────────────────────────────────────── */
+
+.ac-ticket__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0;
+}
+
+.ac-ticket__form {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-right: 1px solid var(--ac-line, #e5e8f2);
+}
+
+.ac-ticket__account {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-ticket__account strong {
+  font-size: 15px;
+  color: var(--ac-ink, #0d1130);
+}
+
+.ac-ticket__field {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ac-ink-2, #2a3050);
+}
+
+.ac-ticket__field input,
+.ac-ticket__field select {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 7px;
+  font: 600 13.5px var(--ac-mono, monospace);
+  color: var(--ac-ink, #0d1130);
+  background: #fff;
+}
+
+.ac-ticket__field input:disabled,
+.ac-ticket__field select:disabled {
+  background: var(--ac-tint, #f6f7fc);
+}
+
+.ac-ticket__sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ac-ticket__sell,
+.ac-ticket__buy {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font: 700 12px var(--ac-font, sans-serif);
+  color: #fff;
+  cursor: pointer;
+}
+
+.ac-ticket__sell strong,
+.ac-ticket__buy strong {
+  font: 700 15px var(--ac-mono, monospace);
+}
+
+.ac-ticket__sell {
+  background: #dc2626;
+}
+
+.ac-ticket__buy {
+  background: #2563eb;
+}
+
+.ac-ticket__sell.is-picked,
+.ac-ticket__buy.is-picked {
+  border-color: var(--ac-ink, #0d1130);
+  box-shadow: 0 0 0 3px rgba(13, 17, 48, 0.12);
+}
+
+.ac-ticket__sell:disabled,
+.ac-ticket__buy:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.ac-ticket__readout {
+  margin: 0;
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  background: #fafbfe;
+}
+
+.ac-ticket__readout div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.ac-ticket__readout dt {
+  color: var(--ac-muted, #7a819b);
+}
+
+.ac-ticket__readout dd {
+  margin: 0;
+  font: 700 12.5px var(--ac-mono, monospace);
+  color: var(--ac-ink, #0d1130);
+  text-align: right;
+}
+
+.ac-ticket__warn {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b45309;
+}
+
+.ac-ticket__check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border-top: 1px solid var(--ac-line, #e5e8f2);
+  background: #fafbfe;
+}
+
+.ac-ticket__quote {
+  font: 600 12px var(--ac-mono, monospace);
+  color: var(--ac-muted, #7a819b);
+}
+
+@media (max-width: 640px) {
+  .ac-ticket__body {
+    grid-template-columns: 1fr;
+  }
+
+  .ac-ticket__form {
+    border-right: 0;
+    border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  }
+
+  .ac-ticket__field {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+}

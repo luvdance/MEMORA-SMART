@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { startAcademyJourney } from "../academy/services/intent";
 import heroImage from "../assets/hero image.png";
 
 const services = [
@@ -7,6 +9,20 @@ const services = [
   { icon: "fas fa-mobile-alt", label: "Build Mobile Apps" },
   { icon: "fas fa-chart-line", label: "Learn Data Analysis", path: "/academy" },
   { icon: "fas fa-code", label: "Learn Web Development", path: "/academy" },
+  // `course` sends the visitor into that course's enrolment, signing them in
+  // first if needed, instead of dropping them on the Academy landing page.
+  {
+    icon: "fab fa-js",
+    label: "Learn JavaScript (OOP)",
+    path: "/academy/enroll/javascript",
+    course: "javascript",
+  },
+  {
+    icon: "fas fa-money-bill-trend-up",
+    label: "Learn Forex Trading",
+    path: "/academy/enroll/forex-trading",
+    course: "forex-trading",
+  },
   { icon: "fas fa-file-alt", label: "Create a CV in Mins", path: "/cv-builder" },
   { icon: "fas fa-robot", label: "AI Automation for Businesses" },
   { icon: "fas fa-calculator", label: "Learn Elementary Mathematics", path: "/academy" },
@@ -19,6 +35,7 @@ const services = [
 
 function Hero() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [aiResult, setAiResult] = useState(null);
@@ -91,15 +108,20 @@ function Hero() {
     setShowDropdown(e.target.value.length > 0);
   };
 
+  const open = (service) => {
+    if (service.course) startAcademyJourney(navigate, user, service.course);
+    else if (service.path) navigate(service.path);
+  };
+
   const handleSelect = (service) => {
     setQuery("");
     setShowDropdown(false);
     setAiResult(null);
-    if (service.path) navigate(service.path);
+    open(service);
   };
 
   const handleCardClick = (service) => {
-    if (service.path) navigate(service.path);
+    open(service);
   };
 
   return (
