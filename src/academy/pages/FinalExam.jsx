@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import { useAuth } from "../../context/AuthContext";
 import { getAllProgress } from "../services/academyService";
 import { ERROR_CODES, reportError } from "../services/errors";
 import { getCourseOutline } from "../data/lessons/index.js";
-import { certificationState } from "../data/certification";
+import { certificationState, examFor } from "../data/certification";
 import "../academy.css";
 
 /**
@@ -37,6 +37,8 @@ import "../academy.css";
 
 const API = "/api/academy/final-exam";
 const STORE = "mst-final-exam-attempt";
+/** /academy/exam with no course is the Data Analysis exam, as it always was. */
+const DEFAULT_COURSE = "data-analysis";
 
 
 /* ── The case stimulus, as a plain scrollable table ─────────────────────
@@ -181,8 +183,9 @@ function Item({ item, index, value, onChange }) {
             onChange={(e) => onChange(item.id, e.target.value)}
           />
           <p className="ac-fx__hint">
-            Spacing between columns is not marked; the values and the number of
-            lines are.
+            {item.language === "javascript"
+              ? "Type exactly what console.log prints, one line per line of output."
+              : "Spacing between columns is not marked; the values and the number of lines are."}
           </p>
         </div>
       )}
@@ -358,6 +361,15 @@ function Result({ result, onRetake }) {
 /* ── Page ───────────────────────────────────────────────────────────────── */
 export default function FinalExam() {
   const { user } = useAuth();
+  const { slug } = useParams();
+  // Which exam this page is for. Every request names it, so the server never
+  // has to guess and a candidate cannot be marked on another course's paper.
+  const examMeta = examFor(slug || DEFAULT_COURSE);
+  const examQuery = examMeta ? `exam=${encodeURIComponent(examMeta.examId)}` : null;
+  // Data Analysis keeps the original key, so an attempt already in progress
+  // when this page learned about other exams is not lost.
+  const storeKey =
+    !examMeta || examMeta.examId === "mst-da-final" ? STORE : `${STORE}:${examMeta.examId}`;
 
   const [briefing, setBriefing] = useState(null);
   const [paper, setPaper] = useState(null);
@@ -386,9 +398,16 @@ export default function FinalExam() {
   useEffect(() => {
     let alive = true;
 
+    if (!examQuery) {
+      setPhase("none");
+      return () => {
+        alive = false;
+      };
+    }
+
     (async () => {
       try {
-        const res = await fetch(API);
+        const res = await fetch(`${API}?${examQuery}`);
         if (!res.ok) throw new Error(`Briefing unavailable (${res.status})`);
         const data = await res.json();
         if (!alive) return;
@@ -396,7 +415,7 @@ export default function FinalExam() {
 
         const saved = readStored();
         if (saved) {
-          const resumed = await fetch(`${API}?seed=${saved.seed}`);
+          const resumed = await fetch(`${API}?${examQuery}&seed=${saved.seed}`);
           if (resumed.ok) {
             const p = await resumed.json();
             if (!alive) return;
@@ -434,7 +453,8 @@ export default function FinalExam() {
     return () => {
       alive = false;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [examQuery]);
 
   /* Has the candidate finished the course?
    *
@@ -492,7 +512,7 @@ export default function FinalExam() {
 
   function readStored() {
     try {
-      const raw = sessionStorage.getItem(STORE);
+      const raw = sessionStorage.getItem(storeKey);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       return Number.isFinite(parsed?.seed) ? parsed : null;
@@ -502,14 +522,14 @@ export default function FinalExam() {
   }
   function writeStored(next) {
     try {
-      sessionStorage.setItem(STORE, JSON.stringify(next));
+      sessionStorage.setItem(storeKey, JSON.stringify(next));
     } catch {
       /* private mode, or storage is full — the attempt still works in memory */
     }
   }
   function clearStored() {
     try {
-      sessionStorage.removeItem(STORE);
+      sessionStorage.removeItem(storeKey);
     } catch {
       /* nothing to do */
     }
@@ -523,7 +543,7 @@ export default function FinalExam() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`${API}?start=1`);
+      const res = await fetch(`${API}?${examQuery}&start=1`);
       if (!res.ok) throw new Error(`Could not start the exam (${res.status})`);
       const p = await res.json();
       const endsAt = Date.now() + p.durationMinutes * 60 * 1000;
@@ -540,7 +560,8 @@ export default function FinalExam() {
     } finally {
       setBusy(false);
     }
-  }, [locked]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locked, examQuery]);
 
   const change = useCallback(
     (itemId, value) => {
@@ -555,7 +576,9 @@ export default function FinalExam() {
         return next;
       });
     },
-    [paper]
+    // readStored/writeStored depend only on storeKey, which is listed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [paper, storeKey]
   );
 
   async function submit(auto = false) {
@@ -577,7 +600,7 @@ export default function FinalExam() {
       const res = await fetch(API, {
         method: "POST",
         headers,
-        body: JSON.stringify({ seed: paper.seed, answers }),
+        body: JSON.stringify({ exam: examMeta?.examId, seed: paper.seed, answers }),
       });
       if (!res.ok) {
         // The API's message describes the request. The candidate needs to
@@ -635,6 +658,24 @@ export default function FinalExam() {
 
         {phase === "loading" && <p className="ac-boot">Loading the exam…</p>}
 
+        {phase === "none" && (
+          <div className="ac-fx__brief-screen">
+            <header className="ac-fx__hero">
+              <span className="ac-fx__kicker">Certification</span>
+              <h1>There is no certification exam for this course yet</h1>
+              <p>
+                Your progress in the course is saved as normal. When an exam
+                opens for it, it will appear on your profile.
+              </p>
+            </header>
+            <div className="ac-fx__actions">
+              <Link className="ac-btn ac-btn--primary" to="/academy/learn">
+                Back to the course
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* ── Briefing ── */}
         {phase === "brief" && briefing && (
           <div className="ac-fx__brief-screen">
@@ -673,10 +714,8 @@ export default function FinalExam() {
                 There is nothing to memorise, and every retake is a new paper.
               </p>
               <p>
-                Most questions are built on real company case studies: a brief
-                from a stakeholder, a table of data, and the question they
-                actually need answered. Some ask you to write a working Excel
-                formula; some give you Python code and ask what it prints.
+                {briefing.briefingNote ||
+                  "Most questions are built on real company case studies: a brief from a stakeholder, a table of data, and the question they actually need answered. Some ask you to write a working Excel formula; some give you Python code and ask what it prints."}
               </p>
             </div>
 

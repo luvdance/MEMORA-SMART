@@ -699,6 +699,7 @@ export const JAVASCRIPT_COURSE = {
       "Pass every required assessment at 70% or above",
       "Pass all four monthly checkpoints",
       "Complete and deploy the capstone",
+      "Pass the final certification exam: 70% overall and at least 50% in every section",
     ],
   },
 

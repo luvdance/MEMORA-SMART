@@ -671,6 +671,7 @@ export const FOREX_COURSE = {
       "Complete every required lesson",
       "Pass every lesson check at 70% or above, including the Week 12 theory and risk assessment",
       "Submit every lab output in Weeks 13 to 16",
+      "Pass the final certification exam: 70% overall and at least 50% in every section",
       "Meet the graduation standard: sound risk calculations, a strategy you can explain, accurate records and rule adherence — profit alone never decides a pass",
     ],
   },

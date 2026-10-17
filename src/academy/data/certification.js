@@ -79,6 +79,72 @@ export const CERTIFICATION = {
     ],
   },
 
+  javascript: {
+    examId: "mst-js-final",
+    courseCode: "JS-101",
+    path: "/academy/exam/javascript",
+    title: "Memora Smart Certification — Object Oriented Programming (JavaScript)",
+    subtitle: "Logic · JavaScript · OOP · Browser & React",
+    questionCount: 30,
+    durationMinutes: 75,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/javascript/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "js-w1-foundations",
+      "js-w2-logic",
+      "js-w3-intro",
+      "js-w4-types",
+      "js-w5-control",
+      "js-w6-functions",
+      "js-w7-arrays-strings",
+      "js-w8-objects",
+      "js-w9-scope-debugging",
+      "js-w10-dom",
+      "js-w11-events-storage",
+      "js-w12-apis",
+      "js-w13-advanced",
+      "js-w14-tooling",
+      "js-w15-react",
+      "js-w16-capstone",
+    ],
+  },
+
+  "forex-trading": {
+    examId: "mst-fx-final",
+    courseCode: "FX-101",
+    path: "/academy/exam/forex-trading",
+    title: "Memora Smart Certification — Forex Trading",
+    subtitle: "Mechanics · Risk mathematics · Analysis · Strategy · Governance",
+    questionCount: 30,
+    durationMinutes: 75,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/forex/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "fx-w1-intro",
+      "fx-w2-mechanics",
+      "fx-w3-risk-maths",
+      "fx-c1-consolidation",
+      "fx-w4-price-action",
+      "fx-w5-technical",
+      "fx-w6-fundamental",
+      "fx-c2-consolidation",
+      "fx-w7-timeframes",
+      "fx-w8-strategy",
+      "fx-w9-backtesting",
+      "fx-c3-consolidation",
+      "fx-w10-execution",
+      "fx-w11-psychology",
+      "fx-w12-governance",
+      "fx-c4-consolidation",
+      "fx-w13-lab-backtest",
+      "fx-w14-lab-demo",
+      "fx-w15-lab-review",
+      "fx-w16-lab-final",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"
@@ -97,14 +163,10 @@ export const CERTIFICATION = {
    * before. Until then the profile says "no certification exam yet", which is
    * true, rather than offering one that would certify the wrong thing.
    *
-   * Object Oriented Programming (JavaScript) is absent for the first reason:
-   * all sixteen weeks are written, but no certification exam bank exists for
-   * it yet. Its lesson checks and capstone are live; the exam is not.
-   *
-   * Forex Trading is absent for the same reason. Its graduation standard is
-   * the Week 16 lab assessment (plan, case study and presentation, judged on
-   * risk calculations, records and rule adherence, never on profit), which a
-   * timed multiple-choice exam could not replace in any case.
+   * Forex Trading's exam certifies KNOWLEDGE of markets and risk. Its
+   * graduation standard remains the Week 16 practical assessment, judged on
+   * risk calculations, records and rule adherence and never on profit; the
+   * exam does not replace it and does not certify readiness to trade live.
    */
 };
 

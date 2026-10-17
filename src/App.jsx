@@ -95,6 +95,16 @@ function App() {
           </AcademyRoute>
         }
       />
+      {/* One certification exam per course. The bare path above stays the
+          Data Analysis exam, so existing links keep working. */}
+      <Route
+        path="/academy/exam/:slug"
+        element={
+          <AcademyRoute>
+            <FinalExam />
+          </AcademyRoute>
+        }
+      />
       <Route
         path="/academy/jobs"
         element={
