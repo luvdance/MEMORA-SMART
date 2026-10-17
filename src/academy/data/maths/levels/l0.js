@@ -41,6 +41,11 @@ export const L0_MODULES = [
         "round to the nearest 10, 100 or 1000, and name the digit that decided it",
         { exams: ALL }
       ),
+      a(
+        "Roman numerals",
+        "read and write Roman numerals up to 3999 and convert them to and from ordinary numbers",
+        { exams: NONE }
+      ),
     ],
   },
 
@@ -177,6 +182,33 @@ export const L0_MODULES = [
   },
 
   {
+    code: "L0-N6",
+    level: "L0",
+    strand: "N",
+    title: "Squares, cubes and roots",
+    summary:
+      "A number times itself, and the way back. Area, Pythagoras, indices, surds and the quadratic formula all lean on instant squares and roots.",
+    needs: ["L0-N2.1"],
+    atoms: [
+      a(
+        "Square numbers and square roots",
+        "recall the squares from 1 to 20 and find the square root of a perfect square",
+        { exams: ALL }
+      ),
+      a(
+        "Cube numbers and cube roots",
+        "recall the cubes from 1 to 10 and find the cube root of a perfect cube",
+        { exams: ALL }
+      ),
+      a(
+        "Estimating square roots",
+        "place a square root between two whole numbers and estimate it to one decimal place",
+        { exams: ALL, needs: ["L0-N5.1"] }
+      ),
+    ],
+  },
+
+  {
     code: "L0-G1",
     level: "L0",
     strand: "G",
@@ -205,6 +237,33 @@ export const L0_MODULES = [
       a(
         "Area of rectangles",
         "find the area of a rectangle and of a compound shape, with the units written correctly",
+        { exams: ALL }
+      ),
+    ],
+  },
+
+  {
+    code: "L0-G2",
+    level: "L0",
+    strand: "G",
+    title: "Time",
+    summary:
+      "Time counts in sixties, not tens. Speed, timetables, longitude and every journey question depend on handling that correctly.",
+    needs: ["L0-G1.2"],
+    atoms: [
+      a(
+        "Units of time",
+        "convert between seconds, minutes, hours, days, weeks and years, including leap years",
+        { exams: ALL }
+      ),
+      a(
+        "The 12-hour and 24-hour clock",
+        "convert between 12-hour and 24-hour times",
+        { exams: ALL }
+      ),
+      a(
+        "Elapsed time",
+        "find a finishing time, a starting time or a duration, crossing the hour and midnight",
         { exams: ALL }
       ),
     ],

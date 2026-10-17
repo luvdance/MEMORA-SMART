@@ -11,6 +11,7 @@
     "test:academy": "node lib/academy/selfTest.mjs",
     "test:exam": "node lib/academy/finalExam/selfTest.mjs",
     "test:maths": "node lib/academy/maths/selfTest.mjs",
+    "audit:maths-keys": "node lib/academy/maths/auditKeys.mjs",
     "test:e2ee": "node lib/academy/e2eeSelfTest.mjs",
     "preview": "vite preview",
     "check:terms": "node lib/academy/checkTerms.mjs"

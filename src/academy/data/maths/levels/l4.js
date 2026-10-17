@@ -161,6 +161,7 @@ export const L4_MODULES = [
       a("Special quadrilaterals", "use the properties of parallelograms, rhombuses, kites and trapeziums in a proof", { exams: ALL }),
       a("The intercept theorem", "apply the intercept theorem to find a missing length", { exams: ALL }),
       a("Similar triangle problems", "solve problems using similar triangles, including inside a larger figure", { exams: ALL }),
+      a("Parallelograms on the same base", "use the theorem that parallelograms and triangles on the same base and between the same parallels have equal or half areas", { exams: WN }),
     ],
   },
   {

@@ -32,6 +32,7 @@ import DecisionCheck from "../components/DecisionCheck";
 // that must be answered correctly before the atom advances, with a repair loop
 // behind a wrong answer. See components/MathsDrill.jsx.
 import MathsDrill from "../components/MathsDrill";
+import MathsVisual from "../components/MathsVisual";
 import BetaBadge from "../components/BetaBadge";
 import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getExamForModule } from "../data/exams";
@@ -602,6 +603,19 @@ export default function LessonPlayer() {
               {/* MATHEMATICS. Generated practice on one skill, with the
                   repair loop that will not release a wrong answer. Keyed per
                   atom for the same reason every sim above is. */}
+              {/* Trace before Operate: on a maths atom the picture and the
+                  worked example come BEFORE the drill, so the method is seen
+                  before it is asked for. */}
+              {atom.visual &&
+                [].concat(atom.visual).map((spec, i) => <MathsVisual key={i} spec={spec} />)}
+
+              {atom.drill && atom.example && (
+                <div className="ac-note ac-note--example">
+                  <span className="ac-note__label">Worked example</span>
+                  <pre>{atom.example}</pre>
+                </div>
+              )}
+
               {atom.drill && (
                 <MathsDrill
                   key={atom.id}
@@ -611,7 +625,7 @@ export default function LessonPlayer() {
                 />
               )}
 
-              {atom.example && (
+              {atom.example && !atom.drill && (
                 <div className="ac-note ac-note--example">
                   <span className="ac-note__label">Example</span>
                   <pre>{atom.example}</pre>

@@ -62,6 +62,7 @@ export const L5_MODULES = [
     atoms: [
       a("Linear inequalities in two variables", "draw the boundary line and shade the region an inequality describes", { exams: ALL }),
       a("Simultaneous inequalities", "shade the region satisfying several inequalities at once and identify it clearly", { exams: ALL }),
+      a("Linear programming", "find the maximum or minimum of a quantity such as profit or cost at the corners of a feasible region", { exams: WN }),
       a("Quadratic inequalities", "solve a quadratic inequality and state the solution set", { exams: ALL }),
     ],
   },

@@ -19,6 +19,8 @@ export const L2_MODULES = [
     atoms: [
       a("Laws of indices", "multiply, divide and raise powers using the laws of indices", { exams: ALL }),
       a("Zero and negative indices", "use zero and negative indices, and explain what a negative index means", { exams: ALL }),
+      a("Fractional indices", "evaluate fractional indices as roots and powers, such as 8^(2/3) and 27^(-1/3)", { exams: ALL, needs: ["L0-N6.2"] }),
+      a("Equations involving indices", "solve an equation such as 2^(x+1) = 32 or 9^x = 27 by writing both sides with the same base", { exams: ALL }),
       a("Writing standard form", "write a large or small number in standard form, and read one back", { exams: ALL }),
       a("Calculating in standard form", "multiply and divide numbers in standard form and give the answer in standard form", { exams: ALL }),
     ],

@@ -1,4 +1,4 @@
-import { a, ALL, WN, JAMB_ONLY } from "./shorthand.js";
+import { a, ALL, WN, NONE, JAMB_ONLY } from "./shorthand.js";
 
 /**
  * LEVEL 6 · SS3 — FINAL TOPICS AND EXAM MASTERY
@@ -139,7 +139,40 @@ export const L6_MODULES = [
     ],
   },
 
-  /* ── Part B · exam mastery ───────────────────────────────────────── */
+  /* ── Part B · the university bridge ──────────────────────────────── */
+  {
+    code: "L6-U1",
+    level: "L6",
+    strand: "A",
+    title: "University bridge: functions and algebra",
+    summary: "The algebra a 100 level mathematics course opens with: function notation, composition and inverses, the binomial expansion and partial fractions.",
+    needs: ["L5-A4.3"],
+    atoms: [
+      a("Domain and range", "state the domain and range of a function written in f(x) notation", { exams: NONE }),
+      a("Composite and inverse functions", "find f(g(x)) and the inverse of a one-to-one function", { exams: NONE }),
+      a("The binomial expansion", "expand (a + b)^n for a positive whole number n using nCr or Pascal's triangle", { exams: NONE, needs: ["L6-S1.3"] }),
+      a("Partial fractions", "split a fraction with linear factors in the denominator into partial fractions", { exams: NONE, needs: ["L5-A3.1"] }),
+    ],
+  },
+  {
+    code: "L6-U2",
+    level: "L6",
+    strand: "A",
+    title: "University bridge: proof and further topics",
+    summary: "The standard of argument a university expects, and the three topics a first semester assumes: induction, identities and complex numbers.",
+    needs: ["L4-N6.3"],
+    chain: false,
+    atoms: [
+      a("Proof and counterexample", "tell an example from a proof, disprove a claim with one counterexample, and write a short direct proof", { exams: NONE }),
+      a("Sigma notation", "read and evaluate a sum written in sigma notation", { exams: NONE, needs: ["L5-N1.3"] }),
+      a("Proof by induction", "prove a summation formula by mathematical induction", { exams: NONE, needs: ["L5-N1.3"] }),
+      a("Radians", "convert between degrees and radians and use arc length s = rθ", { exams: NONE, needs: ["L4-G1.1"] }),
+      a("Trigonometric identities", "use sin²x + cos²x = 1 and tan x = sin x / cos x to simplify and prove identities", { exams: NONE, needs: ["L4-T1.2"] }),
+      a("Complex numbers", "add, subtract and multiply complex numbers and solve a quadratic with a negative discriminant", { exams: NONE, needs: ["L4-A1.3"] }),
+    ],
+  },
+
+  /* ── Part C · exam mastery ───────────────────────────────────────── */
   {
     code: "L6-E1",
     level: "L6",

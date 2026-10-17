@@ -75,10 +75,12 @@ export default function AnswerBox({
       {input.unit && <span className="ac-mx-answer__unit">{input.unit}</span>}
 
       {/* The characters a phone keyboard buries. Not a calculator — this
-          course is not going to type the answer for anybody. */}
-      {kind !== "text" && kind !== "number" && (
+          course is not going to type the answer for anybody. An item can
+          name its own keys (`input.keys`): inequality signs, √ and π, the
+          degree sign. */}
+      {(input.keys || (kind !== "text" && kind !== "number")) && (
         <div className="ac-mx-keys">
-          {["/", "-", ".", ",", ":"].map((key) => (
+          {(input.keys || (kind === "expression" ? ["^", "(", ")", "√", "π", "/", "-"] : ["/", "-", ".", ",", ":"])).map((key) => (
             <button
               key={key}
               type="button"

@@ -69,6 +69,11 @@ export const L1_MODULES = [
         "decide whether a worded problem — bells ringing together, sharing into equal groups — needs the HCF or the LCM",
         { exams: ALL }
       ),
+      a(
+        "Square and cube roots by prime factors",
+        "find the square root or cube root of a large perfect power by pairing or tripling its prime factors",
+        { exams: ALL, needs: ["L0-N6.2"] }
+      ),
     ],
   },
 
@@ -193,6 +198,33 @@ export const L1_MODULES = [
   },
 
   {
+    code: "L1-N7",
+    level: "L1",
+    strand: "N",
+    title: "The number system",
+    summary:
+      "Every kind of number in one family tree: natural, whole, integer, rational, irrational, real. WAEC names the sets and expects the symbols.",
+    needs: ["L1-N6.1", "L1-N4.1"],
+    atoms: [
+      a(
+        "Natural numbers, whole numbers and integers",
+        "classify a number as natural, whole or integer, and use the symbols N and Z",
+        { exams: ALL }
+      ),
+      a(
+        "Rational and irrational numbers",
+        "decide whether a number is rational or irrational, including recurring decimals and square roots",
+        { exams: ALL, needs: ["L0-N6.3"] }
+      ),
+      a(
+        "Real numbers on the number line",
+        "place rational and irrational numbers on a number line and order them",
+        { exams: ALL }
+      ),
+    ],
+  },
+
+  {
     code: "L1-A1",
     level: "L1",
     strand: "A",
@@ -307,6 +339,11 @@ export const L1_MODULES = [
         "Area formulas",
         "find the area of a rectangle, triangle, parallelogram and trapezium, identifying the perpendicular height correctly",
         { exams: ALL }
+      ),
+      a(
+        "Symmetry",
+        "find the lines of symmetry and the order of rotational symmetry of a plane shape",
+        { exams: WN }
       ),
     ],
   },
