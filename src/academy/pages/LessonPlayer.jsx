@@ -15,6 +15,9 @@ import QuerySteps from "../components/QuerySteps";
 import ModelSim from "../components/ModelSim";
 import DaxSim from "../components/DaxSim";
 import CodeTrace from "../components/CodeTrace";
+// Write-your-own-code practice, run in real Python and checked by tests.
+import CodeChallenge from "../components/CodeChallenge";
+import CodeFill from "../components/CodeFill";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
 // The cybersecurity kit. Same contract as the analytics sims above: the
@@ -181,6 +184,8 @@ export default function LessonPlayer() {
       atom?.queryExercise ||
       atom?.modelExercise ||
       atom?.codeExercise ||
+      atom?.codeChallenge ||
+      atom?.codeFill ||
       atom?.phishExercise ||
       atom?.captureExercise ||
       atom?.permsExercise ||
@@ -224,7 +229,7 @@ export default function LessonPlayer() {
         .querySelector(
           ".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model, .ac-trace, " +
             ".ac-phish, .ac-pcap, .ac-perm, .ac-fw, .ac-hunt, .ac-risk, .ac-term, .ac-crypto, .ac-decide, .ac-drill, " +
-            ".ac-fxcalc, .ac-candles--exercise, .ac-ticket"
+            ".ac-fxcalc, .ac-candles--exercise, .ac-ticket, .ac-challenge"
         )
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -426,7 +431,17 @@ export default function LessonPlayer() {
 
               {/* Python. `code` demonstrates and shows its output;
                   `codeExercise` makes the learner predict it. */}
-              {atom.code && <CodeTrace key={`${atom.id}-demo`} {...atom.code} showOutput />}
+              {/* The Python Programming course is practice-first, so its worked
+                  examples can be edited and run too (a demo opts out with
+                  runnable: false). Other courses keep their own default. */}
+              {atom.code && (
+                <CodeTrace
+                  key={`${atom.id}-demo`}
+                  {...atom.code}
+                  runnable={atom.code.runnable ?? slug === "python"}
+                  showOutput
+                />
+              )}
               {atom.codeExercise && (
                 <CodeTrace
                   key={atom.id}
@@ -444,6 +459,30 @@ export default function LessonPlayer() {
 
               {/* A measure evaluated once per row, so filter context is
                   something the learner watches rather than reads about. */}
+              {/* Write the code: the learner uses the idea they have just seen
+                  working, in real Python, checked by tests. */}
+              {atom.codeChallenge && (
+                <CodeChallenge
+                  key={`${atom.id}-challenge`}
+                  id={atom.id}
+                  {...atom.codeChallenge}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* Write the missing C++: a real program with gaps the learner
+                  fills in. Every accepted answer is compiled and run at build
+                  time, so it can only accept code that works. */}
+              {atom.codeFill && (
+                <CodeFill
+                  key={`${atom.id}-fill`}
+                  {...atom.codeFill}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
               {atom.dax && <DaxSim key={atom.id} {...atom.dax} />}
 
               {/* The Model view, with cardinality and filter direction made
@@ -770,6 +809,18 @@ export default function LessonPlayer() {
                       <>
                         The order does not match the plan yet. Fix the ticket
                         and send it again.
+                      </>
+                    ) : atom.codeChallenge ? (
+                      <>
+                        Your code does not pass the checks yet. Run it, read
+                        what it prints and any error, fix it and press{" "}
+                        <em>Check my code</em>.
+                      </>
+                    ) : atom.codeFill ? (
+                      <>
+                        The missing code is not right yet. Read the lines
+                        around each gap, type the C++ that belongs there and
+                        press <em>Check my code</em>.
                       </>
                     ) : atom.drill ? (
                       <>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isPythonReady, runPython } from "../pyodideRunner";
+import { isPythonReady, runChallenge, runPython } from "../pyodideRunner";
 import { runJavaScript } from "../jsRunner";
 
 /**
@@ -23,6 +23,12 @@ import { runJavaScript } from "../jsRunner";
  * Two languages. `language: "javascript"` runs in a sandboxed Web Worker with
  * nothing to download, so every JavaScript snippet can be edited and run; the
  * default is Python, which keeps every existing lesson exactly as it was.
+ *
+ * C++ (`language: "cpp"`) is read and predicted but never run here: a
+ * compiler is far too large to ship to a phone. Its outputs are still real,
+ * because validate:content compiles and runs every C++ snippet with g++. A
+ * snippet that is meant NOT to compile carries `compileError`, the part of
+ * g++'s diagnostic the lesson is about, and that is what is shown.
  *
  * Three modes:
  *   codeDemo   read-only: the code and its output, side by side
@@ -66,10 +72,12 @@ export default function CodeTrace({
   module = false,
   runnable = false,
   packages = [],
+  inputs,
   highlight,
   question,
   expectedOutput,
   raises,
+  compileError,
   trace,
   hint,
   successMessage,
@@ -84,7 +92,8 @@ export default function CodeTrace({
   // is runnable.
   const isPseudo = language === "pseudocode";
   const canRun = !isPseudo && (runnable || isJs);
-  const raisesLabel = isJs ? "JavaScript throws" : "Python raises";
+  const isCpp = language === "cpp";
+  const raisesLabel = isJs ? "JavaScript throws" : isCpp ? "The program stops with" : "Python raises";
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState(() =>
     alreadySolved && graded
@@ -106,9 +115,15 @@ export default function CodeTrace({
     setBusy("Starting…");
     setLive(null);
     try {
-      const out = isJs
-        ? await runJavaScript(editable, { strict: module })
-        : await runPython(editable, { packages, onProgress: setBusy });
+      // A snippet that calls input() carries its scripted answers, so Run
+      // reproduces the transcript the lesson shows instead of a browser prompt.
+      let out;
+      if (isJs) out = await runJavaScript(editable, { strict: module });
+      else if (inputs) {
+        const res = await runChallenge(editable, [{ inputs }], { onProgress: setBusy });
+        const r = res.results[0] || {};
+        out = { stdout: r.output || "", error: r.error || "" };
+      } else out = await runPython(editable, { packages, onProgress: setBusy });
       setLive(out);
     } catch (err) {
       setLive({ stdout: "", error: err.message || String(err) });
@@ -119,8 +134,13 @@ export default function CodeTrace({
 
   // A snippet can print some lines and THEN throw. The learner predicts both,
   // in order, because "how far did it get?" is half of reading an error.
-  const target =
-    raises && expectedOutput ? `${expectedOutput}\n${raises}` : raises || expectedOutput || "";
+  const target = compileError
+    ? compileError
+    : raises && expectedOutput
+      ? `${expectedOutput}\n${raises}`
+      : raises || expectedOutput || "";
+  const failed = Boolean(raises || compileError);
+  const failedLabel = compileError ? "g++ refuses to compile it" : raisesLabel;
 
   const check = () => {
     if (!answer.trim()) {
@@ -156,11 +176,20 @@ export default function CodeTrace({
 
       <CodeBlock code={code} highlight={highlight} />
 
+      {inputs?.length > 0 && (
+        <p className="ac-trace__inputs">
+          <span className="ac-trace__out-label">Typed at the keyboard</span>{" "}
+          {inputs.map((v, i) => (
+            <kbd key={i}>{v === "" ? "(Enter)" : v}</kbd>
+          ))}
+        </p>
+      )}
+
       {/* Read-only teaching: show the output directly */}
       {!graded && showOutput && (
         <div className="ac-trace__out">
-          <span className="ac-trace__out-label">Output</span>
-          <pre className={raises ? "is-error" : undefined}>{target}</pre>
+          <span className="ac-trace__out-label">{compileError ? failedLabel : "Output"}</span>
+          <pre className={failed ? "is-error" : undefined}>{target}</pre>
         </div>
       )}
 
@@ -316,9 +345,9 @@ export default function CodeTrace({
           {(revealed || result?.ok) && (
             <div className="ac-trace__out">
               <span className="ac-trace__out-label">
-                {raises ? raisesLabel : "Actual output"}
+                {failed ? failedLabel : "Actual output"}
               </span>
-              <pre className={raises ? "is-error" : undefined}>{target}</pre>
+              <pre className={failed ? "is-error" : undefined}>{target}</pre>
             </div>
           )}
         </div>

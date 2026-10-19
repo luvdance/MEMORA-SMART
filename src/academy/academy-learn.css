@@ -4564,3 +4564,102 @@
   border-radius: 8px;
   background: #fff;
 }
+
+/* ── WRITE THE CODE (codeChallenge) ────────────────────────────────── */
+
+.ac-challenge { border-color: #d8ccfb; }
+
+.ac-challenge__task {
+  background: linear-gradient(180deg, #f6f1ff, #fbf9ff);
+}
+
+.ac-challenge__task .ac-note__label i { margin-right: 4px; }
+
+.ac-challenge__sample-label { padding: 10px 0 0; }
+
+.ac-challenge__sample,
+.ac-challenge__model {
+  margin: 6px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #16121f;
+  color: #f4f1ff;
+  overflow-x: auto;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  line-height: 1.7;
+  white-space: pre;
+}
+
+.ac-challenge__model { margin-top: 10px; }
+
+.ac-challenge__hint {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ac-text, #4c5370);
+}
+
+.ac-challenge .ac-trace__feedback i { margin-right: 2px; }
+
+.ac-trace__inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0 16px 8px;
+}
+
+.ac-trace__live .ac-trace__inputs { padding: 0; }
+
+.ac-trace__inputs .ac-trace__out-label { padding: 0; }
+
+.ac-trace__inputs kbd {
+  padding: 2px 8px;
+  border: 1px solid #d9dced;
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: #fff;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--ac-ink-2, #2a3050);
+}
+
+.ac-trace__btn:disabled,
+.ac-trace__reveal:disabled { opacity: 0.6; cursor: progress; }
+
+/* ── WRITE THE MISSING C++ (codeFill) ─────────────────────────────── */
+
+.ac-fill__gap {
+  display: inline-block;
+  margin: 0 1px;
+  padding: 0 6px;
+  border: 1px dashed #a78bfa;
+  border-radius: 5px;
+  background: #261d3a;
+  color: #fff7d6;
+  font: inherit;
+  line-height: 1.5;
+  vertical-align: baseline;
+}
+
+.ac-fill__gap:focus {
+  outline: none;
+  border-style: solid;
+  border-color: #c4b5fd;
+  box-shadow: 0 0 0 3px rgba(139, 44, 255, 0.35);
+}
+
+.ac-fill__gap.is-ok { border-style: solid; border-color: #4ade80; background: #15291d; }
+.ac-fill__gap.is-bad { border-style: solid; border-color: #f87171; background: #2f1719; }
+.ac-fill__gap:disabled { opacity: 1; cursor: default; }
+
+.ac-fill__answers code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f1ecff;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  color: #3b1d7a;
+}

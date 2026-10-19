@@ -85,6 +85,12 @@ async function ensurePackages(packages, onProgress) {
 export async function runPython(code, { packages = [], onProgress = () => {} } = {}) {
   await ensurePyodide(onProgress);
   await ensurePackages(packages, onProgress);
+  // Standard-library modules Pyodide ships separately (sqlite3) load on import.
+  try {
+    await pyodide.loadPackagesFromImports(code);
+  } catch {
+    /* an unknown import fails inside Python with a readable error instead */
+  }
   onProgress("Running…");
 
   // Never interpolate learner code into a Python string — set it as a variable
@@ -142,3 +148,40 @@ if "matplotlib" in sys.modules:
 
 /** Has the runtime already been paid for in this session? */
 export const isPythonReady = () => Boolean(pyodide);
+
+/* ── Write-your-own-code practice ─────────────────────────────────────────
+ * The harness in pyHarness.js is defined once per session, then every Run or
+ * Check passes the learner's code and the tests in as variables. The same
+ * harness is what the content validator runs in CPython, so a challenge that
+ * passes on the build machine passes here.
+ */
+let harnessReady = false;
+
+/**
+ * Run `code` against `tests` and return { passed, results: [{ ok, output,
+ * error, message, label }] }. A test with no `check` simply runs the program
+ * with its scripted inputs, which is what the Run button uses.
+ */
+export async function runChallenge(code, tests, { onProgress = () => {} } = {}) {
+  await ensurePyodide(onProgress);
+  if (!harnessReady) {
+    const { PY_HARNESS } = await import("./pyHarness.js");
+    await pyodide.runPythonAsync(PY_HARNESS);
+    harnessReady = true;
+  }
+  // sqlite3 and a few other stdlib modules are separate downloads in Pyodide.
+  // Load whatever the learner's code imports, so `import sqlite3` just works.
+  try {
+    await pyodide.loadPackagesFromImports(code);
+  } catch {
+    /* an unknown import fails inside Python with a readable error instead */
+  }
+  onProgress("Running…");
+  pyodide.globals.set("__academy_src", code);
+  pyodide.globals.set("__academy_tests_json", JSON.stringify(tests || [{}]));
+  const json = await pyodide.runPythonAsync(
+    "__json.dumps(__academy_run_challenge(__academy_src, __json.loads(__academy_tests_json)))"
+  );
+  onProgress("");
+  return JSON.parse(String(json));
+}

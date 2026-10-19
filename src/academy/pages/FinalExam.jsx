@@ -185,7 +185,11 @@ function Item({ item, index, value, onChange }) {
           <p className="ac-fx__hint">
             {item.language === "javascript"
               ? "Type exactly what console.log prints, one line per line of output."
-              : "Spacing between columns is not marked; the values and the number of lines are."}
+              : item.language === "cpp"
+                ? "Type exactly what the program sends to std::cout, one line per line of output."
+                : item.preamble
+                ? "Spacing between columns is not marked; the values and the number of lines are."
+                : "Type exactly what print() shows, one line per line of output."}
           </p>
         </div>
       )}

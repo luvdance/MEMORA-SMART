@@ -3,6 +3,8 @@ import CYBERSECURITY_COURSE from "./cybersecurityCourse.js";
 import MATHEMATICS_COURSE from "./mathematicsCourse.js";
 import JAVASCRIPT_COURSE from "./javascriptCourse.js";
 import FOREX_COURSE from "./forexCourse.js";
+import PYTHON_COURSE from "./pythonCourse.js";
+import CPP_COURSE from "./cppCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -163,6 +165,55 @@ export const CATALOG = [
       "Capstone project",
     ],
     course: JAVASCRIPT_COURSE,
+  },
+  {
+    id: "python",
+    code: "PY-101",
+    slug: "python",
+    title: "Python Programming",
+    subtitle: "Learn to program by writing Python",
+    category: "web",
+    icon: "fab fa-python",
+    status: "open",
+    beta: true,
+    level: "Absolute beginner → Job-ready",
+    summary:
+      "Programming learned by doing it. Algorithms and flowcharts first, then Python from your first print() to files, OOP, testing, SQL, APIs and automation. Every time a lesson shows you something, you write code that uses it, run in the page and checked before you move on.",
+    covers: [
+      "Programming logic & flowcharts",
+      "Core Python",
+      "Strings & collections",
+      "Files, errors & OOP",
+      "Git & professional practice",
+      "Algorithms, testing & SQL",
+      "APIs & automation",
+    ],
+    course: PYTHON_COURSE,
+  },
+  {
+    id: "cpp",
+    code: "CP-101",
+    slug: "cpp",
+    title: "C++ Programming",
+    subtitle: "Fundamentals to advanced development",
+    category: "web",
+    icon: "fas fa-microchip",
+    status: "open",
+    beta: true,
+    level: "Complete beginner → Advanced",
+    summary:
+      "Learn the language behind game engines, browsers, operating systems and trading systems. Sixteen weeks from your first compiled program to memory and pointers, object-oriented design, the STL, modern C++, debugging and testing, and a capstone application you build and present. Every program in the course is compiled and run, so every output you see is real.",
+    covers: [
+      "Variables, operators, decisions & loops",
+      "Functions, arrays, vectors & strings",
+      "Pointers, references & memory",
+      "Classes, inheritance & polymorphism",
+      "Exceptions, files, templates & the STL",
+      "Data structures & algorithms",
+      "Modern C++, debugging, testing & CMake",
+      "Capstone project",
+    ],
+    course: CPP_COURSE,
   },
   {
     id: "forex-trading",

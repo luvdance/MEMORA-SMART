@@ -38,6 +38,16 @@ function EducationSection() {
             </div>
 
             <div className="edu-item">
+              <i className="fab fa-python"></i>
+              <span>Python Programming</span>
+            </div>
+
+            <div className="edu-item">
+              <i className="fas fa-microchip"></i>
+              <span>C++ Programming</span>
+            </div>
+
+            <div className="edu-item">
               <i className="fas fa-money-bill-trend-up"></i>
               <span>Forex Trading</span>
             </div>

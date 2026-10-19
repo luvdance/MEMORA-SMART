@@ -18,6 +18,18 @@ const services = [
     course: "javascript",
   },
   {
+    icon: "fab fa-python",
+    label: "Learn Python Programming",
+    path: "/academy/enroll/python",
+    course: "python",
+  },
+  {
+    icon: "fas fa-microchip",
+    label: "Learn C++ Programming",
+    path: "/academy/enroll/cpp",
+    course: "cpp",
+  },
+  {
     icon: "fas fa-money-bill-trend-up",
     label: "Learn Forex Trading",
     path: "/academy/enroll/forex-trading",
