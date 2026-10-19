@@ -160,7 +160,7 @@ export default function AcademyLanding() {
     title:
       "Memora Smart Academy — Learn Data, Web Development, AI and Design Skills",
     description:
-      "Structured online courses that take you from absolute beginner to job-ready. Data Analysis is open now, with Web Development, Frontend Libraries, AI & Automation and Content Creation in development. Real assessments, real projects, verifiable certificates.",
+      "Structured online courses that take you from absolute beginner to job-ready. Data Analysis, Responsive Web Development, JavaScript, Python, C++, Cybersecurity, Mathematics and Forex Trading are open now, with Frontend Libraries (React), AI & Automation and Content Creation in development. Real assessments, real projects, verifiable certificates.",
     structuredData: {
       "@context": "https://schema.org",
       "@type": "EducationalOrganization",

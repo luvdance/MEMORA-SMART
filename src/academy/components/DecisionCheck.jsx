@@ -1,4 +1,32 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+/**
+ * Display order. Authors tend to write the right answer first, so options are
+ * shown in an order derived from the question itself: stable for a given
+ * decision (it never jumps between renders or visits) and different from the
+ * order in the lesson file, so the answer's position teaches nothing.
+ */
+function displayOrder(options, key) {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i += 1) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  let a = h >>> 0;
+  const random = () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const out = [...options];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
 
 /**
  * MAKE THE CALL — a graded judgement, inside the lesson.
@@ -29,6 +57,7 @@ export default function DecisionCheck({
   onSolved,
   alreadySolved = false,
 }) {
+  const ordered = useMemo(() => displayOrder(options, `${scenario || ""}|${question || ""}`), [options, scenario, question]);
   const [picked, setPicked] = useState(null);
   const [tried, setTried] = useState(() => new Set());
   const [result, setResult] = useState(() =>
@@ -72,7 +101,7 @@ export default function DecisionCheck({
       </div>
 
       <div className="ac-decide__options">
-        {options.map((option) => {
+        {ordered.map((option) => {
           const state = result?.ok && option.id === correct
             ? "is-correct"
             : tried.has(option.id)

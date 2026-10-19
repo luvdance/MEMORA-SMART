@@ -8,7 +8,12 @@ const services = [
   { icon: "fas fa-laptop-code", label: "Build Websites" },
   { icon: "fas fa-mobile-alt", label: "Build Mobile Apps" },
   { icon: "fas fa-chart-line", label: "Learn Data Analysis", path: "/academy" },
-  { icon: "fas fa-code", label: "Learn Web Development", path: "/academy" },
+  {
+    icon: "fas fa-code",
+    label: "Learn Responsive Web Development",
+    path: "/academy/enroll/web-development",
+    course: "web-development",
+  },
   // `course` sends the visitor into that course's enrolment, signing them in
   // first if needed, instead of dropping them on the Academy landing page.
   {

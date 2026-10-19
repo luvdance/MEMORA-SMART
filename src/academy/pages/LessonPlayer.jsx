@@ -18,6 +18,7 @@ import CodeTrace from "../components/CodeTrace";
 // Write-your-own-code practice, run in real Python and checked by tests.
 import CodeChallenge from "../components/CodeChallenge";
 import CodeFill from "../components/CodeFill";
+import WebLab from "../components/WebLab";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
 // The cybersecurity kit. Same contract as the analytics sims above: the
@@ -185,6 +186,7 @@ export default function LessonPlayer() {
       atom?.modelExercise ||
       atom?.codeExercise ||
       atom?.codeChallenge ||
+      atom?.webLab ||
       atom?.codeFill ||
       atom?.phishExercise ||
       atom?.captureExercise ||
@@ -229,7 +231,7 @@ export default function LessonPlayer() {
         .querySelector(
           ".ac-sheet-sim, .ac-pivot, .ac-choice, .ac-pq, .ac-model, .ac-trace, " +
             ".ac-phish, .ac-pcap, .ac-perm, .ac-fw, .ac-hunt, .ac-risk, .ac-term, .ac-crypto, .ac-decide, .ac-drill, " +
-            ".ac-fxcalc, .ac-candles--exercise, .ac-ticket, .ac-challenge"
+            ".ac-fxcalc, .ac-candles--exercise, .ac-ticket, .ac-challenge, .ac-weblab:not(.ac-weblab--demo)"
         )
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -478,6 +480,22 @@ export default function LessonPlayer() {
                 <CodeFill
                   key={`${atom.id}-fill`}
                   {...atom.codeFill}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* WEB DEVELOPMENT. Real files and a live preview: `webDemo` is a
+                  worked example to experiment with, `webLab` is graded by
+                  checks run against the rendered page. */}
+              {atom.webDemo && (
+                <WebLab key={`${atom.id}-demo`} id={`${atom.id}-demo`} {...atom.webDemo} demo />
+              )}
+              {atom.webLab && (
+                <WebLab
+                  key={`${atom.id}-lab`}
+                  id={atom.id}
+                  {...atom.webLab}
                   alreadySolved={solved.has(atom.id)}
                   onSolved={markSolved}
                 />
@@ -815,6 +833,12 @@ export default function LessonPlayer() {
                         Your code does not pass the checks yet. Run it, read
                         what it prints and any error, fix it and press{" "}
                         <em>Check my code</em>.
+                      </>
+                    ) : atom.webLab ? (
+                      <>
+                        Your page does not pass every check yet. The checklist
+                        above shows which ones are still red: fix those, look
+                        at the preview, and press <em>Check my page</em>.
                       </>
                     ) : atom.codeFill ? (
                       <>

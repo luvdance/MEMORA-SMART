@@ -5,6 +5,7 @@ import JAVASCRIPT_COURSE from "../javascriptCourse.js";
 import FOREX_COURSE from "../forexCourse.js";
 import PYTHON_COURSE from "../pythonCourse.js";
 import CPP_COURSE from "../cppCourse.js";
+import WEB_DEVELOPMENT_COURSE from "../webDevelopmentCourse.js";
 import { LESSONS as FOUNDATIONS } from "./m1-data-foundations.js";
 import { LESSONS as EXCEL_SETUP } from "./m1-excel-setup.js";
 import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
@@ -41,6 +42,9 @@ import { PYTHON_LESSONS } from "./pp-registry.js";
 
 // ── C++ Programming: one file per module, registered in cp-registry.js ─────
 import { CPP_LESSONS } from "./cp-registry.js";
+
+// ── Responsive Web Development: one file per module, wd-registry.js ────────
+import { WEB_DEVELOPMENT_LESSONS } from "./wd-registry.js";
 
 // ── Cybersecurity, one file per week ──────────────────────────────────────
 import { LESSONS as CS_W1 } from "./cs-w1-fundamentals.js";
@@ -112,6 +116,8 @@ const REGISTRY = {
 
   cpp: CPP_LESSONS,
 
+  "web-development": WEB_DEVELOPMENT_LESSONS,
+
   cybersecurity: {
     "cs-w1-fundamentals": CS_W1,
     "cs-w2-accounts": CS_W2,
@@ -149,6 +155,7 @@ const CURRICULA = {
   [FOREX_COURSE.slug]: FOREX_COURSE,
   [PYTHON_COURSE.slug]: PYTHON_COURSE,
   [CPP_COURSE.slug]: CPP_COURSE,
+  [WEB_DEVELOPMENT_COURSE.slug]: WEB_DEVELOPMENT_COURSE,
 };
 
 /**

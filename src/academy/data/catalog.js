@@ -5,6 +5,7 @@ import JAVASCRIPT_COURSE from "./javascriptCourse.js";
 import FOREX_COURSE from "./forexCourse.js";
 import PYTHON_COURSE from "./pythonCourse.js";
 import CPP_COURSE from "./cppCourse.js";
+import WEB_DEVELOPMENT_COURSE from "./webDevelopmentCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -245,16 +246,26 @@ export const CATALOG = [
     id: "web-development",
     code: "WD-101",
     slug: "web-development",
-    title: "Web Development",
-    subtitle: "Foundations",
+    title: "Responsive Web Development",
+    subtitle: "HTML, CSS and JavaScript, from first page to live site",
     category: "web",
     icon: "fas fa-code",
-    status: "next",
+    status: "open",
     beta: true,
-    level: "Absolute beginner → Intermediate",
+    level: "Absolute beginner → Job-ready",
     summary:
-      "Build and ship real websites from scratch. Structure, style, behaviour and deployment, with nothing assumed.",
-    covers: ["HTML", "CSS", "JavaScript", "Responsive layout", "Git & deployment"],
+      "Build websites that work on every screen. Six phases from how the web works to semantic, accessible HTML; modern CSS, Flexbox, Grid and mobile-first responsive design; JavaScript from first principles; the DOM, forms, storage and APIs; Git, npm, Vite and testing; and deployment, performance, security and your portfolio. Every lesson makes you build a page, checked in a real browser at phone, tablet and laptop widths.",
+    covers: [
+      "Semantic HTML & accessible forms",
+      "CSS, Flexbox & Grid",
+      "Mobile-first responsive design",
+      "JavaScript programming",
+      "DOM, events, storage & APIs",
+      "Git, npm, Vite & testing",
+      "Deployment, performance & security",
+      "Portfolio & capstone",
+    ],
+    course: WEB_DEVELOPMENT_COURSE,
   },
   {
     id: "frontend-libraries",
@@ -268,7 +279,7 @@ export const CATALOG = [
     beta: true,
     level: "Intermediate",
     summary:
-      "Move from plain JavaScript to component-driven applications, state management and a professional build setup.",
+      "The next step after Responsive Web Development (WD-101): move from plain JavaScript to component-driven applications, state management and a professional build setup.",
     covers: ["React", "Components & props", "State & hooks", "Routing", "Tailwind CSS"],
   },
   {
