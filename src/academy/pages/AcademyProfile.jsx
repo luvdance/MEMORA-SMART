@@ -7,6 +7,7 @@ import AcademyFooter from "../components/AcademyFooter";
 import StudentStats from "../components/StudentStats";
 import CourseRecord from "../components/CourseRecord";
 import OnboardingForm from "../components/OnboardingForm";
+import TypingDojoCard from "../typing/TypingDojoCard";
 import { ONBOARDING_FIELDS, isProfileComplete } from "../data/onboarding";
 import { getCatalogEntry } from "../data/catalog";
 import { getCourseLessons, getCourseOutline } from "../data/lessons";
@@ -273,6 +274,12 @@ export default function AcademyProfile() {
                     })}
                   </div>
                 )}
+              </section>
+
+              {/* ── TYPING ── A skill record beside the course record. */}
+              <section className="ac-learn__section">
+                <h2 className="ac-learn__title">Typing</h2>
+                <TypingDojoCard uid={user?.uid} variant="profile" />
               </section>
 
               {/* ── YOUR DETAILS ──────────────────────────────────────────

@@ -1,0 +1,5 @@
+// Every setting the server reads from the environment, in one place.
+export const config = {
+  port: Number(process.env.PORT) || 4000,
+  dataFile: process.env.DATA_FILE || "data/kobo.json",
+};

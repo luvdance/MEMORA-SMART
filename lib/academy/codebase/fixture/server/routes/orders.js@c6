@@ -1,0 +1,20 @@
+import { readJson, sendJson } from "../http.js";
+import { findProduct, saveOrder } from "../db/index.js";
+import { orderTotals } from "../services/orderService.js";
+
+export async function createOrder(req, res) {
+  const { items = [] } = await readJson(req);
+  if (!items.length) return sendJson(res, 400, { error: "Your cart is empty" });
+
+  // Prices come from the database, never from the browser.
+  const lines = [];
+  for (const { id, quantity } of items) {
+    const product = await findProduct(id);
+    if (!product) return sendJson(res, 400, { error: `Unknown product: ${id}` });
+    lines.push({ id, name: product.name, price: product.price, quantity: Math.max(1, Number(quantity) || 1) });
+  }
+
+  const order = { id: `ord_${Date.now()}`, userId: req.user.id, lines, ...orderTotals(lines), status: "pending" };
+  await saveOrder(order);
+  sendJson(res, 201, { order });
+}

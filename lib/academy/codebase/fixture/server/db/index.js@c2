@@ -1,0 +1,21 @@
+import { readFile } from "node:fs/promises";
+import { config } from "../config.js";
+
+// The data store is one JSON file, loaded on first use and kept in memory.
+// Run `npm run seed` to create it.
+let data;
+
+async function load() {
+  if (!data) data = JSON.parse(await readFile(config.dataFile, "utf8"));
+  return data;
+}
+
+export async function listProducts({ category } = {}) {
+  const { products } = await load();
+  return category ? products.filter((product) => product.category === category) : products;
+}
+
+export async function findProduct(id) {
+  const { products } = await load();
+  return products.find((product) => product.id === id) || null;
+}

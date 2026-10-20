@@ -6,6 +6,7 @@ import FOREX_COURSE from "./forexCourse.js";
 import PYTHON_COURSE from "./pythonCourse.js";
 import CPP_COURSE from "./cppCourse.js";
 import WEB_DEVELOPMENT_COURSE from "./webDevelopmentCourse.js";
+import CODEBASE_ENGINEERING_COURSE from "./codebaseEngineeringCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -266,6 +267,35 @@ export const CATALOG = [
       "Portfolio & capstone",
     ],
     course: WEB_DEVELOPMENT_COURSE,
+  },
+  {
+    id: "codebase-engineering",
+    code: "CE-101",
+    slug: "codebase-engineering",
+    title: "Codebase Engineering",
+    subtitle: "Understand, navigate and own any codebase in the AI era",
+    // Under AI & Automation: managing code that AI assistants and agents help
+    // write is the point of the course, and it is the category's first open
+    // course. It is equally a software engineering course; move it if a
+    // software engineering category is added.
+    category: "ai",
+    icon: "fas fa-diagram-project",
+    status: "open",
+    beta: true,
+    level: "Beginner–Intermediate → Professional",
+    summary:
+      "AI can generate code faster than anyone can read it, so the scarce skill is understanding and controlling a codebase. Eight weeks on a real, unfamiliar application: map it from the terminal, trace features from click to database, use Git to see and undo any change, put AI assistants and agents to work under review, debug with evidence, refactor safely and understand deployment and security. Every command was run on the real project, so every output you see is real.",
+    covers: [
+      "Bash, PowerShell & ripgrep",
+      "Project archaeology & codebase maps",
+      "Feature tracing & data flow",
+      "Git, GitHub & reviewing AI changes",
+      "Cursor, Claude Code, Copilot & Codex",
+      "Debugging, logs & tests",
+      "Refactoring & technical debt",
+      "Environments, deployment & security",
+    ],
+    course: CODEBASE_ENGINEERING_COURSE,
   },
   {
     id: "frontend-libraries",

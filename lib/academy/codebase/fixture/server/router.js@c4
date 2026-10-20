@@ -1,0 +1,25 @@
+import { sendJson } from "./http.js";
+import { login } from "./routes/auth.js";
+import { listProducts, getProduct } from "./routes/products.js";
+
+// Every URL the API answers. A path is either an exact string or a pattern
+// whose captured groups are passed to the handler.
+const routes = [
+  ["POST", "/api/login", login],
+  ["GET", "/api/products", listProducts],
+  ["GET", /^\/api\/products\/([\w-]+)$/, getProduct],
+];
+
+export async function route(req, res) {
+  const { pathname } = new URL(req.url, "http://localhost");
+  for (const [method, path, handler] of routes) {
+    if (req.method !== method) continue;
+    if (typeof path === "string") {
+      if (path === pathname) return handler(req, res);
+      continue;
+    }
+    const match = pathname.match(path);
+    if (match) return handler(req, res, ...match.slice(1));
+  }
+  sendJson(res, 404, { error: "Not found" });
+}

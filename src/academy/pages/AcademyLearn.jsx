@@ -8,6 +8,7 @@ import StudentStats from "../components/StudentStats";
 import LiveSessions from "../components/LiveSessions";
 import BetaBadge from "../components/BetaBadge";
 import Leaderboard from "../components/Leaderboard";
+import TypingDojoCard from "../typing/TypingDojoCard";
 import { CATALOG, getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getCourseLessons, getResumeLesson } from "../data/lessons";
 import {
@@ -220,6 +221,11 @@ export default function AcademyLearn() {
 
               {/* ── STATS ── */}
               {student && <StudentStats student={student} />}
+
+              {/* ── TYPING DOJO ── */}
+              <section className="ac-learn__section">
+                <TypingDojoCard uid={user?.uid} />
+              </section>
 
               {/* ── LIVE CLASSES ── */}
               <section className="ac-learn__section">

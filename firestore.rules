@@ -165,6 +165,11 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
+      // Typing Dojo progress (one profile document)
+      match /typing/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
       // Blocks
       match /blocks/{blockedUid} {
         allow read, write: if isOwner(userId);
@@ -198,6 +203,23 @@ service cloud.firestore {
                          'streak', 'updatedAt'
                        ])
                     && request.resource.data.xp is int;
+      allow delete: if isOwner(userId);
+    }
+
+    // ── TYPING LEADERBOARD ──
+    // Mirrors BOARD_FIELDS in src/academy/typing/progress.js.
+    match /typingBoard/{userId} {
+      allow read: if isLoggedIn();
+      allow create, update: if isOwner(userId)
+                    && request.resource.data.uid == userId
+                    && request.resource.data.keys().hasOnly([
+                         'uid', 'name', 'wpm', 'accuracy', 'level', 'tier', 'updatedAt'
+                       ])
+                    && request.resource.data.wpm is int
+                    && request.resource.data.wpm >= 0
+                    && request.resource.data.wpm <= 250
+                    && request.resource.data.accuracy is int
+                    && request.resource.data.accuracy <= 100;
       allow delete: if isOwner(userId);
     }
 

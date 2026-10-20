@@ -1,0 +1,19 @@
+import { useState } from "react";
+
+// Work in progress: saved products, kept in this browser only for now.
+export default function Wishlist() {
+  const [saved] = useState(() => JSON.parse(localStorage.getItem("wishlist") || "[]"));
+
+  if (!saved.length) return <p>Nothing saved yet.</p>;
+
+  return (
+    <section>
+      <h1>Saved for later</h1>
+      <ul>
+        {saved.map((item) => (
+          <li key={item.id}>{item.name}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}

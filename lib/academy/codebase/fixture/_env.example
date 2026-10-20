@@ -1,0 +1,10 @@
+# Copy this file to .env and fill it in. Never commit .env.
+PORT=4000
+SESSION_SECRET=replace-with-a-long-random-string
+DATA_FILE=data/kobo.json
+
+# Paystack test keys start with sk_test_. Leave empty to skip payment locally.
+PAYSTACK_SECRET_KEY=
+
+# Where the browser finds the API. Empty means "same origin" (the Vite proxy).
+VITE_API_URL=

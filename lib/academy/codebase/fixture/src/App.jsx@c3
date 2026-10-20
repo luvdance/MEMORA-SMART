@@ -1,0 +1,10 @@
+import Products from "./pages/Products.jsx";
+
+export default function App() {
+  return (
+    <main>
+      <h1>Kobo Market</h1>
+      <Products onAdd={() => {}} />
+    </main>
+  );
+}

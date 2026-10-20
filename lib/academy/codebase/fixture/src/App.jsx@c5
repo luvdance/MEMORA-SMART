@@ -1,0 +1,27 @@
+import { useState } from "react";
+import Navbar from "./components/Navbar.jsx";
+import Products from "./pages/Products.jsx";
+import Login from "./pages/Login.jsx";
+import Cart from "./pages/Cart.jsx";
+import { useAuth } from "./hooks/useAuth.js";
+
+export default function App() {
+  const [page, setPage] = useState("products");
+  const [cart, setCart] = useState([]);
+  const auth = useAuth();
+
+  function addToCart(product) {
+    setCart((items) => [...items, { id: product.id, name: product.name, price: product.price, quantity: 1 }]);
+  }
+
+  return (
+    <>
+      <Navbar user={auth.user} cartCount={cart.length} onNavigate={setPage} onSignOut={auth.signOut} />
+      <main>
+        {page === "products" && <Products onAdd={addToCart} />}
+        {page === "login" && <Login onSignIn={auth.signIn} onDone={() => setPage("products")} />}
+        {page === "cart" && <Cart items={cart} token={auth.token} />}
+      </main>
+    </>
+  );
+}

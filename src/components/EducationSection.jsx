@@ -48,6 +48,11 @@ function EducationSection() {
             </div>
 
             <div className="edu-item">
+              <i className="fas fa-diagram-project"></i>
+              <span>Codebase Engineering</span>
+            </div>
+
+            <div className="edu-item">
               <i className="fas fa-money-bill-trend-up"></i>
               <span>Forex Trading</span>
             </div>

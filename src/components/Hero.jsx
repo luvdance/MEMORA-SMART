@@ -35,6 +35,12 @@ const services = [
     course: "cpp",
   },
   {
+    icon: "fas fa-diagram-project",
+    label: "Learn Codebase Engineering",
+    path: "/academy/enroll/codebase-engineering",
+    course: "codebase-engineering",
+  },
+  {
     icon: "fas fa-money-bill-trend-up",
     label: "Learn Forex Trading",
     path: "/academy/enroll/forex-trading",

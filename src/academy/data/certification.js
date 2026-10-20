@@ -267,6 +267,32 @@ export const CERTIFICATION = {
     ],
   },
 
+  "codebase-engineering": {
+    examId: "mst-ce-final",
+    courseCode: "CE-101",
+    path: "/academy/exam/codebase-engineering",
+    title: "Memora Smart Certification — Codebase Engineering",
+    subtitle: "Understanding · Tracing & Git · AI Agents · Debugging · Maintaining",
+    questionCount: 30,
+    durationMinutes: 75,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/codebase/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "ce-m1-foundations",
+      "ce-m2-terminal",
+      "ce-m3-archaeology",
+      "ce-m4-tracing",
+      "ce-m5-git",
+      "ce-m6-ai-agents",
+      "ce-m7-debugging",
+      "ce-m8-architecture",
+      "ce-m9-production",
+      "ce-m10-operations",
+      "ce-c-capstone",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"

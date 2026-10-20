@@ -25,6 +25,7 @@ import AcademyLearn from "./academy/pages/AcademyLearn";
 import AcademyProfile from "./academy/pages/AcademyProfile";
 import LessonPlayer from "./academy/pages/LessonPlayer";
 import FinalExam from "./academy/pages/FinalExam";
+import TypingDojo from "./academy/pages/TypingDojo";
 import AcademyRoute from "./academy/components/AcademyRoute";
 
 function App() {
@@ -102,6 +103,16 @@ function App() {
         element={
           <AcademyRoute>
             <FinalExam />
+          </AcademyRoute>
+        }
+      />
+      {/* The touch-typing tutor. A skill every course leans on, so it sits
+          beside the courses rather than inside one. */}
+      <Route
+        path="/academy/typing"
+        element={
+          <AcademyRoute>
+            <TypingDojo />
           </AcademyRoute>
         }
       />

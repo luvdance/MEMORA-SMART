@@ -1,0 +1,16 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
+import { config } from "../config.js";
+
+const products = [
+  { id: "tecno-spark-30", name: "Tecno Spark 30", category: "phones", price: 21950000 },
+  { id: "infinix-hot-50", name: "Infinix Hot 50", category: "phones", price: 18900000 },
+  { id: "ankara-tote", name: "Ankara tote bag", category: "fashion", price: 1250000 },
+  { id: "aso-oke-cap", name: "Aso-oke cap", category: "fashion", price: 850000 },
+  { id: "rechargeable-fan", name: "Rechargeable standing fan", category: "home", price: 4700000 },
+  { id: "solar-lamp", name: "Solar lamp", category: "home", price: 1590000 },
+];
+
+await mkdir(dirname(config.dataFile), { recursive: true });
+await writeFile(config.dataFile, JSON.stringify({ users: [], products, orders: [] }, null, 2));
+console.log(`Seeded ${products.length} products into ${config.dataFile}`);

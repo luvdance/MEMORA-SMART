@@ -27,6 +27,7 @@ const MARKETING_LINKS = [
 const STUDENT_LINKS = [
   { label: "My Learning", to: "/academy/learn", icon: "fas fa-graduation-cap" },
   { label: "Courses", to: "/academy/courses", icon: "fas fa-layer-group" },
+  { label: "Typing", to: "/academy/typing", icon: "fas fa-keyboard" },
   { label: "Jobs", to: "/academy/jobs", icon: "fas fa-briefcase" },
   { label: "Profile", to: "/academy/profile", icon: "fas fa-user" },
 ];
