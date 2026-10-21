@@ -68,13 +68,14 @@ function runGroup(files, group, mocks) {
     );
 
     window.addEventListener("message", onMessage);
-    frame.srcdoc = buildLabDocument(files, {
+    frame.srcdoc = buildLabDocument(group.swap ? { ...files, ...group.swap } : files, {
       page: group.page,
       mode: "grade",
       tests: group.tests,
       mocks,
       seed: group.seed,
       nonce,
+      path: group.path,
     });
     document.body.appendChild(frame);
   });

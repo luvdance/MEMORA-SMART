@@ -4,29 +4,38 @@ import { useAuth } from "../context/AuthContext";
 import { startAcademyJourney } from "../academy/services/intent";
 import heroImage from "../assets/hero image.png";
 
+// Order matters: the first VISIBLE_SERVICES are what a visitor sees before
+// pressing "More", so the most-used destinations come first.
 const services = [
-  { icon: "fas fa-laptop-code", label: "Build Websites" },
-  { icon: "fas fa-mobile-alt", label: "Build Mobile Apps" },
-  { icon: "fas fa-chart-line", label: "Learn Data Analysis", path: "/academy" },
+  { icon: "fas fa-graduation-cap", label: "Memora Academy", path: "/academy" },
+  // `course` sends the visitor into that course's enrolment, signing them in
+  // first if needed, instead of dropping them on the Academy landing page.
+  {
+    icon: "fab fa-react",
+    label: "Learn React",
+    path: "/academy/enroll/react",
+    course: "react",
+  },
   {
     icon: "fas fa-code",
     label: "Learn Responsive Web Development",
     path: "/academy/enroll/web-development",
     course: "web-development",
   },
-  // `course` sends the visitor into that course's enrolment, signing them in
-  // first if needed, instead of dropping them on the Academy landing page.
-  {
-    icon: "fab fa-js",
-    label: "Learn JavaScript (OOP)",
-    path: "/academy/enroll/javascript",
-    course: "javascript",
-  },
+  { icon: "fas fa-chart-line", label: "Learn Data Analysis", path: "/academy" },
   {
     icon: "fab fa-python",
     label: "Learn Python Programming",
     path: "/academy/enroll/python",
     course: "python",
+  },
+  { icon: "fas fa-file-alt", label: "Create a CV in Mins", path: "/cv-builder" },
+  { icon: "fas fa-laptop-code", label: "Build Websites" },
+  {
+    icon: "fab fa-js",
+    label: "Learn JavaScript (OOP)",
+    path: "/academy/enroll/javascript",
+    course: "javascript",
   },
   {
     icon: "fas fa-microchip",
@@ -46,15 +55,17 @@ const services = [
     path: "/academy/enroll/forex-trading",
     course: "forex-trading",
   },
-  { icon: "fas fa-file-alt", label: "Create a CV in Mins", path: "/cv-builder" },
+  { icon: "fas fa-mobile-alt", label: "Build Mobile Apps" },
   { icon: "fas fa-robot", label: "AI Automation for Businesses" },
   { icon: "fas fa-calculator", label: "Learn Elementary Mathematics", path: "/academy" },
   { icon: "fas fa-atom", label: "Learn Physics", path: "/academy" },
   { icon: "fas fa-flask", label: "Learn Chemistry", path: "/academy" },
   { icon: "fas fa-book", label: "Read & Buy E-books", path: "/library" },
-  { icon: "fas fa-graduation-cap", label: "Memora Academy", path: "/academy" },
-  { icon: "fas fa-ellipsis-h", label: "More" },
 ];
+
+// Seven cards and the More button fill two rows of four on a laptop and four
+// rows of two on a phone. The search box still searches every service.
+const VISIBLE_SERVICES = 7;
 
 function Hero() {
   const navigate = useNavigate();
@@ -63,6 +74,7 @@ function Hero() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
 
@@ -227,10 +239,10 @@ function Hero() {
             <i className="fas fa-search"></i>
           </div>
 
-          {/* STATIC SERVICE CARDS */}
-          {services.map((service, index) => (
+          {/* SERVICE CARDS: the first few, then the rest behind More */}
+          {(showAll ? services : services.slice(0, VISIBLE_SERVICES)).map((service) => (
             <div
-              key={index}
+              key={service.label}
               className={`service-card ${service.path ? "service-card--clickable" : ""}`}
               onClick={() => handleCardClick(service)}
             >
@@ -238,6 +250,17 @@ function Hero() {
               <p>{service.label}</p>
             </div>
           ))}
+          {services.length > VISIBLE_SERVICES && (
+            <button
+              type="button"
+              className="service-card service-card--more"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+            >
+              <i className={showAll ? "fas fa-chevron-up" : "fas fa-ellipsis-h"}></i>
+              <p>{showAll ? "Show less" : `More (${services.length - VISIBLE_SERVICES})`}</p>
+            </button>
+          )}
         </div>
       </div>
     </section>

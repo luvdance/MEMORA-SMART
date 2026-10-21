@@ -7,6 +7,7 @@ import PYTHON_COURSE from "./pythonCourse.js";
 import CPP_COURSE from "./cppCourse.js";
 import WEB_DEVELOPMENT_COURSE from "./webDevelopmentCourse.js";
 import CODEBASE_ENGINEERING_COURSE from "./codebaseEngineeringCourse.js";
+import REACT_COURSE from "./reactCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -298,19 +299,32 @@ export const CATALOG = [
     course: CODEBASE_ENGINEERING_COURSE,
   },
   {
-    id: "frontend-libraries",
+    // The course reserved as WD-201 ("Frontend Libraries") while it was being
+    // planned. It never opened under that name, so no enrolment records the
+    // old slug; the code WD-201 is kept because WD-101 refers to it.
+    id: "react",
     code: "WD-201",
-    slug: "frontend-libraries",
-    title: "Frontend Libraries",
-    subtitle: "React and the modern toolchain",
+    slug: "react",
+    title: "React Development",
+    subtitle: "Modern, Hooks-first React from foundations to production",
     category: "web",
-    icon: "fas fa-layer-group",
-    status: "next",
+    icon: "fab fa-react",
+    status: "open",
     beta: true,
-    level: "Intermediate",
+    level: "Intermediate → Job-ready",
     summary:
-      "The next step after Responsive Web Development (WD-101): move from plain JavaScript to component-driven applications, state management and a professional build setup.",
-    covers: ["React", "Components & props", "State & hooks", "Routing", "Tailwind CSS"],
+      "The step after Responsive Web Development (WD-101). Sixteen weeks of modern, Hooks-first React: components, props and state, forms, effects and custom Hooks, Context and Zustand, React Router, APIs and TanStack Query, Tailwind and TypeScript, then security, testing, performance and deployment. Every lesson makes you build a real React app, checked in a real browser.",
+    covers: [
+      "JSX, components & props",
+      "State, events & forms",
+      "Hooks & side effects",
+      "Context, reducers & Zustand",
+      "React Router",
+      "APIs & TanStack Query",
+      "Tailwind CSS & TypeScript",
+      "Testing, performance & deployment",
+    ],
+    course: REACT_COURSE,
   },
   {
     id: "ai-automation",

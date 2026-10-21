@@ -1,4 +1,5 @@
 import { inspect, formatArgs } from "./jsRunner.js";
+import { REACT_RUNTIME_VERSION } from "./react/runtimeVersion.js";
 
 /**
  * THE WEB LAB HARNESS
@@ -33,6 +34,22 @@ import { inspect, formatArgs } from "./jsRunner.js";
  *   · clicks on links to other pages of the lab switch page; a form that is
  *     really submitted is recorded instead of navigating the frame away.
  */
+
+/**
+ * REACT PROJECTS
+ *
+ * A lab whose files live under src/ is a Vite project (index.html loading
+ * /src/main.jsx), as in the React course. Those files are not inlined: the
+ * React lab runtime (public/lab/react-runtime.js, built from
+ * src/academy/react/labRuntimeEntry.js) compiles and runs them inside the
+ * page, with React, React Router and the course's other libraries bundled
+ * in. It is loaded by a root-relative URL, which resolves against the site in
+ * the lesson (a srcdoc frame inherits the Academy's address) and against the
+ * validator's intercepted http://lab.test/ origin in headless Chrome.
+ */
+export const isReactLab = (files) => Object.keys(files || {}).some((name) => name.startsWith("src/"));
+export const REACT_RUNTIME_URL = `/lab/react-runtime.js?v=${REACT_RUNTIME_VERSION}`;
+export const TAILWIND_RUNTIME_URL = `/lab/tailwind-browser.js?v=${REACT_RUNTIME_VERSION}`;
 
 /** The three widths every responsive check is written against. */
 export const VIEWPORTS = {
@@ -153,11 +170,17 @@ function labRuntime(config) {
       /* no parent: running headless */
     }
   };
+  // The React lab runtime reports the router's path and its own errors here.
+  window.__labSend = send;
+  window.__labErrors = errors;
 
   /* Console: kept, formatted like Node, and streamed to the lesson's panel. */
   for (const level of ["log", "info", "warn", "error"]) {
     const original = console[level] ? console[level].bind(console) : () => {};
     console[level] = (...args) => {
+      // React's development build advertises its DevTools extension once per
+      // page. It is noise in a practice console, so it is not shown.
+      if (typeof args[0] === "string" && args[0].includes("Download the React DevTools")) return;
       const line = formatArgs(args);
       logs.push(line);
       send({ type: "console", level, line });
@@ -210,8 +233,15 @@ function labRuntime(config) {
   const mocks = config.mocks || [];
   window.fetch = (input, init = {}) => {
     const url = String(input && input.url ? input.url : input);
-    const method = String(init.method || "GET").toUpperCase();
-    fetchCalls.push({ url, method, body: init.body ?? null });
+    const method = String(init.method || (input && input.method) || "GET").toUpperCase();
+    // Header names lower-cased, as the Headers API reports them.
+    let headers = {};
+    try {
+      headers = Object.fromEntries(new Headers(init.headers || (input && input.headers) || {}).entries());
+    } catch {
+      /* unusual header values: recorded without headers */
+    }
+    fetchCalls.push({ url, method, body: init.body ?? null, headers });
     const mock = mocks.find((m) => (m.method ? m.method.toUpperCase() === method : true) && url.includes(m.match));
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -223,7 +253,10 @@ function labRuntime(config) {
           reject(new TypeError("Failed to fetch"));
           return;
         }
-        const body = typeof mock.body === "string" ? mock.body : JSON.stringify(mock.body ?? null);
+        const status = mock.status || 200;
+        // 204 No Content (and 205, 304) must have no body at all.
+        const empty = status === 204 || status === 205 || status === 304;
+        const body = empty ? null : typeof mock.body === "string" ? mock.body : JSON.stringify(mock.body ?? null);
         resolve(
           new Response(body, {
             status: mock.status || 200,
@@ -266,6 +299,13 @@ function labRuntime(config) {
 
   /* ── The checks ─────────────────────────────────────────────────────── */
   const el = (x) => (typeof x === "string" ? document.querySelector(x) : x);
+  const setNative = (node, prop, value) => {
+    let proto = Object.getPrototypeOf(node);
+    while (proto && !Object.getOwnPropertyDescriptor(proto, prop)) proto = Object.getPrototypeOf(proto);
+    const setter = proto && Object.getOwnPropertyDescriptor(proto, prop).set;
+    if (setter) setter.call(node, value);
+    else node[prop] = value;
+  };
   const parseRgb = (c) => {
     const m = String(c).match(/rgba?\(([^)]+)\)/);
     if (!m) return null;
@@ -333,7 +373,10 @@ function labRuntime(config) {
       const node = el(x);
       if (!node) return helpers.tick();
       node.focus?.();
-      node.value = value;
+      // The prototype's own setter, as a real keystroke would: React tracks
+      // an input's value and ignores an "input" event if .value was assigned
+      // directly, so a controlled input would never see the change.
+      setNative(node, "value", value);
       node.dispatchEvent(new Event("input", { bubbles: true }));
       node.dispatchEvent(new Event("change", { bubbles: true }));
       return helpers.tick();
@@ -341,7 +384,7 @@ function labRuntime(config) {
     choose: (x, checked = true) => {
       const node = el(x);
       if (node) {
-        node.checked = checked;
+        setNative(node, "checked", checked);
         node.dispatchEvent(new Event("input", { bubbles: true }));
         node.dispatchEvent(new Event("change", { bubbles: true }));
       }
@@ -370,6 +413,12 @@ function labRuntime(config) {
         await new Promise((r) => setTimeout(r, 25));
       }
     },
+    // React labs: the router's current path, the learner's test results
+    // ({ results, passed, failed, total }, or null with no test files) and
+    // the text of the error overlay, if a compile or render error showed one.
+    path: () => window.__labPath || "/",
+    tests: () => window.__labTests || Promise.resolve(null),
+    overlay: () => document.getElementById("__lab-overlay")?.textContent || "",
     logs: () => logs.slice(),
     output: () => logs.join("\n"),
     errors: () => errors.slice(),
@@ -458,7 +507,8 @@ export function labPages(files) {
  * A lab with no HTML file (a pure JavaScript exercise) gets a blank page with
  * app.js linked at the end of the body, which is how scripts are run there.
  */
-export function buildLabDocument(files = {}, { page, mode = "preview", tests = [], mocks = [], seed = null, nonce = "" } = {}) {
+export function buildLabDocument(files = {}, { page, mode = "preview", tests = [], mocks = [], seed = null, nonce = "", path = "/" } = {}) {
+  if (isReactLab(files)) return buildReactDocument(files, { page, mode, tests, mocks, seed, nonce, path });
   const pages = labPages(files);
   const current = page && files[page] !== undefined ? page : pages[0];
   let html = current
@@ -494,29 +544,7 @@ export function buildLabDocument(files = {}, { page, mode = "preview", tests = [
     (m, open, body, close) => `${open}${protectLoops(body)}${close}`);
   html = resolveAssets(resolveHtmlAssets(html));
 
-  const runtime =
-    `<script data-lab-runtime>\n${LOOP_GUARD}(function(){\n${inspect.toString()}\n${formatArgs.toString()}\n` +
-    `(${labRuntime.toString()})(${JSON.stringify({
-      mode,
-      nonce,
-      tests: mode === "grade" ? tests : [],
-      mocks,
-      seed,
-      pages,
-      files: mode === "grade" ? files : {},
-    // Every "<" escaped: a "</script>" or an HTML "<!--" inside the JSON would
-    // otherwise end the script early or confuse the parser's script states.
-    }).replace(/</g, "\\u003c")});\n})();\n</script>`;
-
-  // The runtime must run before any of the learner's scripts, and must not
-  // land in front of <!DOCTYPE html>, which would put the page in quirks mode.
-  const headOpen = html.match(/<head(\s[^>]*)?>/i);
-  // Function replacers throughout: a replacement STRING would treat "$$" and
-  // "$'" inside the code as patterns, and quietly corrupt it.
-  if (headOpen) html = html.replace(headOpen[0], () => `${headOpen[0]}\n${runtime}`);
-  else if (/<html(\s[^>]*)?>/i.test(html)) html = html.replace(/<html(\s[^>]*)?>/i, (m) => `${m}\n${runtime}`);
-  else if (/<!doctype[^>]*>/i.test(html)) html = html.replace(/<!doctype[^>]*>/i, (m) => `${m}\n${runtime}`);
-  else html = runtime + "\n" + html;
+  html = injectRuntime(html, runtimeScript({ mode, nonce, tests, mocks, seed, pages, files }));
 
   if (deferred.length) {
     html = /<\/body>/i.test(html)
@@ -524,6 +552,87 @@ export function buildLabDocument(files = {}, { page, mode = "preview", tests = [
       : html + "\n" + deferred.join("\n");
   }
   return html;
+}
+
+/** The harness runtime, serialised into one inline script. */
+function runtimeScript({ mode, nonce, tests, mocks, seed, pages, files }) {
+  return (
+    `<script data-lab-runtime>\n${LOOP_GUARD}(function(){\n${inspect.toString()}\n${formatArgs.toString()}\n` +
+    `(${labRuntime.toString()})(${safeJson({
+      mode,
+      nonce,
+      tests: mode === "grade" ? tests : [],
+      mocks,
+      seed,
+      pages,
+      files: mode === "grade" ? files : {},
+    })});\n})();\n</script>`
+  );
+}
+
+// Every "<" escaped: a "</script>" or an HTML "<!--" inside the JSON would
+// otherwise end the script early or confuse the parser's script states.
+const safeJson = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
+
+/**
+ * The runtime must run before any of the learner's scripts, and must not
+ * land in front of <!DOCTYPE html>, which would put the page in quirks mode.
+ * Function replacers throughout: a replacement STRING would treat "$$" and
+ * "$'" inside the code as patterns, and quietly corrupt it.
+ */
+function injectRuntime(html, runtime) {
+  const headOpen = html.match(/<head(\s[^>]*)?>/i);
+  if (headOpen) return html.replace(headOpen[0], () => `${headOpen[0]}\n${runtime}`);
+  if (/<html(\s[^>]*)?>/i.test(html)) return html.replace(/<html(\s[^>]*)?>/i, (m) => `${m}\n${runtime}`);
+  if (/<!doctype[^>]*>/i.test(html)) return html.replace(/<!doctype[^>]*>/i, (m) => `${m}\n${runtime}`);
+  return runtime + "\n" + html;
+}
+
+/**
+ * A React (Vite) project. The page's `<script type="module" src="/src/…">`
+ * entries are run by the React lab runtime once the page has parsed, which is
+ * when a module script would run. Code files are loop-protected exactly as in
+ * the other labs; the checks still read the files as the learner wrote them.
+ * A `.env` file's VITE_ variables become import.meta.env, as in Vite.
+ */
+function buildReactDocument(files, { page, mode, tests, mocks, seed, nonce, path }) {
+  const pages = labPages(files);
+  const current = page && files[page] !== undefined ? page : pages[0];
+  let html = current
+    ? String(files[current])
+    : '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<title>Tests</title>\n</head>\n<body>\n</body>\n</html>';
+  const entries = [];
+  html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>\s*<\/script>/gi, (tag, src) => {
+    const name = src.replace(/^\.?\//, "").split(/[?#]/)[0];
+    if (files[name] === undefined) return tag;
+    entries.push(name);
+    return "";
+  });
+  html = resolveAssets(resolveHtmlAssets(html));
+
+  const code = {};
+  for (const [name, text] of Object.entries(files)) {
+    code[name] = /\.(jsx?|tsx?)$/.test(name) ? protectLoops(text) : String(text ?? "");
+  }
+  const assets = {};
+  for (const [name, uri] of Object.entries(ASSETS)) {
+    assets[name] = uri;
+    assets[`src/assets/${name.replace(/^images\//, "")}`] = uri;
+  }
+  const env = {};
+  for (const line of String(files[".env"] ?? "").split("\n")) {
+    const m = line.match(/^\s*(VITE_[A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+    if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+  const tailwind = Object.entries(files).some(
+    ([name, text]) => name.endsWith(".css") && /@import\s+["']tailwindcss["']/.test(String(text))
+  );
+  const runtime =
+    runtimeScript({ mode, nonce, tests, mocks, seed, pages, files }) +
+    (tailwind ? `\n<script src="${TAILWIND_RUNTIME_URL}"></script>` : "") +
+    `\n<script src="${REACT_RUNTIME_URL}"></script>` +
+    `\n<script>window.__labReact ? window.__labReact.boot(${safeJson({ files: code, assets, entries, path, env })}) : console.error("The React practice runtime did not load. Check your connection and reload the lesson.");</script>`;
+  return injectRuntime(html, runtime);
 }
 
 /**
@@ -540,8 +649,12 @@ export function groupTests(lab) {
     const seed = test.seed || lab.seed || null;
     // A check may answer fetch differently (a failing API, say): it gets its own load.
     const mocks = test.mocks || lab.mocks || [];
-    const key = `${page}|${width}|${JSON.stringify(seed)}|${test.mocks ? JSON.stringify(mocks) : ""}`;
-    if (!groups.has(key)) groups.set(key, { page, width, seed, mocks, tests: [] });
+    // React labs: a check may start at a route, or swap in different files
+    // (a deliberately broken component, to prove the learner's tests catch it).
+    const path = test.path || lab.path || "/";
+    const swap = test.swap || null;
+    const key = `${page}|${width}|${JSON.stringify(seed)}|${test.mocks ? JSON.stringify(mocks) : ""}|${path}|${swap ? JSON.stringify(swap) : ""}`;
+    if (!groups.has(key)) groups.set(key, { page, width, seed, mocks, path, swap, tests: [] });
     groups.get(key).tests.push({ index, check: test.check });
   });
   return [...groups.values()];

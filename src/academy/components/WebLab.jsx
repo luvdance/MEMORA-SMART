@@ -79,7 +79,19 @@ function handleKeys(e, value, setValue) {
 }
 
 const fileIcon = (name) =>
-  name.endsWith(".html") ? "fab fa-html5" : name.endsWith(".css") ? "fab fa-css3-alt" : "fab fa-js";
+  name.endsWith(".html")
+    ? "fab fa-html5"
+    : name.endsWith(".css")
+      ? "fab fa-css3-alt"
+      : /\.(jsx|tsx)$/.test(name)
+        ? "fab fa-react"
+        : name.endsWith(".ts")
+          ? "fas fa-code"
+          : name.endsWith(".md")
+            ? "fab fa-markdown"
+            : /\.json$|^\.env/.test(name)
+              ? "fas fa-gear"
+              : "fab fa-js";
 
 export default function WebLab({
   id,
@@ -106,6 +118,8 @@ export default function WebLab({
   const [viewport, setViewport] = useState(preview);
   const [page, setPage] = useState(() => labPages(starter)[0] || null);
   const [rendered, setRendered] = useState({ doc: "", nonce: "" });
+  // A React lab's router path, shown in the address bar as a real URL would be.
+  const [route, setRoute] = useState("");
   const [consoleLines, setConsoleLines] = useState([]);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -130,6 +144,7 @@ export default function WebLab({
       const nonce = makeNonce();
       setConsoleLines([]);
       setNotice("");
+      setRoute("");
       setRendered({ nonce, doc: buildLabDocument(files, { page, mocks, seed, nonce }) });
     }, 350);
     return () => clearTimeout(t);
@@ -142,6 +157,7 @@ export default function WebLab({
       if (data.__lab !== rendered.nonce) return;
       if (data.type === "console") setConsoleLines((lines) => [...lines.slice(-49), { level: data.level, line: data.line }]);
       else if (data.type === "navigate") setPage(data.page);
+      else if (data.type === "location") setRoute(String(data.path || ""));
       else if (data.type === "external")
         setNotice(`That link goes to ${data.href}. Links that leave the practice page are not followed here.`);
       else if (data.type === "submitted")
@@ -272,8 +288,8 @@ export default function WebLab({
 
         <div className="ac-weblab__preview">
           <div className="ac-weblab__bar">
-            <span className="ac-weblab__addr" title={page || "page"}>
-              <i className="fas fa-lock" aria-hidden="true" /> {page || "index.html"}
+            <span className="ac-weblab__addr" title={route || page || "page"}>
+              <i className="fas fa-lock" aria-hidden="true" /> {route ? `localhost:5173${route}` : page || "index.html"}
             </span>
             <div className="ac-weblab__vps" role="group" aria-label="Preview width">
               {Object.entries(VIEWPORTS).map(([key, v]) => (

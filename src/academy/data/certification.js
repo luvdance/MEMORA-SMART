@@ -293,6 +293,37 @@ export const CERTIFICATION = {
     ],
   },
 
+  react: {
+    examId: "mst-rx-final",
+    courseCode: "WD-201",
+    path: "/academy/exam/react",
+    title: "Memora Smart Certification — React Development",
+    subtitle: "Components · State & Hooks · Routing & Data · UI & TypeScript · Production",
+    questionCount: 30,
+    durationMinutes: 75,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/react/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "rx-m0-foundations",
+      "rx-m1-intro",
+      "rx-m2-components",
+      "rx-m3-rendering",
+      "rx-m4-state",
+      "rx-m5-forms",
+      "rx-m6-hooks",
+      "rx-m7-architecture",
+      "rx-m8-routing",
+      "rx-m9-apis",
+      "rx-m10-styling",
+      "rx-m11-typescript",
+      "rx-m12-auth",
+      "rx-m13-testing",
+      "rx-m14-performance",
+      "rx-m15-deployment",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"

@@ -16,6 +16,15 @@
       ]
     },
     {
+      "source": "/lab/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
       "source": "/(.*)\\.(png|jpg|jpeg|webp|svg|gif|ico|woff|woff2|ttf|otf)",
       "headers": [
         {

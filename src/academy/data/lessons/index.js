@@ -7,6 +7,7 @@ import PYTHON_COURSE from "../pythonCourse.js";
 import CPP_COURSE from "../cppCourse.js";
 import WEB_DEVELOPMENT_COURSE from "../webDevelopmentCourse.js";
 import CODEBASE_ENGINEERING_COURSE from "../codebaseEngineeringCourse.js";
+import REACT_COURSE from "../reactCourse.js";
 import { LESSONS as FOUNDATIONS } from "./m1-data-foundations.js";
 import { LESSONS as EXCEL_SETUP } from "./m1-excel-setup.js";
 import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
@@ -49,6 +50,9 @@ import { WEB_DEVELOPMENT_LESSONS } from "./wd-registry.js";
 
 // ── Codebase Engineering: one file per module, ce-registry.js ─────────────
 import { CODEBASE_ENGINEERING_LESSONS } from "./ce-registry.js";
+
+// ── React Development: one file per module, rx-registry.js ────────────────
+import { REACT_LESSONS } from "./rx-registry.js";
 
 // ── Cybersecurity, one file per week ──────────────────────────────────────
 import { LESSONS as CS_W1 } from "./cs-w1-fundamentals.js";
@@ -124,6 +128,8 @@ const REGISTRY = {
 
   "codebase-engineering": CODEBASE_ENGINEERING_LESSONS,
 
+  react: REACT_LESSONS,
+
   cybersecurity: {
     "cs-w1-fundamentals": CS_W1,
     "cs-w2-accounts": CS_W2,
@@ -163,6 +169,7 @@ const CURRICULA = {
   [CPP_COURSE.slug]: CPP_COURSE,
   [WEB_DEVELOPMENT_COURSE.slug]: WEB_DEVELOPMENT_COURSE,
   [CODEBASE_ENGINEERING_COURSE.slug]: CODEBASE_ENGINEERING_COURSE,
+  [REACT_COURSE.slug]: REACT_COURSE,
 };
 
 /**
