@@ -8,6 +8,8 @@ import CPP_COURSE from "./cppCourse.js";
 import WEB_DEVELOPMENT_COURSE from "./webDevelopmentCourse.js";
 import CODEBASE_ENGINEERING_COURSE from "./codebaseEngineeringCourse.js";
 import REACT_COURSE from "./reactCourse.js";
+import MOBILE_DEVELOPMENT_COURSE from "./mobileDevelopmentCourse.js";
+import RDBMS_COURSE from "./rdbmsCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -72,6 +74,7 @@ export const CATEGORIES = [
   { id: "all", label: "All courses" },
   { id: "data", label: "Data & Analytics" },
   { id: "web", label: "Web Development" },
+  { id: "mobile", label: "Mobile Development" },
   { id: "ai", label: "AI & Automation" },
   { id: "creative", label: "Design & Content" },
   { id: "skills", label: "Digital Skills" },
@@ -325,6 +328,58 @@ export const CATALOG = [
       "Testing, performance & deployment",
     ],
     course: REACT_COURSE,
+  },
+  {
+    id: "mobile-development",
+    code: "MD-101",
+    slug: "mobile-development",
+    title: "Mobile App Development",
+    subtitle: "Build, test and publish Android and iOS apps with React Native and Expo",
+    category: "mobile",
+    icon: "fas fa-mobile-alt",
+    status: "open",
+    beta: true,
+    level: "Beginner → Job-ready",
+    summary:
+      "Twenty-four weeks from your first line of code to your own app on Google Play and the App Store. JavaScript and TypeScript, mobile UI/UX, React Native and Expo, Expo Router navigation, state and storage, REST APIs, a backend and secure accounts, the camera, location and notifications, payments, offline sync and animation, testing and security, then EAS builds, your Google Play Console and Apple Developer accounts, store listings, review and release. Every lesson makes you build: your code runs on a practice iPhone and Android phone and is checked before you move on.",
+    covers: [
+      "JavaScript & TypeScript",
+      "React Native & Expo",
+      "Expo Router navigation",
+      "State, forms & local storage",
+      "REST APIs, backends & authentication",
+      "Camera, location & notifications",
+      "Testing & security",
+      "Publishing to Google Play & the App Store",
+    ],
+    course: MOBILE_DEVELOPMENT_COURSE,
+  },
+  {
+    id: "rdbms",
+    code: "DB-101",
+    slug: "rdbms",
+    title: "Relational Databases (RDBMS) & SQL",
+    subtitle: "Design, query and run real databases with PostgreSQL and MySQL",
+    // Under Data & Analytics: databases are where every dataset lives, and the
+    // course sits beside Data Analysis (DA-101) in a learner's path.
+    category: "data",
+    icon: "fas fa-database",
+    status: "open",
+    beta: true,
+    level: "Beginner → Professional",
+    summary:
+      "Sixteen weeks from what data is to designing, building, securing and operating real relational databases. Install PostgreSQL and MySQL, design with ERDs and normalization, master SQL from CREATE TABLE to window functions, then transactions, indexes, triggers, roles, backups you have restored, and a Node.js backend. Every lesson makes you write SQL, run on a real PostgreSQL server in the page and checked before you move on.",
+    covers: [
+      "PostgreSQL & MySQL setup",
+      "ERDs, keys & normalization",
+      "SQL: DDL, DML & queries",
+      "Joins, CTEs & window functions",
+      "Transactions & concurrency",
+      "Indexes & query plans",
+      "Security, backup & recovery",
+      "Node.js integration & capstone",
+    ],
+    course: RDBMS_COURSE,
   },
   {
     id: "ai-automation",

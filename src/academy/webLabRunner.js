@@ -16,6 +16,8 @@ import { LAB_HEIGHT, buildLabDocument, groupTests, summarise } from "./webHarnes
 
 export const SANDBOX = "allow-scripts allow-forms";
 const TIMEOUT_MS = 10000;
+// A phone lab boots an app and its checks wait on the phone (prompts, GPS, restarts).
+const NATIVE_TIMEOUT_MS = 60000;
 
 export function makeNonce() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -35,7 +37,7 @@ function runGroup(files, group, mocks) {
       left: "0",
       top: "0",
       width: `${group.width}px`,
-      height: `${LAB_HEIGHT}px`,
+      height: `${group.height || LAB_HEIGHT}px`,
       border: "0",
       opacity: "0",
       zIndex: "-1",
@@ -64,7 +66,7 @@ function runGroup(files, group, mocks) {
           })),
           errors: [],
         }),
-      TIMEOUT_MS
+      group.device ? NATIVE_TIMEOUT_MS : TIMEOUT_MS
     );
 
     window.addEventListener("message", onMessage);
@@ -76,6 +78,7 @@ function runGroup(files, group, mocks) {
       seed: group.seed,
       nonce,
       path: group.path,
+      device: group.device,
     });
     document.body.appendChild(frame);
   });

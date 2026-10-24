@@ -17,6 +17,18 @@ const services = [
     course: "react",
   },
   {
+    icon: "fas fa-mobile-alt",
+    label: "Build Mobile Apps",
+    path: "/academy/enroll/mobile-development",
+    course: "mobile-development",
+  },
+  {
+    icon: "fas fa-database",
+    label: "Learn Databases & SQL",
+    path: "/academy/enroll/rdbms",
+    course: "rdbms",
+  },
+  {
     icon: "fas fa-code",
     label: "Learn Responsive Web Development",
     path: "/academy/enroll/web-development",
@@ -55,7 +67,6 @@ const services = [
     path: "/academy/enroll/forex-trading",
     course: "forex-trading",
   },
-  { icon: "fas fa-mobile-alt", label: "Build Mobile Apps" },
   { icon: "fas fa-robot", label: "AI Automation for Businesses" },
   { icon: "fas fa-calculator", label: "Learn Elementary Mathematics", path: "/academy" },
   { icon: "fas fa-atom", label: "Learn Physics", path: "/academy" },

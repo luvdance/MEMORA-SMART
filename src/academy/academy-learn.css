@@ -4785,6 +4785,32 @@
   transform-origin: top left;
 }
 
+/* Mobile labs: the practice phone, drawn as a phone. */
+.ac-weblab__stage--phone {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 8px;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+.ac-phone {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 0 0 6px #1f2937, 0 0 0 7px #4b5563, 0 14px 36px rgba(15, 23, 42, 0.28);
+}
+.ac-phone--android { box-shadow: 0 0 0 5px #111827, 0 0 0 6px #374151, 0 14px 36px rgba(15, 23, 42, 0.28); }
+.ac-phone iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  background: #fff;
+  transform-origin: top left;
+}
+
 .ac-weblab__notice {
   margin: 8px 0 0;
   padding: 8px 10px;
@@ -4814,3 +4840,204 @@
 .ac-weblab__errors { margin-top: 8px; background: #2a1414; }
 .ac-weblab__actions { border-top: 1px solid var(--ac-line-soft, #eef0f7); }
 .ac-weblab__model-name { display: block; padding: 10px 0 0; }
+
+/* ── SQL labs and examples (Relational Databases course) ────────────────── */
+.ac-sql { border-color: #c9dcf5; }
+.ac-sql .ac-trace__task { background: #f2f7fd; }
+.ac-sql--demo { border-color: var(--ac-line, #e5e8f2); }
+
+.ac-sql__out { padding: 0 16px 14px; }
+.ac-sql__out > .ac-trace__out-label { padding-left: 0; padding-right: 0; }
+
+.ac-sql__step { margin-top: 10px; }
+.ac-sql__stmt {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #475069;
+  overflow-wrap: anywhere;
+}
+.ac-sql__stmt code { font-family: var(--ac-mono, ui-monospace, monospace); font-size: 11.5px; }
+.ac-sql__line {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #eef2fb;
+  color: #3b4a6b;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.ac-sql__grid-wrap { overflow-x: auto; max-width: 100%; }
+.ac-sql__grid {
+  border-collapse: collapse;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  min-width: 40%;
+}
+.ac-sql__grid th,
+.ac-sql__grid td {
+  padding: 5px 10px;
+  border: 1px solid #dfe5f1;
+  text-align: left;
+  white-space: pre;
+}
+.ac-sql__grid th { background: #eef3fb; color: #1f2d4d; font-weight: 700; }
+.ac-sql__grid td.is-num { text-align: right; }
+.ac-sql__grid td.is-null { color: #8a93a8; font-style: italic; }
+.ac-sql__count { margin: 4px 0 0; font-size: 11.5px; color: #5d6780; }
+
+.ac-sql__tag,
+.ac-sql__notice,
+.ac-sql__error {
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.ac-sql__tag { background: #f3f5f9; color: #2b3550; }
+.ac-sql__notice { background: #eef6ff; color: #1d4f91; margin-bottom: 4px; }
+.ac-sql__error { background: #fdf0ef; color: #8f2620; }
+
+.ac-sql__warn {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fff7e6;
+  color: #7a4a00;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.ac-sql__warn i { margin-right: 4px; }
+.ac-sql__why { display: block; font-style: normal; color: #5d6780; font-size: 13px; }
+
+.ac-sql__tables {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid #dfe5f1;
+  border-radius: 9px;
+  background: #fafbfe;
+  font-size: 13px;
+}
+.ac-sql__tables summary { cursor: pointer; font-weight: 700; color: #1f2d4d; }
+.ac-sql__tables summary i { margin-right: 4px; color: #2f6fd1; }
+.ac-sql__tables ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.6; }
+.ac-sql__tables em { color: #6a7390; font-style: normal; font-size: 12px; }
+
+/* The ERD, drawn from the real catalog */
+.ac-erd { margin: 0; padding: 12px 16px 14px; border-top: 1px solid var(--ac-line-soft, #eef0f7); }
+.ac-erd--empty p { margin: 6px 0 0; font-size: 13px; color: #5d6780; }
+.ac-erd__scroll { overflow-x: auto; margin-top: 8px; }
+.ac-erd__canvas { position: relative; }
+.ac-erd__svg { position: absolute; inset: 0; overflow: visible; }
+.ac-erd__line { stroke: #4b6aa8; stroke-width: 1.6; }
+.ac-erd__mark line { stroke: #4b6aa8; stroke-width: 1.6; }
+.ac-erd__ring { fill: #fff; stroke: #4b6aa8; stroke-width: 1.6; }
+.ac-erd__table {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px solid #4b6aa8;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(31, 45, 77, 0.08);
+}
+.ac-erd__name {
+  height: 28px;
+  line-height: 28px;
+  padding: 0 10px;
+  background: #e7eefb;
+  color: #1f2d4d;
+  font-weight: 800;
+  font-size: 13px;
+  border-bottom: 1px solid #c6d4ef;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ac-erd__table ul { list-style: none; margin: 0; padding: 0 0 6px; }
+.ac-erd__table li {
+  display: flex;
+  gap: 6px;
+  height: 21px;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 11.5px;
+  font-family: var(--ac-mono, ui-monospace, monospace);
+}
+.ac-erd__table li.is-pk .ac-erd__col { font-weight: 800; text-decoration: underline; }
+.ac-erd__key { width: 34px; flex: none; color: #b45309; font-weight: 800; font-size: 10px; }
+.ac-erd__col { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1f2d4d; }
+.ac-erd__type { color: #6a7390; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 92px; }
+.ac-erd__legend { margin: 8px 0 0; font-size: 12px; color: #5d6780; line-height: 1.5; }
+
+/* ── Backend labs (Backend Engineering course): a project, a terminal, requests ── */
+.ac-nodelab { border-color: #c8e6c9; }
+.ac-nodelab .ac-weblab__task { background: linear-gradient(180deg, #f0f9f0, #f9fdf9); }
+.ac-nodelab__side { display: flex; flex-direction: column; gap: 10px; }
+.ac-nodelab__term {
+  min-height: 150px;
+  max-height: 300px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #101418;
+  color: #e6edf3;
+  font: 12px/1.55 var(--ac-mono, ui-monospace, monospace);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.ac-nodelab__term .is-error { color: #ff9b8f; }
+.ac-nodelab__term .is-cmd { color: #7ee787; }
+.ac-nodelab__hint { color: #8b949e; }
+.ac-nodelab__req { display: flex; flex-direction: column; gap: 6px; }
+.ac-nodelab__req .ac-trace__out-label { padding: 0; }
+.ac-nodelab__line { display: flex; gap: 6px; align-items: stretch; min-width: 0; }
+.ac-nodelab__line select,
+.ac-nodelab__line input {
+  font: 12.5px var(--ac-mono, ui-monospace, monospace);
+  border: 1px solid var(--ac-line, #e5e8f2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  color: #1f2d4d;
+  min-width: 0;
+}
+.ac-nodelab__line input { flex: 1; }
+.ac-nodelab__line .ac-trace__btn { margin: 0; padding: 6px 14px; }
+.ac-nodelab__host {
+  display: inline-flex;
+  align-items: center;
+  font: 12px var(--ac-mono, ui-monospace, monospace);
+  color: #6b7390;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .ac-nodelab__host { display: none; }
+}
+.ac-nodelab__toggle {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #2f6f3e;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.ac-nodelab__small { min-height: 0; font-size: 12px; }
+.ac-nodelab__res { display: flex; flex-direction: column; gap: 6px; }
+.ac-nodelab__res details summary { cursor: pointer; font-size: 12.5px; color: #5d6780; }
+.ac-nodelab__res pre { margin: 4px 0 0; padding: 8px 10px; border-radius: 8px; overflow: auto; max-height: 260px; font: 12px/1.5 var(--ac-mono, ui-monospace, monospace); white-space: pre-wrap; word-break: break-word; }
+.ac-nodelab__status { margin: 0; font: 700 12.5px var(--ac-mono, ui-monospace, monospace); }
+.ac-nodelab__status em { font-weight: 400; color: #6b7390; font-style: normal; }
+.ac-nodelab__status.is-ok { color: #1a7f37; }
+.ac-nodelab__status.is-warn { color: #9a6700; }
+.ac-nodelab__status.is-error { color: #b42318; }
+.ac-nodelab__body { background: #f6f8fa; color: #1f2328; }
+.ac-nodelab__written { border-style: dashed; }
+.ac-nodelab__graded { margin-top: 8px; }
+.ac-nodelab__graded summary { cursor: pointer; font-size: 13px; color: #5d6780; }

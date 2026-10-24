@@ -166,13 +166,13 @@ function Item({ item, index, value, onChange }) {
         <div className="ac-fx__answer">
           {item.preamble && (
             <>
-              <span className="ac-fx__codelabel">How the frame was built</span>
+              <span className="ac-fx__codelabel">{item.language === "sql" ? "The tables" : "How the frame was built"}</span>
               <pre className="ac-fx__code is-preamble">{item.preamble.trim()}</pre>
             </>
           )}
-          <span className="ac-fx__codelabel">The code</span>
+          <span className="ac-fx__codelabel">{item.language === "sql" ? "The query" : "The code"}</span>
           <pre className="ac-fx__code">{item.code}</pre>
-          <label htmlFor={`in-${item.id}`}>What does it print?</label>
+          <label htmlFor={`in-${item.id}`}>{item.language === "sql" ? "What does it return?" : "What does it print?"}</label>
           <textarea
             id={`in-${item.id}`}
             className="ac-fx__output"
@@ -183,7 +183,9 @@ function Item({ item, index, value, onChange }) {
             onChange={(e) => onChange(item.id, e.target.value)}
           />
           <p className="ac-fx__hint">
-            {item.language === "javascript"
+            {item.language === "sql"
+              ? "Type the values the query returns, one row per line, exactly as PostgreSQL shows them."
+              : item.language === "javascript"
               ? "Type exactly what console.log prints, one line per line of output."
               : item.language === "cpp"
                 ? "Type exactly what the program sends to std::cout, one line per line of output."

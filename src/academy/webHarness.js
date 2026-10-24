@@ -1,5 +1,6 @@
 import { inspect, formatArgs } from "./jsRunner.js";
 import { REACT_RUNTIME_VERSION } from "./react/runtimeVersion.js";
+import { NATIVE_RUNTIME_VERSION } from "./native/runtimeVersion.js";
 
 /**
  * THE WEB LAB HARNESS
@@ -50,6 +51,29 @@ import { REACT_RUNTIME_VERSION } from "./react/runtimeVersion.js";
 export const isReactLab = (files) => Object.keys(files || {}).some((name) => name.startsWith("src/"));
 export const REACT_RUNTIME_URL = `/lab/react-runtime.js?v=${REACT_RUNTIME_VERSION}`;
 export const TAILWIND_RUNTIME_URL = `/lab/tailwind-browser.js?v=${REACT_RUNTIME_VERSION}`;
+
+/**
+ * EXPO (REACT NATIVE) PROJECTS
+ *
+ * A lab with an app.json is an Expo project, as in the Mobile App Development
+ * course. It runs on the practice phone (public/lab/native-runtime.js, built
+ * from src/academy/native/): the real Expo Router on react-native-web, with
+ * the device simulated. Its preview is a phone, not a browser width: an
+ * iPhone or an Android phone, chosen per lab or per check with `device`.
+ */
+export const isNativeLab = (files) => Object.prototype.hasOwnProperty.call(files || {}, "app.json");
+export const NATIVE_RUNTIME_URL = `/lab/native-runtime.js?v=${NATIVE_RUNTIME_VERSION}`;
+export const SQLITE_RUNTIME_URL = `/lab/sqlite.js?v=${NATIVE_RUNTIME_VERSION}`;
+
+/** The practice phones' screens (mirrors src/academy/native/phone.js). */
+export const PHONES = {
+  ios: { width: 393, height: 852, label: "iPhone", icon: "fab fa-apple" },
+  android: { width: 412, height: 915, label: "Android", icon: "fab fa-android" },
+};
+export function phoneSize(device = {}) {
+  const p = PHONES[device.os === "android" ? "android" : "ios"];
+  return device.orientation === "landscape" ? { width: p.height, height: p.width } : { width: p.width, height: p.height };
+}
 
 /** The three widths every responsive check is written against. */
 export const VIEWPORTS = {
@@ -173,6 +197,8 @@ function labRuntime(config) {
   // The React lab runtime reports the router's path and its own errors here.
   window.__labSend = send;
   window.__labErrors = errors;
+  // The mobile runtime routes some requests itself (its practice server) and records them here.
+  window.__labFetchCalls = fetchCalls;
 
   /* Console: kept, formatted like Node, and streamed to the lesson's panel. */
   for (const level of ["log", "info", "warn", "error"]) {
@@ -461,14 +487,17 @@ function labRuntime(config) {
   async function runTests() {
     const results = [];
     const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    // Mobile labs: wait for the practice phone to boot the app, then add its helpers.
+    if (window.__labNativeReady) await window.__labNativeReady;
+    const all = window.__labExtraHelpers ? { ...helpers, ...window.__labExtraHelpers } : helpers;
     for (const test of config.tests || []) {
       let passed = false;
       let error = "";
       try {
         const fn = new AsyncFunction("h", `with (h) {\n${test.check}\n}`);
         passed = Boolean(await Promise.race([
-          fn(helpers),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("the check timed out")), 4000)),
+          fn(all),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("the check timed out")), window.__labNativeReady ? 9000 : 4000)),
         ]));
       } catch (err) {
         error = `${err && err.name ? err.name : "Error"}: ${err && err.message ? err.message : err}`;
@@ -507,7 +536,8 @@ export function labPages(files) {
  * A lab with no HTML file (a pure JavaScript exercise) gets a blank page with
  * app.js linked at the end of the body, which is how scripts are run there.
  */
-export function buildLabDocument(files = {}, { page, mode = "preview", tests = [], mocks = [], seed = null, nonce = "", path = "/" } = {}) {
+export function buildLabDocument(files = {}, { page, mode = "preview", tests = [], mocks = [], seed = null, nonce = "", path = "/", device = null } = {}) {
+  if (isNativeLab(files)) return buildNativeDocument(files, { mode, tests, mocks, seed, nonce, path, device });
   if (isReactLab(files)) return buildReactDocument(files, { page, mode, tests, mocks, seed, nonce, path });
   const pages = labPages(files);
   const current = page && files[page] !== undefined ? page : pages[0];
@@ -636,6 +666,30 @@ function buildReactDocument(files, { page, mode, tests, mocks, seed, nonce, path
 }
 
 /**
+ * An Expo project, on the practice phone. The page is the phone's screen: the
+ * app's root view fills it, and the runtime boots the project from its files.
+ * SQLite is loaded only when the project (or its server) uses it.
+ */
+function buildNativeDocument(files, { mode, tests, mocks, seed, nonce, path, device }) {
+  const code = {};
+  for (const [name, text] of Object.entries(files)) {
+    code[name] = /\.(jsx?|tsx?)$/.test(name) ? protectLoops(text) : String(text ?? "");
+  }
+  const sqlite = Object.entries(files).some(([name, text]) => /\.(jsx?|tsx?)$/.test(name) && /expo-sqlite|database\(\)/.test(String(text)));
+  const scheme = device?.scheme === "dark" ? "#000" : "#fff";
+  const html =
+    '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<title>Practice phone</title>\n' +
+    `<style>html,body{height:100%;margin:0;overflow:hidden;background:${scheme};-webkit-font-smoothing:antialiased}body{font-family:-apple-system,"SF Pro Text",Roboto,"Segoe UI",Arial,sans-serif}#root{display:flex;height:100%;flex:1}</style>\n` +
+    "</head>\n<body>\n<div id=\"root\"></div>\n</body>\n</html>";
+  const runtime =
+    runtimeScript({ mode, nonce, tests, mocks, seed, pages: [], files }) +
+    (sqlite ? `\n<script src="${SQLITE_RUNTIME_URL}"></script>` : "") +
+    `\n<script src="${NATIVE_RUNTIME_URL}"></script>` +
+    `\n<script>window.__labNative ? window.__labNative.boot(${safeJson({ files: code, path, device: device || {}, nonce, mode })}) : console.error("The practice phone did not load. Check your connection and reload the lesson.");</script>`;
+  return injectRuntime(html, runtime);
+}
+
+/**
  * The page loads a lab's checks need. Checks that share a page, a viewport
  * width, seeded storage and fetch mocks run in ONE load, in order, so a check can click a
  * button and the next can look at what the click changed.
@@ -653,8 +707,11 @@ export function groupTests(lab) {
     // (a deliberately broken component, to prove the learner's tests catch it).
     const path = test.path || lab.path || "/";
     const swap = test.swap || null;
-    const key = `${page}|${width}|${JSON.stringify(seed)}|${test.mocks ? JSON.stringify(mocks) : ""}|${path}|${swap ? JSON.stringify(swap) : ""}`;
-    if (!groups.has(key)) groups.set(key, { page, width, seed, mocks, path, swap, tests: [] });
+    // Mobile labs: the phone (iOS or Android, theme, permissions…) is part of the load.
+    const device = isNativeLab(lab.files) ? { ...(lab.device || {}), ...(test.device || {}) } : null;
+    const size = device ? phoneSize(device) : null;
+    const key = `${page}|${width}|${JSON.stringify(seed)}|${test.mocks ? JSON.stringify(mocks) : ""}|${path}|${swap ? JSON.stringify(swap) : ""}|${device ? JSON.stringify(device) : ""}`;
+    if (!groups.has(key)) groups.set(key, { page, width: size ? size.width : width, height: size ? size.height : undefined, seed, mocks, path, swap, device, tests: [] });
     groups.get(key).tests.push({ index, check: test.check });
   });
   return [...groups.values()];

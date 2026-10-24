@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { VIEWPORTS, LAB_HEIGHT, buildLabDocument, labPages, solvedFiles } from "../webHarness";
+import { VIEWPORTS, LAB_HEIGHT, PHONES, buildLabDocument, isNativeLab, labPages, phoneSize, solvedFiles } from "../webHarness";
 import { SANDBOX, gradeLab, makeNonce } from "../webLabRunner";
 
 /**
@@ -106,7 +106,11 @@ export default function WebLab({
   successMessage,
   mocks = NO_MOCKS,
   seed = null,
-  preview = "desktop",
+  // Phone width first: a learner builds mobile-first, and "Full size" opens the
+  // page at the real width of their own screen in a new tab.
+  preview = "mobile",
+  // Mobile (Expo) labs: the practice phone the lab starts on, and its settings.
+  device: labDevice = null,
   open,
   demo = false,
   onSolved,
@@ -116,6 +120,10 @@ export default function WebLab({
   const [files, setFiles] = useState(() => ({ ...starter, ...(demo ? {} : readDraft(id) || {}) }));
   const [active, setActive] = useState(() => open || names.find((n) => !readOnly.includes(n)) || names[0]);
   const [viewport, setViewport] = useState(preview);
+  const native = isNativeLab(starter);
+  const [os, setOs] = useState(() => labDevice?.os || "ios");
+  const [scheme, setScheme] = useState(() => labDevice?.scheme || "light");
+  const [online, setOnline] = useState(() => labDevice?.online !== false);
   const [page, setPage] = useState(() => labPages(starter)[0] || null);
   const [rendered, setRendered] = useState({ doc: "", nonce: "" });
   // A React lab's router path, shown in the address bar as a real URL would be.
@@ -145,10 +153,74 @@ export default function WebLab({
       setConsoleLines([]);
       setNotice("");
       setRoute("");
-      setRendered({ nonce, doc: buildLabDocument(files, { page, mocks, seed, nonce }) });
+      const device = native ? { ...(labDevice || {}), os, scheme, online } : null;
+      setRendered({ nonce, doc: buildLabDocument(files, { page, mocks, seed, nonce, device }) });
     }, 350);
     return () => clearTimeout(t);
-  }, [files, page, mocks, seed]);
+    // Changing the phone or its theme reboots it; going offline is live (see control).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [files, page, mocks, seed, native, labDevice, os, scheme]);
+
+  /**
+   * The page at its real size, in a new tab: the whole width of the learner's
+   * screen for a web page, the practice phone at 100% for an app. The tab is a
+   * plain page holding the same sandboxed frame as the preview, so the code
+   * runs exactly as it does here. A web lab's other pages are built up front
+   * so its links between pages keep working.
+   */
+  const openFullSize = () => {
+    const tab = window.open("", "_blank");
+    if (!tab) {
+      setNotice("Your browser blocked the new tab. Allow pop-ups for this site and press Full size again.");
+      return;
+    }
+    const nonce = makeNonce();
+    const device = native ? { ...(labDevice || {}), os, scheme, online } : null;
+    const all = native ? [] : labPages(files);
+    const first = native || !all.length ? "" : page && all.includes(page) ? page : all[0];
+    const docs = native || !all.length
+      ? { [first]: buildLabDocument(files, { page, mocks, seed, nonce, device }) }
+      : Object.fromEntries(all.map((p) => [p, buildLabDocument(files, { page: p, mocks, seed, nonce, device })]));
+    const json = (v) => JSON.stringify(v).replace(/</g, "\\u003c");
+    const title = native ? `Your app on the practice ${os === "ios" ? "iPhone" : "Android phone"}` : first || "Your page";
+    const frame = native
+      ? `width:${phone.width}px;height:${phone.height}px;border-radius:${os === "ios" ? 52 : 34}px;box-shadow:0 0 0 10px #111,0 20px 60px rgba(0,0,0,.5)`
+      : "width:100%;height:100%";
+    tab.document.open();
+    tab.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title.replace(/</g, "&lt;")}</title>
+<base href="${window.location.origin}/">
+<style>
+html, body { margin: 0; height: 100%; background: ${native ? "#1f2430" : "#fff"}; }
+body { display: ${native ? "grid" : "block"}; place-items: center; ${native ? "padding: 24px; box-sizing: border-box; min-height: 100%; height: auto;" : ""} }
+iframe { display: block; border: 0; background: #fff; ${frame}; }
+</style>
+</head>
+<body>
+<iframe sandbox="${SANDBOX} allow-modals" title="${title.replace(/"/g, "&quot;")}"></iframe>
+<script>
+var pages = ${json(docs)}, nonce = ${json(nonce)}, frame = document.querySelector("iframe");
+frame.srcdoc = pages[${json(first)}];
+addEventListener("message", function (e) {
+  var d = e.data || {};
+  if (e.source !== frame.contentWindow || d.__lab !== nonce) return;
+  if (d.type === "navigate" && pages[d.page] !== undefined) frame.srcdoc = pages[d.page];
+});
+</script>
+</body>
+</html>`);
+    tab.document.close();
+    tab.opener = null;
+  };
+
+  /** Press one of the practice phone's own controls: Back, restart the app, go offline. */
+  const control = (action, value) => {
+    frameRef.current?.contentWindow?.postMessage({ __labControl: rendered.nonce, action, value }, "*");
+  };
 
   useEffect(() => {
     const onMessage = (event) => {
@@ -175,8 +247,9 @@ export default function WebLab({
   }, []);
 
   const vp = VIEWPORTS[viewport] || VIEWPORTS.desktop;
-  const scale = Math.min(1, stageWidth / vp.width);
-  const shownHeight = 420;
+  const phone = native ? phoneSize({ ...(labDevice || {}), os }) : null;
+  const scale = native ? Math.min(1, (stageWidth - 4) / phone.width, 640 / phone.height) : Math.min(1, stageWidth / vp.width);
+  const shownHeight = native ? Math.round(phone.height * scale) : 420;
   const pages = labPages(files);
   const isReadOnly = readOnly.includes(active);
   const model = useMemo(() => (solution ? solvedFiles({ files: starter, solution }) : null), [solution, starter]);
@@ -194,7 +267,7 @@ export default function WebLab({
     }
     setBusy(true);
     try {
-      const res = await gradeLab({ tests, mocks, seed, files: starter }, files);
+      const res = await gradeLab({ tests, mocks, seed, files: starter, device: labDevice }, files);
       setAttempts((n) => n + 1);
       if (res.passed) {
         setVerdict({ passed: true, message: successMessage || "Every check passed.", checks: res.checks });
@@ -245,6 +318,9 @@ export default function WebLab({
                     {t.viewport && (
                       <em className="ac-weblab__at"> · at {VIEWPORTS[t.viewport]?.label.toLowerCase() || `${t.viewport}px`} width</em>
                     )}
+                    {native && t.device?.os && (
+                      <em className="ac-weblab__at"> · on {t.device.os === "android" ? "Android" : "iPhone"}</em>
+                    )}
                   </span>
                 </li>
               );
@@ -287,6 +363,47 @@ export default function WebLab({
         </div>
 
         <div className="ac-weblab__preview">
+          {native ? (
+            <div className="ac-weblab__bar">
+              <span className="ac-weblab__addr" title="The route the app is showing">
+                <i className="fas fa-route" aria-hidden="true" /> {route || "/"}
+              </span>
+              <div className="ac-weblab__vps" role="group" aria-label="Practice phone">
+                {Object.entries(PHONES).map(([key, p]) => (
+                  <button key={key} className={os === key ? "is-active" : ""} onClick={() => setOs(key)} aria-pressed={os === key} title={`Run on ${p.label === "iPhone" ? "an iPhone" : "an Android phone"}`}>
+                    <i className={p.icon} aria-hidden="true" />
+                    <span>{p.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="ac-weblab__vps" role="group" aria-label="Phone controls">
+                <button onClick={() => setScheme((s) => (s === "dark" ? "light" : "dark"))} aria-pressed={scheme === "dark"} title="Switch the phone between light and dark mode">
+                  <i className={scheme === "dark" ? "fas fa-moon" : "fas fa-sun"} aria-hidden="true" />
+                </button>
+                <button
+                  onClick={() => {
+                    setOnline((v) => !v);
+                    control("online", !online);
+                  }}
+                  aria-pressed={!online}
+                  title={online ? "Turn on airplane mode (no network)" : "Turn the network back on"}
+                >
+                  <i className={online ? "fas fa-wifi" : "fas fa-plane"} aria-hidden="true" />
+                </button>
+                {os === "android" && (
+                  <button onClick={() => control("back")} title="The Android Back button">
+                    <i className="fas fa-chevron-left" aria-hidden="true" />
+                  </button>
+                )}
+                <button onClick={() => control("restart")} title="Close the app and open it again (stored data stays)">
+                  <i className="fas fa-rotate-right" aria-hidden="true" />
+                </button>
+                <button onClick={openFullSize} disabled={!rendered.doc} title="Open the app at full size in a new tab">
+                  <i className="fas fa-up-right-from-square" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          ) : (
           <div className="ac-weblab__bar">
             <span className="ac-weblab__addr" title={route || page || "page"}>
               <i className="fas fa-lock" aria-hidden="true" /> {route ? `localhost:5173${route}` : page || "index.html"}
@@ -305,7 +422,14 @@ export default function WebLab({
                 </button>
               ))}
             </div>
+            <div className="ac-weblab__vps">
+              <button onClick={openFullSize} disabled={!rendered.doc} title="Open the page at the full width of your screen in a new tab">
+                <i className="fas fa-up-right-from-square" aria-hidden="true" />
+                <span>Full size</span>
+              </button>
+            </div>
           </div>
+          )}
           {pages.length > 1 && (
             <div className="ac-weblab__pages">
               {pages.map((p) => (
@@ -315,19 +439,36 @@ export default function WebLab({
               ))}
             </div>
           )}
-          <div className="ac-weblab__stage" ref={stageRef} style={{ height: shownHeight }}>
-            <iframe
-              ref={frameRef}
-              title="Preview of your page"
-              sandbox={`${SANDBOX} allow-modals`}
-              srcDoc={rendered.doc}
-              style={{
-                width: vp.width,
-                height: Math.max(LAB_HEIGHT, shownHeight / scale),
-                transform: `scale(${scale})`,
-              }}
-            />
-          </div>
+          {native ? (
+            <div className="ac-weblab__stage ac-weblab__stage--phone" ref={stageRef} style={{ height: shownHeight + 16 }}>
+              <div
+                className={`ac-phone ac-phone--${os}`}
+                style={{ width: Math.round(phone.width * scale), height: shownHeight, borderRadius: Math.round((os === "ios" ? 52 : 34) * scale) }}
+              >
+                <iframe
+                  ref={frameRef}
+                  title={`Your app, running on the practice ${os === "ios" ? "iPhone" : "Android phone"}`}
+                  sandbox={SANDBOX}
+                  srcDoc={rendered.doc}
+                  style={{ width: phone.width, height: phone.height, transform: `scale(${scale})` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="ac-weblab__stage" ref={stageRef} style={{ height: shownHeight }}>
+              <iframe
+                ref={frameRef}
+                title="Preview of your page"
+                sandbox={`${SANDBOX} allow-modals`}
+                srcDoc={rendered.doc}
+                style={{
+                  width: vp.width,
+                  height: Math.max(LAB_HEIGHT, shownHeight / scale),
+                  transform: `scale(${scale})`,
+                }}
+              />
+            </div>
+          )}
           {notice && <p className="ac-weblab__notice">{notice}</p>}
           {consoleLines.length > 0 && (
             <div className="ac-weblab__console" aria-live="polite">

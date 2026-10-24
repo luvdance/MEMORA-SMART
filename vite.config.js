@@ -166,7 +166,42 @@ function academyApi() {
   }
 }
 
+/**
+ * Lets the lab previews load their runtimes during `npm run dev`.
+ *
+ * A lab preview is a sandboxed iframe (no allow-same-origin), so its origin
+ * is "null" and its <script src="/lab/…"> requests are cross-site no-cors
+ * requests. Vite's dev server answers those with a script that throws
+ * ("Cross-origin requests for classic scripts must be made with CORS mode
+ * enabled"), so the practice phone and the React runtime never boot. The
+ * /lab/ files are public, prebuilt bundles (the same files production serves
+ * to anyone), so the check is lifted for them alone. Vite installs that check
+ * before plugin middleware, hence the unshift.
+ */
+function labRuntimes() {
+  return {
+    name: 'academy-lab-runtimes',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.stack.unshift({
+        route: '',
+        handle(req, _res, next) {
+          if (req.url?.startsWith('/lab/') && req.headers['sec-fetch-dest'] === 'script') {
+            delete req.headers['sec-fetch-mode']
+          }
+          next()
+        },
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), academyApi()],
+  plugins: [react(), academyApi(), labRuntimes()],
+  // PGlite (PostgreSQL in WebAssembly, the SQL labs' server) loads its .wasm
+  // and data files relative to its own module, which the dev pre-bundler
+  // would break. The production build bundles it, worker and assets, as-is.
+  optimizeDeps: { exclude: ['@electric-sql/pglite'] },
+  worker: { format: 'es' },
 })

@@ -19,6 +19,10 @@ import CodeTrace from "../components/CodeTrace";
 import CodeChallenge from "../components/CodeChallenge";
 import CodeFill from "../components/CodeFill";
 import WebLab from "../components/WebLab";
+// SQL on a real PostgreSQL 18 server in the page (PGlite). See SqlLab.jsx.
+import SqlLab, { SqlDemo } from "../components/SqlLab";
+import ApiLab from "../components/ApiLab";
+import NodeLab from "../components/NodeLab";
 import ExamCard from "../components/ExamCard";
 import ExcelGrid from "../components/ExcelGrid";
 // The cybersecurity kit. Same contract as the analytics sims above: the
@@ -187,6 +191,9 @@ export default function LessonPlayer() {
       atom?.codeExercise ||
       atom?.codeChallenge ||
       atom?.webLab ||
+      atom?.sqlLab ||
+      atom?.apiLab ||
+      atom?.nodeLab ||
       atom?.codeFill ||
       atom?.phishExercise ||
       atom?.captureExercise ||
@@ -496,6 +503,44 @@ export default function LessonPlayer() {
                   key={`${atom.id}-lab`}
                   id={atom.id}
                   {...atom.webLab}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* RELATIONAL DATABASES. SQL run on PostgreSQL in the page:
+                  `sqlDemo` is an editable worked example, `sqlLab` is graded by
+                  checks against a fresh copy of the lab database. */}
+              {atom.sqlDemo && <SqlDemo key={`${atom.id}-sqldemo`} {...atom.sqlDemo} />}
+              {atom.sqlLab && (
+                <SqlLab
+                  key={`${atom.id}-sql`}
+                  id={atom.id}
+                  {...atom.sqlLab}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {atom.apiLab && (
+                <ApiLab
+                  key={`${atom.id}-api`}
+                  id={atom.id}
+                  {...atom.apiLab}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* BACKEND ENGINEERING. A Node.js project run in the page: the
+                  learner runs it, sends it requests and reads its output;
+                  `nodeLab` is graded by checks against a fresh run. */}
+              {atom.nodeDemo && <NodeLab key={`${atom.id}-nodedemo`} id={`${atom.id}-demo`} {...atom.nodeDemo} demo />}
+              {atom.nodeLab && (
+                <NodeLab
+                  key={`${atom.id}-node`}
+                  id={atom.id}
+                  {...atom.nodeLab}
                   alreadySolved={solved.has(atom.id)}
                   onSolved={markSolved}
                 />
@@ -833,6 +878,25 @@ export default function LessonPlayer() {
                         Your code does not pass the checks yet. Run it, read
                         what it prints and any error, fix it and press{" "}
                         <em>Check my code</em>.
+                      </>
+                    ) : atom.nodeLab ? (
+                      <>
+                        Your project does not pass every check yet. The
+                        checklist shows which ones are still red: run it, send
+                        it the requests the task describes, read what it
+                        prints, fix it and press <em>Check my code</em>.
+                      </>
+                    ) : atom.apiLab ? (
+                      <>
+                        Your routes do not pass every check yet. Send the
+                        requests, compare each response with what the task
+                        asks for, and press <em>Check my code</em>.
+                      </>
+                    ) : atom.sqlLab ? (
+                      <>
+                        Your SQL does not pass every check yet. The checklist
+                        shows which ones are still red: fix those, run it, read
+                        what PostgreSQL returns, and press <em>Check my SQL</em>.
                       </>
                     ) : atom.webLab ? (
                       <>
