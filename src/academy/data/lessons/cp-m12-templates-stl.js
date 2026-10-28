@@ -31,14 +31,14 @@ export const LESSONS = [
     subtitle: "Why generic code matters, function templates and class templates",
     estimatedMinutes: 24,
     intro:
-      "You have used std::vector<int>, std::vector<double> and std::vector<Student>: one vector, any element type. That is a template. This lesson shows how to write your own, which is also the key to understanding the whole Standard Template Library.",
+      "You have used vector<int>, vector<double> and vector<Student>: one vector, any element type. That is a template. This lesson shows how to write your own, which is also the key to understanding the whole Standard Template Library.",
 
     atoms: [
       {
         id: "a-cp-why-generic",
         title: "Why reusable generic code matters",
         explain:
-          "Without templates, a function that finds the larger of two values must be written once for int, again for double, again for std::string: identical logic, copied. Overloading helps you call them by one name but you still write every copy. A template is written once with a placeholder type, and the compiler generates the version for each type you actually use, checked and as fast as a hand-written one.",
+          "Without templates, a function that finds the larger of two values must be written once for int, again for double, again for string: identical logic, copied. Overloading helps you call them by one name but you still write every copy. A template is written once with a placeholder type, and the compiler generates the version for each type you actually use, checked and as fast as a hand-written one.",
         decision: {
           scenario: "Your project has largestInt, largestDouble and largestString, each with the same loop. A bug is found in the loop.",
           question: "What does a template change?",
@@ -77,6 +77,7 @@ export const LESSONS = [
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 template <typename T>
 T largest(T a, T b) {
@@ -84,10 +85,10 @@ T largest(T a, T b) {
 }
 
 int main() {
-    std::cout << largest(3, 9) << "\n";
-    std::cout << largest(2.5, 1.5) << "\n";
-    std::cout << largest(std::string("mango"), std::string("apple")) << "\n";
-    std::cout << largest<double>(4, 4.5) << "\n";
+    cout << largest(3, 9) << "\n";
+    cout << largest(2.5, 1.5) << "\n";
+    cout << largest(string("mango"), string("apple")) << "\n";
+    cout << largest<double>(4, 4.5) << "\n";
     return 0;
 }
 `,
@@ -98,6 +99,7 @@ int main() {
           task: "Fill the template line so swapAny works for any type T.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 {{1}}
 void swapAny(T& a, T& b) {
@@ -108,10 +110,10 @@ void swapAny(T& a, T& b) {
 
 int main() {
     int x = 1, y = 2;
-    std::string p = "left", q = "right";
+    string p = "left", q = "right";
     swapAny(x, y);
     swapAny(p, q);
-    std::cout << x << y << " " << p << " " << q << "\n";
+    cout << x << y << " " << p << " " << q << "\n";
     return 0;
 }
 `,
@@ -125,11 +127,12 @@ int main() {
         id: "a-cp-class-templates",
         title: "Class templates",
         explain:
-          "A whole class can be a template: template <typename T> class Box { T value; ... };. You choose the type when you create an object, Box<int> or Box<std::string>, and the compiler generates that class. This is exactly how std::vector<T>, std::map<K, V> and every other STL container is built. A template can have several parameters, such as template <typename K, typename V>.",
+          "A whole class can be a template: template <typename T> class Box { T value; ... };. You choose the type when you create an object, Box<int> or Box<string>, and the compiler generates that class. This is exactly how vector<T>, map<K, V> and every other STL container is built. A template can have several parameters, such as template <typename K, typename V>.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 template <typename T>
 class Pair {
@@ -141,8 +144,8 @@ public:
 
 int main() {
     Pair<int> scores(72, 88);
-    Pair<std::string> names("Bayo", "Ada");
-    std::cout << scores.bigger() << " " << names.bigger() << "\n";
+    Pair<string> names("Bayo", "Ada");
+    cout << scores.bigger() << " " << names.bigger() << "\n";
     return 0;
 }
 `,
@@ -151,6 +154,7 @@ int main() {
         codeFill: {
           task: "Create a Pair holding two doubles, 3.5 and 7.25.",
           code: C`#include <iostream>
+using namespace std;
 
 template <typename T>
 class Pair {
@@ -162,14 +166,14 @@ public:
 
 int main() {
     {{1}}
-    std::cout << prices.sum() << "\n";
+    cout << prices.sum() << "\n";
     return 0;
 }
 `,
           blanks: [{ answers: ["Pair<double> prices(3.5, 7.25);", "Pair<double> prices{3.5, 7.25};"], width: 32 }],
           expectedOutput: "10.75",
           hint: "The class name with the type in angle brackets, then the object's name and its constructor arguments.",
-          successMessage: "Pair<double> prices(3.5, 7.25); Exactly like std::vector<double>.",
+          successMessage: "Pair<double> prices(3.5, 7.25); Exactly like vector<double>.",
         },
       },
     ],
@@ -197,7 +201,7 @@ int main() {
         id: "a-cp-stl-intro",
         title: "Introduction to the STL",
         explain:
-          "The STL has three parts that fit together. Containers hold data: vector, list, map, set and more. Iterators are positions inside a container, a generalised pointer. Algorithms are functions such as sort, find and count that work on any container through its iterators. Because algorithms only talk to iterators, one std::sort works on vectors, arrays and deques alike.",
+          "The STL has three parts that fit together. Containers hold data: vector, list, map, set and more. Iterators are positions inside a container, a generalised pointer. Algorithms are functions such as sort, find and count that work on any container through its iterators. Because algorithms only talk to iterators, one sort works on vectors, arrays and deques alike.",
         table: {
           caption: "The main containers.",
           headers: ["Container", "Header", "Holds", "Strong at"],
@@ -223,24 +227,25 @@ int main() {
           code: C`#include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Product {
-    std::string name;
+    string name;
     int price;
-    Product(std::string n, int p) : name(n), price(p) {}
+    Product(string n, int p) : name(n), price(p) {}
 };
 
 int main() {
-    std::vector<Product> shelf;
+    vector<Product> shelf;
     shelf.reserve(100);
     shelf.emplace_back("Milk", 1200);
     shelf.emplace_back("Bread", 1500);
-    std::cout << shelf.size() << " products, first: " << shelf[0].name << "\n";
+    cout << shelf.size() << " products, first: " << shelf[0].name << "\n";
 
-    std::vector<int> a = {1, 2, 3};
+    vector<int> a = {1, 2, 3};
     a.resize(5);
-    std::vector<int> b = {1, 2, 3, 0, 0};
-    std::cout << std::boolalpha << (a == b) << "\n";
+    vector<int> b = {1, 2, 3, 0, 0};
+    cout << boolalpha << (a == b) << "\n";
     return 0;
 }
 `,
@@ -251,17 +256,18 @@ int main() {
           code: C`#include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Student {
-    std::string name;
+    string name;
     int score;
-    Student(std::string n, int s) : name(n), score(s) {}
+    Student(string n, int s) : name(n), score(s) {}
 };
 
 int main() {
-    std::vector<Student> list;
+    vector<Student> list;
     {{1}}
-    std::cout << list.back().name << " " << list.back().score << "\n";
+    cout << list.back().name << " " << list.back().score << "\n";
     return 0;
 }
 `,
@@ -275,28 +281,29 @@ int main() {
         id: "a-cp-array-list-deque",
         title: "array, list and deque",
         explain:
-          "std::array<int, 5> is a fixed-size array that, unlike a built-in array, knows its size, can be copied, and has .at(). std::deque (double-ended queue) supports push_front and pop_front as well as push_back, and still allows indexing. std::list is a doubly linked list: inserting or removing in the middle is fast once you are there, but there is no [] indexing, and it uses more memory. In practice: vector by default, array for fixed sizes, deque when both ends matter, list rarely.",
+          "array<int, 5> is a fixed-size array that, unlike a built-in array, knows its size, can be copied, and has .at(). deque (double-ended queue) supports push_front and pop_front as well as push_back, and still allows indexing. list is a doubly linked list: inserting or removing in the middle is fast once you are there, but there is no [] indexing, and it uses more memory. In practice: vector by default, array for fixed sizes, deque when both ends matter, list rarely.",
         codeExercise: {
           language: CPP,
           code: C`#include <array>
 #include <deque>
 #include <iostream>
 #include <list>
+using namespace std;
 
 int main() {
-    std::array<int, 3> days = {31, 28, 31};
-    std::cout << days.size() << " " << days.back() << "\n";
+    array<int, 3> days = {31, 28, 31};
+    cout << days.size() << " " << days.back() << "\n";
 
-    std::deque<int> line = {2, 3};
+    deque<int> line = {2, 3};
     line.push_front(1);
     line.push_back(4);
     line.pop_front();
-    std::cout << line.front() << " " << line[1] << " " << line.size() << "\n";
+    cout << line.front() << " " << line[1] << " " << line.size() << "\n";
 
-    std::list<int> chain = {10, 30};
+    list<int> chain = {10, 30};
     chain.insert(++chain.begin(), 20);
-    for (int x : chain) std::cout << x << " ";
-    std::cout << "\n";
+    for (int x : chain) cout << x << " ";
+    cout << "\n";
     return 0;
 }
 `,
@@ -331,29 +338,30 @@ int main() {
         id: "a-cp-stack-queue",
         title: "stack and queue",
         explain:
-          "std::stack is last-in-first-out (LIFO): push adds to the top, top() reads it, pop() removes it, like a pile of plates. It powers undo features and bracket matching. std::queue is first-in-first-out (FIFO): push adds at the back, front() reads the oldest, pop() removes it, like a bank queue. It powers task processing and print queues. Both deliberately offer nothing else: no indexing, no looping, which makes misuse impossible.",
+          "stack is last-in-first-out (LIFO): push adds to the top, top() reads it, pop() removes it, like a pile of plates. It powers undo features and bracket matching. queue is first-in-first-out (FIFO): push adds at the back, front() reads the oldest, pop() removes it, like a bank queue. It powers task processing and print queues. Both deliberately offer nothing else: no indexing, no looping, which makes misuse impossible.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <queue>
 #include <stack>
 #include <string>
+using namespace std;
 
 int main() {
-    std::stack<std::string> undo;
+    stack<string> undo;
     undo.push("type Hello");
     undo.push("bold");
     undo.push("delete word");
-    std::cout << "Undo: " << undo.top() << "\n";
+    cout << "Undo: " << undo.top() << "\n";
     undo.pop();
-    std::cout << "Then: " << undo.top() << "\n";
+    cout << "Then: " << undo.top() << "\n";
 
-    std::queue<std::string> customers;
+    queue<string> customers;
     customers.push("Ada");
     customers.push("Bayo");
     customers.push("Chi");
     customers.pop();
-    std::cout << "Now serving: " << customers.front() << ", waiting: " << customers.size() << "\n";
+    cout << "Now serving: " << customers.front() << ", waiting: " << customers.size() << "\n";
     return 0;
 }
 `,
@@ -363,14 +371,15 @@ int main() {
           task: "Fill the condition so the loop processes jobs until the queue is empty.",
           code: C`#include <iostream>
 #include <queue>
+using namespace std;
 
 int main() {
-    std::queue<int> jobs;
+    queue<int> jobs;
     jobs.push(101);
     jobs.push(102);
     jobs.push(103);
     while ({{1}}) {
-        std::cout << "Printing job " << jobs.front() << "\n";
+        cout << "Printing job " << jobs.front() << "\n";
         jobs.pop();
     }
     return 0;
@@ -386,28 +395,29 @@ int main() {
         id: "a-cp-set-map",
         title: "set and map",
         explain:
-          "std::set holds unique values in sorted order: inserting a duplicate does nothing, and looping visits values smallest first. std::map holds key-value pairs sorted by key, each key unique: prices[\"rice\"] = 8500; adds or updates. Reading a missing key with [] silently INSERTS it with a default value, so use .count(key) or .find(key) to check first. Lookup is fast even for millions of entries.",
+          "set holds unique values in sorted order: inserting a duplicate does nothing, and looping visits values smallest first. map holds key-value pairs sorted by key, each key unique: prices[\"rice\"] = 8500; adds or updates. Reading a missing key with [] silently INSERTS it with a default value, so use .count(key) or .find(key) to check first. Lookup is fast even for millions of entries.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <map>
 #include <set>
 #include <string>
+using namespace std;
 
 int main() {
-    std::set<int> visited = {5, 3, 9, 3, 5};
+    set<int> visited = {5, 3, 9, 3, 5};
     visited.insert(1);
-    for (int v : visited) std::cout << v << " ";
-    std::cout << "(" << visited.size() << " unique)\n";
+    for (int v : visited) cout << v << " ";
+    cout << "(" << visited.size() << " unique)\n";
 
-    std::map<std::string, int> stock;
+    map<string, int> stock;
     stock["rice"] = 12;
     stock["beans"] = 30;
     stock["rice"] += 8;
     for (const auto& [item, qty] : stock) {
-        std::cout << item << ": " << qty << "\n";
+        cout << item << ": " << qty << "\n";
     }
-    std::cout << "Have yam? " << stock.count("yam") << "\n";
+    cout << "Have yam? " << stock.count("yam") << "\n";
     return 0;
 }
 `,
@@ -419,17 +429,18 @@ int main() {
           code: C`#include <iostream>
 #include <map>
 #include <string>
+using namespace std;
 
 int main() {
-    std::map<std::string, int> votes;
-    std::string ballots[] = {"Obi", "Ada", "Obi", "Kemi", "Ada", "Obi"};
-    for (const std::string& b : ballots) {
+    map<string, int> votes;
+    string ballots[] = {"Obi", "Ada", "Obi", "Kemi", "Ada", "Obi"};
+    for (const string& b : ballots) {
         votes[b]++;
     }
     for (const auto& [name, count] : votes) {
-        std::cout << name << " " << count << "\n";
+        cout << name << " " << count << "\n";
     }
-    std::cout << votes.size() << "\n";
+    cout << votes.size() << "\n";
     return 0;
 }
 `,
@@ -443,26 +454,27 @@ int main() {
         id: "a-cp-unordered",
         title: "unordered_set and unordered_map",
         explain:
-          "std::unordered_map and std::unordered_set work like map and set but store their keys in a hash table instead of in sorted order. Lookups are usually faster (constant time on average, Week 13 explains why), but the order you get when looping is unspecified: it depends on the library and can change as elements are added. Use them when you only look things up and never need sorted order.",
+          "unordered_map and unordered_set work like map and set but store their keys in a hash table instead of in sorted order. Lookups are usually faster (constant time on average, Week 13 explains why), but the order you get when looping is unspecified: it depends on the library and can change as elements are added. Use them when you only look things up and never need sorted order.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+using namespace std;
 
 int main() {
-    std::unordered_map<std::string, std::string> capitals = {
+    unordered_map<string, string> capitals = {
         {"Lagos", "Ikeja"}, {"Rivers", "Port Harcourt"}, {"Kano", "Kano"},
     };
-    std::cout << capitals["Rivers"] << "\n";
-    std::cout << capitals.count("Ogun") << "\n";
+    cout << capitals["Rivers"] << "\n";
+    cout << capitals.count("Ogun") << "\n";
 
-    std::unordered_set<std::string> seen;
-    std::string emails[] = {"a@x.ng", "b@x.ng", "a@x.ng"};
-    for (const std::string& e : emails) {
+    unordered_set<string> seen;
+    string emails[] = {"a@x.ng", "b@x.ng", "a@x.ng"};
+    for (const string& e : emails) {
         if (!seen.insert(e).second) {
-            std::cout << "Duplicate: " << e << "\n";
+            cout << "Duplicate: " << e << "\n";
         }
     }
     return 0;
@@ -477,17 +489,17 @@ int main() {
           options: [
             {
               id: "a",
-              text: "std::map<std::string, int>: lookups by name, and looping gives alphabetical order for free",
+              text: "map<string, int>: lookups by name, and looping gives alphabetical order for free",
               why: "map gives both requirements at once. An unordered_map would need a separate sort step every time you print.",
             },
             {
               id: "b",
-              text: "std::unordered_map<std::string, int>",
+              text: "unordered_map<string, int>",
               whyWrong: "Lookups are fine, but its iteration order is unspecified, so the list would not come out sorted.",
             },
             {
               id: "c",
-              text: "std::stack<std::string>",
+              text: "stack<string>",
               whyWrong: "A stack only exposes its top element: no lookup and no sorted listing.",
             },
             {
@@ -530,23 +542,24 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> v = {4, 8, 15, 16};
-    for (std::vector<int>::iterator it = v.begin(); it != v.end(); ++it) {
+    vector<int> v = {4, 8, 15, 16};
+    for (vector<int>::iterator it = v.begin(); it != v.end(); ++it) {
         *it *= 10;
     }
     for (auto it = v.begin(); it != v.end(); ++it) {
-        std::cout << *it << " ";
+        cout << *it << " ";
     }
-    std::cout << "\n";
-    std::cout << *(v.end() - 1) << " " << v.end() - v.begin() << "\n";
+    cout << "\n";
+    cout << *(v.end() - 1) << " " << v.end() - v.begin() << "\n";
     return 0;
 }
 `,
           expectedOutput: "40 80 150 160\n160 4",
         },
-        why: "The full iterator type, std::vector<int>::iterator, is long, which is why the second loop lets the compiler work it out with auto (Week 14). end() - 1 is the last element; end() itself must never be dereferenced.",
+        why: "The full iterator type, vector<int>::iterator, is long, which is why the second loop lets the compiler work it out with auto (Week 14). end() - 1 is the last element; end() itself must never be dereferenced.",
       },
       {
         id: "a-cp-range-for",
@@ -557,9 +570,10 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> marks = {50, 60, 70};
+    vector<int> marks = {50, 60, 70};
     for (int m : marks) {
         m += 5;
     }
@@ -568,7 +582,7 @@ int main() {
     }
     int total = 0;
     for (const int& m : marks) total += m;
-    std::cout << marks[0] << " " << total << "\n";
+    cout << marks[0] << " " << total << "\n";
     return 0;
 }
 `,
@@ -584,50 +598,52 @@ int main() {
         id: "a-cp-algorithms",
         title: "Algorithms: sort, find and count",
         explain:
-          "#include <algorithm> gives you ready-made operations that take a range of iterators. std::sort(v.begin(), v.end()) sorts in ascending order, fast even for millions of items. std::find returns an iterator to the first match, or end() if there is none. std::count returns how many elements equal a value. There are many more: std::reverse, std::max_element, std::min_element, and std::accumulate from <numeric> for totals.",
+          "#include <algorithm> gives you ready-made operations that take a range of iterators. sort(v.begin(), v.end()) sorts in ascending order, fast even for millions of items. find returns an iterator to the first match, or end() if there is none. count returns how many elements equal a value. There are many more: reverse, max_element, min_element, and accumulate from <numeric> for totals.",
         code: {
           language: CPP,
           code: C`#include <algorithm>
 #include <iostream>
 #include <numeric>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> scores = {72, 58, 91, 64, 58, 80};
-    std::sort(scores.begin(), scores.end());
-    for (int s : scores) std::cout << s << " ";
-    std::cout << "\n";
+    vector<int> scores = {72, 58, 91, 64, 58, 80};
+    sort(scores.begin(), scores.end());
+    for (int s : scores) cout << s << " ";
+    cout << "\n";
 
-    auto it = std::find(scores.begin(), scores.end(), 91);
+    auto it = find(scores.begin(), scores.end(), 91);
     if (it != scores.end()) {
-        std::cout << "91 found at index " << it - scores.begin() << "\n";
+        cout << "91 found at index " << it - scores.begin() << "\n";
     }
-    std::cout << "58 appears " << std::count(scores.begin(), scores.end(), 58) << " times\n";
-    std::cout << "Highest: " << *std::max_element(scores.begin(), scores.end()) << "\n";
-    std::cout << "Total: " << std::accumulate(scores.begin(), scores.end(), 0) << "\n";
+    cout << "58 appears " << count(scores.begin(), scores.end(), 58) << " times\n";
+    cout << "Highest: " << *max_element(scores.begin(), scores.end()) << "\n";
+    cout << "Total: " << accumulate(scores.begin(), scores.end(), 0) << "\n";
     return 0;
 }
 `,
           expectedOutput: "58 58 64 72 80 91\n91 found at index 5\n58 appears 2 times\nHighest: 91\nTotal: 423",
         },
-        why: "Week 6's bubble sort took fifteen lines; std::sort is one, and much faster on large data. Use the algorithms; write your own only to learn how they work.",
+        why: "Week 6's bubble sort took fifteen lines; sort is one, and much faster on large data. Use the algorithms; write your own only to learn how they work.",
         codeFill: {
           task: "Fill the gap so the program counts how many scores are exactly 100.",
           code: C`#include <algorithm>
 #include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> scores = {100, 87, 100, 64, 100, 92};
+    vector<int> scores = {100, 87, 100, 64, 100, 92};
     long perfect = {{1}};
-    std::cout << perfect << " perfect scores\n";
+    cout << perfect << " perfect scores\n";
     return 0;
 }
 `,
-          blanks: [{ answers: ["std::count(scores.begin(), scores.end(), 100)"], width: 46 }],
+          blanks: [{ answers: ["count(scores.begin(), scores.end(), 100)", "std::count(scores.begin(), scores.end(), 100)"], width: 46 }],
           expectedOutput: "3 perfect scores",
-          hint: "std::count takes the start of the range, the end of the range, and the value to count.",
-          successMessage: "std::count(scores.begin(), scores.end(), 100). One line instead of a loop and a counter.",
+          hint: "count takes the start of the range, the end of the range, and the value to count.",
+          successMessage: "count(scores.begin(), scores.end(), 100). One line instead of a loop and a counter.",
         },
       },
     ],
@@ -655,32 +671,33 @@ int main() {
         id: "a-cp-lambdas",
         title: "Lambda expressions",
         explain:
-          "A lambda is a small unnamed function written inline: [](int x) { return x >= 50; }. The square brackets are the capture list, the round brackets the parameters, and the braces the body. Pass lambdas to algorithms such as std::count_if, std::find_if and std::sort to customise them. [&] captures surrounding variables by reference and [=] by value, so a lambda can use a pass mark defined outside it.",
+          "A lambda is a small unnamed function written inline: [](int x) { return x >= 50; }. The square brackets are the capture list, the round brackets the parameters, and the braces the body. Pass lambdas to algorithms such as count_if, find_if and sort to customise them. [&] captures surrounding variables by reference and [=] by value, so a lambda can use a pass mark defined outside it.",
         code: {
           language: CPP,
           code: C`#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Product {
-    std::string name;
+    string name;
     int price;
 };
 
 int main() {
-    std::vector<Product> items = {{"Milk", 1200}, {"Bread", 1500}, {"Eggs", 3200}, {"Sugar", 900}};
-    std::sort(items.begin(), items.end(), [](const Product& a, const Product& b) {
+    vector<Product> items = {{"Milk", 1200}, {"Bread", 1500}, {"Eggs", 3200}, {"Sugar", 900}};
+    sort(items.begin(), items.end(), [](const Product& a, const Product& b) {
         return a.price < b.price;
     });
-    for (const Product& p : items) std::cout << p.name << " ";
-    std::cout << "\n";
+    for (const Product& p : items) cout << p.name << " ";
+    cout << "\n";
 
     int budget = 1300;
-    auto affordable = std::count_if(items.begin(), items.end(), [&](const Product& p) {
+    auto affordable = count_if(items.begin(), items.end(), [&](const Product& p) {
         return p.price <= budget;
     });
-    std::cout << affordable << " items within " << budget << "\n";
+    cout << affordable << " items within " << budget << "\n";
     return 0;
 }
 `,
@@ -691,11 +708,12 @@ int main() {
           code: C`#include <algorithm>
 #include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> scores = {72, 45, 58, 39, 91, 50};
-    auto passes = std::count_if(scores.begin(), scores.end(), [](int s) { {{1}} });
-    std::cout << passes << " passed\n";
+    vector<int> scores = {72, 45, 58, 39, 91, 50};
+    auto passes = count_if(scores.begin(), scores.end(), [](int s) { {{1}} });
+    cout << passes << " passed\n";
     return 0;
 }
 `,
@@ -714,14 +732,14 @@ int main() {
           caption: "A decision guide.",
           headers: ["You need", "Choose"],
           rows: [
-            ["A list of items, accessed by position or looped over", "std::vector"],
-            ["A fixed number of items known when compiling", "std::array"],
-            ["To add and remove at both ends", "std::deque"],
-            ["Last in, first out (undo, backtracking)", "std::stack"],
-            ["First in, first out (waiting lines, tasks)", "std::queue"],
-            ["Unique values, kept sorted", "std::set"],
-            ["Look-up by key, with keys in order", "std::map"],
-            ["The fastest look-up by key, order not needed", "std::unordered_map"],
+            ["A list of items, accessed by position or looped over", "vector"],
+            ["A fixed number of items known when compiling", "array"],
+            ["To add and remove at both ends", "deque"],
+            ["Last in, first out (undo, backtracking)", "stack"],
+            ["First in, first out (waiting lines, tasks)", "queue"],
+            ["Unique values, kept sorted", "set"],
+            ["Look-up by key, with keys in order", "map"],
+            ["The fastest look-up by key, order not needed", "unordered_map"],
           ],
         },
         decision: {
@@ -730,22 +748,22 @@ int main() {
           options: [
             {
               id: "a",
-              text: "std::unordered_map<std::string, Product>, keyed by product code",
+              text: "unordered_map<string, Product>, keyed by product code",
               why: "Look-up by key is the main operation, order is irrelevant, and a hash table gives the fastest average look-up.",
             },
             {
               id: "b",
-              text: "std::vector<Product>, searched with a loop",
+              text: "vector<Product>, searched with a loop",
               whyWrong: "A linear search checks up to 200,000 products for every look-up.",
             },
             {
               id: "c",
-              text: "std::stack<Product>",
+              text: "stack<Product>",
               whyWrong: "A stack only gives access to its top element.",
             },
             {
               id: "d",
-              text: "std::list<Product>",
+              text: "list<Product>",
               whyWrong: "A list has no fast look-up by key at all.",
             },
           ],
@@ -766,6 +784,7 @@ int main() {
 #include <map>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Stock {
     int quantity;
@@ -773,7 +792,7 @@ struct Stock {
 };
 
 int main() {
-    std::map<std::string, Stock> inventory = {
+    map<string, Stock> inventory = {
         {"rice", {12, 8500}}, {"beans", {30, 1800}}, {"oil", {4, 2600}},
     };
     inventory["beans"].quantity -= 5;
@@ -782,14 +801,14 @@ int main() {
     double value = 0;
     for (const auto& [name, s] : inventory) value += s.quantity * s.unitPrice;
 
-    std::vector<std::string> low;
+    vector<string> low;
     for (const auto& [name, s] : inventory) {
         if (s.quantity < 10) low.push_back(name);
     }
-    std::cout << std::fixed << std::setprecision(2);
-    std::cout << "Products: " << inventory.size() << "\n";
-    std::cout << "Stock value: " << value << "\n";
-    std::cout << "Low stock: " << low.size() << " (" << low[0] << ")\n";
+    cout << fixed << setprecision(2);
+    cout << "Products: " << inventory.size() << "\n";
+    cout << "Stock value: " << value << "\n";
+    cout << "Low stock: " << low.size() << " (" << low[0] << ")\n";
     return 0;
 }
 `,
@@ -803,12 +822,12 @@ int main() {
       intro:
         "Write inventory.cpp using STL containers and algorithms throughout. Avoid writing any loop that an algorithm could replace.",
       prompts: [
-        "Store products in a std::map<std::string, Product> keyed by product code, where Product holds a name, quantity and unit price.",
+        "Store products in a map<string, Product> keyed by product code, where Product holds a name, quantity and unit price.",
         "Menu: add a product, update a quantity (sales reduce it, deliveries increase it, and it may never go negative), remove a product, search by code.",
-        "Report the total stock value with a loop over the map, then again with std::accumulate and a lambda, and check they agree.",
-        "List all products sorted by value (quantity × price), highest first: copy them into a vector and use std::sort with a lambda.",
-        "List low-stock products (quantity below a threshold the user chooses) using std::copy_if or a range-based for with a captured threshold.",
-        "Use a std::set<std::string> to record every category, and print the categories in alphabetical order.",
+        "Report the total stock value with a loop over the map, then again with accumulate and a lambda, and check they agree.",
+        "List all products sorted by value (quantity × price), highest first: copy them into a vector and use sort with a lambda.",
+        "List low-stock products (quantity below a threshold the user chooses) using copy_if or a range-based for with a captured threshold.",
+        "Use a set<string> to record every category, and print the categories in alphabetical order.",
         "Write a function template printAll that prints any vector's elements, and use it for at least two different types.",
         "Save the inventory to a CSV file on exit and load it on start-up, reusing Week 11's code.",
       ],

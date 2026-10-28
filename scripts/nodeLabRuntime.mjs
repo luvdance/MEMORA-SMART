@@ -155,12 +155,18 @@ const prismaPlugin = {
     });
     // Prisma's packages are bundles with their own __require for Node's modules, which needs a global
     // require; here it asks the lab runtime for its built-in modules (entry.js, globalThis.__labRequire).
-    b.onLoad({ filter: /[\\/]@prisma[\\/].*\.c?js$/ }, (args) => {
+    b.onLoad({ filter: /[\\/]@prisma[\\/].*\.[cm]?js$/ }, (args) => {
       const source = readFileSync(args.path, "utf8");
-      if (!source.includes("Dynamic require of")) return undefined;
-      const patched = source.replace(PRISMA_DYNAMIC_REQUIRE, "var __require = (x) => globalThis.__labRequire(x);");
-      if (patched === source) throw new Error(`${args.path}: Prisma's __require changed: update PRISMA_DYNAMIC_REQUIRE in scripts/nodeLabRuntime.mjs`);
-      return { contents: patched, loader: "js" };
+      let patched = source;
+      if (source.includes("Dynamic require of")) {
+        patched = patched.replace(PRISMA_DYNAMIC_REQUIRE, "var __require = (x) => globalThis.__labRequire(x);");
+        if (patched === source) throw new Error(`${args.path}: Prisma's __require changed: update PRISMA_DYNAMIC_REQUIRE in scripts/nodeLabRuntime.mjs`);
+      }
+      // eval("__dirname") hides the identifier from the bundler: give those the same path as the define below.
+      patched = patched
+        .split("eval(`require('path').join(__dirname, '..')`)").join('"/app/node_modules"')
+        .split('eval("__dirname")').join('"/app/node_modules/.lab"');
+      return patched === source ? undefined : { contents: patched, loader: "js" };
     });
     // Prisma imports TypeScript only to print its version.
     b.onResolve({ filter: /^typescript$/ }, (args) => (/[\\/]@prisma[\\/]/.test(args.importer) ? { path: "typescript", namespace: "empty" } : undefined));

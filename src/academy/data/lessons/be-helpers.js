@@ -42,6 +42,8 @@ export const SESSION_FOLDERS = {
   "w4-remote": "course-api",
   "w4-secrets": "course-api",
   "w4-lint": "course-api",
+  "w10-psql": "academy-db",
+  "w10-roles": "academy-db",
 };
 
 export function term(session, spec = {}) {

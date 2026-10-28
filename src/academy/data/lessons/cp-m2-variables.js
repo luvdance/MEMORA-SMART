@@ -3,7 +3,7 @@
  *
  * Curriculum 2.1 – 2.15. Store, retrieve and display information correctly.
  * Every program here is compiled and run by `npm run validate:content`;
- * programs that read from std::cin carry their keyboard input (`inputs`) and
+ * programs that read from cin carry their keyboard input (`inputs`) and
  * the output shown is the real terminal transcript, typed text included.
  *
  * ─────────────────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ export const LESSONS = [
             ["Average score", "72.5", "Decimal number", "double"],
             ["Grade", "B", "A single character", "char"],
             ["Passed", "true", "Yes or no", "bool"],
-            ["Name", "Chiamaka Okafor", "Text", "std::string"],
+            ["Name", "Chiamaka Okafor", "Text", "string"],
           ],
         },
         decision: {
@@ -88,13 +88,14 @@ export const LESSONS = [
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << "char:      " << sizeof(char) << " byte\n";
-    std::cout << "bool:      " << sizeof(bool) << " byte\n";
-    std::cout << "int:       " << sizeof(int) << " bytes\n";
-    std::cout << "double:    " << sizeof(double) << " bytes\n";
-    std::cout << "long long: " << sizeof(long long) << " bytes\n";
+    cout << "char:      " << sizeof(char) << " byte\n";
+    cout << "bool:      " << sizeof(bool) << " byte\n";
+    cout << "int:       " << sizeof(int) << " bytes\n";
+    cout << "double:    " << sizeof(double) << " bytes\n";
+    cout << "long long: " << sizeof(long long) << " bytes\n";
     return 0;
 }
 `,
@@ -110,15 +111,16 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 85;
     double average{72.5};
     char grade = 'B';
 
-    std::cout << "Score: " << score << "\n";
-    std::cout << "Average: " << average << "\n";
-    std::cout << "Grade: " << grade << "\n";
+    cout << "Score: " << score << "\n";
+    cout << "Average: " << average << "\n";
+    cout << "Grade: " << grade << "\n";
     return 0;
 }
 `,
@@ -129,10 +131,11 @@ int main() {
         codeFill: {
           task: "Fill the gap with a declaration that creates an int called age holding 19, so the program prints Age: 19.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     {{1}}
-    std::cout << "Age: " << age << "\n";
+    cout << "Age: " << age << "\n";
     return 0;
 }
 `,
@@ -150,6 +153,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int balance = 5000;
@@ -157,8 +161,8 @@ int main() {
     int deposit = 2500;
     balance = balance + deposit;
     deposit = 0;
-    std::cout << balance << "\n";
-    std::cout << deposit << "\n";
+    cout << balance << "\n";
+    cout << deposit << "\n";
     return 0;
 }
 `,
@@ -246,15 +250,16 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <limits>
+using namespace std;
 
 int main() {
-    std::cout << "Largest int:       " << std::numeric_limits<int>::max() << "\n";
-    std::cout << "Largest long long: " << std::numeric_limits<long long>::max() << "\n";
+    cout << "Largest int:       " << numeric_limits<int>::max() << "\n";
+    cout << "Largest long long: " << numeric_limits<long long>::max() << "\n";
 
     int nigeriaPopulation = 230000000;
     long long worldPopulation = 8100000000LL;
-    std::cout << "Nigeria: " << nigeriaPopulation << "\n";
-    std::cout << "World:   " << worldPopulation << "\n";
+    cout << "Nigeria: " << nigeriaPopulation << "\n";
+    cout << "World:   " << worldPopulation << "\n";
     return 0;
 }
 `,
@@ -264,10 +269,11 @@ int main() {
         codeFill: {
           task: "A company's yearly revenue in kobo is 4500000000000, far too large for an int. Fill the gap with the right type so the program stores it and prints the value in naira.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     {{1}} revenueKobo = 4500000000000LL;
-    std::cout << "Revenue: " << revenueKobo / 100 << " naira\n";
+    cout << "Revenue: " << revenueKobo / 100 << " naira\n";
     return 0;
 }
 `,
@@ -286,13 +292,14 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <iomanip>
+using namespace std;
 
 int main() {
     float f = 1.0f / 3;
     double d = 1.0 / 3;
-    std::cout << std::setprecision(12);
-    std::cout << "float:  " << f << "\n";
-    std::cout << "double: " << d << "\n";
+    cout << setprecision(12);
+    cout << "float:  " << f << "\n";
+    cout << "double: " << d << "\n";
     return 0;
 }
 `,
@@ -302,12 +309,13 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     double price = 1250.50;
-    std::cout << price * 2 << "\n";
-    std::cout << price / 4 << "\n";
-    std::cout << 10.0 / 3 << "\n";
+    cout << price * 2 << "\n";
+    cout << price / 4 << "\n";
+    cout << 10.0 / 3 << "\n";
     return 0;
 }
 `,
@@ -315,7 +323,7 @@ int main() {
           expectedOutput: "2501\n312.625\n3.33333",
           hint: "1250.50 × 2 is 2501.00, shown without the zeros. 10 ÷ 3 is 3.333…, cut to 6 significant digits.",
           successMessage:
-            "2501, 312.625 and 3.33333. Default output is fine for checking, but for money you will want exactly two decimal places: that is std::fixed and setprecision, in Lesson 10.",
+            "2501, 312.625 and 3.33333. Default output is fine for checking, but for money you will want exactly two decimal places: that is fixed and setprecision, in Lesson 10.",
         },
       },
     ],
@@ -347,14 +355,15 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     char grade = 'A';
-    std::cout << grade << "\n";
-    std::cout << static_cast<int>(grade) << "\n";
+    cout << grade << "\n";
+    cout << static_cast<int>(grade) << "\n";
 
     char next = grade + 1;
-    std::cout << next << "\n";
+    cout << next << "\n";
     return 0;
 }
 `,
@@ -366,12 +375,13 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     char first = 'C';
     char second = first + 2;
-    std::cout << first << second << "\n";
-    std::cout << second - first << "\n";
+    cout << first << second << "\n";
+    cout << second - first << "\n";
     return 0;
 }
 `,
@@ -386,16 +396,17 @@ int main() {
         id: "a-cp-bool",
         title: "True or false: bool",
         explain:
-          "A bool holds one of two values: true or false. Booleans are how programs record decisions: whether a student passed, whether an account is locked. By default cout prints true as 1 and false as 0; sending std::boolalpha to cout first makes it print the words instead.",
+          "A bool holds one of two values: true or false. Booleans are how programs record decisions: whether a student passed, whether an account is locked. By default cout prints true as 1 and false as 0; sending boolalpha to cout first makes it print the words instead.",
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     bool passed = true;
     bool locked = false;
-    std::cout << passed << " " << locked << "\n";
-    std::cout << std::boolalpha << passed << " " << locked << "\n";
+    cout << passed << " " << locked << "\n";
+    cout << boolalpha << passed << " " << locked << "\n";
     return 0;
 }
 `,
@@ -405,10 +416,11 @@ int main() {
         codeFill: {
           task: "Fill the gap so hasPaid holds the value true, and the program prints Fees paid: true.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     bool hasPaid = {{1}};
-    std::cout << std::boolalpha << "Fees paid: " << hasPaid << "\n";
+    cout << boolalpha << "Fees paid: " << hasPaid << "\n";
     return 0;
 }
 `,
@@ -426,11 +438,12 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     const double VAT_RATE = 0.075;
     VAT_RATE = 0.08;
-    std::cout << VAT_RATE << "\n";
+    cout << VAT_RATE << "\n";
     return 0;
 }
 `,
@@ -456,11 +469,12 @@ int main() {
         codeFill: {
           task: "The course length is a fixed fact known before the program runs. Fill the gap with the keyword that makes WEEKS a compile-time constant.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     {{1}} int WEEKS = 16;
-    std::cout << "Course length: " << WEEKS << " weeks\n";
-    std::cout << "Days of study: " << WEEKS * 5 << "\n";
+    cout << "Course length: " << WEEKS << " weeks\n";
+    cout << "Days of study: " << WEEKS * 5 << "\n";
     return 0;
 }
 `,
@@ -488,14 +502,14 @@ int main() {
     subtitle: "cout and new lines, cin, and reading several values",
     estimatedMinutes: 18,
     intro:
-      "Until now, every value was typed into the program by you, the programmer. This lesson lets the user type values while the program runs, with std::cin, which turns a fixed program into a tool anyone can use. It starts with the details of output that make results readable.",
+      "Until now, every value was typed into the program by you, the programmer. This lesson lets the user type values while the program runs, with cin, which turns a fixed program into a tool anyone can use. It starts with the details of output that make results readable.",
 
     atoms: [
       {
         id: "a-cp-cout-newlines",
         title: "New lines and special characters",
         explain:
-          "Inside quotes, a backslash starts an escape sequence: a way to write a character you cannot type directly. \\n starts a new line, \\t jumps to the next tab position, \\\" prints a double quote, and \\\\ prints one backslash. You can also end a line with std::endl, which starts a new line AND flushes the output (forces it to the screen immediately); \\n is usually preferred because it is faster and just as clear.",
+          "Inside quotes, a backslash starts an escape sequence: a way to write a character you cannot type directly. \\n starts a new line, \\t jumps to the next tab position, \\\" prints a double quote, and \\\\ prints one backslash. You can also end a line with endl, which starts a new line AND flushes the output (forces it to the screen immediately); \\n is usually preferred because it is faster and just as clear.",
         table: {
           caption: "Escape sequences you will use.",
           headers: ["Write", "Prints"],
@@ -509,11 +523,12 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << "She said \"Hi\"\n";
-    std::cout << "Path: C:\\cpp\n";
-    std::cout << "One\nTwo" << std::endl;
+    cout << "She said \"Hi\"\n";
+    cout << "Path: C:\\cpp\n";
+    cout << "One\nTwo" << endl;
     return 0;
 }
 `,
@@ -528,16 +543,17 @@ int main() {
         id: "a-cp-cin",
         title: "Reading input with cin",
         explain:
-          "std::cin is the standard input stream: the keyboard. std::cin >> age; waits for the user to type something and press Enter, then converts what they typed to age's type and stores it. The arrows point from cin into the variable, the opposite direction to cout. Always print a prompt first, so the user knows what to type.",
+          "cin is the standard input stream: the keyboard. cin >> age; waits for the user to type something and press Enter, then converts what they typed to age's type and stores it. The arrows point from cin into the variable, the opposite direction to cout. Always print a prompt first, so the user knows what to type.",
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int age = 0;
-    std::cout << "How old are you? ";
-    std::cin >> age;
-    std::cout << "Next year you will be " << age + 1 << ".\n";
+    cout << "How old are you? ";
+    cin >> age;
+    cout << "Next year you will be " << age + 1 << ".\n";
     return 0;
 }
 `,
@@ -548,40 +564,42 @@ int main() {
         codeFill: {
           task: "Fill the gap so the program reads the user's score into the variable score.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 0;
-    std::cout << "Enter your score: ";
+    cout << "Enter your score: ";
     {{1}}
-    std::cout << "You scored " << score << " out of 100.\n";
+    cout << "You scored " << score << " out of 100.\n";
     return 0;
 }
 `,
-          blanks: [{ answers: ["std::cin >> score;"], width: 18 }],
+          blanks: [{ answers: ["cin >> score;", "std::cin >> score;"], width: 18 }],
           inputs: ["78"],
           expectedOutput: "Enter your score: 78\nYou scored 78 out of 100.",
-          hint: "Use std::cin with the arrows pointing towards the variable, and end the statement with a semicolon.",
-          successMessage: "std::cin >> score; Input arrows point into the variable that receives the value.",
+          hint: "Use cin with the arrows pointing towards the variable, and end the statement with a semicolon.",
+          successMessage: "cin >> score; Input arrows point into the variable that receives the value.",
         },
       },
       {
         id: "a-cp-cin-text",
-        title: "Reading text with std::string",
+        title: "Reading text with string",
         explain:
-          "To read a word you need a variable that can hold text: std::string, from #include <string>. cin >> name; reads one word: it skips any spaces before it, then stops at the next space or Enter. So typing Ada Lovelace stores only Ada. Week 7 shows how to read a whole line with spaces; until then, ask for one word at a time.",
+          "To read a word you need a variable that can hold text: string, from #include <string>. cin >> name; reads one word: it skips any spaces before it, then stops at the next space or Enter. So typing Ada Lovelace stores only Ada. Week 7 shows how to read a whole line with spaces; until then, ask for one word at a time.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string firstName;
-    std::string city;
-    std::cout << "First name: ";
-    std::cin >> firstName;
-    std::cout << "City: ";
-    std::cin >> city;
-    std::cout << "Welcome, " << firstName << " from " << city << "!\n";
+    string firstName;
+    string city;
+    cout << "First name: ";
+    cin >> firstName;
+    cout << "City: ";
+    cin >> city;
+    cout << "Welcome, " << firstName << " from " << city << "!\n";
     return 0;
 }
 `,
@@ -589,23 +607,24 @@ int main() {
           expectedOutput: "First name: Tunde\nCity: Ibadan\nWelcome, Tunde from Ibadan!",
         },
         mistake:
-          "Typing a two-word answer, such as Port Harcourt, into cin >> city. city gets Port, and Harcourt is left waiting for the NEXT cin, which then reads it as if the user had typed it. Week 7 fixes this with std::getline.",
+          "Typing a two-word answer, such as Port Harcourt, into cin >> city. city gets Port, and Harcourt is left waiting for the NEXT cin, which then reads it as if the user had typed it. Week 7 fixes this with getline.",
       },
       {
         id: "a-cp-cin-multiple",
         title: "Reading several values at once",
         explain:
-          "You can chain >> to read several values in one statement: std::cin >> a >> b >> c;. The user can separate the values with spaces or press Enter between them; cin skips the spaces and line breaks and fills the variables in order. The types can differ: a word, then a number, then another number.",
+          "You can chain >> to read several values in one statement: cin >> a >> b >> c;. The user can separate the values with spaces or press Enter between them; cin skips the spaces and line breaks and fills the variables in order. The types can differ: a word, then a number, then another number.",
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int test1 = 0, test2 = 0, exam = 0;
-    std::cout << "Enter test 1, test 2 and exam scores: ";
-    std::cin >> test1 >> test2 >> exam;
+    cout << "Enter test 1, test 2 and exam scores: ";
+    cin >> test1 >> test2 >> exam;
     int total = test1 + test2 + exam;
-    std::cout << "Total: " << total << "\n";
+    cout << "Total: " << total << "\n";
     return 0;
 }
 `,
@@ -616,19 +635,20 @@ int main() {
         codeFill: {
           task: "Fill the gap so one statement reads the length and then the width of a room, and the program prints its area.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     double length = 0, width = 0;
-    std::cout << "Length and width in metres: ";
+    cout << "Length and width in metres: ";
     {{1}}
-    std::cout << "Area: " << length * width << " square metres\n";
+    cout << "Area: " << length * width << " square metres\n";
     return 0;
 }
 `,
-          blanks: [{ answers: ["std::cin >> length >> width;"], width: 28 }],
+          blanks: [{ answers: ["cin >> length >> width;", "std::cin >> length >> width;"], width: 28 }],
           inputs: ["4.5 3"],
           expectedOutput: "Length and width in metres: 4.5 3\nArea: 13.5 square metres",
-          hint: "One std::cin, then >> before each variable, in the order the prompt asks for them.",
+          hint: "One cin, then >> before each variable, in the order the prompt asks for them.",
           successMessage: "One statement, two values, read in order. The user could also have pressed Enter between them.",
         },
       },
@@ -661,19 +681,20 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     double price = 3.99;
     int whole = price;
     double back = whole;
-    std::cout << whole << "\n";
-    std::cout << back + 0.5 << "\n";
+    cout << whole << "\n";
+    cout << back + 0.5 << "\n";
     return 0;
 }
 `,
           expectedOutput: "3\n3.5",
         },
-        why: "3.99 became 3, not 4: converting to int truncates, it does not round. If you want rounding, use std::round from <cmath>, which you will meet in Week 3.",
+        why: "3.99 became 3, not 4: converting to int truncates, it does not round. If you want rounding, use round from <cmath>, which you will meet in Week 3.",
       },
       {
         id: "a-cp-narrowing",
@@ -683,10 +704,11 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int whole{3.99};
-    std::cout << whole << "\n";
+    cout << whole << "\n";
     return 0;
 }
 `,
@@ -702,12 +724,13 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int total = 245;
     int count = 3;
-    std::cout << "Wrong:  " << total / count << "\n";
-    std::cout << "Right:  " << static_cast<double>(total) / count << "\n";
+    cout << "Wrong:  " << total / count << "\n";
+    cout << "Right:  " << static_cast<double>(total) / count << "\n";
     return 0;
 }
 `,
@@ -716,12 +739,13 @@ int main() {
         codeFill: {
           task: "Four test scores add up to 287. Fill the gap so the average is calculated as a decimal, not a whole number.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int total = 287;
     int count = 4;
     double average = {{1}} / count;
-    std::cout << "Average: " << average << "\n";
+    cout << "Average: " << average << "\n";
     return 0;
 }
 `,
@@ -740,10 +764,11 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << (0.1 + 0.2 == 0.3) << "\n";
-    std::cout << (0.5 + 0.25 == 0.75) << "\n";
+    cout << (0.1 + 0.2 == 0.3) << "\n";
+    cout << (0.5 + 0.25 == 0.75) << "\n";
     return 0;
 }
 `,
@@ -753,12 +778,13 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << 17 / 5 << "\n";
-    std::cout << 17 % 5 << "\n";
-    std::cout << 17 / 5.0 << "\n";
-    std::cout << 2 / 3 * 9 << "\n";
+    cout << 17 / 5 << "\n";
+    cout << 17 % 5 << "\n";
+    cout << 17 / 5.0 << "\n";
+    cout << 2 / 3 * 9 << "\n";
     return 0;
 }
 `,
@@ -773,19 +799,20 @@ int main() {
         id: "a-cp-fixed-setprecision",
         title: "Formatting numbers: fixed and setprecision",
         explain:
-          "For results people will read, especially money, control the format. Include <iomanip>, then send std::fixed and std::setprecision(2) to cout: every decimal printed afterwards shows exactly 2 digits after the point, rounded. Without std::fixed, setprecision counts significant digits instead of decimal places. Both settings stay in effect until you change them.",
+          "For results people will read, especially money, control the format. Include <iomanip>, then send fixed and setprecision(2) to cout: every decimal printed afterwards shows exactly 2 digits after the point, rounded. Without fixed, setprecision counts significant digits instead of decimal places. Both settings stay in effect until you change them.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <iomanip>
+using namespace std;
 
 int main() {
     double price = 1250.5;
     double vat = price * 0.075;
-    std::cout << std::fixed << std::setprecision(2);
-    std::cout << "Price: " << price << "\n";
-    std::cout << "VAT:   " << vat << "\n";
-    std::cout << "Total: " << price + vat << "\n";
+    cout << fixed << setprecision(2);
+    cout << "Price: " << price << "\n";
+    cout << "VAT:   " << vat << "\n";
+    cout << "Total: " << price + vat << "\n";
     return 0;
 }
 `,
@@ -795,22 +822,23 @@ int main() {
           task: "Fill the gap so the average prints with exactly one decimal place: Average: 71.8",
           code: C`#include <iostream>
 #include <iomanip>
+using namespace std;
 
 int main() {
     double average = 71.75;
-    std::cout << {{1}};
-    std::cout << "Average: " << average << "\n";
+    cout << {{1}};
+    cout << "Average: " << average << "\n";
     return 0;
 }
 `,
           blanks: [
             {
-              answers: ["std::fixed << std::setprecision(1)", "std::setprecision(1) << std::fixed"],
+              answers: ["fixed << setprecision(1)", "std::fixed << std::setprecision(1)", "setprecision(1) << fixed", "std::setprecision(1) << std::fixed"],
               width: 34,
             },
           ],
           expectedOutput: "Average: 71.8",
-          hint: "Send two things to cout: std::fixed, then std::setprecision with the number of decimal places you want.",
+          hint: "Send two things to cout: fixed, then setprecision with the number of decimal places you want.",
           successMessage: "71.75 rounded to one decimal place is 71.8. fixed plus setprecision is how every report in this course formats its numbers.",
         },
       },
@@ -821,12 +849,12 @@ int main() {
       intro:
         "Write result.cpp: a program that collects a student's details and scores, then prints a neat result report. Build and test it step by step with g++ -std=c++17 -Wall -Wextra.",
       prompts: [
-        "Read the student's first name, surname and age with std::cin (one word each), after a clear prompt for each.",
+        "Read the student's first name, surname and age with cin (one word each), after a clear prompt for each.",
         "Read three scores out of 100 with a single cin statement.",
         "Store the number of subjects (3) and the pass mark (50) as constants, using constexpr.",
         "Calculate the total and the average; make sure the average keeps its decimal part by using static_cast.",
-        "Print a report with a title line, the student's full name and age, the total, and the average to exactly two decimal places using std::fixed and std::setprecision.",
-        "Store whether the average is at least the pass mark in a bool called passed, and print it as true or false with std::boolalpha.",
+        "Print a report with a title line, the student's full name and age, the total, and the average to exactly two decimal places using fixed and setprecision.",
+        "Store whether the average is at least the pass mark in a bool called passed, and print it as true or false with boolalpha.",
         "Test it three times with different scores, including scores that make the average a whole number and one that does not. Check each average with a calculator.",
       ],
       closing:

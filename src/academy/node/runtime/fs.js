@@ -429,6 +429,7 @@ export const rename = callbackify(renameSync);
 export const copyFile = callbackify(copyFileSync);
 export const access = callbackify(accessSync);
 export const realpath = callbackify(realpathSync);
+realpath.native = realpath;
 export const mkdtemp = callbackify(mkdtempSync);
 export const chmod = callbackify(chmodSync);
 export const open = callbackify(openSync);

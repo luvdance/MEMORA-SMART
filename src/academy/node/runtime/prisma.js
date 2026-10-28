@@ -82,7 +82,8 @@ function makeIo(machine) {
 
 /* ── prisma.config.ts and the schema ──────────────────────────────── */
 
-const CONFIG_FILES = ["prisma.config.ts", "prisma.config.mts", "prisma.config.cts", "prisma.config.js", "prisma.config.mjs", "prisma.config.cjs"];
+// The CLI looks for prisma7.config.* first (the name prisma init writes in Prisma 7), then prisma.config.*.
+const CONFIG_FILES = ["prisma7", "prisma"].flatMap((base) => ["ts", "mts", "cts", "js", "mjs", "cjs"].map((ext) => `${base}.config.${ext}`));
 
 async function loadPrismaConfig(machine, io) {
   const name = CONFIG_FILES.find((f) => machine.vol.node(`/app/${f}`));
@@ -246,9 +247,9 @@ function listMigrations(machine, dir) {
     });
 }
 
-function datasourceUrl(io, config) {
+function datasourceUrl(io, config, command) {
   const url = config.datasource?.url;
-  if (!url) io.fail("Error: The datasource.url property is required in your Prisma config file when using prisma migrate deploy.\n");
+  if (!url) io.fail(`Error: The datasource.url property is required in your Prisma config file when using prisma ${command}.\n`);
   return url;
 }
 
@@ -302,7 +303,7 @@ async function migrateState(io, client) {
 
 async function migrateDeploy(machine, io, config) {
   readSchema(machine, io, config);
-  const url = datasourceUrl(io, config);
+  const url = datasourceUrl(io, config, "migrate deploy");
   const where = describeDatasource(io, url);
   const dir = pathMod.resolve(machine.cwd, config.migrations?.path || "prisma/migrations");
   const relDir = pathMod.relative(machine.cwd, dir);
@@ -345,7 +346,7 @@ async function migrateDeploy(machine, io, config) {
 
 async function migrateStatus(machine, io, config) {
   readSchema(machine, io, config);
-  const url = datasourceUrl(io, config);
+  const url = datasourceUrl(io, config, "migrate status");
   const where = describeDatasource(io, url);
   const dir = pathMod.resolve(machine.cwd, config.migrations?.path || "prisma/migrations");
   const relDir = pathMod.relative(machine.cwd, dir);

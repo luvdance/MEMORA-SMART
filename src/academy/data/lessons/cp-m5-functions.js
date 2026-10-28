@@ -89,14 +89,15 @@ export const LESSONS = [
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void printLine() {
-    std::cout << "----------------\n";
+    cout << "----------------\n";
 }
 
 int main() {
     printLine();
-    std::cout << "  RESULT SLIP\n";
+    cout << "  RESULT SLIP\n";
     printLine();
     return 0;
 }
@@ -106,14 +107,15 @@ int main() {
         codeFill: {
           task: "Fill in the first line of the definition: a function called printStars that takes nothing and returns nothing.",
           code: C`#include <iostream>
+using namespace std;
 
 {{1}} {
-    std::cout << "**********\n";
+    cout << "**********\n";
 }
 
 int main() {
     printStars();
-    std::cout << "Welcome\n";
+    cout << "Welcome\n";
     printStars();
     return 0;
 }
@@ -132,22 +134,23 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void second() {
-    std::cout << "B\n";
+    cout << "B\n";
 }
 
 void first() {
-    std::cout << "A\n";
+    cout << "A\n";
     second();
-    std::cout << "C\n";
+    cout << "C\n";
 }
 
 int main() {
-    std::cout << "Start\n";
+    cout << "Start\n";
     first();
     second();
-    std::cout << "End\n";
+    cout << "End\n";
     return 0;
 }
 `,
@@ -183,14 +186,15 @@ int main() {
         id: "a-cp-params-args",
         title: "Parameters and arguments",
         explain:
-          "A parameter is a variable in the function's definition that receives a value: in void greet(std::string name, int age), name and age are parameters. An argument is the actual value you pass when you call it: greet(\"Ada\", 19). Arguments are matched to parameters by position, so they must come in the same order and have compatible types.",
+          "A parameter is a variable in the function's definition that receives a value: in void greet(string name, int age), name and age are parameters. An argument is the actual value you pass when you call it: greet(\"Ada\", 19). Arguments are matched to parameters by position, so they must come in the same order and have compatible types.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
-void greet(std::string name, int age) {
-    std::cout << "Hello " << name << ", you are " << age << ".\n";
+void greet(string name, int age) {
+    cout << "Hello " << name << ", you are " << age << ".\n";
 }
 
 int main() {
@@ -206,9 +210,10 @@ int main() {
         codeFill: {
           task: "Call printReceipt so it prints a receipt for 3 items at 1500 naira each. Fill the arguments in the order the parameters are listed.",
           code: C`#include <iostream>
+using namespace std;
 
 void printReceipt(int quantity, int unitPrice) {
-    std::cout << quantity << " x " << unitPrice << " = " << quantity * unitPrice << "\n";
+    cout << quantity << " x " << unitPrice << " = " << quantity * unitPrice << "\n";
 }
 
 int main() {
@@ -230,6 +235,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 double average(int a, int b, int c) {
     return (a + b + c) / 3.0;
@@ -237,8 +243,8 @@ double average(int a, int b, int c) {
 
 int main() {
     double first = average(70, 85, 90);
-    std::cout << "First: " << first << "\n";
-    std::cout << "Both: " << (first + average(50, 60, 70)) / 2 << "\n";
+    cout << "First: " << first << "\n";
+    cout << "Both: " << (first + average(50, 60, 70)) / 2 << "\n";
     return 0;
 }
 `,
@@ -248,14 +254,15 @@ int main() {
         codeFill: {
           task: "Complete the function so it returns the area of a rectangle.",
           code: C`#include <iostream>
+using namespace std;
 
 double rectangleArea(double length, double width) {
     {{1}}
 }
 
 int main() {
-    std::cout << "Room: " << rectangleArea(4.5, 3) << " square metres\n";
-    std::cout << "Two rooms: " << 2 * rectangleArea(4.5, 3) << "\n";
+    cout << "Room: " << rectangleArea(4.5, 3) << " square metres\n";
+    cout << "Two rooms: " << 2 * rectangleArea(4.5, 3) << "\n";
     return 0;
 }
 `,
@@ -273,6 +280,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int counter = 100;
 
@@ -284,8 +292,8 @@ int main() {
     int counter = 5;
     bump();
     bump();
-    std::cout << counter << "\n";
-    std::cout << ::counter << "\n";
+    cout << counter << "\n";
+    cout << ::counter << "\n";
     return 0;
 }
 `,
@@ -304,9 +312,10 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << square(7) << "\n";
+    cout << square(7) << "\n";
     return 0;
 }
 
@@ -317,15 +326,16 @@ int square(int n) {
           compileError: "error: 'square' was not declared in this scope",
         },
         example:
-          "The fix: a prototype above main.\n\n  #include <iostream>\n\n  int square(int n);          // prototype: declared here\n\n  int main() {\n      std::cout << square(7) << \"\\n\";   // prints 49\n      return 0;\n  }\n\n  int square(int n) {         // defined here\n      return n * n;\n  }\n\nAnd the linker error: if the definition at the bottom is missing,\nthe file compiles, then the linker reports:\n\n  undefined reference to `square(int)'\n\nThat means: you promised this function exists, but never wrote it.",
+          "The fix: a prototype above main.\n\n  #include <iostream>\n using namespace std;\n  using namespace std;\n\n  int square(int n);          // prototype: declared here\n\n  int main() {\n      cout << square(7) << \"\\n\";   // prints 49\n      return 0;\n  }\n\n  int square(int n) {         // defined here\n      return n * n;\n  }\n\nAnd the linker error: if the definition at the bottom is missing,\nthe file compiles, then the linker reports:\n\n  undefined reference to `square(int)'\n\nThat means: you promised this function exists, but never wrote it.",
         codeFill: {
           task: "main calls cube before cube is defined. Fill the gap with the prototype that makes this compile.",
           code: C`#include <iostream>
+using namespace std;
 
 {{1}}
 
 int main() {
-    std::cout << "3 cubed is " << cube(3) << "\n";
+    cout << "3 cubed is " << cube(3) << "\n";
     return 0;
 }
 
@@ -368,16 +378,17 @@ int cube(int n) {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void addBonus(int score) {
     score += 10;
-    std::cout << "Inside: " << score << "\n";
+    cout << "Inside: " << score << "\n";
 }
 
 int main() {
     int myScore = 62;
     addBonus(myScore);
-    std::cout << "Outside: " << myScore << "\n";
+    cout << "Outside: " << myScore << "\n";
     return 0;
 }
 `,
@@ -391,10 +402,11 @@ int main() {
         id: "a-cp-pass-by-reference",
         title: "Pass-by-reference: the function gets the variable",
         explain:
-          "Adding & after the parameter's type, as in int& score, makes the parameter a reference: another name for the caller's actual variable, not a copy. Changes inside the function change the caller's variable. Use it when a function's job is to modify its argument, such as swapping two values. For large objects that should NOT be changed, such as a long string, use a const reference, const std::string& name: no copy is made, and the compiler forbids changes.",
+          "Adding & after the parameter's type, as in int& score, makes the parameter a reference: another name for the caller's actual variable, not a copy. Changes inside the function change the caller's variable. Use it when a function's job is to modify its argument, such as swapping two values. For large objects that should NOT be changed, such as a long string, use a const reference, const string& name: no copy is made, and the compiler forbids changes.",
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void swapValues(int& a, int& b) {
     int temp = a;
@@ -405,7 +417,7 @@ void swapValues(int& a, int& b) {
 int main() {
     int x = 3, y = 8;
     swapValues(x, y);
-    std::cout << "x = " << x << ", y = " << y << "\n";
+    cout << "x = " << x << ", y = " << y << "\n";
     return 0;
 }
 `,
@@ -415,6 +427,7 @@ int main() {
         codeFill: {
           task: "Make addBonus change the caller's variable, by giving its parameter the right type.",
           code: C`#include <iostream>
+using namespace std;
 
 void addBonus({{1}} score) {
     score += 10;
@@ -423,7 +436,7 @@ void addBonus({{1}} score) {
 int main() {
     int myScore = 62;
     addBonus(myScore);
-    std::cout << "Score: " << myScore << "\n";
+    cout << "Score: " << myScore << "\n";
     return 0;
 }
 `,
@@ -441,10 +454,11 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
-void show(int x)    { std::cout << "int " << x << "\n"; }
-void show(double x) { std::cout << "double " << x << "\n"; }
-void show(char x)   { std::cout << "char " << x << "\n"; }
+void show(int x)    { cout << "int " << x << "\n"; }
+void show(double x) { cout << "double " << x << "\n"; }
+void show(char x)   { cout << "char " << x << "\n"; }
 
 int main() {
     show(7);
@@ -465,14 +479,15 @@ int main() {
         id: "a-cp-default-args",
         title: "Default arguments",
         explain:
-          "A parameter can have a default value: void printPrice(double amount, std::string currency = \"NGN\"). Callers can then leave that argument out, and the default is used. Defaults must be the LAST parameters in the list, because arguments are matched from the left. If a function has a prototype, put the default in the prototype, not in the definition.",
+          "A parameter can have a default value: void printPrice(double amount, string currency = \"NGN\"). Callers can then leave that argument out, and the default is used. Defaults must be the LAST parameters in the list, because arguments are matched from the left. If a function has a prototype, put the default in the prototype, not in the definition.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
-void printPrice(double amount, std::string currency = "NGN") {
-    std::cout << amount << " " << currency << "\n";
+void printPrice(double amount, string currency = "NGN") {
+    cout << amount << " " << currency << "\n";
 }
 
 int main() {
@@ -486,14 +501,15 @@ int main() {
         codeFill: {
           task: "Give the rate parameter a default of 7.5, so the first call works without a rate and the second call overrides it.",
           code: C`#include <iostream>
+using namespace std;
 
 double tax(double amount, {{1}}) {
     return amount * rate / 100;
 }
 
 int main() {
-    std::cout << tax(2000) << "\n";
-    std::cout << tax(2000, 10) << "\n";
+    cout << tax(2000) << "\n";
+    cout << tax(2000, 10) << "\n";
     return 0;
 }
 `,
@@ -532,6 +548,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 long long factorial(int n) {
     if (n <= 1) {
@@ -541,8 +558,8 @@ long long factorial(int n) {
 }
 
 int main() {
-    std::cout << factorial(5) << "\n";
-    std::cout << factorial(20) << "\n";
+    cout << factorial(5) << "\n";
+    cout << factorial(20) << "\n";
     return 0;
 }
 `,
@@ -570,20 +587,21 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void countdown(int n) {
     if (n == 0) {
-        std::cout << "Go!\n";
+        cout << "Go!\n";
         return;
     }
-    std::cout << n << " ";
+    cout << n << " ";
     countdown(n - 1);
-    std::cout << n << " ";
+    cout << n << " ";
 }
 
 int main() {
     countdown(3);
-    std::cout << "\n";
+    cout << "\n";
     return 0;
 }
 `,
@@ -604,6 +622,7 @@ int main() {
           code: C`#include <iostream>
 #include <iomanip>
 #include <string>
+using namespace std;
 
 double average(int a, int b, int c) {
     return (a + b + c) / 3.0;
@@ -616,9 +635,9 @@ char gradeFor(double avg) {
     return 'F';
 }
 
-void printReport(const std::string& name, double avg) {
-    std::cout << std::fixed << std::setprecision(1);
-    std::cout << name << ": " << avg << " (" << gradeFor(avg) << ")\n";
+void printReport(const string& name, double avg) {
+    cout << fixed << setprecision(1);
+    cout << name << ": " << avg << " (" << gradeFor(avg) << ")\n";
 }
 
 int main() {
@@ -633,6 +652,7 @@ int main() {
         codeFill: {
           task: "Fill the gap with ONE expression that calculates the grade for the scores 64, 58 and 71 by passing the result of average directly into gradeFor.",
           code: C`#include <iostream>
+using namespace std;
 
 double average(int a, int b, int c) {
     return (a + b + c) / 3.0;
@@ -647,7 +667,7 @@ char gradeFor(double avg) {
 
 int main() {
     char grade = {{1}};
-    std::cout << "Grade: " << grade << "\n";
+    cout << "Grade: " << grade << "\n";
     return 0;
 }
 `,
@@ -665,31 +685,32 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 double add(double a, double b)      { return a + b; }
 double subtract(double a, double b) { return a - b; }
 double multiply(double a, double b) { return a * b; }
 
 void showMenu() {
-    std::cout << "1) Add  2) Subtract  3) Multiply  0) Quit\n";
+    cout << "1) Add  2) Subtract  3) Multiply  0) Quit\n";
 }
 
 int main() {
     int choice = -1;
     while (choice != 0) {
         showMenu();
-        std::cout << "Choice: ";
-        std::cin >> choice;
+        cout << "Choice: ";
+        cin >> choice;
         if (choice >= 1 && choice <= 3) {
             double a = 0, b = 0;
-            std::cout << "Two numbers: ";
-            std::cin >> a >> b;
-            if (choice == 1) std::cout << "= " << add(a, b) << "\n";
-            if (choice == 2) std::cout << "= " << subtract(a, b) << "\n";
-            if (choice == 3) std::cout << "= " << multiply(a, b) << "\n";
+            cout << "Two numbers: ";
+            cin >> a >> b;
+            if (choice == 1) cout << "= " << add(a, b) << "\n";
+            if (choice == 2) cout << "= " << subtract(a, b) << "\n";
+            if (choice == 3) cout << "= " << multiply(a, b) << "\n";
         }
     }
-    std::cout << "Goodbye\n";
+    cout << "Goodbye\n";
     return 0;
 }
 `,
@@ -706,8 +727,8 @@ int main() {
         "Write toolkit.cpp, a calculator where every operation is its own function. Plan the functions on paper first: name, parameters, return type and one sentence saying what each does.",
       prompts: [
         "Write separate functions for addition, subtraction, multiplication and division. Division must refuse to divide by zero: return 0 and print a warning, or check before calling it.",
-        "Add at least three more: power (using a loop, not std::pow), the factorial of a whole number (recursively), and the area of a circle given its radius.",
-        "Write showMenu() and a function readNumber(const std::string& prompt) that prints the prompt and returns the number typed, and use it for every input.",
+        "Add at least three more: power (using a loop, not pow), the factorial of a whole number (recursively), and the area of a circle given its radius.",
+        "Write showMenu() and a function readNumber(const string& prompt) that prints the prompt and returns the number typed, and use it for every input.",
         "Put prototypes for every function above main, and the definitions below main, so main reads like an outline.",
         "Use a loop and a switch in main so the user can do as many calculations as they like until they choose Quit.",
         "Write a function swapValues(double& a, double& b) and add a menu option that reads two numbers, swaps them and prints them, to prove the reference works.",

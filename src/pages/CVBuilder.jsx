@@ -6,6 +6,7 @@ import CVPreview from "../cv-builder/components/CVPreview";
 import CVQuickDesign from "../cv-builder/components/CVQuickDesign";
 import { emptyCV, ACCENT, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER } from "../cv-builder/utils/constants";
 import { saveCV, loadCV } from "../cv-builder/utils/cvService";
+import { shrinkPhoto } from "../cv-builder/utils/imageCompress";
 import { useAuth } from "../context/AuthContext";
 import { checkDownloadAccess, recordDownload } from "../utils/userService";
 import PaywallModal from "../components/PaywallModal";
@@ -291,10 +292,15 @@ const triggerPrint = () => {
     setSaving(true);
     setSaveStatus("saving");
     try {
+      // Drafts made before uploads were compressed can hold a multi-MB photo,
+      // which Firestore rejects ("invalid nested entity").
+      const photo = await shrinkPhoto(cv.photo);
+      const cvData = photo === cv.photo ? cv : { ...cv, photo };
+      if (cvData !== cv) setCV(p => ({ ...p, photo }));
       const id = await saveCV({
         cvId,
         userId: user.uid,
-        cvData: cv,
+        cvData,
         template,
         accent,
         format,

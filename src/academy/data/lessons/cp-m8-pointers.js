@@ -98,15 +98,16 @@ export const LESSONS = [
         explain:
           "Put & in front of a variable's name and you get its address: &score. (The same symbol after a TYPE, as in int&, means reference; position decides the meaning.) cout prints an address as a hexadecimal number, which looks like 0x7ffe3c1a. Its exact value differs from run to run and computer to computer, so never rely on it. What does not change is that an address is itself just a number, and on a 64-bit computer it takes 8 bytes: that is what \"64-bit\" means.",
         example:
-          "#include <iostream>\n\nint main() {\n    int score = 85;\n    double average = 72.5;\n    std::cout << \"score lives at   \" << &score << \"\\n\";\n    std::cout << \"average lives at \" << &average << \"\\n\";\n}\n\nOne run on a 64-bit Windows computer printed:\n\n  score lives at   0x5ffe9c\n  average lives at 0x5ffe90\n\nRun it again, or on another computer, and the numbers change.\nThe operating system chooses where a program's memory goes.",
+          "#include <iostream>\nusing namespace std;\n\nint main() {\n    int score = 85;\n    double average = 72.5;\n    cout << \"score lives at   \" << &score << \"\\n\";\n    cout << \"average lives at \" << &average << \"\\n\";\n}\n\nOne run on a 64-bit Windows computer printed:\n\n  score lives at   0x5ffe9c\n  average lives at 0x5ffe90\n\nRun it again, or on another computer, and the numbers change.\nThe operating system chooses where a program's memory goes.",
         codeFill: {
           task: "An address is a number too. Fill the gap with the address of score, so the program prints how many bytes an address takes.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 85;
-    std::cout << "score's value takes " << sizeof(score) << " bytes\n";
-    std::cout << "score's address takes " << sizeof({{1}}) << " bytes\n";
+    cout << "score's value takes " << sizeof(score) << " bytes\n";
+    cout << "score's address takes " << sizeof({{1}}) << " bytes\n";
     return 0;
 }
 `,
@@ -148,12 +149,13 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 85;
     int* p = &score;
-    std::cout << "Points to score: " << std::boolalpha << (p == &score) << "\n";
-    std::cout << "Value there: " << *p << "\n";
+    cout << "Points to score: " << boolalpha << (p == &score) << "\n";
+    cout << "Value there: " << *p << "\n";
     return 0;
 }
 `,
@@ -162,11 +164,12 @@ int main() {
         codeFill: {
           task: "Declare a pointer called pPrice that points to price.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     double price = 1250.5;
     {{1}}
-    std::cout << "Price through the pointer: " << *pPrice << "\n";
+    cout << "Price through the pointer: " << *pPrice << "\n";
     return 0;
 }
 `,
@@ -184,14 +187,15 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 85;
     int* p = &score;
     *p = 90;
-    std::cout << score << "\n";
+    cout << score << "\n";
     *p += 5;
-    std::cout << score << " " << *p << "\n";
+    cout << score << " " << *p << "\n";
     return 0;
 }
 `,
@@ -200,6 +204,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int a = 10, b = 20;
@@ -207,7 +212,7 @@ int main() {
     *p = *p + 5;
     p = &b;
     *p = *p * 2;
-    std::cout << a << " " << b << " " << *p << "\n";
+    cout << a << " " << b << " " << *p << "\n";
     return 0;
 }
 `,
@@ -225,12 +230,13 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void printIfPresent(const int* p) {
     if (p != nullptr) {
-        std::cout << "Value: " << *p << "\n";
+        cout << "Value: " << *p << "\n";
     } else {
-        std::cout << "No value\n";
+        cout << "No value\n";
     }
 }
 
@@ -247,6 +253,7 @@ int main() {
         codeFill: {
           task: "Fill the condition so the program only dereferences best when it actually points at something.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int scores[] = {58, 91, 74};
@@ -255,9 +262,9 @@ int main() {
         if (scores[i] > 90) best = &scores[i];
     }
     if ({{1}}) {
-        std::cout << "Top score: " << *best << "\n";
+        cout << "Top score: " << *best << "\n";
     } else {
-        std::cout << "Nobody scored above 90\n";
+        cout << "Nobody scored above 90\n";
     }
     return 0;
 }
@@ -308,6 +315,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int x = 1, y = 2;
@@ -316,7 +324,7 @@ int main() {
     r = y;
     p = &y;
     *p = 7;
-    std::cout << x << " " << y << " " << r << "\n";
+    cout << x << " " << y << " " << r << "\n";
     return 0;
 }
 `,
@@ -334,6 +342,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void swapByPointer(int* a, int* b) {
     int temp = *a;
@@ -344,7 +353,7 @@ void swapByPointer(int* a, int* b) {
 int main() {
     int first = 3, second = 8;
     swapByPointer(&first, &second);
-    std::cout << first << " " << second << "\n";
+    cout << first << " " << second << "\n";
     return 0;
 }
 `,
@@ -353,6 +362,7 @@ int main() {
         codeFill: {
           task: "Call the function so it applies a 10% discount to the real price variable.",
           code: C`#include <iostream>
+using namespace std;
 
 void applyDiscount(double* price, double percent) {
     if (price != nullptr) {
@@ -363,7 +373,7 @@ void applyDiscount(double* price, double percent) {
 int main() {
     double price = 8000;
     {{1}}
-    std::cout << "Now: " << price << "\n";
+    cout << "Now: " << price << "\n";
     return 0;
 }
 `,
@@ -385,7 +395,7 @@ int main() {
             {
               id: "a",
               text: "A pointer to the student, or nullptr when nobody matched",
-              why: "\"Possibly nothing\" is exactly what a pointer can express and a reference cannot. The caller checks for nullptr before using it. (Week 14 shows std::optional, another way to say \"maybe nothing\".)",
+              why: "\"Possibly nothing\" is exactly what a pointer can express and a reference cannot. The caller checks for nullptr before using it. (Week 14 shows optional, another way to say \"maybe nothing\".)",
             },
             {
               id: "b",
@@ -436,15 +446,16 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int a[5] = {10, 20, 30, 40, 50};
     int* p = &a[0];
-    std::cout << *p << " " << *(p + 2) << "\n";
+    cout << *p << " " << *(p + 2) << "\n";
     p += 3;
-    std::cout << *p << "\n";
+    cout << *p << "\n";
     int* last = &a[4];
-    std::cout << last - &a[1] << " elements apart\n";
+    cout << last - &a[1] << " elements apart\n";
     return 0;
 }
 `,
@@ -453,13 +464,14 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     double v[4] = {1.5, 2.5, 3.5, 4.5};
     double* p = v + 1;
     *(p + 1) = 9.0;
     p++;
-    std::cout << *p << " " << *(p - 2) << " " << p - v << "\n";
+    cout << *p << " " << *(p - 2) << " " << p - v << "\n";
     return 0;
 }
 `,
@@ -477,33 +489,35 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void showSize(int arr[]) {
-    std::cout << "Inside the function: " << sizeof(arr) << " bytes\n";
+    cout << "Inside the function: " << sizeof(arr) << " bytes\n";
 }
 
 int main() {
     int a[10] = {};
-    std::cout << "In main: " << sizeof(a) << " bytes\n";
+    cout << "In main: " << sizeof(a) << " bytes\n";
     showSize(a);
-    std::cout << std::boolalpha << (a[3] == *(a + 3)) << "\n";
+    cout << boolalpha << (a[3] == *(a + 3)) << "\n";
     return 0;
 }
 `,
           compileWarning: "will return size of 'int*'",
           expectedOutput: "In main: 40 bytes\nInside the function: 8 bytes\ntrue",
         },
-        why: "In main the array is 10 ints, 40 bytes. Inside the function the same array has become a pointer, 8 bytes, and g++ even warns that sizeof will return the size of an int*. This is the real reason std::vector, which keeps its size, is preferred.",
+        why: "In main the array is 10 ints, 40 bytes. Inside the function the same array has become a pointer, 8 bytes, and g++ even warns that sizeof will return the size of an int*. This is the real reason vector, which keeps its size, is preferred.",
         codeFill: {
           task: "Fill the gap so the loop prints the elements using pointer arithmetic instead of square brackets.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int primes[] = {2, 3, 5, 7, 11};
     for (int i = 0; i < 5; i++) {
-        std::cout << {{1}} << " ";
+        cout << {{1}} << " ";
     }
-    std::cout << "\n";
+    cout << "\n";
     return 0;
 }
 `,
@@ -527,7 +541,7 @@ int main() {
             ["Managed by", "The compiler, automatically", "You, or a smart pointer or container"],
             ["Size", "Small (typically 1–8 MB)", "Large (most of the computer's RAM)"],
             ["Speed", "Very fast", "Slower to allocate"],
-            ["Example", "int count = 0; inside main", "The elements of a std::vector"],
+            ["Example", "int count = 0; inside main", "The elements of a vector"],
           ],
         },
         decision: {
@@ -536,7 +550,7 @@ int main() {
           options: [
             {
               id: "a",
-              text: "On the heap, for example in a std::vector, whose elements are stored on the heap",
+              text: "On the heap, for example in a vector, whose elements are stored on the heap",
               why: "The size is only known at run time, it may be large, and the data must outlive the function that created it: all three point to the heap. A vector manages that heap memory for you.",
             },
             {
@@ -588,18 +602,19 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int* single = new int(42);
-    std::cout << *single << "\n";
+    cout << *single << "\n";
     delete single;
 
     int n = 0;
-    std::cout << "How many scores? ";
-    std::cin >> n;
+    cout << "How many scores? ";
+    cin >> n;
     int* scores = new int[n];
     for (int i = 0; i < n; i++) scores[i] = (i + 1) * 10;
-    std::cout << "Last: " << scores[n - 1] << "\n";
+    cout << "Last: " << scores[n - 1] << "\n";
     delete[] scores;
     return 0;
 }
@@ -610,6 +625,7 @@ int main() {
         codeFill: {
           task: "The program allocates a run-time-sized array. Fill the gap with the statement that releases it correctly.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int n = 3;
@@ -617,7 +633,7 @@ int main() {
     prices[0] = 500;
     prices[1] = 750;
     prices[2] = 1200;
-    std::cout << "Total: " << prices[0] + prices[1] + prices[2] << "\n";
+    cout << "Total: " << prices[0] + prices[1] + prices[2] << "\n";
     {{1}}
     return 0;
 }
@@ -634,7 +650,7 @@ int main() {
         explain:
           "Four bugs, each with a name. A memory leak: memory allocated with new and never deleted; the program slowly uses more and more. A dangling pointer: a pointer to memory that has already been deleted, or to a local variable whose function has returned; using it is undefined behaviour. A double delete: deleting the same memory twice, which corrupts the heap. Invalid access: reading or writing outside the memory you own, as with an index past the end. None of these is reliably caught by the compiler, and they may not crash immediately, which is what makes them dangerous.",
         example:
-          "Do NOT copy these. Each is undefined behaviour or a leak.\n\n  // 1. Memory leak: the address is lost, the int can never be freed\n  void leak() {\n      int* p = new int(5);\n  }                                  // p is gone; the int is not\n\n  // 2. Dangling pointer: use after delete\n  int* p = new int(5);\n  delete p;\n  std::cout << *p;                   // reads memory no longer yours\n\n  // 3. Dangling pointer: address of a dead local\n  int* makeNumber() {\n      int local = 7;\n      return &local;                 // local dies when we return\n  }\n\n  // 4. Double delete\n  delete p;\n  delete p;                          // corrupts the heap\n\nA partial defence: set a pointer to nullptr right after delete,\nso a later mistake fails loudly instead of silently.\nThe real defence is the next atom: let a smart pointer do it.",
+          "Do NOT copy these. Each is undefined behaviour or a leak.\n\n  // 1. Memory leak: the address is lost, the int can never be freed\n  void leak() {\n      int* p = new int(5);\n  }                                  // p is gone; the int is not\n\n  // 2. Dangling pointer: use after delete\n  int* p = new int(5);\n  delete p;\n  cout << *p;                   // reads memory no longer yours\n\n  // 3. Dangling pointer: address of a dead local\n  int* makeNumber() {\n      int local = 7;\n      return &local;                 // local dies when we return\n  }\n\n  // 4. Double delete\n  delete p;\n  delete p;                          // corrupts the heap\n\nA partial defence: set a pointer to nullptr right after delete,\nso a later mistake fails loudly instead of silently.\nThe real defence is the next atom: let a smart pointer do it.",
         decision: {
           scenario: "A long-running server program allocates a new buffer with new for every request and never deletes it. It works perfectly in testing, but after three days in production it slows down and crashes.",
           question: "What is the most likely cause?",
@@ -668,21 +684,22 @@ int main() {
         id: "a-cp-smart-pointers-intro",
         title: "Introduction to smart pointers",
         explain:
-          "A smart pointer is an object that holds a pointer and deletes the memory automatically when the smart pointer itself goes away. std::unique_ptr<T>, from #include <memory>, is the sole owner of its object: it cannot be copied, and when it goes out of scope the object is deleted. Create one with std::make_unique<int>(42). std::shared_ptr<T> allows several owners and deletes the object when the last one goes away. Week 14 covers both in depth; the rule to start using now is: no raw new and delete in your own code.",
+          "A smart pointer is an object that holds a pointer and deletes the memory automatically when the smart pointer itself goes away. unique_ptr<T>, from #include <memory>, is the sole owner of its object: it cannot be copied, and when it goes out of scope the object is deleted. Create one with make_unique<int>(42). shared_ptr<T> allows several owners and deletes the object when the last one goes away. Week 14 covers both in depth; the rule to start using now is: no raw new and delete in your own code.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <memory>
+using namespace std;
 
 int main() {
-    std::unique_ptr<int> balance = std::make_unique<int>(5000);
+    unique_ptr<int> balance = make_unique<int>(5000);
     *balance -= 1200;
-    std::cout << "Balance: " << *balance << "\n";
+    cout << "Balance: " << *balance << "\n";
 
-    std::unique_ptr<int[]> readings = std::make_unique<int[]>(3);
+    unique_ptr<int[]> readings = make_unique<int[]>(3);
     readings[0] = 14;
     readings[2] = 21;
-    std::cout << readings[0] + readings[1] + readings[2] << "\n";
+    cout << readings[0] + readings[1] + readings[2] << "\n";
     return 0;
 }
 `,
@@ -693,18 +710,19 @@ int main() {
           task: "Fill the gap so stock is a unique_ptr owning a new int with the value 12.",
           code: C`#include <iostream>
 #include <memory>
+using namespace std;
 
 int main() {
-    std::unique_ptr<int> stock = {{1}};
+    unique_ptr<int> stock = {{1}};
     *stock += 8;
-    std::cout << "Stock: " << *stock << "\n";
+    cout << "Stock: " << *stock << "\n";
     return 0;
 }
 `,
-          blanks: [{ answers: ["std::make_unique<int>(12)"], width: 26 }],
+          blanks: [{ answers: ["make_unique<int>(12)", "std::make_unique<int>(12)"], width: 26 }],
           expectedOutput: "Stock: 20",
-          hint: "std::make_unique, with the type in angle brackets and the starting value in round brackets.",
-          successMessage: "std::make_unique<int>(12). The int is deleted automatically; you cannot forget, and you cannot do it twice.",
+          hint: "make_unique, with the type in angle brackets and the starting value in round brackets.",
+          successMessage: "make_unique<int>(12). The int is deleted automatically; you cannot forget, and you cannot do it twice.",
         },
       },
       {
@@ -715,6 +733,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 void swapRef(int& a, int& b) { int t = a; a = b; b = t; }
 void swapPtr(int* a, int* b) { int t = *a; *a = *b; *b = t; }
@@ -728,13 +747,13 @@ void doubleAll(int* arr, int size) {
 int main() {
     int x = 1, y = 2;
     swapRef(x, y);
-    std::cout << x << " " << y << "\n";
+    cout << x << " " << y << "\n";
     swapPtr(&x, &y);
-    std::cout << x << " " << y << "\n";
+    cout << x << " " << y << "\n";
 
     int marks[] = {30, 35, 40};
     doubleAll(marks, 3);
-    std::cout << marks[0] << " " << marks[1] << " " << marks[2] << "\n";
+    cout << marks[0] << " " << marks[1] << " " << marks[2] << "\n";
     return 0;
 }
 `,
@@ -754,7 +773,7 @@ int main() {
         "Declare a pointer to one of the numbers, change the number THROUGH the pointer, and print the variable to show it changed.",
         "Re-aim the same pointer at the other number, change it, and show which variable changed.",
         "Write a function that takes a pointer that may be nullptr and prints \"No value\" safely in that case; call it both ways.",
-        "Ask how many readings to store, allocate them with std::make_unique<int[]>, fill them, and print their total and average.",
+        "Ask how many readings to store, allocate them with make_unique<int[]>, fill them, and print their total and average.",
         "Write one function that walks a pointer through an array to find the largest value, returning a pointer to it (or nullptr for an empty array).",
       ],
       closing:

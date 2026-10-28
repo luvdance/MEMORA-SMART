@@ -76,14 +76,15 @@ export const LESSONS = [
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int scores[5] = {72, 58, 91, 64, 80};
     double prices[] = {350.0, 1200.5, 99.99};
     int counts[4] = {};
-    std::cout << scores[0] << " " << scores[4] << "\n";
-    std::cout << prices[1] << "\n";
-    std::cout << counts[2] << "\n";
+    cout << scores[0] << " " << scores[4] << "\n";
+    cout << prices[1] << "\n";
+    cout << counts[2] << "\n";
     return 0;
 }
 `,
@@ -94,10 +95,11 @@ int main() {
         codeFill: {
           task: "Declare an array called rainfall holding the four values 12, 0, 7 and 25, so the program prints the third one.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     {{1}}
-    std::cout << "Day 3: " << rainfall[2] << " mm\n";
+    cout << "Day 3: " << rainfall[2] << " mm\n";
     return 0;
 }
 `,
@@ -107,7 +109,7 @@ int main() {
                 "int rainfall[4] = {12, 0, 7, 25};",
                 "int rainfall[] = {12, 0, 7, 25};",
                 "int rainfall[4]{12, 0, 7, 25};",
-                "int rainfall[]{12, 0, 7, 25};",
+                "int rainfall[]{12, 0, 7, 25};"
               ],
               width: 32,
             },
@@ -123,17 +125,18 @@ int main() {
         explain:
           "Each element has an index, its position, starting from 0: the first element of scores is scores[0] and the last of five is scores[4]. You read and change elements with the index in square brackets. C++ does NOT check that an index is valid: scores[5] or scores[-1] reads or writes memory that belongs to something else. That is undefined behaviour: the program may print garbage, crash, or seem fine and corrupt other data.",
         example:
-          "int scores[5] = {72, 58, 91, 64, 80};\n\n  index:   0    1    2    3    4\n  value:  72   58   91   64   80\n\n  scores[0]   72      the first element\n  scores[4]   80      the last element: size - 1\n  scores[5]   ???     past the end: undefined behaviour\n\nThe compiler will usually NOT stop you. Guarding every index is\nyour job, and std::vector's .at(), later in this module, can help.",
+          "int scores[5] = {72, 58, 91, 64, 80};\n\n  index:   0    1    2    3    4\n  value:  72   58   91   64   80\n\n  scores[0]   72      the first element\n  scores[4]   80      the last element: size - 1\n  scores[5]   ???     past the end: undefined behaviour\n\nThe compiler will usually NOT stop you. Guarding every index is\nyour job, and vector's .at(), later in this module, can help.",
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int stock[4] = {10, 0, 25, 8};
     stock[1] = 12;
     stock[3] += stock[0];
     int i = 2;
-    std::cout << stock[i] << " " << stock[i + 1] << " " << stock[1] << "\n";
+    cout << stock[i] << " " << stock[i + 1] << " " << stock[1] << "\n";
     return 0;
 }
 `,
@@ -147,34 +150,36 @@ int main() {
         id: "a-cp-traverse",
         title: "Traversing an array with a loop",
         explain:
-          "To visit every element, loop over the indexes from 0 up to, but not including, the size: for (int i = 0; i < SIZE; i++). Use < not <=, which would step one past the end. Keep the size in one constexpr constant, or ask the array for it with std::size(scores) from <iterator>, so the loop and the array can never disagree.",
+          "To visit every element, loop over the indexes from 0 up to, but not including, the size: for (int i = 0; i < SIZE; i++). Use < not <=, which would step one past the end. Keep the size in one constexpr constant, or ask the array for it with size(scores) from <iterator>, so the loop and the array can never disagree.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <iterator>
+using namespace std;
 
 int main() {
     int scores[] = {72, 58, 91, 64, 80};
-    for (std::size_t i = 0; i < std::size(scores); i++) {
-        std::cout << "Student " << i + 1 << ": " << scores[i] << "\n";
+    for (size_t i = 0; i < size(scores); i++) {
+        cout << "Student " << i + 1 << ": " << scores[i] << "\n";
     }
     return 0;
 }
 `,
           expectedOutput: "Student 1: 72\nStudent 2: 58\nStudent 3: 91\nStudent 4: 64\nStudent 5: 80",
         },
-        why: "std::size returns a std::size_t, an unsigned whole-number type used for sizes, so the loop counter is a size_t too. Comparing a signed int with it makes -Wall -Wextra warn about mixing signed and unsigned values.",
+        why: "size returns a size_t, an unsigned whole-number type used for sizes, so the loop counter is a size_t too. Comparing a signed int with it makes -Wall -Wextra warn about mixing signed and unsigned values.",
         codeFill: {
           task: "Fill the loop header so it visits every element of temps, using the constant DAYS.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     constexpr int DAYS = 5;
     double temps[DAYS] = {31.5, 33.0, 29.8, 30.2, 34.1};
     for ({{1}}) {
-        std::cout << temps[i] << " ";
+        cout << temps[i] << " ";
     }
-    std::cout << "\n";
+    cout << "\n";
     return 0;
 }
 `,
@@ -218,6 +223,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     constexpr int N = 6;
@@ -230,9 +236,9 @@ int main() {
         if (scores[i] > highest) highest = scores[i];
         if (scores[i] < lowest) lowest = scores[i];
     }
-    std::cout << "Total: " << total << "\n";
-    std::cout << "Average: " << static_cast<double>(total) / N << "\n";
-    std::cout << "Highest: " << highest << ", lowest: " << lowest << "\n";
+    cout << "Total: " << total << "\n";
+    cout << "Average: " << static_cast<double>(total) / N << "\n";
+    cout << "Highest: " << highest << ", lowest: " << lowest << "\n";
     return 0;
 }
 `,
@@ -241,6 +247,7 @@ int main() {
         codeFill: {
           task: "Fill the condition that makes cheapest track the lowest price.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int prices[] = {4500, 3200, 5100, 2900, 3800};
@@ -250,7 +257,7 @@ int main() {
             cheapest = prices[i];
         }
     }
-    std::cout << "Cheapest: " << cheapest << "\n";
+    cout << "Cheapest: " << cheapest << "\n";
     return 0;
 }
 `,
@@ -268,6 +275,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int ids[] = {1042, 2210, 1777, 3001, 1777};
@@ -279,7 +287,7 @@ int main() {
             break;
         }
     }
-    std::cout << position << "\n";
+    cout << position << "\n";
     target = 4000;
     position = -1;
     for (int i = 0; i < 5; i++) {
@@ -288,7 +296,7 @@ int main() {
             break;
         }
     }
-    std::cout << position << "\n";
+    cout << position << "\n";
     return 0;
 }
 `,
@@ -302,10 +310,11 @@ int main() {
         id: "a-cp-sort-array",
         title: "Basic sorting: bubble sort",
         explain:
-          "Bubble sort puts an array in order by repeatedly walking through it and swapping any neighbouring pair that is in the wrong order. After the first pass the largest value has \"bubbled\" to the end; after the second, the second largest is in place, and so on. It is simple to understand but slow for large arrays; Week 12 introduces std::sort, which is what you will use in real programs.",
+          "Bubble sort puts an array in order by repeatedly walking through it and swapping any neighbouring pair that is in the wrong order. After the first pass the largest value has \"bubbled\" to the end; after the second, the second largest is in place, and so on. It is simple to understand but slow for large arrays; Week 12 introduces sort, which is what you will use in real programs.",
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     constexpr int N = 5;
@@ -320,9 +329,9 @@ int main() {
         }
     }
     for (int i = 0; i < N; i++) {
-        std::cout << a[i] << " ";
+        cout << a[i] << " ";
     }
-    std::cout << "\n";
+    cout << "\n";
     return 0;
 }
 `,
@@ -342,6 +351,7 @@ int main() {
         codeFill: {
           task: "Change the comparison so this bubble sort orders the scores from HIGHEST to lowest.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int a[5] = {64, 25, 12, 90, 33};
@@ -354,8 +364,8 @@ int main() {
             }
         }
     }
-    for (int i = 0; i < 5; i++) std::cout << a[i] << " ";
-    std::cout << "\n";
+    for (int i = 0; i < 5; i++) cout << a[i] << " ";
+    cout << "\n";
     return 0;
 }
 `,
@@ -394,6 +404,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int marks[3][4] = {
@@ -402,11 +413,11 @@ int main() {
         {45, 61, 52, 70},
     };
     for (int r = 0; r < 3; r++) {
-        std::cout << "Student " << r + 1 << ":";
+        cout << "Student " << r + 1 << ":";
         for (int c = 0; c < 4; c++) {
-            std::cout << " " << marks[r][c];
+            cout << " " << marks[r][c];
         }
-        std::cout << "\n";
+        cout << "\n";
     }
     return 0;
 }
@@ -416,6 +427,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int grid[2][3] = {
@@ -423,7 +435,7 @@ int main() {
         {4, 5, 6},
     };
     grid[1][0] = grid[0][2] * 10;
-    std::cout << grid[1][0] << " " << grid[1][2] << " " << grid[0][1] + grid[1][1] << "\n";
+    cout << grid[1][0] << " " << grid[1][2] << " " << grid[0][1] + grid[1][1] << "\n";
     return 0;
 }
 `,
@@ -441,6 +453,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int sales[2][3] = {
@@ -450,12 +463,12 @@ int main() {
     for (int r = 0; r < 2; r++) {
         int rowTotal = 0;
         for (int c = 0; c < 3; c++) rowTotal += sales[r][c];
-        std::cout << "Shop " << r + 1 << " total: " << rowTotal << "\n";
+        cout << "Shop " << r + 1 << " total: " << rowTotal << "\n";
     }
     for (int c = 0; c < 3; c++) {
         int colTotal = 0;
         for (int r = 0; r < 2; r++) colTotal += sales[r][c];
-        std::cout << "Month " << c + 1 << " total: " << colTotal << "\n";
+        cout << "Month " << c + 1 << " total: " << colTotal << "\n";
     }
     return 0;
 }
@@ -499,6 +512,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int m[2][3] = {{1, 2, 3}, {4, 5, 6}};
@@ -509,7 +523,7 @@ int main() {
         }
     }
     for (int i = 0; i < 3; i++) {
-        std::cout << t[i][0] << " " << t[i][1] << "\n";
+        cout << t[i][0] << " " << t[i][1] << "\n";
     }
     return 0;
 }
@@ -519,6 +533,7 @@ int main() {
         codeFill: {
           task: "Fill the gap so c becomes the sum of matrices a and b.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int a[2][2] = {{1, 2}, {3, 4}};
@@ -529,8 +544,8 @@ int main() {
             {{1}}
         }
     }
-    std::cout << c[0][0] << " " << c[0][1] << "\n";
-    std::cout << c[1][0] << " " << c[1][1] << "\n";
+    cout << c[0][0] << " " << c[0][1] << "\n";
+    cout << c[1][0] << " " << c[1][1] << "\n";
     return 0;
 }
 `,
@@ -555,7 +570,7 @@ int main() {
     order: 4,
     covers: ["6.10", "6.11", "6.12", "6.13"],
     title: "Vectors",
-    subtitle: "std::vector, adding and removing, arrays versus vectors, and functions",
+    subtitle: "vector, adding and removing, arrays versus vectors, and functions",
     estimatedMinutes: 25,
     intro:
       "Arrays have one big limitation: their size is fixed when you compile. A vector is a collection that grows and shrinks while the program runs, knows its own size, and can be copied and passed around safely. In modern C++ it is the default collection, and you will use it in nearly every program from now on.",
@@ -563,24 +578,25 @@ int main() {
     atoms: [
       {
         id: "a-cp-vector-intro",
-        title: "Introduction to std::vector",
+        title: "Introduction to vector",
         explain:
-          "std::vector, from #include <vector>, is a resizable array. std::vector<int> scores = {72, 58, 91}; creates a vector of ints; the type in the angle brackets is what it holds. scores.size() tells you how many elements it has right now. Elements are stored next to each other in memory, just like an array, so indexing with scores[i] is just as fast.",
+          "vector, from #include <vector>, is a resizable array. vector<int> scores = {72, 58, 91}; creates a vector of ints; the type in the angle brackets is what it holds. scores.size() tells you how many elements it has right now. Elements are stored next to each other in memory, just like an array, so indexing with scores[i] is just as fast.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> scores = {72, 58, 91};
-    std::cout << "Count: " << scores.size() << "\n";
+    vector<int> scores = {72, 58, 91};
+    cout << "Count: " << scores.size() << "\n";
     scores.push_back(64);
     scores.push_back(80);
-    std::cout << "Count: " << scores.size() << "\n";
-    for (std::size_t i = 0; i < scores.size(); i++) {
-        std::cout << scores[i] << " ";
+    cout << "Count: " << scores.size() << "\n";
+    for (size_t i = 0; i < scores.size(); i++) {
+        cout << scores[i] << " ";
     }
-    std::cout << "\n";
+    cout << "\n";
     return 0;
 }
 `,
@@ -596,15 +612,16 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> queue = {101, 102, 103, 104};
+    vector<int> queue = {101, 102, 103, 104};
     queue.push_back(105);
     queue.pop_back();
     queue.erase(queue.begin() + 1);
     queue.insert(queue.begin(), 100);
-    std::cout << "First: " << queue.front() << ", last: " << queue.back() << "\n";
-    std::cout << "Third: " << queue.at(2) << ", size: " << queue.size() << "\n";
+    cout << "First: " << queue.front() << ", last: " << queue.back() << "\n";
+    cout << "Third: " << queue.at(2) << ", size: " << queue.size() << "\n";
     return 0;
 }
 `,
@@ -615,16 +632,17 @@ int main() {
           task: "Read numbers until the user types 0, adding each one to the end of the vector. Fill the gap.",
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> readings;
+    vector<int> readings;
     int value = 0;
-    std::cin >> value;
+    cin >> value;
     while (value != 0) {
         {{1}}
-        std::cin >> value;
+        cin >> value;
     }
-    std::cout << readings.size() << " readings, last: " << readings.back() << "\n";
+    cout << readings.size() << " readings, last: " << readings.back() << "\n";
     return 0;
 }
 `,
@@ -642,7 +660,7 @@ int main() {
           "Use a vector by default. Its size can change, it always knows its size, it can be copied with = and returned from functions, and .at() can check indexes. A built-in array's size is fixed at compile time and it does not know its own length when passed to a function. Arrays still appear in older code, in fixed small tables, and in code where every byte matters, so you need to read both.",
         table: {
           caption: "The two side by side.",
-          headers: ["", "Built-in array", "std::vector"],
+          headers: ["", "Built-in array", "vector"],
           rows: [
             ["Size", "Fixed when compiled", "Grows and shrinks while running"],
             ["Knows its size?", "Only where it was declared", "Always: .size()"],
@@ -658,7 +676,7 @@ int main() {
           options: [
             {
               id: "a",
-              text: "A std::vector<int>, adding each score with push_back",
+              text: "A vector<int>, adding each score with push_back",
               why: "The number of scores is only known as the program runs, which is exactly what a vector handles.",
             },
             {
@@ -685,32 +703,33 @@ int main() {
         id: "a-cp-passing-collections",
         title: "Passing arrays and vectors to functions",
         explain:
-          "Pass a vector the same way as any large object. To read it, use const std::vector<int>& v: no copy, no changes allowed. To change the caller's vector, drop the const. Passing by value copies every element, which is slow for large vectors and means changes are lost. A built-in array passed to a function loses its size, so you must pass the size as a separate parameter; this is one more reason vectors are preferred.",
+          "Pass a vector the same way as any large object. To read it, use const vector<int>& v: no copy, no changes allowed. To change the caller's vector, drop the const. Passing by value copies every element, which is slow for large vectors and means changes are lost. A built-in array passed to a function loses its size, so you must pass the size as a separate parameter; this is one more reason vectors are preferred.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
-double average(const std::vector<int>& v) {
+double average(const vector<int>& v) {
     int total = 0;
-    for (std::size_t i = 0; i < v.size(); i++) total += v[i];
+    for (size_t i = 0; i < v.size(); i++) total += v[i];
     return static_cast<double>(total) / v.size();
 }
 
-void addBonus(std::vector<int>& v, int bonus) {
-    for (std::size_t i = 0; i < v.size(); i++) v[i] += bonus;
+void addBonus(vector<int>& v, int bonus) {
+    for (size_t i = 0; i < v.size(); i++) v[i] += bonus;
 }
 
 void printArray(const int arr[], int size) {
-    for (int i = 0; i < size; i++) std::cout << arr[i] << " ";
-    std::cout << "\n";
+    for (int i = 0; i < size; i++) cout << arr[i] << " ";
+    cout << "\n";
 }
 
 int main() {
-    std::vector<int> scores = {60, 75, 82};
-    std::cout << average(scores) << "\n";
+    vector<int> scores = {60, 75, 82};
+    cout << average(scores) << "\n";
     addBonus(scores, 5);
-    std::cout << average(scores) << "\n";
+    cout << average(scores) << "\n";
     int fixed[] = {3, 1, 4};
     printArray(fixed, 3);
     return 0;
@@ -722,25 +741,26 @@ int main() {
           task: "Fill the parameter type so countPasses can READ the vector without copying it and without being able to change it.",
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int countPasses({{1}} scores) {
     int passes = 0;
-    for (std::size_t i = 0; i < scores.size(); i++) {
+    for (size_t i = 0; i < scores.size(); i++) {
         if (scores[i] >= 50) passes++;
     }
     return passes;
 }
 
 int main() {
-    std::vector<int> scores = {72, 45, 58, 39, 91};
-    std::cout << countPasses(scores) << " passed\n";
+    vector<int> scores = {72, 45, 58, 39, 91};
+    cout << countPasses(scores) << " passed\n";
     return 0;
 }
 `,
-          blanks: [{ answers: ["const std::vector<int>&", "const std::vector<int> &", "std::vector<int> const&"], width: 24 }],
+          blanks: [{ answers: ["const vector<int>&", "const std::vector<int>&", "const vector<int> &", "const std::vector<int> &", "vector<int> const&", "std::vector<int> const&"], width: 24 }],
           expectedOutput: "3 passed",
           hint: "Three parts: const (no changes), the vector's full type, and & (no copy).",
-          successMessage: "const std::vector<int>&: the standard way to hand a function a collection to read.",
+          successMessage: "const vector<int>&: the standard way to hand a function a collection to read.",
         },
       },
     ],
@@ -750,7 +770,7 @@ int main() {
       intro:
         "Write analyser.cpp: it stores a class's scores in a vector and reports on them. Every report is its own function taking the vector by const reference.",
       prompts: [
-        "Read scores until the user types -1, rejecting anything outside 0–100, and store them in a std::vector<int>.",
+        "Read scores until the user types -1, rejecting anything outside 0–100, and store them in a vector<int>.",
         "Write functions for the total, the class average (to two decimal places), the highest and the lowest score.",
         "Write a function that returns how many students scored at or above the class average.",
         "Write a function that searches for a score typed by the user and prints every position (1-based) where it appears, or a clear message if it does not appear.",

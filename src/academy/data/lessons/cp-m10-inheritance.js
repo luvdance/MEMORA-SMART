@@ -58,13 +58,14 @@ export const LESSONS = [
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Person {
 private:
-    std::string name;
+    string name;
 public:
-    void setName(const std::string& n) { name = n; }
-    std::string getName() const { return name; }
+    void setName(const string& n) { name = n; }
+    string getName() const { return name; }
 };
 
 class Student : public Person {
@@ -79,7 +80,7 @@ int main() {
     Student s;
     s.setName("Amaka");
     s.promote();
-    std::cout << s.getName() << " is in level " << s.getLevel() << "\n";
+    cout << s.getName() << " is in level " << s.getLevel() << "\n";
     return 0;
 }
 `,
@@ -89,21 +90,22 @@ int main() {
           task: "Fill the gap so Teacher inherits publicly from Person.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Person {
 public:
-    std::string name = "Unknown";
+    string name = "Unknown";
 };
 
 class Teacher {{1}} {
 public:
-    std::string subject = "Mathematics";
+    string subject = "Mathematics";
 };
 
 int main() {
     Teacher t;
     t.name = "Mr Bello";
-    std::cout << t.name << " teaches " << t.subject << "\n";
+    cout << t.name << " teaches " << t.subject << "\n";
     return 0;
 }
 `,
@@ -117,27 +119,28 @@ int main() {
         id: "a-cp-derived-constructors",
         title: "Base-class and derived-class constructors",
         explain:
-          "A derived object is built in layers: the base part first, then the derived part. The derived constructor chooses which base constructor runs by naming it first in its initialiser list: Student(std::string n, int lvl) : Person(n), level(lvl) {}. If it names none, the base's default constructor is used. Destruction happens in the reverse order: the derived part first, then the base.",
+          "A derived object is built in layers: the base part first, then the derived part. The derived constructor chooses which base constructor runs by naming it first in its initialiser list: Student(string n, int lvl) : Person(n), level(lvl) {}. If it names none, the base's default constructor is used. Destruction happens in the reverse order: the derived part first, then the base.",
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Person {
 public:
-    Person(const std::string& n) { std::cout << "Person " << n << "\n"; }
-    ~Person() { std::cout << "~Person\n"; }
+    Person(const string& n) { cout << "Person " << n << "\n"; }
+    ~Person() { cout << "~Person\n"; }
 };
 
 class Student : public Person {
 public:
-    Student(const std::string& n) : Person(n) { std::cout << "Student\n"; }
-    ~Student() { std::cout << "~Student\n"; }
+    Student(const string& n) : Person(n) { cout << "Student\n"; }
+    ~Student() { cout << "~Student\n"; }
 };
 
 int main() {
     Student s("Ada");
-    std::cout << "Working\n";
+    cout << "Working\n";
     return 0;
 }
 `,
@@ -185,17 +188,18 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 class Engine {
 public:
-    void start() { std::cout << "Engine started\n"; }
+    void start() { cout << "Engine started\n"; }
 };
 
 class Car : private Engine {
 public:
     void drive() {
         start();
-        std::cout << "Driving\n";
+        cout << "Driving\n";
     }
 };
 
@@ -219,19 +223,20 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Person {
 public:
-    std::string name;
-    void describe() const { std::cout << "I am " << name; }
+    string name;
+    void describe() const { cout << "I am " << name; }
 };
 
 class Teacher : public Person {
 public:
-    std::string subject;
+    string subject;
     void describe() const {
         Person::describe();
-        std::cout << " and I teach " << subject;
+        cout << " and I teach " << subject;
     }
 };
 
@@ -240,7 +245,7 @@ int main() {
     t.name = "Mrs Eze";
     t.subject = "Physics";
     t.describe();
-    std::cout << "\n";
+    cout << "\n";
     return 0;
 }
 `,
@@ -255,15 +260,16 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 class Shape {
 public:
-    void name() const { std::cout << "Shape\n"; }
+    void name() const { cout << "Shape\n"; }
 };
 
 class Circle : public Shape {
 public:
-    void name() const { std::cout << "Circle\n"; }
+    void name() const { cout << "Circle\n"; }
 };
 
 int main() {
@@ -284,12 +290,13 @@ int main() {
         id: "a-cp-virtual",
         title: "Virtual functions",
         explain:
-          "Marking a base-class function virtual tells C++ to choose the version by the object's ACTUAL type at run time, even through a base pointer or reference. In the derived class, write override after the parameter list: the compiler then checks that you really are overriding a virtual function, catching typos in the name or parameters. This lets one loop over std::vector<Shape*> call the right area() for every circle, rectangle and triangle.",
+          "Marking a base-class function virtual tells C++ to choose the version by the object's ACTUAL type at run time, even through a base pointer or reference. In the derived class, write override after the parameter list: the compiler then checks that you really are overriding a virtual function, catching typos in the name or parameters. This lets one loop over vector<Shape*> call the right area() for every circle, rectangle and triangle.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <memory>
 #include <vector>
+using namespace std;
 
 class Shape {
 public:
@@ -312,14 +319,14 @@ public:
 };
 
 int main() {
-    std::vector<std::unique_ptr<Shape>> shapes;
-    shapes.push_back(std::make_unique<Circle>(1));
-    shapes.push_back(std::make_unique<Rect>(4, 2.5));
+    vector<unique_ptr<Shape>> shapes;
+    shapes.push_back(make_unique<Circle>(1));
+    shapes.push_back(make_unique<Rect>(4, 2.5));
     double total = 0;
     for (const auto& s : shapes) {
         total += s->area();
     }
-    std::cout << "Total area: " << total << "\n";
+    cout << "Total area: " << total << "\n";
     return 0;
 }
 `,
@@ -329,16 +336,17 @@ int main() {
         codeFill: {
           task: "Fill the gap so speak() is chosen by the object's actual type at run time.",
           code: C`#include <iostream>
+using namespace std;
 
 class Animal {
 public:
-    {{1}} void speak() const { std::cout << "...\n"; }
+    {{1}} void speak() const { cout << "...\n"; }
     virtual ~Animal() = default;
 };
 
 class Dog : public Animal {
 public:
-    void speak() const override { std::cout << "Woof\n"; }
+    void speak() const override { cout << "Woof\n"; }
 };
 
 int main() {
@@ -398,6 +406,7 @@ int main() {
         codeFill: {
           task: "Fill the gap to declare pay() as a pure virtual function, so every kind of Employee must define its own pay.",
           code: C`#include <iostream>
+using namespace std;
 
 class Employee {
 public:
@@ -413,7 +422,7 @@ public:
 int main() {
     Intern i;
     const Employee& e = i;
-    std::cout << "Monthly pay: " << e.pay() << "\n";
+    cout << "Monthly pay: " << e.pay() << "\n";
     return 0;
 }
 `,
@@ -434,21 +443,22 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <memory>
+using namespace std;
 
 class Base {
 public:
-    virtual ~Base() { std::cout << "~Base\n"; }
+    virtual ~Base() { cout << "~Base\n"; }
 };
 
 class Derived : public Base {
 public:
-    ~Derived() override { std::cout << "~Derived\n"; }
+    ~Derived() override { cout << "~Derived\n"; }
 };
 
 int main() {
-    std::unique_ptr<Base> p = std::make_unique<Derived>();
+    unique_ptr<Base> p = make_unique<Derived>();
     p.reset();
-    std::cout << "Done\n";
+    cout << "Done\n";
     return 0;
 }
 `,
@@ -466,18 +476,19 @@ int main() {
           code: C`#include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 class Address {
 public:
-    std::string city;
-    std::string describe() const { return "lives in " + city; }
+    string city;
+    string describe() const { return "lives in " + city; }
 };
 
 class Student {
 public:
-    std::string name;
+    string name;
     Address home;
-    std::vector<std::string> courses;
+    vector<string> courses;
 };
 
 int main() {
@@ -485,7 +496,7 @@ int main() {
     s.name = "Bayo";
     s.home.city = "Kano";
     s.courses = {"CSC101", "MTH101"};
-    std::cout << s.name << " " << s.home.describe() << ", taking " << s.courses.size() << " courses\n";
+    cout << s.name << " " << s.home.describe() << ", taking " << s.courses.size() << " courses\n";
     return 0;
 }
 `,
@@ -550,21 +561,22 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Notifier {
 public:
-    virtual void send(const std::string& message) const = 0;
+    virtual void send(const string& message) const = 0;
     virtual ~Notifier() = default;
 };
 
 class SmsNotifier : public Notifier {
 public:
-    void send(const std::string& m) const override { std::cout << "SMS: " << m << "\n"; }
+    void send(const string& m) const override { cout << "SMS: " << m << "\n"; }
 };
 
 class EmailNotifier : public Notifier {
 public:
-    void send(const std::string& m) const override { std::cout << "Email: " << m << "\n"; }
+    void send(const string& m) const override { cout << "Email: " << m << "\n"; }
 };
 
 void announceResults(const Notifier& n) {
@@ -585,6 +597,7 @@ int main() {
         codeFill: {
           task: "Fill the gap so Printer implements the Report interface's print function.",
           code: C`#include <iostream>
+using namespace std;
 
 class Report {
 public:
@@ -594,7 +607,7 @@ public:
 
 class TermReport : public Report {
 public:
-    {{1}} { std::cout << "Term report printed\n"; }
+    {{1}} { cout << "Term report printed\n"; }
 };
 
 int main() {
@@ -691,40 +704,41 @@ int main() {
 #include <memory>
 #include <string>
 #include <vector>
+using namespace std;
 
 class Person {
 private:
     inline static int nextId = 1;
     int id;
-    std::string name;
+    string name;
 public:
-    explicit Person(std::string n) : id(nextId++), name(n) {}
+    explicit Person(string n) : id(nextId++), name(n) {}
     virtual ~Person() = default;
-    virtual std::string role() const = 0;
-    void print() const { std::cout << "#" << id << " " << name << " (" << role() << ")\n"; }
+    virtual string role() const = 0;
+    void print() const { cout << "#" << id << " " << name << " (" << role() << ")\n"; }
 };
 
 class Student : public Person {
     int level;
 public:
-    Student(std::string n, int lvl) : Person(n), level(lvl) {}
-    std::string role() const override { return "Student, level " + std::to_string(level); }
+    Student(string n, int lvl) : Person(n), level(lvl) {}
+    string role() const override { return "Student, level " + to_string(level); }
 };
 
 class Teacher : public Person {
-    std::vector<std::string> subjects;
+    vector<string> subjects;
 public:
-    Teacher(std::string n, std::vector<std::string> s) : Person(n), subjects(s) {}
-    std::string role() const override {
-        return "Teacher of " + std::to_string(subjects.size()) + " subjects";
+    Teacher(string n, vector<string> s) : Person(n), subjects(s) {}
+    string role() const override {
+        return "Teacher of " + to_string(subjects.size()) + " subjects";
     }
 };
 
 int main() {
-    std::vector<std::unique_ptr<Person>> school;
-    school.push_back(std::make_unique<Student>("Amaka", 200));
-    school.push_back(std::make_unique<Teacher>("Mr Bello", std::vector<std::string>{"Maths", "Physics"}));
-    school.push_back(std::make_unique<Student>("Femi", 100));
+    vector<unique_ptr<Person>> school;
+    school.push_back(make_unique<Student>("Amaka", 200));
+    school.push_back(make_unique<Teacher>("Mr Bello", vector<string>{"Maths", "Physics"}));
+    school.push_back(make_unique<Student>("Femi", 100));
     for (const auto& p : school) {
         p->print();
     }
@@ -733,7 +747,7 @@ int main() {
 `,
           expectedOutput: "#1 Amaka (Student, level 200)\n#2 Mr Bello (Teacher of 2 subjects)\n#3 Femi (Student, level 100)",
         },
-        why: "print() is written once, in Person, yet each line shows the right role, because print calls the virtual role(). explicit on Person's constructor stops a plain string being silently converted into a Person. std::to_string turns a number into text so it can be joined with +.",
+        why: "print() is written once, in Person, yet each line shows the right role, because print calls the virtual role(). explicit on Person's constructor stops a plain string being silently converted into a Person. to_string turns a number into text so it can be joined with +.",
       },
     ],
 
@@ -746,7 +760,7 @@ int main() {
         "Student derives from Person and adds a level and a vector of scores, with addScore (validated 0–100) and average().",
         "Teacher derives from Person and HAS a list of subjects (composition), with addSubject and teaches(subject).",
         "Override a virtual describe() in each derived class that calls Person's version and then adds its own details.",
-        "Keep everyone in a std::vector<std::unique_ptr<Person>> and loop over it to print every member of the school, polymorphically.",
+        "Keep everyone in a vector<unique_ptr<Person>> and loop over it to print every member of the school, polymorphically.",
         "Add a menu: add a student, add a teacher, record a score, list everyone, and list the students whose average is 70 or more.",
         "In a comment, explain one place where you chose composition over inheritance, and why.",
       ],

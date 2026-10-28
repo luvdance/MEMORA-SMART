@@ -85,6 +85,15 @@ function clean(text) {
     .trimEnd();
 }
 
+/**
+ * Sessions marked `posixPaths`: relative paths a Windows program prints with
+ * backslashes (Prisma's prisma\schema.prisma, .\src\generated\prisma) are
+ * shown with slashes, as the same program prints them on macOS and Linux.
+ */
+function posixPaths(text) {
+  return text.replace(/(?<![\w\\])(?:\.\\)?[\w.-]+(?:\\[\w.-]+)+\\?/g, (p) => p.replace(/\\/g, "/"));
+}
+
 const PATH_KEY = Object.keys(process.env).find((k) => k.toUpperCase() === "PATH") || "PATH";
 const env = {
   ...process.env,
@@ -169,6 +178,33 @@ const transcripts = existsSync(OUT) ? (await import(`${pathToFileURL(OUT).href}?
 const selected = only.length ? SESSIONS.filter((s) => only.includes(s.id)) : SESSIONS;
 if (only.length && selected.length !== only.length) throw new Error(`Unknown session(s): ${only.filter((o) => !SESSIONS.some((s) => s.id === o)).join(", ")}`);
 
+/**
+ * Sessions marked `postgres: true` talk to a real PostgreSQL server: a fresh
+ * cluster (PostgreSQL 18, the RDBMS course's binaries) with the learner's
+ * own superuser, ada, on localhost:5432, as after installing PostgreSQL and
+ * creating a role for yourself. psql finds the server and password through
+ * PGHOST/PGUSER/PGPASSWORD, which the commands never show.
+ */
+const PG_BIN = join(process.env.USERPROFILE || process.env.HOME, ".cache", "rdbms-course", "pg", "pgsql", "bin");
+let pgData = null;
+if (selected.some((s) => s.postgres)) {
+  if (!existsSync(join(PG_BIN, "pg_ctl.exe")) && !existsSync(join(PG_BIN, "pg_ctl"))) throw new Error(`PostgreSQL binaries not found in ${PG_BIN}: run node scripts/dbRecord.mjs once to download them`);
+  pgData = join(base, "pgdata");
+  writeFileSync(join(base, "pw.txt"), "ada-password\n");
+  const init = spawnSync(join(PG_BIN, "initdb"), ["-D", pgData, "-U", "ada", "-A", "scram-sha-256", "-E", "UTF8", "--locale=C", `--pwfile=${join(base, "pw.txt")}`], { encoding: "utf8" });
+  if (init.status !== 0) throw new Error(`initdb failed: ${init.stderr}`);
+  // Detached, with no pipes: a server started by pg_ctl would otherwise hold this script's output open.
+  spawn(join(PG_BIN, "pg_ctl"), ["-D", pgData, "-o", "-p 5432", "-l", join(base, "server.log"), "start"], { stdio: "ignore", detached: true, windowsHide: true }).unref();
+  for (let i = 0; ; i++) {
+    const ok = spawnSync(join(PG_BIN, "pg_isready"), ["-h", "localhost", "-p", "5432"], { encoding: "utf8" });
+    if (ok.status === 0) break;
+    if (i > 60) throw new Error("PostgreSQL did not start");
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  Object.assign(env, { PGHOST: "localhost", PGPORT: "5432", PGUSER: "ada", PGPASSWORD: "ada-password", PSQL_PAGER: "cat", PAGER: "cat" });
+  env[PATH_KEY] = `${PG_BIN}${process.platform === "win32" ? ";" : ":"}${env[PATH_KEY]}`;
+}
+
 for (const session of selected) {
   const project = join(home, session.project || session.id);
   // Windows releases a folder a moment after the last process in it has been killed.
@@ -192,21 +228,21 @@ for (const session of selected) {
     const cwd = spec.cwd ? join(project, spec.cwd) : project;
     if (spec.files) writeFiles(project, spec.files);
     if (spec.background) {
-      const b = startBackground(spec.cmd, cwd, spec.env, spec.ready);
+      const b = startBackground(spec.cmd, cwd, { ...(session.env || {}), ...(spec.env || {}) }, spec.ready);
       await b.until;
       bg.push({ spec, ...b });
       continue;
     }
     if (spec.wait) await new Promise((r) => setTimeout(r, spec.wait));
-    const text = runForeground(spec.cmd, cwd, spec.env, spec.stdin);
+    const text = runForeground(spec.cmd, cwd, { ...(session.env || {}), ...(spec.env || {}) }, spec.stdin);
     if (spec.cmd in out && !spec.repeat) throw new Error(`${session.id}: "${spec.cmd}" is recorded twice; a terminal maps each command to one output`);
-    out[spec.show || spec.cmd] = text;
+    out[spec.show || spec.cmd] = session.posixPaths ? posixPaths(text) : text;
     process.stdout.write(".");
   }
   await new Promise((r) => setTimeout(r, 300));
   for (const b of bg) {
     kill(b.child);
-    out[b.spec.show || b.spec.cmd] = clean(b.output());
+    out[b.spec.show || b.spec.cmd] = session.posixPaths ? posixPaths(clean(b.output())) : clean(b.output());
   }
   if (bg.length) killStartedSince(sessionStart);
   transcripts[session.id] = out;
@@ -224,5 +260,13 @@ const header = `/**
 `;
 const ordered = Object.fromEntries(Object.keys(transcripts).sort().map((k) => [k, transcripts[k]]));
 writeFileSync(OUT, `${header}\nexport const TRANSCRIPTS = ${JSON.stringify(ordered, null, 2)};\n`);
-rmSync(base, { recursive: true, force: true });
+if (pgData) spawnSync(join(PG_BIN, "pg_ctl"), ["-D", pgData, "stop", "-m", "fast"], { stdio: "ignore" });
+for (let attempt = 0; attempt < 20; attempt++) {
+  try {
+    rmSync(base, { recursive: true, force: true });
+    break;
+  } catch {
+    await new Promise((r) => setTimeout(r, 500));
+  }
+}
 console.log(`wrote ${OUT.replace(ROOT, "")}`);

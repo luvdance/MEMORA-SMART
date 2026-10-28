@@ -123,25 +123,26 @@ export const LESSONS = [
         explain:
           "Before coding, sketch three things. The classes: a UML box for each, with private data, public operations and relationships (Bank HAS Accounts; an Account HAS Transactions). The files: one header and one source file per class, plus main.cpp, tests and CMakeLists.txt. The data format: exactly what each line of each save file looks like. Each class gets one responsibility: Account enforces the money rules, Bank finds accounts, Storage reads and writes files, and main only handles the menu.",
         example:
-          "Classes (Project A)\n\n  Transaction            plain data: type, amount, balanceAfter\n  Account                - number, owner, balance, history\n                         + deposit(), withdraw(), getBalance(),\n                           getHistory()      (throws on invalid amounts)\n  Bank                   - std::map<int, Account> accounts\n                         + open(), find() -> Account*, all()\n  Storage                + save(const Bank&), load() -> Bank\n                         (the ONLY class that touches files)\n\nFiles\n  include/Transaction.h  include/Account.h  include/Bank.h  include/Storage.h\n  src/Account.cpp  src/Bank.cpp  src/Storage.cpp  src/main.cpp\n  tests/test_account.cpp   CMakeLists.txt   README.md\n\nData format (accounts.csv)\n  number,owner,balance\n  1001,Ada,3800.00",
+          "Classes (Project A)\n\n  Transaction            plain data: type, amount, balanceAfter\n  Account                - number, owner, balance, history\n                         + deposit(), withdraw(), getBalance(),\n                           getHistory()      (throws on invalid amounts)\n  Bank                   - map<int, Account> accounts\n                         + open(), find() -> Account*, all()\n  Storage                + save(const Bank&), load() -> Bank\n                         (the ONLY class that touches files)\n\nFiles\n  include/Transaction.h  include/Account.h  include/Bank.h  include/Storage.h\n  src/Account.cpp  src/Bank.cpp  src/Storage.cpp  src/main.cpp\n  tests/test_account.cpp   CMakeLists.txt   README.md\n\nData format (accounts.csv)\n  number,owner,balance\n  1001,Ada,3800.00",
         codeFill: {
           task: "The design's simplest piece is Transaction, plain data. Fill the missing member so each transaction records the balance after it.",
           code: C`#include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Transaction {
-    std::string type;
+    string type;
     double amount = 0;
     {{1}}
 };
 
 int main() {
-    std::vector<Transaction> history;
+    vector<Transaction> history;
     history.push_back({"deposit", 5000, 5000});
     history.push_back({"withdraw", 1200, 3800});
     for (const auto& t : history) {
-        std::cout << t.type << " " << t.amount << " -> " << t.balanceAfter << "\n";
+        cout << t.type << " " << t.amount << " -> " << t.balanceAfter << "\n";
     }
     return 0;
 }
@@ -184,44 +185,45 @@ int main() {
 #include <stdexcept>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Transaction {
-    std::string type;
+    string type;
     double amount;
     double balanceAfter;
 };
 
 class Account {
     int number;
-    std::string owner;
+    string owner;
     double balance = 0;
-    std::vector<Transaction> history;
+    vector<Transaction> history;
 public:
-    Account(int n, std::string o) : number(n), owner(o) {}
+    Account(int n, string o) : number(n), owner(o) {}
     void deposit(double amount) {
-        if (amount <= 0) throw std::invalid_argument("Deposit must be positive");
+        if (amount <= 0) throw invalid_argument("Deposit must be positive");
         balance += amount;
         history.push_back({"deposit", amount, balance});
     }
     void withdraw(double amount) {
-        if (amount <= 0) throw std::invalid_argument("Withdrawal must be positive");
-        if (amount > balance) throw std::runtime_error("Insufficient funds");
+        if (amount <= 0) throw invalid_argument("Withdrawal must be positive");
+        if (amount > balance) throw runtime_error("Insufficient funds");
         balance -= amount;
         history.push_back({"withdraw", amount, balance});
     }
     double getBalance() const { return balance; }
-    const std::vector<Transaction>& getHistory() const { return history; }
+    const vector<Transaction>& getHistory() const { return history; }
 };
 
 int failures = 0;
-void check(bool ok, const std::string& name) {
-    std::cout << (ok ? "PASS " : "FAIL ") << name << "\n";
+void check(bool ok, const string& name) {
+    cout << (ok ? "PASS " : "FAIL ") << name << "\n";
     if (!ok) failures++;
 }
 
 template <typename F>
 bool throws(F action) {
-    try { action(); } catch (const std::exception&) { return true; }
+    try { action(); } catch (const exception&) { return true; }
     return false;
 }
 
@@ -234,7 +236,7 @@ int main() {
     check(a.getBalance() == 3800, "R3 withdrawal subtracts");
     check(throws([&] { a.withdraw(9000); }) && a.getBalance() == 3800, "R3 overdraft refused, balance unchanged");
     check(a.getHistory().size() == 2, "R4 two transactions recorded");
-    std::cout << failures << " failure(s)\n";
+    cout << failures << " failure(s)\n";
     return failures == 0 ? 0 : 1;
 }
 `,
@@ -245,6 +247,7 @@ int main() {
           task: "Add the test for the next slice: a withdrawal of exactly the whole balance must be allowed, leaving 0.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Account {
     double balance = 0;
@@ -258,8 +261,8 @@ public:
     double getBalance() const { return balance; }
 };
 
-void check(bool ok, const std::string& name) {
-    std::cout << (ok ? "PASS " : "FAIL ") << name << "\n";
+void check(bool ok, const string& name) {
+    cout << (ok ? "PASS " : "FAIL ") << name << "\n";
 }
 
 int main() {
@@ -289,38 +292,39 @@ int main() {
 #include <map>
 #include <sstream>
 #include <string>
+using namespace std;
 
 struct Acc {
-    std::string owner;
+    string owner;
     double balance;
 };
 
-void save(const std::map<int, Acc>& accounts) {
-    std::ofstream out("accounts.csv");
-    out << "number,owner,balance\n" << std::fixed << std::setprecision(2);
+void save(const map<int, Acc>& accounts) {
+    ofstream out("accounts.csv");
+    out << "number,owner,balance\n" << fixed << setprecision(2);
     for (const auto& [num, a] : accounts) out << num << "," << a.owner << "," << a.balance << "\n";
 }
 
-std::map<int, Acc> load() {
-    std::map<int, Acc> result;
-    std::ifstream in("accounts.csv");
-    std::string line, num, owner, bal;
-    std::getline(in, line);
-    while (std::getline(in, line)) {
-        std::istringstream row(line);
-        std::getline(row, num, ',');
-        std::getline(row, owner, ',');
-        std::getline(row, bal, ',');
-        result[std::stoi(num)] = {owner, std::stod(bal)};
+map<int, Acc> load() {
+    map<int, Acc> result;
+    ifstream in("accounts.csv");
+    string line, num, owner, bal;
+    getline(in, line);
+    while (getline(in, line)) {
+        istringstream row(line);
+        getline(row, num, ',');
+        getline(row, owner, ',');
+        getline(row, bal, ',');
+        result[stoi(num)] = {owner, stod(bal)};
     }
     return result;
 }
 
 int main() {
-    std::cout << "First run: " << load().size() << " accounts\n";
+    cout << "First run: " << load().size() << " accounts\n";
     save({{1002, {"Bayo", 250.5}}, {1001, {"Ada", 3800}}});
     auto back = load();
-    std::cout << back.size() << " " << back.begin()->second.owner << " " << back[1002].balance << "\n";
+    cout << back.size() << " " << back.begin()->second.owner << " " << back[1002].balance << "\n";
     return 0;
 }
 `,
@@ -416,28 +420,29 @@ int main() {
 #include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 class Student {
 public:
-    std::string name;
+    string name;
     int total;
-    Student(std::string n, int t) : name(n), total(t) {}
+    Student(string n, int t) : name(n), total(t) {}
     int average(int subjects) const { return total / subjects; }
 };
 
 int main() {
-    std::vector<Student> cls = {{"Ada", 255}, {"Bayo", 170}, {"Chi", 214}};
-    std::sort(cls.begin(), cls.end(), [](const Student& a, const Student& b) {
+    vector<Student> cls = {{"Ada", 255}, {"Bayo", 170}, {"Chi", 214}};
+    sort(cls.begin(), cls.end(), [](const Student& a, const Student& b) {
         return a.total > b.total;
     });
     for (const auto& s : cls) {
-        std::cout << s.name << ":" << s.average(3) << " ";
+        cout << s.name << ":" << s.average(3) << " ";
     }
-    std::cout << "\n";
-    auto passed = std::count_if(cls.begin(), cls.end(), [](const Student& s) {
+    cout << "\n";
+    auto passed = count_if(cls.begin(), cls.end(), [](const Student& s) {
         return s.average(3) >= 60;
     });
-    std::cout << passed << "\n";
+    cout << passed << "\n";
     return 0;
 }
 `,
@@ -457,6 +462,7 @@ int main() {
           code: C`#include <iostream>
 #include <memory>
 #include <vector>
+using namespace std;
 
 class Shape {
 public:
@@ -472,27 +478,29 @@ public:
 };
 
 int main() {
-    std::vector<std::unique_ptr<Shape>> shapes;
+    vector<unique_ptr<Shape>> shapes;
     for (double r : {1.0, 2.0}) {
         {{1}}
     }
     double total = 0;
     for (const auto& s : shapes) total += s->area();
-    std::cout << "Total: " << total << "\n";
+    cout << "Total: " << total << "\n";
     return 0;
 }
 `,
           blanks: [
             {
               answers: [
+                "shapes.push_back(make_unique<Circle>(r));",
                 "shapes.push_back(std::make_unique<Circle>(r));",
-                "shapes.emplace_back(std::make_unique<Circle>(r));",
+                "shapes.emplace_back(make_unique<Circle>(r));",
+                "shapes.emplace_back(std::make_unique<Circle>(r));"
               ],
               width: 46,
             },
           ],
           expectedOutput: "Total: 15",
-          hint: "push_back onto shapes the result of std::make_unique<Circle>(r).",
+          hint: "push_back onto shapes the result of make_unique<Circle>(r).",
           successMessage: "No new, no delete, correct polymorphism, and a virtual destructor in the base. Modern C++.",
         },
       },

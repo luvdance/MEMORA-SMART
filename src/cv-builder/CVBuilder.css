@@ -2641,7 +2641,9 @@
   }
 
   .cv-preview__page-wrapper {
-    display: block !important;
+    /* flow-root stops the scaled page's negative bottom margin from collapsing
+       through, so the wrapper shrinks to the scaled height */
+    display: flow-root !important;
     width: 100% !important;
     overflow: visible !important;
     padding: 0 !important;
@@ -2649,9 +2651,7 @@
   }
 
 
-  /* Compensate for the scale by adjusting parent height */
   .cv-preview__page-wrapper {
-    height: calc((100vw - 32px) * 1.414) !important;
     overflow: hidden !important;
   }
 
@@ -3078,7 +3078,6 @@
 @media screen and (max-width: 900px) {
 
   .cv-preview__page-wrapper {
-    height: calc((100vw - 32px) * 1.414) !important;
     overflow: visible !important;
   }
 }

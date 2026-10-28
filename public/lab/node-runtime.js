@@ -61,7 +61,7 @@ import {
   v8,
   workerThreads,
   zlib
-} from "./node-runtime-chunk-36REYH2Q.js";
+} from "./node-runtime-chunk-DTI3ZT7S.js";
 import {
   createHash,
   crypto_default,
@@ -85,7 +85,7 @@ import {
   require_string_decoder,
   resolve,
   stream_default
-} from "./node-runtime-chunk-2HFUVLLM.js";
+} from "./node-runtime-chunk-GTV3XHWV.js";
 import {
   Buffer as Buffer2,
   EventEmitter,
@@ -18141,10 +18141,10 @@ var require_dist2 = __commonJS({
       const keys = [];
       let source = "";
       let combinations = 0;
-      function process(path2) {
+      function process2(path2) {
         if (Array.isArray(path2)) {
           for (const p of path2)
-            process(p);
+            process2(p);
           return;
         }
         const data2 = typeof path2 === "object" ? path2 : parse9(path2, options);
@@ -18158,8 +18158,8 @@ var require_dist2 = __commonJS({
           combinations++;
         });
       }
-      __name(process, "process");
-      process(path);
+      __name(process2, "process");
+      process2(path);
       let pattern = `^(?:${source})`;
       if (trailing)
         pattern += "(?:" + escape2(delimiter) + "$)?";
@@ -105328,6 +105328,16 @@ init_buffer();
 init_http();
 init_stream();
 init_browser();
+var OS_RELEASE = `PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+VERSION_CODENAME=bookworm
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+`;
 var LOCAL_HOSTS = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"]);
 var Network = class {
   static {
@@ -105688,6 +105698,7 @@ var Machine = class {
     this.vol = new Volume(() => this.loop.now());
     this.vol.load(opts.files || {}, "/app");
     this.vol.mkdirp("/tmp");
+    this.vol.load({ "etc/os-release": OS_RELEASE, "usr/lib/x86_64-linux-gnu/libssl.so.3": "" }, "/");
     this.network = new Network(this);
     this.output = [];
     this.exited = false;
@@ -105812,6 +105823,26 @@ var Machine = class {
   async run(command, { args: extraArgs = [] } = {}) {
     this.activate();
     await this.ensurePackages();
+    const steps = splitAnd(command);
+    if (steps.length > 1) {
+      let result;
+      for (const [i2, step] of steps.entries()) {
+        if (i2 > 0) {
+          this.exited = false;
+          this.exitCode = null;
+          this.revive();
+          this.activate();
+        }
+        this.chained = i2 < steps.length - 1;
+        result = await this.run(step, i2 === steps.length - 1 ? { args: extraArgs } : {});
+        this.chained = false;
+        if (i2 < steps.length - 1 && (result !== "exit" || this.exitCode !== 0)) {
+          if (result === "exit") this.onExit?.(this.exitCode);
+          return result;
+        }
+      }
+      return result;
+    }
     const words = splitCommand(command);
     while (words.length > 1 && /^[A-Za-z_][A-Za-z0-9_]*=/.test(words[0])) {
       const [name, ...value] = words.shift().split("=");
@@ -106051,7 +106082,7 @@ npm error   npm run
     this.exited = true;
     this.network.abortAll();
     this.loop.stop();
-    this.onExit?.(code);
+    if (!this.chained) this.onExit?.(code);
   }
   signal(name) {
     if (this.exited) return;
@@ -106273,6 +106304,28 @@ ${text}${tail}`;
     if (!this.exited) this.exit(137);
   }
 };
+function splitAnd(command) {
+  const out = [];
+  let cur = "";
+  let quote = null;
+  const s = String(command);
+  for (let i2 = 0; i2 < s.length; i2++) {
+    const ch = s[i2];
+    if (quote) {
+      if (ch === quote) quote = null;
+    } else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === "&" && s[i2 + 1] === "&") {
+      out.push(cur.trim());
+      cur = "";
+      i2 += 1;
+      continue;
+    }
+    cur += ch;
+  }
+  out.push(cur.trim());
+  return out.filter(Boolean);
+}
+__name(splitAnd, "splitAnd");
 function splitCommand(command) {
   const out = [];
   let cur = "";
@@ -108855,7 +108908,8 @@ var PACKAGES = {
   multer: /* @__PURE__ */ __name(() => import_multer.default, "multer"),
   dotenv: /* @__PURE__ */ __name(() => import_dotenv.default, "dotenv"),
   "dotenv/config": /* @__PURE__ */ __name(() => {
-    import_dotenv.default.config();
+    const quiet = process_default.env.DOTENV_QUIET != null ? process_default.env.DOTENV_QUIET : process_default.env.DOTENV_CONFIG_QUIET;
+    import_dotenv.default.config({ quiet: quiet != null ? quiet : true });
     return {};
   }, "dotenv/config"),
   yaml: /* @__PURE__ */ __name(() => esm(yamlNs), "yaml"),
@@ -109000,7 +109054,7 @@ function hookRejections() {
 __name(hookRejections, "hookRejections");
 var prismaLoading = null;
 function loadPrisma() {
-  prismaLoading ||= import("./node-runtime-chunk-VDA5UBQ7.js").then((P) => {
+  prismaLoading ||= import("./node-runtime-chunk-VUPCA2WM.js").then((P) => {
     Object.assign(PACKAGES, P.PRISMA_PACKAGES);
     return P;
   });

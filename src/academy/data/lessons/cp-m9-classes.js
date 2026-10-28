@@ -40,7 +40,7 @@ export const LESSONS = [
         explain:
           "In procedural style, data and the functions that use it live apart. A student record becomes parallel arrays (names[i], scores[i], ages[i]) that must be kept in step by hand, and any function anywhere can change any of them, including into invalid values such as a score of 250. As a program grows to thousands of lines, nobody can be sure which code is allowed to change what. Object-oriented programming answers this by keeping each piece of data together with the only code allowed to change it.",
         example:
-          "Procedural: three arrays that must stay in step.\n\n  std::string names[100];\n  int scores[100];\n  int ages[100];\n\n  // Sorting by score? You must swap in all three arrays,\n  // or names and scores stop matching.\n  // Anyone can write scores[3] = 250; nothing stops it.\n\nObject-oriented: one type that owns its data and its rules.\n\n  class Student { ... };     // name, score, age together\n  std::vector<Student> students;\n\n  // Sorting moves whole students. A Student can refuse a score\n  // of 250, because only its own functions may change the score.",
+          "Procedural: three arrays that must stay in step.\n\n  string names[100];\n  int scores[100];\n  int ages[100];\n\n  // Sorting by score? You must swap in all three arrays,\n  // or names and scores stop matching.\n  // Anyone can write scores[3] = 250; nothing stops it.\n\nObject-oriented: one type that owns its data and its rules.\n\n  class Student { ... };     // name, score, age together\n  vector<Student> students;\n\n  // Sorting moves whole students. A Student can refuse a score\n  // of 250, because only its own functions may change the score.",
         decision: {
           scenario: "A bug report: one student's score is 250, out of 100. The program has 40 functions, and any of them can write to the scores array.",
           question: "Why is this bug hard to find, and what design prevents it?",
@@ -91,15 +91,16 @@ export const LESSONS = [
         id: "a-cp-define-class",
         title: "Defining a class",
         explain:
-          "class Student { public: std::string name; int score = 0; }; defines a new type called Student, with two data members. Note the semicolon after the closing brace: forgetting it is a classic compile error. The word struct does the same job: the only difference is that a struct's members are public by default and a class's are private. By convention, struct is used for simple bundles of data and class for types with rules to protect.",
+          "class Student { public: string name; int score = 0; }; defines a new type called Student, with two data members. Note the semicolon after the closing brace: forgetting it is a classic compile error. The word struct does the same job: the only difference is that a struct's members are public by default and a class's are private. By convention, struct is used for simple bundles of data and class for types with rules to protect.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Student {
 public:
-    std::string name;
+    string name;
     int score = 0;
 };
 
@@ -111,8 +112,8 @@ int main() {
     Student tunde;
     tunde.name = "Tunde";
 
-    std::cout << ada.name << ": " << ada.score << "\n";
-    std::cout << tunde.name << ": " << tunde.score << "\n";
+    cout << ada.name << ": " << ada.score << "\n";
+    cout << tunde.name << ": " << tunde.score << "\n";
     return 0;
 }
 `,
@@ -123,10 +124,11 @@ int main() {
           task: "Fill the gap with the data member that holds a product's price as a double, starting at 0.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Product {
 public:
-    std::string name;
+    string name;
     {{1}}
 };
 
@@ -134,7 +136,7 @@ int main() {
     Product rice;
     rice.name = "Rice 5kg";
     rice.price = 8500;
-    std::cout << rice.name << " costs " << rice.price << "\n";
+    cout << rice.name << " costs " << rice.price << "\n";
     return 0;
 }
 `,
@@ -174,10 +176,11 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Student {
 public:
-    std::string name;
+    string name;
     int score = 0;
 
     bool passed() const {
@@ -193,9 +196,9 @@ int main() {
     Student ada;
     ada.name = "Ada";
     ada.score = 46;
-    std::cout << std::boolalpha << ada.passed() << "\n";
+    cout << boolalpha << ada.passed() << "\n";
     ada.addBonus(5);
-    std::cout << ada.score << " " << ada.passed() << "\n";
+    cout << ada.score << " " << ada.passed() << "\n";
     return 0;
 }
 `,
@@ -204,6 +207,7 @@ int main() {
         codeFill: {
           task: "Fill in the member function that returns the rectangle's area. It must not change the object.",
           code: C`#include <iostream>
+using namespace std;
 
 class Rectangle {
 public:
@@ -219,7 +223,7 @@ int main() {
     Rectangle room;
     room.width = 4;
     room.height = 3.5;
-    std::cout << "Area: " << room.area() << "\n";
+    cout << "Area: " << room.area() << "\n";
     return 0;
 }
 `,
@@ -233,11 +237,12 @@ int main() {
         id: "a-cp-creating-objects",
         title: "Creating and using objects",
         explain:
-          "Create an object like any variable: Student ada;. Use the dot operator to reach its members: ada.score, ada.passed(). Objects can be copied with =, passed to functions (by const reference to avoid copies), returned, and stored in vectors: std::vector<Student> class2026;. Through a pointer, the arrow operator -> reaches members: p->score means (*p).score.",
+          "Create an object like any variable: Student ada;. Use the dot operator to reach its members: ada.score, ada.passed(). Objects can be copied with =, passed to functions (by const reference to avoid copies), returned, and stored in vectors: vector<Student> class2026;. Through a pointer, the arrow operator -> reaches members: p->score means (*p).score.",
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 class Counter {
 public:
@@ -253,9 +258,9 @@ int main() {
     b.tick();
     Counter* p = &a;
     p->tick();
-    std::vector<Counter> all = {a, b};
+    vector<Counter> all = {a, b};
     all[0].tick();
-    std::cout << a.value << " " << b.value << " " << all[0].value << "\n";
+    cout << a.value << " " << b.value << " " << all[0].value << "\n";
     return 0;
 }
 `,
@@ -273,6 +278,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 class Account {
 private:
@@ -321,6 +327,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 class Account {
 private:
@@ -341,8 +348,8 @@ int main() {
     Account acc;
     acc.deposit(5000);
     acc.deposit(-300);
-    std::cout << std::boolalpha << acc.withdraw(8000) << " " << acc.withdraw(1500) << "\n";
-    std::cout << "Balance: " << acc.getBalance() << "\n";
+    cout << boolalpha << acc.withdraw(8000) << " " << acc.withdraw(1500) << "\n";
+    cout << "Balance: " << acc.getBalance() << "\n";
     return 0;
 }
 `,
@@ -358,6 +365,7 @@ int main() {
         codeFill: {
           task: "Complete the setter's condition so only scores from 0 to 100 are accepted.",
           code: C`#include <iostream>
+using namespace std;
 
 class Student {
 private:
@@ -378,7 +386,7 @@ int main() {
     s.setScore(250);
     s.setScore(78);
     s.setScore(-4);
-    std::cout << "Score: " << s.getScore() << "\n";
+    cout << "Score: " << s.getScore() << "\n";
     return 0;
 }
 `,
@@ -392,22 +400,23 @@ int main() {
         id: "a-cp-constructors",
         title: "Constructors",
         explain:
-          "A constructor is a special member function that runs automatically when an object is created. It has the same name as the class and no return type. Its job is to put the object into a valid state from the start. Initialise members in the member initialiser list, after a colon: Student(std::string n, int s) : name(n), score(s) {}. Once a class has a constructor with parameters, objects must be created with those arguments: Student ada(\"Ada\", 91); or Student ada{\"Ada\", 91};.",
+          "A constructor is a special member function that runs automatically when an object is created. It has the same name as the class and no return type. Its job is to put the object into a valid state from the start. Initialise members in the member initialiser list, after a colon: Student(string n, int s) : name(n), score(s) {}. Once a class has a constructor with parameters, objects must be created with those arguments: Student ada(\"Ada\", 91); or Student ada{\"Ada\", 91};.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Student {
 private:
-    std::string name;
+    string name;
     int score;
 public:
-    Student(std::string n, int s) : name(n), score(s) {
+    Student(string n, int s) : name(n), score(s) {
         if (score < 0) score = 0;
         if (score > 100) score = 100;
     }
-    void print() const { std::cout << name << ": " << score << "\n"; }
+    void print() const { cout << name << ": " << score << "\n"; }
 };
 
 int main() {
@@ -424,14 +433,15 @@ int main() {
           task: "Fill the member initialiser list so the constructor stores the title and the number of pages.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Book {
 private:
-    std::string title;
+    string title;
     int pages;
 public:
-    Book(std::string t, int p) : {{1}} {}
-    void show() const { std::cout << title << " (" << pages << " pages)\n"; }
+    Book(string t, int p) : {{1}} {}
+    void show() const { cout << title << " (" << pages << " pages)\n"; }
 };
 
 int main() {
@@ -455,23 +465,24 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Ticket {
 public:
-    std::string route;
+    string route;
     int price;
     Ticket() : Ticket("Lagos-Ibadan", 6000) {}
-    Ticket(std::string r) : Ticket(r, 5000) {}
-    Ticket(std::string r, int p) : route(r), price(p) {}
+    Ticket(string r) : Ticket(r, 5000) {}
+    Ticket(string r, int p) : route(r), price(p) {}
 };
 
 int main() {
     Ticket a;
     Ticket b("Abuja-Kaduna");
     Ticket c("Enugu-Onitsha", 3500);
-    std::cout << a.route << " " << a.price << "\n";
-    std::cout << b.route << " " << b.price << "\n";
-    std::cout << c.price << "\n";
+    cout << a.route << " " << a.price << "\n";
+    cout << b.route << " " << b.price << "\n";
+    cout << c.price << "\n";
     return 0;
 }
 `,
@@ -510,6 +521,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 class Cart {
 private:
@@ -521,7 +533,7 @@ public:
         this->total += price;
         return *this;
     }
-    void summary() const { std::cout << items << " items, total " << total << "\n"; }
+    void summary() const { cout << items << " items, total " << total << "\n"; }
 };
 
 int main() {
@@ -536,6 +548,7 @@ int main() {
         codeFill: {
           task: "The parameter has the same name as the member. Fill the gap so the member price is set from the parameter.",
           code: C`#include <iostream>
+using namespace std;
 
 class Item {
 private:
@@ -550,7 +563,7 @@ public:
 int main() {
     Item it;
     it.setPrice(2750);
-    std::cout << it.getPrice() << "\n";
+    cout << it.getPrice() << "\n";
     return 0;
 }
 `,
@@ -569,18 +582,19 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 class Account {
 private:
     inline static int opened = 0;
     int number;
-    std::string owner;
+    string owner;
 public:
-    Account(std::string o) : owner(o) {
+    Account(string o) : owner(o) {
         opened++;
         number = 1000 + opened;
     }
-    void show() const { std::cout << number << " " << owner << "\n"; }
+    void show() const { cout << number << " " << owner << "\n"; }
     static int count() { return opened; }
 };
 
@@ -589,7 +603,7 @@ int main() {
     Account b("Bayo");
     Account c("Chi");
     b.show();
-    std::cout << "Accounts opened: " << Account::count() << "\n";
+    cout << "Accounts opened: " << Account::count() << "\n";
     return 0;
 }
 `,
@@ -601,9 +615,9 @@ int main() {
         id: "a-cp-class-files",
         title: "Separating declarations and definitions into files",
         explain:
-          "Real projects put each class in two files. The header, Account.h, holds the class definition: its members and the declarations of its member functions. The source file, Account.cpp, holds the member functions' definitions, each named with the class and the scope operator: double Account::getBalance() const { ... }. Other files #include \"Account.h\" (quotes, for your own headers) to use the class. All .cpp files are compiled together, and #pragma once at the top of the header stops it being included twice (Week 15 explains guards fully).",
+          "Real projects put each class in two files. The header, Account.h, holds the class definition: its members and the declarations of its member functions. The source file, Account.cpp, holds the member functions' definitions, each named with the class and the scope operator: double Account::getBalance() const { ... }. Other files #include \"Account.h\" (quotes, for your own headers) to use the class. All .cpp files are compiled together, and #pragma once at the top of the header stops it being included twice (Week 15 explains guards fully). Notice one difference from your other programs: the HEADER writes std::string in full and has no using namespace std;. A header is pasted into every file that includes it, so it must not force that line on them; your .cpp files can keep using it. Week 15 explains why.",
         example:
-          "Account.h\n─────────\n#pragma once\n#include <string>\n\nclass Account {\nprivate:\n    std::string owner;\n    double balance = 0;\npublic:\n    explicit Account(std::string owner);\n    void deposit(double amount);\n    double getBalance() const;\n};\n\nAccount.cpp\n───────────\n#include \"Account.h\"\n\nAccount::Account(std::string o) : owner(o) {}\n\nvoid Account::deposit(double amount) {\n    if (amount > 0) balance += amount;\n}\n\ndouble Account::getBalance() const {\n    return balance;\n}\n\nmain.cpp\n────────\n#include <iostream>\n#include \"Account.h\"\n\nint main() {\n    Account acc(\"Ada\");\n    acc.deposit(2500);\n    std::cout << acc.getBalance() << \"\\n\";\n}\n\nBuild both source files into one program:\n\n  g++ -std=c++17 -Wall -Wextra main.cpp Account.cpp -o bank",
+          "Account.h\n─────────\n#pragma once\n#include <string>\n\nclass Account {\nprivate:\n    std::string owner;\n    double balance = 0;\npublic:\n    explicit Account(std::string owner);\n    void deposit(double amount);\n    double getBalance() const;\n};\n\nAccount.cpp\n───────────\n#include \"Account.h\"\n\nAccount::Account(std::string o) : owner(o) {}\n\nvoid Account::deposit(double amount) {\n    if (amount > 0) balance += amount;\n}\n\ndouble Account::getBalance() const {\n    return balance;\n}\n\nmain.cpp\n────────\n#include <iostream>\n#include \"Account.h\"\nusing namespace std;\n\nint main() {\n    Account acc(\"Ada\");\n    acc.deposit(2500);\n    cout << acc.getBalance() << \"\\n\";\n}\n\nBuild both source files into one program:\n\n  g++ -std=c++17 -Wall -Wextra main.cpp Account.cpp -o bank",
         codeFill: {
           task: "Here is the same split in one file: the class declares getBalance, and the definition comes after it. Fill in the start of that definition.",
           code: C`#include <iostream>
@@ -642,7 +656,7 @@ int main() {
         "A constructor that takes the owner's name and an optional opening deposit (a default argument of 0), rejecting a negative deposit.",
         "deposit and withdraw member functions that return bool, refusing amounts of zero or less and withdrawals larger than the balance.",
         "const getters for the balance, owner and account number, and a print() that shows all three with the balance to two decimal places.",
-        "In main, keep accounts in a std::vector<BankAccount> and loop a menu: create an account, deposit, withdraw, check balance, list all, exit.",
+        "In main, keep accounts in a vector<BankAccount> and loop a menu: create an account, deposit, withdraw, check balance, list all, exit.",
         "Find an account by number with a function that returns a pointer to it, or nullptr if there is no such account, and handle both cases in the menu.",
         "Try to change a balance directly from main, read the compiler error, and write a comment explaining why it is a good thing.",
       ],

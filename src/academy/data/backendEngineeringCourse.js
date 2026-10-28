@@ -424,7 +424,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "What databases solve, relational versus document databases, tables, rows, columns and types, primary and foreign keys, one-to-one, one-to-many and many-to-many relationships, ER diagrams, the first three normal forms, constraints, and designing from business requirements.",
           objective: "Design a normalized relational schema, with keys and constraints, from business requirements.",
-          atoms: 10,
+          atoms: 11,
           topics: ["Why databases", "Relational and document databases", "Tables, keys and relationships", "ER diagrams", "Normalization and constraints"],
           curriculum: [
             ["9.1", "What databases solve"],
@@ -451,7 +451,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Installing and configuring PostgreSQL, creating databases and tables, SELECT, INSERT, UPDATE and DELETE, filtering, sorting and limiting, aggregates and GROUP BY, joins and subqueries, common table expressions, constraints and indexes, views and permissions, and execution plans.",
           objective: "Build a PostgreSQL database and answer real questions about it with correct, efficient SQL.",
-          atoms: 14,
+          atoms: 17,
           topics: ["PostgreSQL setup", "CRUD in SQL", "Filtering, sorting and aggregates", "Joins, subqueries and CTEs", "Indexes, views, permissions and plans"],
           curriculum: [
             ["10.1", "Installing and configuring PostgreSQL"],

@@ -70,7 +70,9 @@ export const PACKAGES = {
   multer: () => multerPkg,
   dotenv: () => dotenvPkg,
   "dotenv/config": () => {
-    dotenvPkg.config();
+    // As dotenv's own config.cjs: a side-effect import is quiet unless DOTENV_QUIET / DOTENV_CONFIG_QUIET says otherwise.
+    const quiet = proc.env.DOTENV_QUIET != null ? proc.env.DOTENV_QUIET : proc.env.DOTENV_CONFIG_QUIET;
+    dotenvPkg.config({ quiet: quiet != null ? quiet : true });
     return {};
   },
   yaml: () => esm(yamlNs),

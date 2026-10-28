@@ -1,10 +1,13 @@
 /**
  * C++ PROGRAMMING · MODULE 1 · INTRODUCTION TO PROGRAMMING AND C++
  *
- * Curriculum 1.0 – 1.10. The course opens with what C++ builds and the whole
- * road ahead, so a learner knows where sixteen weeks lead before the first
- * line of syntax. Then what a program is, how C++ becomes one, the first
- * compiled program, and the errors every beginner meets in Week 1.
+ * Curriculum 1.0 – 1.14. The course opens with what C++ builds and the whole
+ * road ahead. Then hands on straight away, in small steps: set up VS Code
+ * and g++, write, compile and run Hello, World!, learn the frame of every
+ * program (#include, main, braces) and printing, until starting a program
+ * feels routine. Only then the ideas behind it (what a program is, what a
+ * compiler does) and the errors every beginner meets in Week 1. Warnings
+ * flags (-Wall -Wextra) are introduced last, once errors make sense.
  *
  * Every `code`, `codeExercise` and `codeFill` here is compiled and run with
  * g++ by `npm run validate:content`; the outputs quoted are the real ones.
@@ -263,7 +266,7 @@ int main() {
           ],
           correct: "a",
           aftermath:
-            "Welcome to C++. Next: what a computer program actually is, and how a computer carries one out.",
+            "Welcome to C++. Next: setting C++ up on your own computer, then your first program.",
         },
       },
     ],
@@ -272,19 +275,833 @@ int main() {
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     LESSON 2 · 1.1 – 1.2
+     LESSON 2 · 1.1  ·  SET UP C++ IN VS CODE
+     Hands on keyboard before any theory: install, check, make a folder.
+  ═══════════════════════════════════════════════════════════════════ */
+  {
+    id: "cp-l4a-setup",
+    moduleId: "cp-m1-intro",
+    sectionId: SECTION_ID,
+    order: 2,
+    covers: ["1.1"],
+    title: "Setting Up C++ in VS Code",
+    subtitle: "Install the editor and the compiler, and check they work",
+    estimatedMinutes: 25,
+    intro:
+      "Before you write any C++ you need two free tools on your computer. This lesson installs them one step at a time, and ends with a quick check that everything works. Take it slowly: set-up is the only part of the course that is different on every computer, and once it is done you never have to do it again.",
+
+    atoms: [
+      {
+        id: "a-cp-what-you-need",
+        title: "The two tools you need",
+        explain:
+          "You need an editor and a compiler. The editor, Visual Studio Code (VS Code), is where you type your program. The compiler, called g++, turns what you typed into a program the computer can run. Both are free. VS Code is the same on every computer; g++ is installed a little differently on Windows, macOS and Linux, so follow only the steps for your own computer.",
+        analogy:
+          "Writing a letter in another language and having it translated. VS Code is the notebook you write in. g++ is the translator who turns your writing into the only language the computer understands.",
+        table: {
+          caption: "What each tool does.",
+          headers: ["Tool", "What it is", "What you do with it"],
+          rows: [
+            ["VS Code", "A code editor", "Type and save your C++ files"],
+            ["C/C++ extension", "An add-on for VS Code", "Colours your code and spots mistakes as you type"],
+            ["g++", "The C++ compiler", "Turns hello.cpp into a program you can run"],
+            ["The terminal", "A window inside VS Code where you type commands", "Tell g++ to compile, then run your program"],
+          ],
+        },
+        decision: {
+          scenario: "A friend has installed VS Code and typed a C++ program into it, but cannot turn it into a program that runs.",
+          question: "What is most likely missing?",
+          options: [
+            {
+              id: "a",
+              text: "The compiler (g++): VS Code is only the editor, and something must still translate the code into a program",
+              why: "Exactly. VS Code is where you write; g++ is what builds the program. You need both.",
+            },
+            {
+              id: "b",
+              text: "A faster computer",
+              whyWrong: "Any ordinary laptop can compile C++. The missing piece is a tool, not speed.",
+            },
+            {
+              id: "c",
+              text: "An internet connection while the program runs",
+              whyWrong: "Compiled C++ programs run without the internet.",
+            },
+            {
+              id: "d",
+              text: "Nothing: VS Code runs C++ by itself",
+              whyWrong: "VS Code edits text. It needs a compiler such as g++ to build C++ programs.",
+            },
+          ],
+          correct: "a",
+          aftermath: "Editor plus compiler. Next: install the editor.",
+        },
+      },
+      {
+        id: "a-cp-install-vscode",
+        title: "Step 1: install VS Code and the C/C++ extension",
+        explain:
+          "Download VS Code, install it with the default options, and open it. Then add Microsoft's C/C++ extension, which teaches VS Code about C++: it colours your code so it is easier to read, and underlines some mistakes before you even compile.",
+        example:
+          "1. Go to code.visualstudio.com and click the big Download button.\n   It picks the right version for your computer.\n\n2. Run the installer. Accept the default options.\n   (On Windows, leave \"Add to PATH\" ticked.)\n\n3. Open VS Code.\n\n4. Click the Extensions icon on the left edge (four small squares),\n   or press Ctrl+Shift+X (Cmd+Shift+X on a Mac).\n\n5. In the search box type:   C/C++\n\n6. Choose the one published by Microsoft and click Install.\n\nThat is the editor ready. Next, the compiler.",
+        mistake:
+          "Installing a different extension with a similar name. Check that the publisher shown under the name is Microsoft.",
+      },
+      {
+        id: "a-cp-install",
+        title: "Step 2: install the g++ compiler",
+        explain:
+          "Now the compiler. Follow ONLY the steps for your computer. On Windows the compiler comes in a free package called MSYS2, and there is one extra step at the end: telling Windows where g++ lives, by adding its folder to a list called the PATH. That step is the one people most often miss, so do not skip it.",
+        example:
+          "WINDOWS\n\n  1. Go to msys2.org and download the installer (msys2-x86_64-...exe).\n  2. Run it and keep the default folder:  C:\\msys64\n  3. When it finishes, a black window opens: the \"MSYS2 UCRT64\" terminal.\n     Type this line exactly and press Enter:\n\n       pacman -S mingw-w64-ucrt-x86_64-gcc\n\n     When it asks \"Proceed with installation? [Y/n]\", press Enter.\n     Wait until it finishes, then close that window.\n  4. Add g++ to the PATH:\n     - Press the Windows key and type:  environment variables\n     - Click \"Edit the system environment variables\"\n     - Click the \"Environment Variables...\" button\n     - Under \"User variables\", click Path, then Edit...\n     - Click New, and type:   C:\\msys64\\ucrt64\\bin\n     - Click OK, OK, OK.\n\nMACOS\n\n  Open the Terminal app and type:\n\n    xcode-select --install\n\n  Click Install in the box that appears and wait for it to finish.\n\nLINUX (Ubuntu, Debian)\n\n  Open a terminal and type:\n\n    sudo apt update\n    sudo apt install g++",
+        why: "The PATH is the list of folders your computer searches when you type a command. Adding C:\\msys64\\ucrt64\\bin to it is what lets you type g++ in any terminal and have Windows find the compiler.",
+      },
+      {
+        id: "a-cp-check-install",
+        title: "Step 3: check that it works",
+        explain:
+          "Close VS Code completely and open it again, so it picks up the changes. Open the terminal inside VS Code from the menu: Terminal, then New Terminal. A panel opens at the bottom of the window. Type g++ --version and press Enter. If you see a version number, everything is installed. If you see an error, the table below says what to do.",
+        example:
+          "In the VS Code terminal:\n\n  > g++ --version\n  g++ (Rev4, Built by MSYS2 project) 16.2.0\n  Copyright (C) 2026 Free Software Foundation, Inc.\n  ...\n\nYour version number may be different. Any version from 9\nupwards works for everything in this course. On a Mac the first\nline mentions \"Apple clang\": that is fine, it understands the\nsame commands.",
+        table: {
+          caption: "If the check fails.",
+          headers: ["You see", "What it means", "What to do"],
+          rows: [
+            ["'g++' is not recognized ...", "Windows cannot find g++", "Check the PATH step, then close VS Code completely and open it again"],
+            ["pacman: command not found", "You typed pacman in the wrong window", "Use the \"MSYS2 UCRT64\" window from the Start menu, not VS Code"],
+            ["command not found: g++ (Mac)", "The Xcode tools are not installed yet", "Run xcode-select --install again and wait for it to finish"],
+            ["A version number", "Everything works", "Go on to Step 4"],
+          ],
+        },
+        decision: {
+          scenario: "You installed MSYS2 and g++, and added the PATH. But VS Code was open the whole time, and its terminal now says: 'g++' is not recognized as the name of a cmdlet...",
+          question: "What should you try first?",
+          options: [
+            {
+              id: "a",
+              text: "Close VS Code completely, open it again, and run g++ --version in a new terminal",
+              why: "A terminal reads the PATH only when it starts. One that was already open before you changed the PATH cannot see g++ yet.",
+            },
+            {
+              id: "b",
+              text: "Uninstall VS Code",
+              whyWrong: "VS Code is fine. It only needs restarting to see the new PATH.",
+            },
+            {
+              id: "c",
+              text: "Install a different compiler",
+              whyWrong: "g++ is installed; the terminal just has not noticed yet.",
+            },
+            {
+              id: "d",
+              text: "Buy a new computer",
+              whyWrong: "Nothing is wrong with the computer. A restart of VS Code is usually all it takes.",
+            },
+          ],
+          correct: "a",
+          aftermath: "Restart VS Code after installing anything. It solves this problem nearly every time.",
+        },
+      },
+      {
+        id: "a-cp-course-folder",
+        title: "Step 4: make a folder for your programs",
+        explain:
+          "Keep every program from this course in one folder. Create a folder called cpp-course somewhere easy to find, such as your Documents or Desktop. In VS Code choose File, then Open Folder, and select it. If VS Code asks whether you trust the authors of the files, click Yes: you are the author. The folder's name now appears at the top of the Explorer panel on the left, and any terminal you open starts inside it.",
+        example:
+          "VS Code with your folder open:\n\n  EXPLORER\n  v CPP-COURSE          <- your folder (empty for now)\n\n  TERMINAL\n  PS C:\\Users\\you\\Documents\\cpp-course>\n                                   ^\n               the terminal is inside your folder\n\nThe terminal's prompt shows which folder you are in.\nWhen you compile, g++ looks for your file in THAT folder.",
+        decision: {
+          scenario: "You are ready to write your first program.",
+          question: "Which of these is the right starting point?",
+          options: [
+            {
+              id: "a",
+              text: "VS Code open, with the cpp-course folder opened through File > Open Folder, and g++ --version working in its terminal",
+              why: "Editor ready, compiler working, and the terminal inside the folder where your files will live. Everything is in place.",
+            },
+            {
+              id: "b",
+              text: "VS Code open with no folder, and the program saved somewhere in Downloads",
+              whyWrong: "The terminal would start somewhere else and g++ would not find your file. Keep everything in one opened folder.",
+            },
+            {
+              id: "c",
+              text: "The program typed in Microsoft Word",
+              whyWrong: "Word changes quotation marks and adds formatting the compiler cannot read. Code belongs in VS Code.",
+            },
+            {
+              id: "d",
+              text: "g++ not installed yet, planning to do it later",
+              whyWrong: "Without g++ you can write code but never run it. Finish the set-up first.",
+            },
+          ],
+          correct: "a",
+          aftermath: "You are set up. Next lesson: Hello, World!",
+        },
+      },
+    ],
+
+    requirements: { read: true, video: false, assessment: true },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+     LESSON 3 · 1.2 – 1.3  ·  HELLO, WORLD!  WRITE, COMPILE, RUN
+  ═══════════════════════════════════════════════════════════════════ */
+  {
+    id: "cp-l4-first-program",
+    moduleId: "cp-m1-intro",
+    sectionId: SECTION_ID,
+    order: 3,
+    covers: ["1.2", "1.3"],
+    title: "Hello, World!",
+    subtitle: "Write your first program, compile it and run it",
+    estimatedMinutes: 22,
+    intro:
+      "Every programmer's first program prints \"Hello, World!\" on the screen. It has done so since the 1970s, because it proves that the editor, the compiler and the computer are all working together. In this lesson you will type it, compile it and run it. Do not worry yet about what each line means: the next lesson explains every character.",
+
+    atoms: [
+      {
+        id: "a-cp-hello",
+        title: "Type your first program",
+        explain:
+          "In VS Code, click the New File icon at the top of the Explorer panel (or File, then New File) and name the file hello.cpp. The .cpp ending matters: it tells VS Code and g++ that the file holds C++. Then type the program below exactly as it is shown, character by character: every symbol is there for a reason. Save it with Ctrl+S (Cmd+S on a Mac).",
+        code: {
+          language: CPP,
+          code: C`#include <iostream>
+
+int main() {
+    std::cout << "Hello, World!\n";
+    return 0;
+}
+`,
+          expectedOutput: "Hello, World!",
+        },
+        mistake:
+          "Copying and pasting instead of typing. Type it yourself: your fingers need to learn where the brackets, quotes and semicolons go, and typing is how they learn.",
+        codeFill: {
+          task: "Practise typing it. Fill the gap with the text, in double quotation marks, that makes the program print exactly: Hello, World!",
+          code: C`#include <iostream>
+
+int main() {
+    std::cout << {{1}} << "\n";
+    return 0;
+}
+`,
+          blanks: [{ answers: ['"Hello, World!"'] }],
+          expectedOutput: "Hello, World!",
+          hint: "Type the words exactly, with the comma and the exclamation mark, and put a double quotation mark \" before and after them.",
+          successMessage: "That is the line that makes the program speak. Now let's turn it into a real program on your computer.",
+        },
+      },
+      {
+        id: "a-cp-compile",
+        title: "Compile it: turn hello.cpp into a program",
+        explain:
+          "Open the terminal (Terminal, then New Terminal). Check that its prompt ends with your cpp-course folder. Then type the command below and press Enter. It asks g++ to read hello.cpp and build a program called hello. If you typed the program correctly, g++ prints NOTHING: no message at all means success. A new file appears in the Explorer panel: hello.exe on Windows, or hello on a Mac or Linux.",
+        example:
+          "In the VS Code terminal, inside your cpp-course folder:\n\n  > g++ hello.cpp -o hello\n  >\n\nNo message: it worked. Look in the Explorer panel:\n\n  v CPP-COURSE\n      hello.cpp      <- what you wrote\n      hello.exe      <- the program g++ built  (just \"hello\" on Mac/Linux)",
+        table: {
+          caption: "g++ hello.cpp -o hello, piece by piece.",
+          headers: ["You type", "It means"],
+          rows: [
+            ["g++", "Run the C++ compiler"],
+            ["hello.cpp", "The file you wrote"],
+            ["-o hello", "Call the finished program hello (\"o\" stands for output)"],
+          ],
+        },
+        why: "If something in the program is mistyped, g++ prints an error message instead, with the line number of the problem. Check that line against the program above, fix it, save, and run the same command again. Lesson 8 teaches you to read those messages properly.",
+        decision: {
+          scenario: "You typed g++ hello.cpp -o hello and pressed Enter. No message appeared, and a new file called hello.exe appeared in the Explorer panel.",
+          question: "What happened?",
+          options: [
+            {
+              id: "a",
+              text: "It compiled successfully: hello.exe is your finished program, ready to run",
+              why: "g++ only prints something when there is a problem. Silence plus a new hello.exe means success.",
+            },
+            {
+              id: "b",
+              text: "Something went wrong, because nothing was printed",
+              whyWrong: "With g++, no message is good news. Errors are always printed, with a line number.",
+            },
+            {
+              id: "c",
+              text: "The program has already run and printed Hello, World! somewhere",
+              whyWrong: "Compiling only BUILDS the program. Running it is the next step.",
+            },
+            {
+              id: "d",
+              text: "hello.exe is a backup copy of hello.cpp",
+              whyWrong: "hello.exe is a new file: your C++ translated into a program the computer can run.",
+            },
+          ],
+          correct: "a",
+          aftermath: "Built. Now run it.",
+        },
+      },
+      {
+        id: "a-cp-run",
+        title: "Run it",
+        explain:
+          "To run the program, type its name with .\\ in front on Windows, or ./ in front on a Mac or Linux, and press Enter. The .\\ means \"the program in this folder\". Hello, World! appears on the next line. That is your first C++ program, written, compiled and run by you.",
+        example:
+          "The whole thing, from start to finish:\n\n  > g++ hello.cpp -o hello      (compile)\n  > .\\hello                     (run, on Windows)\n  Hello, World!\n\nOn a Mac or Linux:\n\n  $ g++ hello.cpp -o hello\n  $ ./hello\n  Hello, World!",
+        mistake:
+          "Typing just hello without the .\\ in front. The terminal then looks for a command called hello somewhere else, and says it cannot find it. The .\\ (or ./) tells it to look in the current folder.",
+      },
+      {
+        id: "a-cp-edit-cycle",
+        title: "Change it: edit, save, compile, run",
+        explain:
+          "Change the message between the quotes to something of your own, such as Hello, Lagos!. To see the change you must do all four steps again: edit, save, compile, run. Compiling makes a NEW hello.exe from your changed code; if you skip it, you are still running the old program and see the old message. Within a week this loop will feel automatic.",
+        table: {
+          caption: "The loop you will repeat for every program in this course.",
+          headers: ["Step", "How"],
+          rows: [
+            ["1 · Edit", "Change the code in hello.cpp"],
+            ["2 · Save", "Ctrl+S (a white dot on the file's tab means it is not saved yet)"],
+            ["3 · Compile", "g++ hello.cpp -o hello"],
+            ["4 · Run", ".\\hello on Windows, ./hello on Mac and Linux"],
+          ],
+        },
+        why: "Tip: in the terminal, press the Up arrow key to bring back the last command you typed, so you do not have to retype the compile command every time.",
+        decision: {
+          scenario: "You changed the message to Hello, Lagos!, saved the file, and typed .\\hello. It still prints Hello, World!",
+          question: "What did you forget?",
+          options: [
+            {
+              id: "a",
+              text: "To compile again: hello.exe was built from the old code, so g++ hello.cpp -o hello must be run before .\\hello",
+              why: "Saving changes hello.cpp. Only compiling changes hello.exe. Edit, save, compile, run.",
+            },
+            {
+              id: "b",
+              text: "To restart the computer",
+              whyWrong: "Restarting changes nothing; hello.exe is still the old program until you compile again.",
+            },
+            {
+              id: "c",
+              text: "To delete hello.cpp",
+              whyWrong: "hello.cpp holds your new code. You need it to compile the new version.",
+            },
+            {
+              id: "d",
+              text: "Nothing: C++ takes a few minutes to notice changes",
+              whyWrong: "There is no delay. The program you ran is simply the old one.",
+            },
+          ],
+          correct: "a",
+          aftermath: "Edit, save, compile, run. Every time.",
+        },
+      },
+      {
+        id: "a-cp-run-button",
+        title: "A shortcut: the Run button",
+        explain:
+          "The C/C++ extension adds a small play button (a triangle) at the top right of VS Code when a .cpp file is open. Clicking it, then \"Run C/C++ File\", compiles and runs the file in one go; the first time, choose the option that mentions g++. It is handy, but learn the terminal way first and keep using it this week: it shows you exactly what is happening, and it is how you will build bigger, multi-file projects later in the course.",
+        why: "If the Run button ever does something confusing, fall back to the two commands you already know. They always work, and they are what the button runs behind the scenes.",
+      },
+    ],
+
+    requirements: { read: true, video: false, assessment: true },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+     LESSON 4 · 1.4 – 1.5  ·  THE SKELETON OF EVERY PROGRAM
+  ═══════════════════════════════════════════════════════════════════ */
+  {
+    id: "cp-l4b-anatomy",
+    moduleId: "cp-m1-intro",
+    sectionId: SECTION_ID,
+    order: 4,
+    covers: ["1.4", "1.5"],
+    title: "The Skeleton of Every C++ Program",
+    subtitle: "#include and libraries, main(), braces and return",
+    estimatedMinutes: 22,
+    intro:
+      "Hello, World! has five lines, and almost every C++ program you will ever write starts with the same frame around them. This lesson takes that frame apart one line at a time, so that writing the start of a program becomes something you can do without thinking.",
+
+    atoms: [
+      {
+        id: "a-cp-anatomy",
+        title: "The same frame, every time",
+        explain:
+          "Look at Hello, World! again. Only one line, the one with the message, is about this particular program. The rest is a frame that almost every C++ program starts with: a line that brings in the tools for printing, the line where the program begins, an opening brace, a closing line that says \"finished\", and a closing brace. Learn the frame once and you can start any program.",
+        code: {
+          language: CPP,
+          code: C`#include <iostream>
+
+int main() {
+    std::cout << "This line is the program's own work.\n";
+    return 0;
+}
+`,
+          expectedOutput: "This line is the program's own work.",
+        },
+        table: {
+          caption: "The frame, line by line. The next atoms explain each one.",
+          headers: ["Line", "In plain words"],
+          rows: [
+            ["#include <iostream>", "Bring in the ready-made tools for printing and reading"],
+            ["(a blank line)", "Just spacing, to make it easier to read"],
+            ["int main() {", "The program starts here. The { opens its body"],
+            ["    std::cout << ...;", "Your instructions go here, one per line"],
+            ["    return 0;", "Finish, and report \"all went well\""],
+            ["}", "Close the body that { opened"],
+          ],
+        },
+      },
+      {
+        id: "a-cp-include",
+        title: "#include: borrowing ready-made tools",
+        explain:
+          "C++ itself is small. Most of what programs use, such as printing to the screen, lives in libraries: collections of ready-made code that come with the compiler. #include <iostream> tells the compiler \"bring in the iostream library before you start\". iostream stands for input/output stream: it holds std::cout for printing and std::cin for reading the keyboard. The rules: it starts with #, the library name goes in angle brackets < >, it has no semicolon, and it goes at the very top of the file.",
+        analogy:
+          "A toolbox. Before you can drive a screw you take the screwdriver out of the box. #include <iostream> takes the printing tools out of the box so your program can use them.",
+        code: {
+          language: CPP,
+          code: C`int main() {
+    std::cout << "Hello!\n";
+    return 0;
+}
+`,
+          compileError: "'cout' is not a member of 'std'",
+        },
+        why: "Forget the #include and g++ refuses: it has never heard of cout. g++ even adds a note suggesting you include <iostream>. When the compiler says something \"is not a member of std\" or \"was not declared\", a missing #include is one of the first things to check.",
+        codeFill: {
+          task: "The program above is missing its first line. Type it, so the program compiles and prints Hello!",
+          code: C`{{1}}
+
+int main() {
+    std::cout << "Hello!\n";
+    return 0;
+}
+`,
+          blanks: [{ answers: ["#include <iostream>"] }],
+          expectedOutput: "Hello!",
+          hint: "A hash sign, the word include, then iostream inside angle brackets. No semicolon.",
+          successMessage: "#include <iostream>. You will type that line at the top of nearly every program in this course.",
+        },
+      },
+      {
+        id: "a-cp-libraries",
+        title: "Other libraries you will meet",
+        explain:
+          "iostream is the first of many. As the course goes on you will include more libraries, each on its own line at the top of the file, in any order. You only include the ones your program actually uses.",
+        table: {
+          caption: "Libraries you will use, and when.",
+          headers: ["Line", "Gives you", "First used"],
+          rows: [
+            ["#include <iostream>", "Printing (cout) and reading the keyboard (cin)", "Now"],
+            ["#include <string>", "Text in variables", "Week 2"],
+            ["#include <iomanip>", "Neat number formatting", "Week 2"],
+            ["#include <cmath>", "Powers, square roots and rounding", "Week 3"],
+            ["#include <vector>", "Lists that can grow", "Week 6"],
+            ["#include <fstream>", "Reading and writing files", "Week 11"],
+          ],
+        },
+        decision: {
+          scenario: "Four learners each typed the first line of their program.",
+          question: "Which one is correct?",
+          options: [
+            {
+              id: "a",
+              text: "#include <iostream>",
+              why: "Hash sign, include, and the library name in angle brackets. No semicolon needed.",
+            },
+            {
+              id: "b",
+              text: "include <iostream>",
+              whyWrong: "The # at the start is required: it marks an instruction for the compiler's first pass.",
+            },
+            {
+              id: "c",
+              text: "#include iostream",
+              whyWrong: "The library name must be inside angle brackets: <iostream>.",
+            },
+            {
+              id: "d",
+              text: "#Include <IOSTREAM>",
+              whyWrong: "C++ is case-sensitive: include and iostream are both written in lower case.",
+            },
+          ],
+          correct: "a",
+          aftermath: "#include, angle brackets, lower case, no semicolon.",
+        },
+      },
+      {
+        id: "a-cp-main",
+        title: "int main(): where every program starts",
+        explain:
+          "When you run a C++ program, the computer looks for a function called main and starts there. Every program has exactly one main. Read int main() as three parts: main is the name; the empty brackets () mean it needs nothing to start; and int (short for integer, a whole number) means that when it finishes it hands back a number to say how it went. return 0; at the end hands back 0, which means \"finished with no problems\".",
+        table: {
+          caption: "int main() { ... return 0; }, word by word.",
+          headers: ["Part", "Meaning"],
+          rows: [
+            ["int", "main gives back a whole number when it finishes"],
+            ["main", "The special name: the program starts here"],
+            ["()", "main needs no information to start"],
+            ["{", "Start of main's instructions"],
+            ["return 0;", "Stop now and report success (0)"],
+            ["}", "End of main's instructions"],
+          ],
+        },
+        codeFill: {
+          task: "The frame is missing two lines. Fill gap 1 with the line where the program starts (without the brace, which is already there), and gap 2 with the line that finishes it and reports success.",
+          code: C`#include <iostream>
+
+{{1}} {
+    std::cout << "I can write the frame.\n";
+    {{2}}
+}
+`,
+          blanks: [{ answers: ["int main()"] }, { answers: ["return 0;"] }],
+          expectedOutput: "I can write the frame.",
+          hint: "Gap 1 is int main(), with empty brackets. Gap 2 is return 0; with its semicolon.",
+          successMessage: "int main() and return 0;. You can now write the whole frame of a program yourself.",
+        },
+      },
+      {
+        id: "a-cp-braces",
+        title: "Braces: the start and end of main",
+        explain:
+          "The braces { and } mark where main's instructions begin and end; everything between them belongs to main. Every { must have a matching }, and the lines between them are indented (pushed in) by four spaces so you can see at a glance what is inside. Instructions run from top to bottom, and return 0; ends the program, so anything written after it inside main never runs.",
+        code: {
+          language: CPP,
+          code: C`#include <iostream>
+
+int main() {
+    std::cout << "Hello!\n";
+    return 0;
+`,
+          compileError: "expected '}' at end of input",
+        },
+        why: "The closing brace is missing, so g++ reaches the end of the file still waiting for it: \"expected '}' at end of input\". Typing the closing brace straight after the opening one, then filling in between, makes this mistake almost impossible.",
+        codeExercise: {
+          language: CPP,
+          code: C`#include <iostream>
+
+int main() {
+    std::cout << "One\n";
+    std::cout << "Two\n";
+    return 0;
+    std::cout << "Three\n";
+}
+`,
+          question: "Lines run from top to bottom, and return 0; ends the program. What does this print?",
+          expectedOutput: "One\nTwo",
+          hint: "The program finishes at return 0;. Does the line after it ever get its turn?",
+          successMessage: "One and Two. return 0; ended the program, so Three was never printed. Your instructions go BEFORE return 0;.",
+        },
+      },
+    ],
+
+    requirements: { read: true, video: false, assessment: true },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+     LESSON 5 · 1.6 – 1.7  ·  PRINTING TEXT
+  ═══════════════════════════════════════════════════════════════════ */
+  {
+    id: "cp-l4c-printing",
+    moduleId: "cp-m1-intro",
+    sectionId: SECTION_ID,
+    order: 5,
+    covers: ["1.6", "1.7"],
+    title: "Printing Text to the Screen",
+    subtitle: "std::cout, new lines, several lines, and numbers",
+    estimatedMinutes: 25,
+    intro:
+      "Now the part inside the frame. Printing is how your programs talk to the person using them, and for the next few weeks it is how you will see every result. By the end of this lesson you will be able to print any text you like, on as many lines as you like.",
+
+    atoms: [
+      {
+        id: "a-cp-cout",
+        title: "std::cout: printing a line of text",
+        explain:
+          "std::cout << \"Good morning\"; prints Good morning on the screen. Read it in four parts. std::cout is the screen (cout means \"console output\"; std:: means it comes from the standard library you included). << sends what is on its right to the screen: think of it as an arrow pointing into cout. \"Good morning\" is the text, inside double quotation marks. And ; ends the instruction, like a full stop ends a sentence.",
+        table: {
+          caption: "std::cout << \"Good morning\\n\"; piece by piece.",
+          headers: ["Piece", "Meaning"],
+          rows: [
+            ["std::cout", "The screen"],
+            ["<<", "Send this to the screen (the arrows point at cout)"],
+            ["\"Good morning\\n\"", "The text, in double quotes. \\n ends the line (more on that below)"],
+            [";", "End of the instruction"],
+          ],
+        },
+        why: "Typing std:: in front of every cout gets tiring quickly. The next atom shows you the one line that lets you write just cout, and from then on that is how this course writes it.",
+        codeFill: {
+          task: "Write a whole printing line yourself. Fill the gap so the program prints exactly: I am learning C++",
+          code: C`#include <iostream>
+
+int main() {
+    {{1}}
+    return 0;
+}
+`,
+          blanks: [
+            {
+              answers: [
+                C`std::cout << "I am learning C++\n";`,
+                C`std::cout << "I am learning C++" << "\n";`,
+                C`std::cout << "I am learning C++" << std::endl;`,
+                C`std::cout << "I am learning C++";`,
+              ],
+              width: 36,
+            },
+          ],
+          expectedOutput: "I am learning C++",
+          hint: "Copy the shape: std::cout << \"your text\\n\"; with the exact words between the quotes and a semicolon at the end.",
+          successMessage: "A complete line of C++, written by you. Everything else in this lesson is variations on it.",
+        },
+      },
+      {
+        id: "a-cp-using-namespace",
+        title: "using namespace std: just write cout",
+        explain:
+          "The std:: in std::cout names a namespace: a labelled group of names. The standard library keeps all of its tools (cout, cin, string, endl and hundreds more) inside a namespace called std, so they can never clash with names you invent. std::cout means \"the cout that lives in std\". Writing that every time is long, so add one line under your #include lines: using namespace std;. It tells the compiler \"when I write a name, look inside std as well\". After it, you can write just cout. From here on, every program in this course starts this way.",
+        analogy:
+          "Two classmates are both called Tunde, so the teacher says \"Tunde from Lagos\" and \"Tunde from Kano\". In a class with only one Tunde, everyone just says Tunde. using namespace std; tells the compiler that, in this program, cout simply means the standard one.",
+        code: {
+          language: CPP,
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "No more std:: in front of cout!\n";
+    cout << "The program works exactly the same.\n";
+    return 0;
+}
+`,
+          expectedOutput: "No more std:: in front of cout!\nThe program works exactly the same.",
+        },
+        table: {
+          caption: "The frame you will start every program with from now on.",
+          headers: ["Line", "In plain words"],
+          rows: [
+            ["#include <iostream>", "Bring in the printing tools"],
+            ["using namespace std;", "Let me write cout instead of std::cout"],
+            ["int main() {", "The program starts here"],
+            ["    cout << \"...\";", "Your instructions"],
+            ["    return 0;", "Finish, and report success"],
+            ["}", "Close main"],
+          ],
+        },
+        why: "Most beginner courses and books write it this way, so it is what you will see most when you look things up. In Week 15, once your programs are split across several files, you will learn why professional teams often go back to writing std:: in full, and when that matters.",
+        codeFill: {
+          task: "This program uses plain cout, but one line is missing, so it will not compile. Fill the gap with the line that lets you write cout instead of std::cout.",
+          code: C`#include <iostream>
+{{1}}
+
+int main() {
+    cout << "I can write cout on its own now.\n";
+    return 0;
+}
+`,
+          blanks: [{ answers: ["using namespace std;"] }],
+          expectedOutput: "I can write cout on its own now.",
+          hint: "Three words and a semicolon: using, namespace, and the name of the standard library's namespace.",
+          successMessage: "using namespace std; One line under the #includes, and plain cout works everywhere in your program.",
+        },
+      },
+      {
+        id: "a-cp-text-exact",
+        title: "Text is printed exactly as you type it",
+        explain:
+          "Whatever is between the double quotes is printed exactly: every space, every capital letter, every comma. The quotes themselves are not printed; they only mark where the text starts and ends. You can also send several pieces of text in one instruction by adding more << between them; they are printed one after another with nothing added between, so put any spaces you want inside the quotes.",
+        table: {
+          caption: "Common mistakes when printing text.",
+          headers: ["Wrong", "Problem", "Right"],
+          rows: [
+            ["cout << \"Hello;", "The closing quote is missing", "cout << \"Hello\";"],
+            ["cout << Hello;", "No quotes, so C++ looks for something named Hello", "cout << \"Hello\";"],
+            ["cout << 'Hello';", "Single quotes are for ONE character only", "cout << \"Hello\";"],
+            ["cout << \"Hello\"", "No semicolon at the end", "cout << \"Hello\";"],
+            ["cout >> \"Hello\";", "The arrows point the wrong way", "cout << \"Hello\";"],
+          ],
+        },
+        codeExercise: {
+          language: CPP,
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Good morning, " << "class" << "!\n";
+    cout << "Today: " << "C++" << " practice\n";
+    return 0;
+}
+`,
+          question: "Each << adds the next piece straight after the last, with only the spaces that are inside the quotes. What does this print?",
+          expectedOutput: "Good morning, class!\nToday: C++ practice",
+          hint: "Join the pieces exactly as they are. The space after the comma is inside the first piece; the space before practice is inside the last one.",
+          successMessage: "Exactly right. The pieces are glued together with only the spaces you put inside the quotes.",
+        },
+      },
+      {
+        id: "a-cp-several-lines",
+        title: "Several lines: instructions run in order",
+        explain:
+          "A program can print as many lines as you like: write one cout instruction under another, and they run from top to bottom, in order. But cout never starts a new line by itself. If one cout does not end with \\n, the next one carries on straight after it, on the same line.",
+        codeExercise: {
+          language: CPP,
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello";
+    cout << "World\n";
+    cout << "Done\n";
+    return 0;
+}
+`,
+          question: "Each cout sends text to the screen. A new line only starts where there is a \\n. What does this program print?",
+          expectedOutput: "HelloWorld\nDone",
+          hint: "The first cout has no \\n at the end, so the second one carries on on the same line.",
+          successMessage:
+            "HelloWorld, then Done. cout prints exactly what you give it and nothing more: no space, no new line, unless you ask for one.",
+        },
+      },
+      {
+        id: "a-cp-newlines",
+        title: "Starting a new line: \\n and endl",
+        explain:
+          "\\n inside the quotes means \"start a new line here\". You type two keys, a backslash and the letter n, but it counts as one special character and is never printed as \\n. Put it at the end of each line of text, or in the middle to split one piece of text over two lines. You will also see endl, which ends the line too: cout << \"Hi\" << endl;. Both work; this course mostly uses \\n because it is shorter.",
+        code: {
+          language: CPP,
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Line one\n";
+    cout << "Line two\nLine three\n";
+    cout << "Line four" << endl;
+    return 0;
+}
+`,
+          expectedOutput: "Line one\nLine two\nLine three\nLine four",
+        },
+        codeFill: {
+          task: "Make this address label print on three lines. Fill both gaps with what starts a new line.",
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Memora Academy{{1}}";
+    cout << "12 Allen Avenue{{2}}";
+    cout << "Ikeja, Lagos\n";
+    return 0;
+}
+`,
+          blanks: [{ answers: [C`\n`] }, { answers: [C`\n`] }],
+          expectedOutput: "Memora Academy\n12 Allen Avenue\nIkeja, Lagos",
+          hint: "Look at the last line: it already ends with the two characters that start a new line. Type the same two characters in each gap.",
+          successMessage: "\\n twice. Without them, the whole address would have run together on one line.",
+        },
+      },
+      {
+        id: "a-cp-cout-values",
+        title: "Printing numbers and calculations",
+        explain:
+          "cout can print more than text. A number without quotes is printed as a number, and a calculation without quotes is worked out first and its answer printed. You can chain text and numbers with << in one statement; put spaces inside the quotes where you want them.",
+        code: {
+          language: CPP,
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "7 + 5" << "\n";
+    cout << 7 + 5 << "\n";
+    cout << "7 + 5 = " << 7 + 5 << "\n";
+    return 0;
+}
+`,
+          expectedOutput: "7 + 5\n12\n7 + 5 = 12",
+        },
+        why: "Line 4 prints characters because they are in quotes. Line 5 prints the result because they are not. Line 6 mixes both, which is how almost every useful output line in this course is built.",
+        codeFill: {
+          task: "A trader sold goods worth 4850 naira in the morning and 3975 in the afternoon. Fill the gap so C++ calculates the day's total. Do not type the answer yourself: let the program do the arithmetic.",
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Total for the day: " << {{1}} << "\n";
+    return 0;
+}
+`,
+          blanks: [{ answers: ["4850 + 3975", "3975 + 4850"] }],
+          expectedOutput: "Total for the day: 8825",
+          hint: "Put the two amounts with a + between them, and no quotation marks, so C++ treats it as a calculation.",
+          successMessage:
+            "8825, worked out by the program. That is the whole point of programming: you write the method, the computer does the work.",
+        },
+      },
+      {
+        id: "a-cp-print-practice",
+        title: "Your turn: print a small report",
+        explain:
+          "Put it all together: the frame, several cout lines, text in quotes, new lines and one calculation. Fill each gap with a complete printing instruction. This is exactly the kind of program you will build in this module's mini-project.",
+        codeFill: {
+          task: "Fill gap 1 so it prints the line Student: Ada, and gap 2 so it prints Total score: followed by the result of 78 + 85 (let C++ add them).",
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "=== RESULT SLIP ===\n";
+    {{1}}
+    {{2}}
+    cout << "===================\n";
+    return 0;
+}
+`,
+          blanks: [
+            {
+              answers: [
+                C`cout << "Student: Ada\n";`,
+                C`std::cout << "Student: Ada\n";`,
+                C`cout << "Student: Ada" << "\n";`,
+                C`std::cout << "Student: Ada" << "\n";`,
+                C`cout << "Student: Ada" << endl;`,
+                C`std::cout << "Student: Ada" << std::endl;`
+              ],
+              width: 32,
+            },
+            {
+              answers: [
+                C`cout << "Total score: " << 78 + 85 << "\n";`,
+                C`std::cout << "Total score: " << 78 + 85 << "\n";`,
+                C`cout << "Total score: " << 78 + 85 << endl;`,
+                C`std::cout << "Total score: " << 78 + 85 << std::endl;`,
+                C`cout << "Total score: " << (78 + 85) << "\n";`,
+                C`std::cout << "Total score: " << (78 + 85) << "\n";`
+              ],
+              width: 44,
+            },
+          ],
+          expectedOutput: "=== RESULT SLIP ===\nStudent: Ada\nTotal score: 163\n===================",
+          hint: "Gap 1 is plain text in quotes ending with \\n. Gap 2 is text in quotes (ending with a space after the colon), then << and the calculation without quotes, then << \"\\n\".",
+          successMessage:
+            "A real little program, every printing line written by you. You can now start any C++ program and make it say anything you want.",
+        },
+      },
+    ],
+
+    requirements: { read: true, video: false, assessment: true },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+     LESSON 6 · 1.8 – 1.9  ·  THE IDEAS BEHIND WHAT YOU HAVE DONE
   ═══════════════════════════════════════════════════════════════════ */
   {
     id: "cp-l2-programs",
     moduleId: "cp-m1-intro",
     sectionId: SECTION_ID,
-    order: 2,
-    covers: ["1.1", "1.2"],
+    order: 6,
+    covers: ["1.8", "1.9"],
     title: "What a Program Is, and How a Computer Runs One",
     subtitle: "Instructions, input and output, the CPU and memory",
     estimatedMinutes: 14,
     intro:
-      "You use dozens of programs every day without thinking about them. This lesson is about what they all have in common, and about what the computer is physically doing while one of them runs. You will finish by tracing a short program yourself, exactly the way a computer would.",
+      "You have now written, compiled and run real programs. Time to step back and look at what you have been doing: what a program actually is, and what the computer physically does when you run one. You will finish by tracing a short program yourself, exactly the way a computer would.",
 
     atoms: [
       {
@@ -385,6 +1202,35 @@ int main() {
         analogy:
           "A chef (the CPU) working from a recipe book on the shelf (storage). To cook, the chef copies today's recipe onto the counter (memory) and follows it step by step. When the kitchen closes, the counter is wiped, but the book is still on the shelf.",
         why: "C++ gives you direct control over memory, more than most languages. In Week 8 you will see the actual addresses where your data lives in RAM. It all starts with this picture.",
+        codeFill: {
+          task: "The CPU runs instructions one at a time, in order. This program prints the steps of an ATM withdrawal, but step 2 is missing. Fill the gap so it prints 2. Check PIN and balance, in the right place.",
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "1. Read card\n";
+    {{1}}
+    cout << "3. Give cash\n";
+    return 0;
+}
+`,
+          blanks: [
+            {
+              answers: [
+                C`cout << "2. Check PIN and balance\n";`,
+                C`std::cout << "2. Check PIN and balance\n";`,
+                C`cout << "2. Check PIN and balance" << "\n";`,
+                C`std::cout << "2. Check PIN and balance" << "\n";`,
+                C`cout << "2. Check PIN and balance" << endl;`,
+                C`std::cout << "2. Check PIN and balance" << std::endl;`
+              ],
+              width: 42,
+            },
+          ],
+          expectedOutput: "1. Read card\n2. Check PIN and balance\n3. Give cash",
+          hint: "A normal printing line, in the same shape as the lines above and below the gap, with the step 2 text.",
+          successMessage: "Three instructions, run in the order written. Put step 2 after step 3 and the ATM would give cash before checking your PIN.",
+        },
       },
       {
         id: "a-cp-trace-demo",
@@ -395,13 +1241,14 @@ int main() {
           language: "pseudocode",
           code: "SET a TO 10\nSET b TO 4\nSET a TO a + b\nSET b TO a * 2\nOUTPUT a\nOUTPUT b\n",
           equivalentCpp: C`#include <iostream>
+using namespace std;
 int main() {
     int a = 10;
     int b = 4;
     a = a + b;
     b = a * 2;
-    std::cout << a << "\n";
-    std::cout << b << "\n";
+    cout << a << "\n";
+    cout << b << "\n";
 }
 `,
           expectedOutput: "14\n28",
@@ -429,14 +1276,15 @@ int main() {
           language: "pseudocode",
           code: "SET x TO 7\nSET y TO 2\nSET x TO x + y\nSET y TO x - y\nSET x TO x - y\nOUTPUT x\nOUTPUT y\n",
           equivalentCpp: C`#include <iostream>
+using namespace std;
 int main() {
     int x = 7;
     int y = 2;
     x = x + y;
     y = x - y;
     x = x - y;
-    std::cout << x << "\n";
-    std::cout << y << "\n";
+    cout << x << "\n";
+    cout << y << "\n";
 }
 `,
           question: "Trace it line by line. What are the two lines of output?",
@@ -452,19 +1300,19 @@ int main() {
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     LESSON 3 · 1.3 – 1.4
+     LESSON 7 · 1.10 – 1.11
   ═══════════════════════════════════════════════════════════════════ */
   {
     id: "cp-l3-what-is-cpp",
     moduleId: "cp-m1-intro",
     sectionId: SECTION_ID,
-    order: 3,
-    covers: ["1.3", "1.4"],
+    order: 7,
+    covers: ["1.10", "1.11"],
     title: "What C++ Is, and How Code Becomes a Program",
     subtitle: "History, uses, source code, compilers and executables",
     estimatedMinutes: 15,
     intro:
-      "A CPU understands only machine code: patterns of ones and zeros. Nobody writes that by hand. You will write C++, and a program called a compiler will translate it. This lesson covers where C++ came from, what makes it different, and exactly what happens between the text you type and the program you run.",
+      "Every time you typed g++ hello.cpp -o hello, a compiler translated your C++ into machine code: the patterns of ones and zeros a processor actually understands. This lesson explains where C++ came from, what makes it different from other languages, and exactly what happened inside that one command.",
 
     atoms: [
       {
@@ -487,6 +1335,21 @@ int main() {
           ],
         },
         why: "Knowing the standards explains why tutorials online look different from each other. Old tutorials written before 2011 show habits modern C++ has replaced, and this course will point those out when they come up.",
+        codeFill: {
+          task: "C++ was started in 1979 and got its name 4 years later. Fill the gap so the program calculates the year itself, rather than you typing 1983.",
+          code: C`#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "C++ got its name in " << {{1}} << "\n";
+    return 0;
+}
+`,
+          blanks: [{ answers: ["1979 + 4", "4 + 1979"] }],
+          expectedOutput: "C++ got its name in 1983",
+          hint: "A calculation, with no quotation marks: the starting year plus the number of years.",
+          successMessage: "1983. Text in quotes, a calculation without them: the printing skills from Lesson 5 at work.",
+        },
       },
       {
         id: "a-cp-strengths",
@@ -530,7 +1393,7 @@ int main() {
         explain:
           "Source code is the program as you write it: plain text, in a file whose name ends in .cpp, such as hello.cpp. It is written for people as much as for the computer. The CPU cannot run it directly; it must first be translated into machine code.",
         example:
-          "hello.cpp is a plain text file. Opened in any text editor, it looks like this:\n\n  #include <iostream>\n\n  int main() {\n      std::cout << \"Hello!\\n\";\n      return 0;\n  }\n\nThe same instructions as machine code would be thousands of\nbytes of numbers that no person could read.",
+          "hello.cpp is a plain text file. Opened in any text editor, it looks like this:\n\n  #include <iostream>\n using namespace std;\n  using namespace std;\n\n  int main() {\n      cout << \"Hello!\\n\";\n      return 0;\n  }\n\nThe same instructions as machine code would be thousands of\nbytes of numbers that no person could read.",
         mistake:
           "Writing code in a word processor such as Microsoft Word. It quietly replaces straight quotes \" with curly ones “ ”, which the compiler rejects. Always write code in a code editor such as VS Code.",
       },
@@ -538,14 +1401,14 @@ int main() {
         id: "a-cp-compiler",
         title: "From source code to an executable",
         explain:
-          "A compiler is a program that translates your whole source file into machine code before the program runs. The result is an executable: a file the computer can run directly, such as hello.exe on Windows or hello on macOS and Linux. Building it happens in stages, though one command runs them all.",
+          "A compiler is a program that translates your whole source file into machine code before the program runs. The result is an executable: a file the computer can run directly, such as the hello.exe you built in Lesson 3. Building it happens in stages, though your one command, g++ hello.cpp -o hello, runs them all.",
         table: {
           caption: "What happens when you compile hello.cpp with g++.",
           headers: ["Stage", "What it does", "Example"],
           rows: [
             ["1 · Preprocessor", "Handles lines that start with #, such as pasting in the contents of <iostream>", "#include <iostream> brings in the tools for printing"],
             ["2 · Compiler", "Checks your C++ is valid and translates it into machine code", "Reports errors such as a missing semicolon"],
-            ["3 · Linker", "Joins your machine code with the library code it uses", "Connects std::cout to the code that actually prints"],
+            ["3 · Linker", "Joins your machine code with the library code it uses", "Connects cout to the code that actually prints"],
             ["4 · Executable", "One file you can run, with no compiler needed", "hello.exe (Windows) or hello (macOS, Linux)"],
           ],
         },
@@ -569,32 +1432,32 @@ int main() {
         },
         decision: {
           scenario:
-            "You compiled hello.cpp into hello.exe and ran it. Then you changed the message in hello.cpp, saved the file, and ran hello.exe again. It still prints the old message.",
-          question: "Why?",
+            "You email your hello.exe to a friend who also uses Windows. They have never installed g++ or VS Code.",
+          question: "Can they run it?",
           options: [
             {
               id: "a",
-              text: "hello.exe was built from the old source code; you must compile again to rebuild it from the new version",
-              why: "The executable is a separate file made at compile time. Changing the source does not change it. Edit, save, compile, run: that loop becomes automatic within a week.",
+              text: "Yes: hello.exe is already machine code, so it runs without a compiler",
+              why: "The compiler is only needed to BUILD the program. The finished executable runs on any similar computer, which is how all the software you install is delivered.",
             },
             {
               id: "b",
-              text: "VS Code did not save the file properly",
-              whyWrong: "The file was saved. The problem is that the program you ran was built before you saved it.",
+              text: "No: they need hello.cpp and g++ to run it",
+              whyWrong: "They would need those to rebuild or change it, not to run the finished executable.",
             },
             {
               id: "c",
-              text: "C++ caches messages for speed",
-              whyWrong: "There is no such cache. You simply ran an executable made from the old source.",
+              text: "Only if they open it in VS Code",
+              whyWrong: "An executable runs directly; it does not need an editor.",
             },
             {
               id: "d",
-              text: "The computer needs restarting",
-              whyWrong: "Restarting changes nothing. hello.exe is still the old program until it is rebuilt.",
+              text: "Yes, and it will also run on a Mac",
+              whyWrong: "An executable is built for one kind of system. For a Mac, the source must be compiled again on, or for, a Mac.",
             },
           ],
           correct: "a",
-          aftermath: "Edit, save, compile, run. In the next lesson you will set up exactly that loop on your own computer.",
+          aftermath: "Compile once, run on any similar computer. That is what makes compiled programs easy to share and fast to run.",
         },
       },
     ],
@@ -603,196 +1466,14 @@ int main() {
   },
 
   /* ═══════════════════════════════════════════════════════════════════
-     LESSON 4 · 1.5 – 1.7
-  ═══════════════════════════════════════════════════════════════════ */
-  {
-    id: "cp-l4-first-program",
-    moduleId: "cp-m1-intro",
-    sectionId: SECTION_ID,
-    order: 4,
-    covers: ["1.5", "1.6", "1.7"],
-    title: "Your First C++ Program",
-    subtitle: "Installing a compiler, compiling, and what every line means",
-    estimatedMinutes: 20,
-    intro:
-      "Time to write real C++. You will install VS Code and the g++ compiler, compile and run a program from the terminal, and then take the program apart line by line until nothing in it is a mystery. From this lesson on, every lesson asks you to write C++ yourself.",
-
-    atoms: [
-      {
-        id: "a-cp-install",
-        title: "Installing VS Code and a C++ compiler",
-        explain:
-          "You need two free tools. Visual Studio Code is the editor where you write code. g++ is the compiler from the GCC project that turns it into a program; on Windows it comes as MinGW-w64, installed through MSYS2. Install both, then check the compiler works by asking it for its version.",
-        example:
-          "1. Install VS Code from code.visualstudio.com. In VS Code, open\n   Extensions (Ctrl+Shift+X) and install \"C/C++\" by Microsoft.\n\n2. Install the compiler:\n\n   Windows   Install MSYS2 from msys2.org. In the \"MSYS2 UCRT64\"\n             terminal run:\n               pacman -S mingw-w64-ucrt-x86_64-gcc\n             Then add C:\\msys64\\ucrt64\\bin to your Windows PATH\n             (Start → \"Edit the system environment variables\").\n\n   macOS     In Terminal run:  xcode-select --install\n\n   Linux     sudo apt install g++      (Ubuntu / Debian)\n\n3. Close and reopen VS Code, open the terminal (View → Terminal)\n   and type:\n\n     g++ --version\n\n   You should see a version number. Any version from 9 upwards\n   supports everything in this course.\n\n4. Make a folder called cpp-course and open it in VS Code\n   (File → Open Folder). Every program you write goes here.",
-        mistake:
-          "\"g++ is not recognized\" right after installing. The terminal reads the list of program locations (the PATH) only when it starts. Close VS Code completely and open it again; on Windows, check that C:\\msys64\\ucrt64\\bin really is on your PATH.",
-      },
-      {
-        id: "a-cp-build-command",
-        title: "Compiling and running from the terminal",
-        explain:
-          "To build a program you give g++ the source file and the name of the executable to make. Then you run the executable. The extra settings shown here ask for the C++17 standard and switch on warnings: messages about code that is legal but probably a mistake. Use them for every program in this course.",
-        table: {
-          caption: "g++ -std=c++17 -Wall -Wextra hello.cpp -o hello, piece by piece.",
-          headers: ["Part", "Meaning"],
-          rows: [
-            ["g++", "Run the GCC C++ compiler"],
-            ["-std=c++17", "Use the C++17 standard, the one this course teaches"],
-            ["-Wall -Wextra", "Warn about code that is valid but suspicious; read every warning"],
-            ["hello.cpp", "The source file to compile"],
-            ["-o hello", "Name the executable hello (hello.exe on Windows)"],
-          ],
-        },
-        example:
-          "In the VS Code terminal, inside your cpp-course folder:\n\n  > g++ -std=c++17 -Wall -Wextra hello.cpp -o hello\n  > ./hello              (macOS and Linux)\n  > .\\hello.exe          (Windows)\n  Hello, World!\n\nNo message from g++ means it compiled cleanly. Silence is success.",
-        decision: {
-          scenario:
-            "You run g++ -std=c++17 -Wall -Wextra score.cpp -o score and press Enter. Nothing is printed, and the prompt comes back.",
-          question: "What does that mean?",
-          options: [
-            {
-              id: "a",
-              text: "It compiled successfully and created the executable; now run it",
-              why: "g++ only speaks when something is wrong or suspicious. No output means a clean build. Run ./score (or .\\score.exe) to see the program's output.",
-            },
-            {
-              id: "b",
-              text: "It failed silently",
-              whyWrong: "g++ never fails silently: errors are always printed, with the file and line.",
-            },
-            {
-              id: "c",
-              text: "The program ran but printed nothing",
-              whyWrong: "Compiling does not run the program. It builds the executable; running it is a separate command.",
-            },
-            {
-              id: "d",
-              text: "You need to press Enter again",
-              whyWrong: "The command has already finished. The returned prompt is waiting for your next command: running the program.",
-            },
-          ],
-          correct: "a",
-          aftermath: "Compile, then run: two separate commands. Most editors can do both with one key, but you should know what that key is doing.",
-        },
-      },
-      {
-        id: "a-cp-hello",
-        title: "Hello, World!",
-        explain:
-          "Create a file called hello.cpp in your cpp-course folder, type this program exactly, save it, then compile and run it. Printing \"Hello, World!\" has been the traditional first program since the 1970s: it proves that the editor, compiler and computer are all working together.",
-        code: {
-          language: CPP,
-          code: C`#include <iostream>
-
-int main() {
-    std::cout << "Hello, World!\n";
-    return 0;
-}
-`,
-          expectedOutput: "Hello, World!",
-        },
-        codeFill: {
-          task: "Now make it yours. Fill the gap so the program prints exactly: Welcome to C++, Ada! (Type the text with its quotation marks.)",
-          code: C`#include <iostream>
-
-int main() {
-    std::cout << {{1}} << "\n";
-    return 0;
-}
-`,
-          blanks: [{ answers: ['"Welcome to C++, Ada!"'] }],
-          expectedOutput: "Welcome to C++, Ada!",
-          hint: "Text in C++ goes inside double quotation marks: \"like this\". Copy the message exactly, including the comma and the exclamation mark.",
-          successMessage:
-            "That is a C++ program you completed yourself. Type it into VS Code with your own name, compile it and run it.",
-        },
-      },
-      {
-        id: "a-cp-anatomy",
-        title: "Every line explained: #include, main() and cout",
-        explain:
-          "Six lines, and every one has a job. #include <iostream> brings in the input/output tools from the standard library. int main() is where every C++ program starts running. The braces { } mark the start and end of main's instructions. std::cout is the standard output stream, the screen; << sends a value into it. return 0; tells the operating system the program finished successfully.",
-        table: {
-          caption: "The Hello, World! program, line by line.",
-          headers: ["Code", "What it does"],
-          rows: [
-            ["#include <iostream>", "Copy in the declarations for input and output (cout, cin) before compiling"],
-            ["int main()", "Define the main function: the program starts here, and it gives back an int (a whole number)"],
-            ["{", "Begin main's body: the instructions that belong to it"],
-            ["std::cout << \"Hello, World!\\n\";", "Send the text to standard output. \\n means \"start a new line\". The ; ends the statement"],
-            ["return 0;", "End main and report success (0) to the operating system"],
-            ["}", "End main's body"],
-          ],
-        },
-        why: "std:: means \"from the standard library\". Many tutorials write using namespace std; at the top so they can type cout instead of std::cout. This course writes std:: in full, which is what most professional style guides require; Week 15 explains why.",
-        codeExercise: {
-          language: CPP,
-          code: C`#include <iostream>
-
-int main() {
-    std::cout << "Hello";
-    std::cout << "World\n";
-    std::cout << "Done\n";
-    return 0;
-}
-`,
-          question: "Each cout sends text to the screen. A new line only starts where there is a \\n. What does this program print?",
-          expectedOutput: "HelloWorld\nDone",
-          hint: "The first cout has no \\n at the end, so the second one carries on on the same line.",
-          successMessage:
-            "HelloWorld, then Done. cout prints exactly what you give it and nothing more: no space, no new line, unless you ask for one.",
-        },
-      },
-      {
-        id: "a-cp-cout-values",
-        title: "Printing text, numbers and calculations",
-        explain:
-          "cout can print more than text. A number without quotes is printed as a number, and a calculation without quotes is worked out first and its answer printed. You can chain several values with << in one statement; they are printed in order with nothing between them, so put spaces inside the quotes where you want them.",
-        code: {
-          language: CPP,
-          code: C`#include <iostream>
-
-int main() {
-    std::cout << "7 + 5" << "\n";
-    std::cout << 7 + 5 << "\n";
-    std::cout << "7 + 5 = " << 7 + 5 << "\n";
-    return 0;
-}
-`,
-          expectedOutput: "7 + 5\n12\n7 + 5 = 12",
-        },
-        why: "Line 4 prints characters because they are in quotes. Line 5 prints the result because they are not. Line 6 mixes both, which is how almost every useful output line in this course is built.",
-        codeFill: {
-          task: "A trader sold goods worth 4850 naira in the morning and 3975 in the afternoon. Fill the gap so C++ calculates the day's total. Do not type the answer yourself: let the program do the arithmetic.",
-          code: C`#include <iostream>
-
-int main() {
-    std::cout << "Total for the day: " << {{1}} << "\n";
-    return 0;
-}
-`,
-          blanks: [{ answers: ["4850 + 3975", "3975 + 4850"] }],
-          expectedOutput: "Total for the day: 8825",
-          hint: "Put the two amounts with a + between them, and no quotation marks, so C++ treats it as a calculation.",
-          successMessage:
-            "8825, worked out by the program. That is the whole point of programming: you write the method, the computer does the work.",
-        },
-      },
-    ],
-
-    requirements: { read: true, video: false, assessment: true },
-  },
-
-  /* ═══════════════════════════════════════════════════════════════════
-     LESSON 5 · 1.8 – 1.10
+     LESSON 8 · 1.12 – 1.14
   ═══════════════════════════════════════════════════════════════════ */
   {
     id: "cp-l5-syntax-errors",
     moduleId: "cp-m1-intro",
     sectionId: SECTION_ID,
-    order: 5,
-    covers: ["1.8", "1.9", "1.10"],
+    order: 8,
+    covers: ["1.12", "1.13", "1.14"],
     title: "Syntax, Errors and Readable Code",
     subtitle: "Statements and braces, compile and runtime errors, comments",
     estimatedMinutes: 18,
@@ -809,11 +1490,11 @@ int main() {
           caption: "The rules that cause most first-week errors.",
           headers: ["Rule", "Wrong", "Right"],
           rows: [
-            ["End statements with ;", "std::cout << \"Hi\\n\"", "std::cout << \"Hi\\n\";"],
-            ["Case matters", "Std::Cout << \"Hi\\n\";", "std::cout << \"Hi\\n\";"],
-            ["Text needs double quotes", "std::cout << Hi;", "std::cout << \"Hi\";"],
+            ["End statements with ;", "cout << \"Hi\\n\"", "cout << \"Hi\\n\";"],
+            ["Case matters", "Std::Cout << \"Hi\\n\";", "cout << \"Hi\\n\";"],
+            ["Text needs double quotes", "cout << Hi;", "cout << \"Hi\";"],
             ["Every { needs a }", "int main() { return 0;", "int main() { return 0; }"],
-            ["The arrows point into cout", "std::cout >> \"Hi\";", "std::cout << \"Hi\";"],
+            ["The arrows point into cout", "cout >> \"Hi\";", "cout << \"Hi\";"],
           ],
         },
         decision: {
@@ -822,22 +1503,22 @@ int main() {
           options: [
             {
               id: "a",
-              text: "std::cout << \"Score: \" << 85 << \"\\n\";",
-              why: "Lower-case std::cout, << pointing into it, text in double quotes, the number without quotes, and a semicolon at the end.",
+              text: "cout << \"Score: \" << 85 << \"\\n\";",
+              why: "Lower-case cout, << pointing into it, text in double quotes, the number without quotes, and a semicolon at the end.",
             },
             {
               id: "b",
-              text: "std::cout << \"Score: \" << 85 << \"\\n\"",
+              text: "cout << \"Score: \" << 85 << \"\\n\"",
               whyWrong: "No semicolon at the end, so the statement never finishes and the compiler reports an error.",
             },
             {
               id: "c",
-              text: "std::Cout << \"Score: \" << 85 << \"\\n\";",
+              text: "Cout << \"Score: \" << 85 << \"\\n\";",
               whyWrong: "Cout with a capital C does not exist. C++ is case-sensitive.",
             },
             {
               id: "d",
-              text: "std::cout << 'Score: ' << 85 << \"\\n\";",
+              text: "cout << 'Score: ' << 85 << \"\\n\";",
               whyWrong: "Single quotes are for one character, such as 'A'. Text of several characters needs double quotes.",
             },
           ],
@@ -853,32 +1534,53 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << "Ready\n"
+    cout << "Ready\n"
     return 0;
 }
 `,
           compileError: "error: expected ';' before 'return'",
         },
         example:
-          "The full message from g++ looks like this:\n\n  hello.cpp: In function 'int main()':\n  hello.cpp:4:27: error: expected ';' before 'return'\n      4 |     std::cout << \"Ready\\n\"\n        |                           ^\n        |                           ;\n      5 |     return 0;\n\nRead it as: in hello.cpp, line 4, column 27, a ; was expected.\ng++ even draws where it belongs.",
+          "The full message from g++ looks like this:\n\n  hello.cpp: In function 'int main()':\n  hello.cpp:4:27: error: expected ';' before 'return'\n      4 |     cout << \"Ready\\n\"\n        |                           ^\n        |                           ;\n      5 |     return 0;\n\nRead it as: in hello.cpp, line 4, column 27, a ; was expected.\ng++ even draws where it belongs.",
         codeFill: {
           task: "Here is the same program with the broken line removed. Type line 4 again, correctly, so it compiles and prints Ready and then Set.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     {{1}}
-    std::cout << "Set\n";
+    cout << "Set\n";
     return 0;
 }
 `,
-          blanks: [{ answers: [C`std::cout << "Ready\n";`], width: 26 }],
+          blanks: [{ answers: [C`cout << "Ready\n";`, C`std::cout << "Ready\n";`], width: 26 }],
           expectedOutput: "Ready\nSet",
           hint: "It is the line from the example above, with the one character the compiler asked for added at the very end.",
           successMessage:
             "Fixed. One character stopped the whole program from being built; one character fixed it. That is normal, and now you know how to find it.",
         },
+      },
+      {
+        id: "a-cp-warnings",
+        title: "Ask the compiler to warn you",
+        explain:
+          "So far you have compiled with g++ hello.cpp -o hello. That command stops on ERRORS, but it stays quiet about code that is legal yet probably a mistake. Add two extra settings and g++ will also print WARNINGS about such code: -Wall (\"warn about all the common problems\") and -Wextra (\"and a few more\"). From now on, compile every program like this. It is the same command as before with two words added, and when nothing is wrong it still prints nothing.",
+        example:
+          "Before (still works):\n\n  > g++ hello.cpp -o hello\n\nFrom now on:\n\n  > g++ -Wall -Wextra hello.cpp -o hello\n  > .\\hello\n  Hello, World!\n\nIf g++ prints a line containing  warning:  the program was still\nbuilt and will run, but read the warning: it is the compiler\npointing at something that is very likely a bug. You will meet\nyour first real warnings in Week 3.\n\nYou may also see  -std=c++17  in this course's instructions. It\nsimply makes sure g++ uses the C++17 version of the language, the\none this course teaches. Recent versions of g++ use it already.",
+        table: {
+          caption: "The compile command, piece by piece.",
+          headers: ["Piece", "Meaning"],
+          rows: [
+            ["g++", "Run the C++ compiler"],
+            ["-Wall -Wextra", "Also warn me about code that is probably a mistake"],
+            ["hello.cpp", "The file to compile"],
+            ["-o hello", "Call the finished program hello"],
+          ],
+        },
+        why: "Warnings are free help from the compiler. Professionals keep them on all the time and fix every one, and the earlier you build that habit the fewer bugs reach your running programs.",
       },
       {
         id: "a-cp-runtime-errors",
@@ -888,10 +1590,11 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << "Average of 70 and 80: ";
-    std::cout << 70 + 80 / 2 << "\n";
+    cout << "Average of 70 and 80: ";
+    cout << 70 + 80 / 2 << "\n";
     return 0;
 }
 `,
@@ -946,15 +1649,16 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     // VAT in Nigeria is 7.5%, set by the Finance Act 2019.
-    std::cout << "Price: 2000\n";
-    // std::cout << "Discount: 200\n";
-    std::cout << "VAT: " << 2000 * 75 / 1000 << "\n";  // 7.5% of 2000
+    cout << "Price: 2000\n";
+    // cout << "Discount: 200\n";
+    cout << "VAT: " << 2000 * 75 / 1000 << "\n";  // 7.5% of 2000
     /* The total is printed last.
-    std::cout << "Thank you\n"; */
-    std::cout << "Total: 2150\n";
+    cout << "Thank you\n"; */
+    cout << "Total: 2150\n";
     return 0;
 }
 `,
@@ -971,7 +1675,7 @@ int main() {
         explain:
           "The compiler accepts badly laid-out code, but people struggle with it, and code is read far more often than it is written. Indent everything inside braces by four spaces, put one statement on each line, leave a blank line between separate steps, and use comments for the why, not the what.",
         example:
-          "Valid, but hard to read:\n\n#include <iostream>\nint main(){std::cout<<\"Name: Ada\\n\";std::cout<<\"Goal: games\\n\";return 0;}\n\nThe same program, readable:\n\n#include <iostream>\n\nint main() {\n    std::cout << \"Name: Ada\\n\";\n    std::cout << \"Goal: games\\n\";\n    return 0;\n}\n\nIdentical machine code. Only one of them shows you its shape.",
+          "Valid, but hard to read:\n\n#include <iostream>\nusing namespace std;\nint main(){cout<<\"Name: Ada\\n\";cout<<\"Goal: games\\n\";return 0;}\n\nThe same program, readable:\n\n#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << \"Name: Ada\\n\";\n    cout << \"Goal: games\\n\";\n    return 0;\n}\n\nIdentical machine code. Only one of them shows you its shape.",
         decision: {
           scenario:
             "A classmate's program works perfectly, but everything inside main is written on one long line with no indentation and no comments.",
@@ -1007,7 +1711,7 @@ int main() {
     task: {
       title: "Mini-project: personal introduction program",
       intro:
-        "Build your own introduction program in a file called intro.cpp, compile it with g++ -std=c++17 -Wall -Wextra, and run it. Do not copy a finished program: build it one line at a time, compiling after each change.",
+        "Build your own introduction program in a new file called intro.cpp, in your cpp-course folder. Compile it with g++ -Wall -Wextra intro.cpp -o intro and run it with .\\intro (./intro on a Mac or Linux). Do not copy a finished program: start from the frame, add one line at a time, and compile and run after each change.",
       prompts: [
         "Print a welcome banner of at least two lines, such as a line of = signs and a title.",
         "Print your name, the town or city you live in, and the date you started this course, each on its own line.",

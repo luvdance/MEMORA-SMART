@@ -42,14 +42,15 @@ export const LESSONS = [
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int itemsInCart = 3;
     bool loggedIn = true;
-    std::cout << std::boolalpha;
-    std::cout << (itemsInCart > 0 && loggedIn) << "\n";
-    std::cout << static_cast<bool>(itemsInCart) << "\n";
-    std::cout << static_cast<bool>(0) << "\n";
+    cout << boolalpha;
+    cout << (itemsInCart > 0 && loggedIn) << "\n";
+    cout << static_cast<bool>(itemsInCart) << "\n";
+    cout << static_cast<bool>(0) << "\n";
     return 0;
 }
 `,
@@ -65,15 +66,16 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 0;
-    std::cout << "Score: ";
-    std::cin >> score;
+    cout << "Score: ";
+    cin >> score;
     if (score >= 50) {
-        std::cout << "Passed. Well done!\n";
+        cout << "Passed. Well done!\n";
     }
-    std::cout << "Result recorded.\n";
+    cout << "Result recorded.\n";
     return 0;
 }
 `,
@@ -85,15 +87,16 @@ int main() {
         codeFill: {
           task: "An order of 10,000 naira or more gets free delivery. Fill the gap with the condition.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int orderTotal = 0;
-    std::cout << "Order total: ";
-    std::cin >> orderTotal;
+    cout << "Order total: ";
+    cin >> orderTotal;
     if ({{1}}) {
-        std::cout << "Free delivery!\n";
+        cout << "Free delivery!\n";
     }
-    std::cout << "Thank you for shopping.\n";
+    cout << "Thank you for shopping.\n";
     return 0;
 }
 `,
@@ -112,17 +115,18 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int balance = 5000;
     int withdrawal = 8000;
     if (withdrawal <= balance) {
         balance -= withdrawal;
-        std::cout << "Please take your cash.\n";
+        cout << "Please take your cash.\n";
     } else {
-        std::cout << "Insufficient funds.\n";
+        cout << "Insufficient funds.\n";
     }
-    std::cout << "Balance: " << balance << "\n";
+    cout << "Balance: " << balance << "\n";
     return 0;
 }
 `,
@@ -133,19 +137,20 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int temperature = 31;
     if (temperature > 30) {
-        std::cout << "Hot\n";
+        cout << "Hot\n";
         temperature -= 5;
     } else {
-        std::cout << "Mild\n";
+        cout << "Mild\n";
     }
     if (temperature > 30) {
-        std::cout << "Still hot\n";
+        cout << "Still hot\n";
     } else {
-        std::cout << "Cooler now\n";
+        cout << "Cooler now\n";
     }
     return 0;
 }
@@ -186,18 +191,19 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string username = "ada";
+    string username = "ada";
     int pin = 4321;
     if (username == "ada") {
         if (pin == 1234) {
-            std::cout << "Welcome back, Ada.\n";
+            cout << "Welcome back, Ada.\n";
         } else {
-            std::cout << "Wrong PIN.\n";
+            cout << "Wrong PIN.\n";
         }
     } else {
-        std::cout << "Unknown user.\n";
+        cout << "Unknown user.\n";
     }
     return 0;
 }
@@ -214,6 +220,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 67;
@@ -229,7 +236,7 @@ int main() {
     } else {
         grade = 'F';
     }
-    std::cout << score << " -> " << grade << "\n";
+    cout << score << " -> " << grade << "\n";
     return 0;
 }
 `,
@@ -240,6 +247,7 @@ int main() {
         codeFill: {
           task: "A shop gives 15% off orders of 50,000 naira or more, 10% off orders of 20,000 or more, and nothing otherwise. Fill the two conditions in the right order.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int order = 32000;
@@ -249,7 +257,7 @@ int main() {
     } else if ({{2}}) {
         discountPercent = 10;
     }
-    std::cout << "Discount: " << discountPercent << "%\n";
+    cout << "Discount: " << discountPercent << "%\n";
     return 0;
 }
 `,
@@ -270,21 +278,22 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int choice = 2;
     switch (choice) {
         case 1:
-            std::cout << "Check balance\n";
+            cout << "Check balance\n";
             break;
         case 2:
-            std::cout << "Withdraw cash\n";
+            cout << "Withdraw cash\n";
             break;
         case 3:
-            std::cout << "Deposit\n";
+            cout << "Deposit\n";
             break;
         default:
-            std::cout << "Invalid option\n";
+            cout << "Invalid option\n";
     }
     return 0;
 }
@@ -294,19 +303,20 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     char grade = 'B';
     switch (grade) {
         case 'A':
-            std::cout << "Excellent\n";
+            cout << "Excellent\n";
         case 'B':
-            std::cout << "Good\n";
+            cout << "Good\n";
         case 'C':
-            std::cout << "Fair\n";
+            cout << "Fair\n";
             break;
         default:
-            std::cout << "Keep going\n";
+            cout << "Keep going\n";
     }
     return 0;
 }
@@ -327,13 +337,14 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int items = 1;
-    std::cout << "You have " << items << (items == 1 ? " item" : " items") << "\n";
+    cout << "You have " << items << (items == 1 ? " item" : " items") << "\n";
     int age = 15;
     int fare = age < 18 ? 250 : 500;
-    std::cout << "Fare: " << fare << "\n";
+    cout << "Fare: " << fare << "\n";
     return 0;
 }
 `,
@@ -343,11 +354,12 @@ int main() {
           task: "Fill the gap with a ?: expression that gives \"PASS\" when score is at least 50 and \"FAIL\" otherwise.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
     int score = 42;
-    std::string result = {{1}};
-    std::cout << score << ": " << result << "\n";
+    string result = {{1}};
+    cout << score << ": " << result << "\n";
     return 0;
 }
 `,
@@ -357,7 +369,7 @@ int main() {
                 'score >= 50 ? "PASS" : "FAIL"',
                 '(score >= 50) ? "PASS" : "FAIL"',
                 'score < 50 ? "FAIL" : "PASS"',
-                '(score < 50) ? "FAIL" : "PASS"',
+                '(score < 50) ? "FAIL" : "PASS"'
               ],
               width: 30,
             },
@@ -396,6 +408,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int savings = 0;
@@ -404,7 +417,7 @@ int main() {
         savings += 3500;
         weeks++;
     }
-    std::cout << "Target reached after " << weeks << " weeks: " << savings << "\n";
+    cout << "Target reached after " << weeks << " weeks: " << savings << "\n";
     return 0;
 }
 `,
@@ -413,14 +426,15 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int n = 20;
     while (n > 3) {
-        std::cout << n << " ";
+        cout << n << " ";
         n = n / 2;
     }
-    std::cout << "\nEnd: " << n << "\n";
+    cout << "\nEnd: " << n << "\n";
     return 0;
 }
 `,
@@ -438,14 +452,15 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 0;
     do {
-        std::cout << "Enter a score from 0 to 100: ";
-        std::cin >> score;
+        cout << "Enter a score from 0 to 100: ";
+        cin >> score;
     } while (score < 0 || score > 100);
-    std::cout << "Accepted: " << score << "\n";
+    cout << "Accepted: " << score << "\n";
     return 0;
 }
 `,
@@ -462,11 +477,12 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int table = 7;
     for (int i = 1; i <= 5; i++) {
-        std::cout << table << " x " << i << " = " << table * i << "\n";
+        cout << table << " x " << i << " = " << table * i << "\n";
     }
     return 0;
 }
@@ -485,12 +501,13 @@ int main() {
         codeFill: {
           task: "Fill the for loop's header so it counts down from 10 to 1, printing each number.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     for ({{1}}) {
-        std::cout << i << " ";
+        cout << i << " ";
     }
-    std::cout << "Lift off!\n";
+    cout << "Lift off!\n";
     return 0;
 }
 `,
@@ -501,7 +518,7 @@ int main() {
                 "int i = 10; i > 0; i--",
                 "int i = 10; i >= 1; --i",
                 "int i = 10; i > 0; --i",
-                "int i = 10; i >= 1; i -= 1",
+                "int i = 10; i >= 1; i -= 1"
               ],
               width: 26,
             },
@@ -540,6 +557,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int total = 0;
@@ -550,7 +568,7 @@ int main() {
             evens++;
         }
     }
-    std::cout << "Total: " << total << ", evens: " << evens << "\n";
+    cout << "Total: " << total << ", evens: " << evens << "\n";
     return 0;
 }
 `,
@@ -571,15 +589,16 @@ int main() {
         codeFill: {
           task: "Fill the two gaps so the loop adds up the five scores the user types (the accumulator) and then prints their total.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int total = {{1}};
     for (int i = 1; i <= 5; i++) {
         int score = 0;
-        std::cin >> score;
+        cin >> score;
         {{2}}
     }
-    std::cout << "Total: " << total << "\n";
+    cout << "Total: " << total << "\n";
     return 0;
 }
 `,
@@ -601,14 +620,15 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int product = 1;
     for (int i = 2; i <= 8; i += 3) {
         product *= i;
-        std::cout << i << ":" << product << " ";
+        cout << i << ":" << product << " ";
     }
-    std::cout << "\n" << product << "\n";
+    cout << "\n" << product << "\n";
     return 0;
 }
 `,
@@ -626,13 +646,14 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     for (int row = 1; row <= 3; row++) {
         for (int col = 1; col <= 4; col++) {
-            std::cout << row * col << "\t";
+            cout << row * col << "\t";
         }
-        std::cout << "\n";
+        cout << "\n";
     }
     return 0;
 }
@@ -642,13 +663,14 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     for (int row = 1; row <= 4; row++) {
         for (int star = 1; star <= row; star++) {
-            std::cout << "*";
+            cout << "*";
         }
-        std::cout << "\n";
+        cout << "\n";
     }
     return 0;
 }
@@ -667,6 +689,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     for (int n = 1; n <= 10; n++) {
@@ -676,9 +699,9 @@ int main() {
         if (n > 7) {
             break;
         }
-        std::cout << n << " ";
+        cout << n << " ";
     }
-    std::cout << "\n";
+    cout << "\n";
     return 0;
 }
 `,
@@ -688,6 +711,7 @@ int main() {
         codeFill: {
           task: "Search the numbers 1 to 100 for the first one divisible by both 7 and 9, and stop searching as soon as it is found. Fill the gap.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int found = 0;
@@ -697,7 +721,7 @@ int main() {
             {{1}}
         }
     }
-    std::cout << "First found: " << found << "\n";
+    cout << "First found: " << found << "\n";
     return 0;
 }
 `,
@@ -734,7 +758,7 @@ int main() {
         explain:
           "An infinite loop is one whose condition never becomes false: the counter is never updated, it is updated in the wrong direction, or the condition can never fail. The program appears to freeze, or prints forever. Press Ctrl+C in the terminal to stop it, then trace the loop and ask what is supposed to make the condition false.",
         example:
-          "Three infinite loops:\n\n  int i = 0;\n  while (i < 10) {\n      std::cout << i;        // i is never changed\n  }\n\n  for (int i = 10; i > 0; i++) {   // counts UP, away from 0\n      ...\n  }\n\n  int x = 1;\n  while (x != 10) {\n      x += 2;                // 1, 3, 5, 7, 9, 11 ... skips 10\n  }\n\nThe third is the sneakiest: the variable changes, but it jumps\nstraight past the only value that would stop the loop.",
+          "Three infinite loops:\n\n  int i = 0;\n  while (i < 10) {\n      cout << i;        // i is never changed\n  }\n\n  for (int i = 10; i > 0; i++) {   // counts UP, away from 0\n      ...\n  }\n\n  int x = 1;\n  while (x != 10) {\n      x += 2;                // 1, 3, 5, 7, 9, 11 ... skips 10\n  }\n\nThe third is the sneakiest: the variable changes, but it jumps\nstraight past the only value that would stop the loop.",
         decision: {
           scenario: "Your loop is while (count != 20) { count += 3; } and count starts at 0. The program freezes.",
           question: "What is the best fix?",
@@ -772,13 +796,14 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int a = 0, b = 0, c = 0;
     for (int i = 0; i < 10; i++) { a++; }
     for (int i = 1; i <= 10; i++) { b++; }
     for (int i = 0; i <= 10; i++) { c++; }
-    std::cout << a << " " << b << " " << c << "\n";
+    cout << a << " " << b << " " << c << "\n";
     return 0;
 }
 `,
@@ -796,11 +821,12 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int n = 0;
-    std::cout << "Number: ";
-    std::cin >> n;
+    cout << "Number: ";
+    cin >> n;
     bool isPrime = n > 1;
     for (int d = 2; d * d <= n; d++) {
         if (n % d == 0) {
@@ -808,7 +834,7 @@ int main() {
             break;
         }
     }
-    std::cout << n << (isPrime ? " is prime\n" : " is not prime\n");
+    cout << n << (isPrime ? " is prime\n" : " is not prime\n");
     return 0;
 }
 `,
@@ -819,6 +845,7 @@ int main() {
         codeFill: {
           task: "Fill the gap with the condition that means \"d divides n exactly\".",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int n = 97;
@@ -829,7 +856,7 @@ int main() {
             break;
         }
     }
-    std::cout << n << (isPrime ? " is prime\n" : " is not prime\n");
+    cout << n << (isPrime ? " is prime\n" : " is not prime\n");
     return 0;
 }
 `,
@@ -847,22 +874,23 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     const int SECRET = 42;
     int guess = 0;
     int attempts = 0;
     do {
-        std::cout << "Guess (1-100): ";
-        std::cin >> guess;
+        cout << "Guess (1-100): ";
+        cin >> guess;
         attempts++;
         if (guess < SECRET) {
-            std::cout << "Higher!\n";
+            cout << "Higher!\n";
         } else if (guess > SECRET) {
-            std::cout << "Lower!\n";
+            cout << "Lower!\n";
         }
     } while (guess != SECRET);
-    std::cout << "Correct in " << attempts << " attempts.\n";
+    cout << "Correct in " << attempts << " attempts.\n";
     return 0;
 }
 `,
@@ -880,24 +908,25 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <iomanip>
+using namespace std;
 
 int main() {
     int students = 0, subjects = 0;
-    std::cout << "Students and subjects: ";
-    std::cin >> students >> subjects;
-    std::cout << std::fixed << std::setprecision(1);
+    cout << "Students and subjects: ";
+    cin >> students >> subjects;
+    cout << fixed << setprecision(1);
 
     for (int s = 1; s <= students; s++) {
         int total = 0;
-        std::cout << "Scores for student " << s << ": ";
+        cout << "Scores for student " << s << ": ";
         for (int i = 1; i <= subjects; i++) {
             int score = 0;
-            std::cin >> score;
+            cin >> score;
             total += score;
         }
         double average = static_cast<double>(total) / subjects;
         char grade = average >= 70 ? 'A' : average >= 60 ? 'B' : average >= 50 ? 'C' : 'F';
-        std::cout << "Student " << s << ": average " << average << ", grade " << grade << "\n";
+        cout << "Student " << s << ": average " << average << ", grade " << grade << "\n";
     }
     return 0;
 }
@@ -910,6 +939,7 @@ int main() {
           task: "Fill the gap so the class average is calculated as a decimal from classTotal (the sum of every student's average) and students.",
           code: C`#include <iostream>
 #include <iomanip>
+using namespace std;
 
 int main() {
     double averages[] = {77.3, 51.7, 64.0};
@@ -919,7 +949,7 @@ int main() {
         classTotal += averages[s];
     }
     double classAverage = {{1}};
-    std::cout << std::fixed << std::setprecision(1) << "Class average: " << classAverage << "\n";
+    cout << fixed << setprecision(1) << "Class average: " << classAverage << "\n";
     return 0;
 }
 `,

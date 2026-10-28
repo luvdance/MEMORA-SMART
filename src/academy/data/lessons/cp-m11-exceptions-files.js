@@ -92,23 +92,24 @@ export const LESSONS = [
           code: C`#include <iostream>
 #include <limits>
 #include <string>
+using namespace std;
 
-int readInt(const std::string& prompt, int low, int high) {
+int readInt(const string& prompt, int low, int high) {
     int value = 0;
     while (true) {
-        std::cout << prompt;
-        if (std::cin >> value && value >= low && value <= high) {
+        cout << prompt;
+        if (cin >> value && value >= low && value <= high) {
             return value;
         }
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Enter a whole number from " << low << " to " << high << ".\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Enter a whole number from " << low << " to " << high << ".\n";
     }
 }
 
 int main() {
     int score = readInt("Score: ", 0, 100);
-    std::cout << "Recorded " << score << "\n";
+    cout << "Recorded " << score << "\n";
     return 0;
 }
 `,
@@ -120,6 +121,7 @@ int main() {
           task: "Complete readInt's condition: the read must succeed AND the value must be within low to high.",
           code: C`#include <iostream>
 #include <limits>
+using namespace std;
 
 int readInt(int low, int high) {
     int value = 0;
@@ -127,25 +129,28 @@ int readInt(int low, int high) {
         if ({{1}}) {
             return value;
         }
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Try again: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Try again: ";
     }
 }
 
 int main() {
-    std::cout << "Month (1-12): ";
+    cout << "Month (1-12): ";
     int month = readInt(1, 12);
-    std::cout << "Month " << month << "\n";
+    cout << "Month " << month << "\n";
     return 0;
 }
 `,
           blanks: [
             {
               answers: [
+                "cin >> value && value >= low && value <= high",
                 "std::cin >> value && value >= low && value <= high",
+                "(cin >> value) && value >= low && value <= high",
                 "(std::cin >> value) && value >= low && value <= high",
-                "std::cin >> value && low <= value && value <= high",
+                "cin >> value && low <= value && value <= high",
+                "std::cin >> value && low <= value && value <= high"
               ],
               width: 44,
             },
@@ -190,18 +195,19 @@ int main() {
         id: "a-cp-try-throw-catch",
         title: "try, throw and catch",
         explain:
-          "throw std::invalid_argument(\"message\"); throws an exception object. Code that might throw goes in a try block; catch blocks after it say which exception types they handle. Catch by const reference: catch (const std::invalid_argument& e). Inside, e.what() returns the message. After a catch block finishes, the program continues after the whole try/catch, not back where the throw happened.",
+          "throw invalid_argument(\"message\"); throws an exception object. Code that might throw goes in a try block; catch blocks after it say which exception types they handle. Catch by const reference: catch (const invalid_argument& e). Inside, e.what() returns the message. After a catch block finishes, the program continues after the whole try/catch, not back where the throw happened.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <stdexcept>
+using namespace std;
 
 double withdraw(double balance, double amount) {
     if (amount <= 0) {
-        throw std::invalid_argument("Amount must be positive");
+        throw invalid_argument("Amount must be positive");
     }
     if (amount > balance) {
-        throw std::runtime_error("Insufficient funds");
+        throw runtime_error("Insufficient funds");
     }
     return balance - amount;
 }
@@ -210,22 +216,23 @@ int main() {
     double balance = 5000;
     try {
         balance = withdraw(balance, 1200);
-        std::cout << "Balance: " << balance << "\n";
+        cout << "Balance: " << balance << "\n";
         balance = withdraw(balance, 9000);
-        std::cout << "This line never runs\n";
-    } catch (const std::exception& e) {
-        std::cout << "Refused: " << e.what() << "\n";
+        cout << "This line never runs\n";
+    } catch (const exception& e) {
+        cout << "Refused: " << e.what() << "\n";
     }
-    std::cout << "Final balance: " << balance << "\n";
+    cout << "Final balance: " << balance << "\n";
     return 0;
 }
 `,
           expectedOutput: "Balance: 3800\nRefused: Insufficient funds\nFinal balance: 3800",
         },
         codeFill: {
-          task: "Fill the gap so divide reports a zero divisor by throwing a std::invalid_argument with the message \"Cannot divide by zero\".",
+          task: "Fill the gap so divide reports a zero divisor by throwing a invalid_argument with the message \"Cannot divide by zero\".",
           code: C`#include <iostream>
 #include <stdexcept>
+using namespace std;
 
 double divide(double a, double b) {
     if (b == 0) {
@@ -236,15 +243,15 @@ double divide(double a, double b) {
 
 int main() {
     try {
-        std::cout << divide(10, 4) << "\n";
-        std::cout << divide(3, 0) << "\n";
-    } catch (const std::invalid_argument& e) {
-        std::cout << "Error: " << e.what() << "\n";
+        cout << divide(10, 4) << "\n";
+        cout << divide(3, 0) << "\n";
+    } catch (const invalid_argument& e) {
+        cout << "Error: " << e.what() << "\n";
     }
     return 0;
 }
 `,
-          blanks: [{ answers: ['throw std::invalid_argument("Cannot divide by zero");'], width: 50 }],
+          blanks: [{ answers: ['throw invalid_argument("Cannot divide by zero");', 'throw std::invalid_argument("Cannot divide by zero");'], width: 50 }],
           expectedOutput: "2.5\nError: Cannot divide by zero",
           hint: "throw, then create the exception object: its type followed by the message in brackets and quotes.",
           successMessage: "The second cout never ran: the throw jumped straight to the catch.",
@@ -254,23 +261,24 @@ int main() {
         id: "a-cp-standard-exceptions",
         title: "Standard exception classes",
         explain:
-          "<stdexcept> provides a family of exception classes, all derived from std::exception. Use the one that describes the problem: std::invalid_argument for a bad argument, std::out_of_range for an index or value outside its range, std::runtime_error for failures only detectable while running. The standard library throws them too: vector::at throws std::out_of_range, std::stoi throws std::invalid_argument for text that is not a number. Catch blocks are tried in order, so put specific types before general ones, and std::exception last to catch everything else.",
+          "<stdexcept> provides a family of exception classes, all derived from exception. Use the one that describes the problem: invalid_argument for a bad argument, out_of_range for an index or value outside its range, runtime_error for failures only detectable while running. The standard library throws them too: vector::at throws out_of_range, stoi throws invalid_argument for text that is not a number. Catch blocks are tried in order, so put specific types before general ones, and exception last to catch everything else.",
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+using namespace std;
 
-void test(const std::string& text, int index) {
-    std::vector<int> v = {10, 20, 30};
+void test(const string& text, int index) {
+    vector<int> v = {10, 20, 30};
     try {
-        int n = std::stoi(text);
-        std::cout << v.at(index) + n << "\n";
-    } catch (const std::out_of_range&) {
-        std::cout << "bad index\n";
-    } catch (const std::invalid_argument&) {
-        std::cout << "not a number\n";
+        int n = stoi(text);
+        cout << v.at(index) + n << "\n";
+    } catch (const out_of_range&) {
+        cout << "bad index\n";
+    } catch (const invalid_argument&) {
+        cout << "not a number\n";
     }
 }
 
@@ -346,17 +354,17 @@ int main() {
         id: "a-cp-file-streams",
         title: "File streams: ifstream, ofstream and fstream",
         explain:
-          "#include <fstream> gives three stream types. std::ofstream (output file stream) writes to a file, like cout. std::ifstream (input file stream) reads from a file, like cin. std::fstream can do both. You open a file by giving its name when you create the stream, and the file is closed automatically when the stream object goes out of scope; you can also call .close() yourself.",
+          "#include <fstream> gives three stream types. ofstream (output file stream) writes to a file, like cout. ifstream (input file stream) reads from a file, like cin. fstream can do both. You open a file by giving its name when you create the stream, and the file is closed automatically when the stream object goes out of scope; you can also call .close() yourself.",
         table: {
           caption: "The three file streams.",
           headers: ["Type", "Direction", "Behaves like"],
           rows: [
-            ["std::ofstream out(\"data.txt\");", "Write", "std::cout"],
-            ["std::ifstream in(\"data.txt\");", "Read", "std::cin"],
-            ["std::fstream f(\"data.txt\", mode);", "Read and/or write", "Both"],
+            ["ofstream out(\"data.txt\");", "Write", "cout"],
+            ["ifstream in(\"data.txt\");", "Read", "cin"],
+            ["fstream f(\"data.txt\", mode);", "Read and/or write", "Both"],
           ],
         },
-        why: "Because files are streams, everything you learned about cin and cout carries over: >> reads a word or number, getline reads a line, << writes, and std::fixed and setprecision format numbers in files too.",
+        why: "Because files are streams, everything you learned about cin and cout carries over: >> reads a word or number, getline reads a line, << writes, and fixed and setprecision format numbers in files too.",
       },
       {
         id: "a-cp-read-write",
@@ -368,17 +376,18 @@ int main() {
           code: C`#include <fstream>
 #include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::ifstream in("students.txt");
-    std::string name;
+    ifstream in("students.txt");
+    string name;
     int score = 0, total = 0, count = 0;
     while (in >> name >> score) {
-        std::cout << name << ": " << score << "\n";
+        cout << name << ": " << score << "\n";
         total += score;
         count++;
     }
-    std::cout << "Average: " << static_cast<double>(total) / count << "\n";
+    cout << "Average: " << static_cast<double>(total) / count << "\n";
     return 0;
 }
 `,
@@ -390,6 +399,7 @@ int main() {
           code: C`#include <fstream>
 #include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
     {
@@ -397,17 +407,17 @@ int main() {
         out << "Term: First\n";
         out << "Students: 32\n";
     }
-    std::ifstream in("report.txt");
-    std::string line;
-    while (std::getline(in, line)) {
-        std::cout << "[" << line << "]\n";
+    ifstream in("report.txt");
+    string line;
+    while (getline(in, line)) {
+        cout << "[" << line << "]\n";
     }
     return 0;
 }
 `,
-          blanks: [{ answers: ['std::ofstream out("report.txt");', 'std::ofstream out{"report.txt"};'], width: 32 }],
+          blanks: [{ answers: ['ofstream out("report.txt");', 'std::ofstream out("report.txt");', 'ofstream out{"report.txt"};', 'std::ofstream out{"report.txt"};'], width: 32 }],
           expectedOutput: "[Term: First]\n[Students: 32]",
-          hint: "Type std::ofstream, the variable name out, and the file name in brackets and quotes.",
+          hint: "Type ofstream, the variable name out, and the file name in brackets and quotes.",
           successMessage: "The inner braces end out's scope, which closes the file, so everything is saved before it is read back.",
         },
       },
@@ -415,29 +425,30 @@ int main() {
         id: "a-cp-append",
         title: "Appending to files",
         explain:
-          "Opening with plain std::ofstream erases the file first. To add to the END of an existing file instead, open it in append mode: std::ofstream log(\"log.txt\", std::ios::app);. Use append for logs, transaction histories and anything that should grow over time; use the default mode when you are saving a complete new version of the data.",
+          "Opening with plain ofstream erases the file first. To add to the END of an existing file instead, open it in append mode: ofstream log(\"log.txt\", ios::app);. Use append for logs, transaction histories and anything that should grow over time; use the default mode when you are saving a complete new version of the data.",
         codeExercise: {
           language: CPP,
           code: C`#include <fstream>
 #include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    { std::ofstream f("log.txt"); f << "A\n"; }
-    { std::ofstream f("log.txt", std::ios::app); f << "B\n"; }
-    { std::ofstream f("log.txt"); f << "C\n"; }
-    { std::ofstream f("log.txt", std::ios::app); f << "D\n"; }
+    { ofstream f("log.txt"); f << "A\n"; }
+    { ofstream f("log.txt", ios::app); f << "B\n"; }
+    { ofstream f("log.txt"); f << "C\n"; }
+    { ofstream f("log.txt", ios::app); f << "D\n"; }
 
-    std::ifstream in("log.txt");
-    std::string line;
-    while (std::getline(in, line)) std::cout << line << "\n";
+    ifstream in("log.txt");
+    string line;
+    while (getline(in, line)) cout << line << "\n";
     return 0;
 }
 `,
           question: "Some opens erase the file and some append. What does the file contain at the end?",
           expectedOutput: "C\nD",
-          hint: "The third open has no std::ios::app, so it empties the file before writing C.",
-          successMessage: "C and D. One missing std::ios::app wiped the history: the most common file bug in real systems.",
+          hint: "The third open has no ios::app, so it empties the file before writing C.",
+          successMessage: "C and D. One missing ios::app wiped the history: the most common file bug in real systems.",
         },
       },
       {
@@ -451,24 +462,25 @@ int main() {
 #include <iostream>
 #include <stdexcept>
 #include <string>
+using namespace std;
 
-int countLines(const std::string& fileName) {
-    std::ifstream in(fileName);
+int countLines(const string& fileName) {
+    ifstream in(fileName);
     if (!in) {
-        throw std::runtime_error("Cannot open " + fileName);
+        throw runtime_error("Cannot open " + fileName);
     }
     int lines = 0;
-    std::string line;
-    while (std::getline(in, line)) lines++;
+    string line;
+    while (getline(in, line)) lines++;
     return lines;
 }
 
 int main() {
     try {
-        std::cout << countLines("students.txt") << " lines\n";
-        std::cout << countLines("missing.txt") << " lines\n";
-    } catch (const std::runtime_error& e) {
-        std::cout << "Error: " << e.what() << "\n";
+        cout << countLines("students.txt") << " lines\n";
+        cout << countLines("missing.txt") << " lines\n";
+    } catch (const runtime_error& e) {
+        cout << "Error: " << e.what() << "\n";
     }
     return 0;
 }
@@ -480,14 +492,15 @@ int main() {
           task: "Fill the condition that is true when settings.txt failed to open.",
           code: C`#include <fstream>
 #include <iostream>
+using namespace std;
 
 int main() {
-    std::ifstream in("settings.txt");
+    ifstream in("settings.txt");
     if ({{1}}) {
-        std::cout << "No settings file: using defaults\n";
+        cout << "No settings file: using defaults\n";
         return 0;
     }
-    std::cout << "Settings loaded\n";
+    cout << "Settings loaded\n";
     return 0;
 }
 `,
@@ -522,27 +535,28 @@ int main() {
         id: "a-cp-line-records",
         title: "Processing records line by line",
         explain:
-          "A record is one line of a file describing one thing: a student, a transaction, a product. The robust pattern is to read the file ONE LINE at a time with getline, then pull the fields out of that line with a std::istringstream (from <sstream>), which lets you use >> on a string as if it were a file. A badly formatted line can then be detected and skipped without derailing every line after it.",
+          "A record is one line of a file describing one thing: a student, a transaction, a product. The robust pattern is to read the file ONE LINE at a time with getline, then pull the fields out of that line with a istringstream (from <sstream>), which lets you use >> on a string as if it were a file. A badly formatted line can then be detected and skipped without derailing every line after it.",
         code: {
           language: CPP,
           code: C`#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::ifstream in("scores.txt");
-    std::string line;
+    ifstream in("scores.txt");
+    string line;
     int lineNo = 0;
-    while (std::getline(in, line)) {
+    while (getline(in, line)) {
         lineNo++;
-        std::istringstream fields(line);
-        std::string name;
+        istringstream fields(line);
+        string name;
         int score = 0;
         if (fields >> name >> score) {
-            std::cout << name << " -> " << score << "\n";
+            cout << name << " -> " << score << "\n";
         } else {
-            std::cout << "Line " << lineNo << " skipped: " << line << "\n";
+            cout << "Line " << lineNo << " skipped: " << line << "\n";
         }
     }
     return 0;
@@ -564,34 +578,35 @@ int main() {
 #include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Student {
-    std::string name;
+    string name;
     int score;
 };
 
-void save(const std::vector<Student>& list, const std::string& file) {
-    std::ofstream out(file);
+void save(const vector<Student>& list, const string& file) {
+    ofstream out(file);
     for (const Student& s : list) out << s.name << " " << s.score << "\n";
 }
 
-std::vector<Student> load(const std::string& file) {
-    std::vector<Student> list;
-    std::ifstream in(file);
+vector<Student> load(const string& file) {
+    vector<Student> list;
+    ifstream in(file);
     Student s;
     while (in >> s.name >> s.score) list.push_back(s);
     return list;
 }
 
 int main() {
-    std::vector<Student> students = load("records.txt");
-    std::cout << "Loaded " << students.size() << "\n";
+    vector<Student> students = load("records.txt");
+    cout << "Loaded " << students.size() << "\n";
     students.push_back({"Ada", 91});
     students.push_back({"Bayo", 58});
     save(students, "records.txt");
 
-    std::vector<Student> again = load("records.txt");
-    std::cout << "Reloaded " << again.size() << ", second is " << again[1].name << "\n";
+    vector<Student> again = load("records.txt");
+    cout << "Reloaded " << again.size() << ", second is " << again[1].name << "\n";
     return 0;
 }
 `,
@@ -604,14 +619,15 @@ int main() {
 #include <iostream>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Item {
-    std::string name;
+    string name;
     int quantity;
 };
 
-void save(const std::vector<Item>& items) {
-    std::ofstream out("stock.txt");
+void save(const vector<Item>& items) {
+    ofstream out("stock.txt");
     for (const Item& it : items) {
         {{1}}
     }
@@ -619,10 +635,10 @@ void save(const std::vector<Item>& items) {
 
 int main() {
     save({{"Rice", 12}, {"Beans", 30}});
-    std::ifstream in("stock.txt");
-    std::string name;
+    ifstream in("stock.txt");
+    string name;
     int qty = 0;
-    while (in >> name >> qty) std::cout << name << "=" << qty << "\n";
+    while (in >> name >> qty) cout << name << "=" << qty << "\n";
     return 0;
 }
 `,
@@ -631,7 +647,8 @@ int main() {
               answers: [
                 C`out << it.name << " " << it.quantity << "\n";`,
                 C`out << it.name << ' ' << it.quantity << '\n';`,
-                C`out << it.name << " " << it.quantity << std::endl;`,
+                C`out << it.name << " " << it.quantity << endl;`,
+                C`out << it.name << " " << it.quantity << std::endl;`
               ],
               width: 44,
             },
@@ -645,26 +662,27 @@ int main() {
         id: "a-cp-csv",
         title: "Basic CSV-style data processing",
         explain:
-          "CSV (comma-separated values) stores a table as text: one line per row, commas between fields, usually with a header row first. Excel and Google Sheets open and save it, which makes it the common language between programs. To read a row, split the line on commas: std::getline(fields, cell, ',') reads up to the next comma. Convert numeric cells with std::stoi or std::stod. (Real-world CSV can contain quoted commas; this basic approach assumes it does not.)",
+          "CSV (comma-separated values) stores a table as text: one line per row, commas between fields, usually with a header row first. Excel and Google Sheets open and save it, which makes it the common language between programs. To read a row, split the line on commas: getline(fields, cell, ',') reads up to the next comma. Convert numeric cells with stoi or stod. (Real-world CSV can contain quoted commas; this basic approach assumes it does not.)",
         code: {
           language: CPP,
           code: C`#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::ifstream in("results.csv");
-    std::string line;
-    std::getline(in, line);
-    while (std::getline(in, line)) {
-        std::istringstream row(line);
-        std::string name, maths, english;
-        std::getline(row, name, ',');
-        std::getline(row, maths, ',');
-        std::getline(row, english, ',');
-        int total = std::stoi(maths) + std::stoi(english);
-        std::cout << name << ": " << total << "\n";
+    ifstream in("results.csv");
+    string line;
+    getline(in, line);
+    while (getline(in, line)) {
+        istringstream row(line);
+        string name, maths, english;
+        getline(row, name, ',');
+        getline(row, maths, ',');
+        getline(row, english, ',');
+        int total = stoi(maths) + stoi(english);
+        cout << name << ": " << total << "\n";
     }
     return 0;
 }
@@ -678,22 +696,23 @@ int main() {
           code: C`#include <iostream>
 #include <sstream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::istringstream row("Lagos,Ikeja,2026");
-    std::string cell;
+    istringstream row("Lagos,Ikeja,2026");
+    string cell;
     int n = 0;
     while ({{1}}) {
         n++;
-        std::cout << n << ": " << cell << "\n";
+        cout << n << ": " << cell << "\n";
     }
     return 0;
 }
 `,
-          blanks: [{ answers: ["std::getline(row, cell, ',')"], width: 28 }],
+          blanks: [{ answers: ["getline(row, cell, ',')", "std::getline(row, cell, ',')"], width: 28 }],
           expectedOutput: "1: Lagos\n2: Ikeja\n3: 2026",
-          hint: "std::getline with a third argument: the character to stop at, in single quotes.",
-          successMessage: "std::getline(row, cell, ','). The third argument changes the separator from a new line to a comma.",
+          hint: "getline with a third argument: the character to stop at, in single quotes.",
+          successMessage: "getline(row, cell, ','). The third argument changes the separator from a new line to a comma.",
         },
       },
     ],
@@ -704,12 +723,12 @@ int main() {
         "Write records.cpp: a menu-driven manager for student records that are kept in a file, so they are still there the next time the program runs.",
       prompts: [
         "Define a Student class or struct with ID, name (one word or use getline) and three scores, with an average() function.",
-        "On start-up, load students.csv into a std::vector; a missing file means an empty list on the first run, but any malformed line must be reported and skipped.",
+        "On start-up, load students.csv into a vector; a missing file means an empty list on the first run, but any malformed line must be reported and skipped.",
         "Menu: add a student, list all, search by ID, update scores, delete a student, and save and exit.",
         "Validate every input with a readInt-style function; reject duplicate IDs and scores outside 0–100.",
-        "Throw a std::invalid_argument from the Student constructor for impossible data, and catch it in the menu with a clear message.",
+        "Throw a invalid_argument from the Student constructor for impossible data, and catch it in the menu with a clear message.",
         "Save the list back to students.csv after every change, with a header row, so a crash never loses more than one edit.",
-        "Append a line to history.log (std::ios::app) for every add, update and delete, with what changed.",
+        "Append a line to history.log (ios::app) for every add, update and delete, with what changed.",
         "Test: add records, quit, run again and check they are still there; then corrupt one line of the file by hand and check the program survives it.",
       ],
       closing:

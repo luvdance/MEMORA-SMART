@@ -28,52 +28,54 @@ export const LESSONS = [
     order: 1,
     covers: ["7.1", "7.2", "7.3", "7.4"],
     title: "Text in C++",
-    subtitle: "Characters versus strings, std::string, words and whole lines",
+    subtitle: "Characters versus strings, string, words and whole lines",
     estimatedMinutes: 22,
     intro:
-      "Names, addresses, messages, passwords, product codes: a large share of real data is text. You have used std::string briefly; this week you learn it properly, starting with how it differs from a single char and how to read a full sentence from the keyboard.",
+      "Names, addresses, messages, passwords, product codes: a large share of real data is text. You have used string briefly; this week you learn it properly, starting with how it differs from a single char and how to read a full sentence from the keyboard.",
 
     atoms: [
       {
         id: "a-cp-char-vs-string",
         title: "Characters versus strings",
         explain:
-          "A char is exactly one character, in single quotes: 'A'. A string is a sequence of characters, in double quotes: \"A\" or \"Ada Lovelace\". Even \"A\" is a string of length one, not a char. In C, text was stored as an array of chars ending with a hidden '\\0' (the null character) to mark the end; that is why sizeof(\"A\") is 2. Modern C++ uses std::string instead, which manages its own length and memory.",
+          "A char is exactly one character, in single quotes: 'A'. A string is a sequence of characters, in double quotes: \"A\" or \"Ada Lovelace\". Even \"A\" is a string of length one, not a char. In C, text was stored as an array of chars ending with a hidden '\\0' (the null character) to mark the end; that is why sizeof(\"A\") is 2. Modern C++ uses string instead, which manages its own length and memory.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
     char letter = 'A';
-    std::string word = "A";
-    std::cout << sizeof(letter) << "\n";
-    std::cout << sizeof("A") << "\n";
-    std::cout << word.size() << "\n";
+    string word = "A";
+    cout << sizeof(letter) << "\n";
+    cout << sizeof("A") << "\n";
+    cout << word.size() << "\n";
     return 0;
 }
 `,
           expectedOutput: "1\n2\n1",
         },
-        why: "The C-style \"A\" takes 2 bytes because of its hidden terminator. std::string reports the length you would expect, 1. You will still meet C-style strings in older code and in some library functions, which is why the difference is worth knowing.",
+        why: "The C-style \"A\" takes 2 bytes because of its hidden terminator. string reports the length you would expect, 1. You will still meet C-style strings in older code and in some library functions, which is why the difference is worth knowing.",
       },
       {
         id: "a-cp-std-string",
-        title: "Introduction to std::string",
+        title: "Introduction to string",
         explain:
-          "std::string, from #include <string>, holds text of any length and grows as needed. You can create one empty, from text, or by repeating a character: std::string line(20, '-'); is twenty dashes. Assign with =, join with +, and ask for the length with .size() or .length() (the same thing). Strings can be passed to and returned from functions like any value.",
+          "string, from #include <string>, holds text of any length and grows as needed. You can create one empty, from text, or by repeating a character: string line(20, '-'); is twenty dashes. Assign with =, join with +, and ask for the length with .size() or .length() (the same thing). Strings can be passed to and returned from functions like any value.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string first = "Chiamaka";
-    std::string last = "Okafor";
-    std::string full = first + " " + last;
-    std::string line(full.size(), '=');
-    std::cout << full << "\n" << line << "\n";
-    std::cout << "Length: " << full.length() << "\n";
+    string first = "Chiamaka";
+    string last = "Okafor";
+    string full = first + " " + last;
+    string line(full.size(), '=');
+    cout << full << "\n" << line << "\n";
+    cout << "Length: " << full.length() << "\n";
     return 0;
 }
 `,
@@ -83,11 +85,12 @@ int main() {
           task: "Fill the gap so greeting is built from the text \"Welcome, \", the name, and an exclamation mark.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string name = "Tunde";
-    std::string greeting = {{1}};
-    std::cout << greeting << "\n";
+    string name = "Tunde";
+    string greeting = {{1}};
+    cout << greeting << "\n";
     return 0;
 }
 `,
@@ -101,44 +104,46 @@ int main() {
         id: "a-cp-read-word",
         title: "Reading a single word",
         explain:
-          "std::cin >> word; reads ONE word: it skips any spaces and line breaks before the word, then stops at the next space or line break, which is left unread. That makes it ideal for single-word answers, and for processing text word by word: while (std::cin >> word) keeps reading words until the input runs out.",
+          "cin >> word; reads ONE word: it skips any spaces and line breaks before the word, then stops at the next space or line break, which is left unread. That makes it ideal for single-word answers, and for processing text word by word: while (cin >> word) keeps reading words until the input runs out.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string word;
+    string word;
     int count = 0;
-    std::string longest;
-    while (std::cin >> word) {
+    string longest;
+    while (cin >> word) {
         count++;
         if (word.size() > longest.size()) longest = word;
     }
-    std::cout << count << " words, longest: " << longest << "\n";
+    cout << count << " words, longest: " << longest << "\n";
     return 0;
 }
 `,
           inputs: ["the quick brown fox", "jumps over"],
           expectedOutput: "the quick brown fox\njumps over\n6 words, longest: quick",
         },
-        why: "while (std::cin >> word) is true each time a word is read, and false when there is nothing left (at the end of a file, or when the user presses Ctrl+Z then Enter on Windows, or Ctrl+D on macOS and Linux).",
+        why: "while (cin >> word) is true each time a word is read, and false when there is nothing left (at the end of a file, or when the user presses Ctrl+Z then Enter on Windows, or Ctrl+D on macOS and Linux).",
       },
       {
         id: "a-cp-getline",
         title: "Reading complete sentences with getline",
         explain:
-          "std::getline(std::cin, line); reads everything the user types up to the Enter key, spaces included, and stores it in line without the line break. Use it whenever an answer may contain spaces: full names, addresses, sentences. Note the different shape: getline is a function you call with the stream and the string, not an operator.",
+          "getline(cin, line); reads everything the user types up to the Enter key, spaces included, and stores it in line without the line break. Use it whenever an answer may contain spaces: full names, addresses, sentences. Note the different shape: getline is a function you call with the stream and the string, not an operator.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string fullName;
-    std::cout << "Full name: ";
-    std::getline(std::cin, fullName);
-    std::cout << "Hello, " << fullName << " (" << fullName.size() << " characters)\n";
+    string fullName;
+    cout << "Full name: ";
+    getline(cin, fullName);
+    cout << "Hello, " << fullName << " (" << fullName.size() << " characters)\n";
     return 0;
 }
 `,
@@ -149,20 +154,21 @@ int main() {
           task: "Fill the gap so the whole address, spaces included, is read into address.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string address;
-    std::cout << "Address: ";
+    string address;
+    cout << "Address: ";
     {{1}}
-    std::cout << "Deliver to: " << address << "\n";
+    cout << "Deliver to: " << address << "\n";
     return 0;
 }
 `,
-          blanks: [{ answers: ["std::getline(std::cin, address);", "getline(std::cin, address);"], width: 32 }],
+          blanks: [{ answers: ["getline(cin, address);", "std::getline(std::cin, address);", "getline(std::cin, address);"], width: 32 }],
           inputs: ["12 Allen Avenue, Ikeja"],
           expectedOutput: "Address: 12 Allen Avenue, Ikeja\nDeliver to: 12 Allen Avenue, Ikeja",
-          hint: "Call std::getline with two arguments: the stream to read from, then the string to fill.",
-          successMessage: "std::getline(std::cin, address); With cin >> it would have stopped at 12.",
+          hint: "Call getline with two arguments: the stream to read from, then the string to fill.",
+          successMessage: "getline(cin, address); With cin >> it would have stopped at 12.",
         },
       },
     ],
@@ -195,14 +201,15 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string code = "NG-LAG-042";
-    std::cout << code.size() << "\n";
-    std::cout << code[0] << code[3] << code.back() << "\n";
+    string code = "NG-LAG-042";
+    cout << code.size() << "\n";
+    cout << code[0] << code[3] << code.back() << "\n";
     code[2] = '/';
     code[6] = '/';
-    std::cout << code << "\n";
+    cout << code << "\n";
     return 0;
 }
 `,
@@ -216,19 +223,20 @@ int main() {
         id: "a-cp-concat-compare",
         title: "Joining and comparing strings",
         explain:
-          "+ joins strings into a new string and += appends to an existing one. At least one side of + must be a std::string: \"Hello\" + \" world\" does not compile, because both are C-style text. Comparison operators work on strings: == and != test for identical text, and <, > compare alphabetically, character by character, using character codes, so every capital letter comes before every lower-case letter.",
+          "+ joins strings into a new string and += appends to an existing one. At least one side of + must be a string: \"Hello\" + \" world\" does not compile, because both are C-style text. Comparison operators work on strings: == and != test for identical text, and <, > compare alphabetically, character by character, using character codes, so every capital letter comes before every lower-case letter.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string log = "Login";
+    string log = "Login";
     log += " at 09:15";
-    std::cout << log << "\n";
-    std::string a = "apple", b = "banana", c = "Banana";
-    std::cout << std::boolalpha;
-    std::cout << (a < b) << " " << (b < c) << " " << (a == "apple") << "\n";
+    cout << log << "\n";
+    string a = "apple", b = "banana", c = "Banana";
+    cout << boolalpha;
+    cout << (a < b) << " " << (b < c) << " " << (a == "apple") << "\n";
     return 0;
 }
 `,
@@ -239,13 +247,14 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string x = "cat", y = "car", z = "category";
-    std::cout << std::boolalpha;
-    std::cout << (y < x) << "\n";
-    std::cout << (x < z) << "\n";
-    std::cout << (x + "s" == "cats") << "\n";
+    string x = "cat", y = "car", z = "category";
+    cout << boolalpha;
+    cout << (y < x) << "\n";
+    cout << (x < z) << "\n";
+    cout << (x + "s" == "cats") << "\n";
     return 0;
 }
 `,
@@ -259,20 +268,21 @@ int main() {
         id: "a-cp-find",
         title: "Searching within strings",
         explain:
-          "s.find(x) searches s for x (a character or a string) and returns the index where it first starts. If x is not there it returns a special value, std::string::npos, so always compare with npos before using the result. s.find(x, start) begins the search at a given index, and s.rfind(x) searches from the end.",
+          "s.find(x) searches s for x (a character or a string) and returns the index where it first starts. If x is not there it returns a special value, string::npos, so always compare with npos before using the result. s.find(x, start) begins the search at a given index, and s.rfind(x) searches from the end.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string email = "ada@memora.ng";
-    std::size_t at = email.find('@');
-    std::cout << "@ is at " << at << "\n";
-    if (email.find("gmail") == std::string::npos) {
-        std::cout << "Not a gmail address\n";
+    string email = "ada@memora.ng";
+    size_t at = email.find('@');
+    cout << "@ is at " << at << "\n";
+    if (email.find("gmail") == string::npos) {
+        cout << "Not a gmail address\n";
     }
-    std::cout << "Last dot at " << email.rfind('.') << "\n";
+    cout << "Last dot at " << email.rfind('.') << "\n";
     return 0;
 }
 `,
@@ -282,13 +292,14 @@ int main() {
           task: "Fill the condition so the program reports a sentence that contains the word \"urgent\".",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string subject = "Please treat this as urgent today";
+    string subject = "Please treat this as urgent today";
     if ({{1}}) {
-        std::cout << "Flagged as urgent\n";
+        cout << "Flagged as urgent\n";
     } else {
-        std::cout << "Normal\n";
+        cout << "Normal\n";
     }
     return 0;
 }
@@ -296,15 +307,17 @@ int main() {
           blanks: [
             {
               answers: [
+                'subject.find("urgent") != string::npos',
                 'subject.find("urgent") != std::string::npos',
-                'std::string::npos != subject.find("urgent")',
+                'string::npos != subject.find("urgent")',
+                'std::string::npos != subject.find("urgent")'
               ],
               width: 42,
             },
           ],
           expectedOutput: "Flagged as urgent",
           hint: "find returns npos when the text is missing, so \"found\" means the result is NOT npos.",
-          successMessage: "find(...) != std::string::npos is the standard way to ask \"does it contain?\".",
+          successMessage: "find(...) != string::npos is the standard way to ask \"does it contain?\".",
         },
       },
       {
@@ -316,14 +329,15 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string fullName = "Ada Lovelace";
-    std::size_t space = fullName.find(' ');
-    std::string first = fullName.substr(0, space);
-    std::string last = fullName.substr(space + 1);
-    std::cout << last << ", " << first << "\n";
-    std::cout << fullName.substr(4, 4) << "\n";
+    string fullName = "Ada Lovelace";
+    size_t space = fullName.find(' ');
+    string first = fullName.substr(0, space);
+    string last = fullName.substr(space + 1);
+    cout << last << ", " << first << "\n";
+    cout << fullName.substr(4, 4) << "\n";
     return 0;
 }
 `,
@@ -333,11 +347,12 @@ int main() {
           task: "date holds a date as DD/MM/YYYY. Fill the gap to extract the four-character year.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string date = "17/10/2026";
-    std::string year = {{1}};
-    std::cout << "Year: " << year << "\n";
+    string date = "17/10/2026";
+    string year = {{1}};
+    cout << "Year: " << year << "\n";
     return 0;
 }
 `,
@@ -372,29 +387,30 @@ int main() {
         id: "a-cp-case",
         title: "Changing character case",
         explain:
-          "<cctype> provides functions that work on one character: std::toupper and std::tolower convert case, and std::isalpha, std::isdigit, std::isspace, std::isupper and std::islower test what kind of character it is. They expect the character as an unsigned char, so the safe pattern is to wrap them once in a small helper, as below, and loop over the string to convert all of it.",
+          "<cctype> provides functions that work on one character: toupper and tolower convert case, and isalpha, isdigit, isspace, isupper and islower test what kind of character it is. They expect the character as an unsigned char, so the safe pattern is to wrap them once in a small helper, as below, and loop over the string to convert all of it.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
 #include <cctype>
+using namespace std;
 
 char toUpperChar(char c) {
-    return static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    return static_cast<char>(toupper(static_cast<unsigned char>(c)));
 }
 
-std::string toUpper(std::string s) {
-    for (std::size_t i = 0; i < s.size(); i++) {
+string toUpper(string s) {
+    for (size_t i = 0; i < s.size(); i++) {
         s[i] = toUpperChar(s[i]);
     }
     return s;
 }
 
 int main() {
-    std::string city = "Port Harcourt";
-    std::cout << toUpper(city) << "\n";
-    std::cout << city << "\n";
-    std::cout << std::boolalpha << (toUpper("lagos") == toUpper("LAGOS")) << "\n";
+    string city = "Port Harcourt";
+    cout << toUpper(city) << "\n";
+    cout << city << "\n";
+    cout << boolalpha << (toUpper("lagos") == toUpper("LAGOS")) << "\n";
     return 0;
 }
 `,
@@ -406,17 +422,18 @@ int main() {
           code: C`#include <iostream>
 #include <string>
 #include <cctype>
+using namespace std;
 
 char toLowerChar(char c) {
-    return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    return static_cast<char>(tolower(static_cast<unsigned char>(c)));
 }
 
 int main() {
-    std::string code = "MeMoRa-2026";
-    for (std::size_t i = 0; i < code.size(); i++) {
+    string code = "MeMoRa-2026";
+    for (size_t i = 0; i < code.size(); i++) {
         {{1}}
     }
-    std::cout << code << "\n";
+    cout << code << "\n";
     return 0;
 }
 `,
@@ -436,20 +453,21 @@ int main() {
           code: C`#include <iostream>
 #include <string>
 #include <cctype>
+using namespace std;
 
 int main() {
-    std::string text = "Hello  World 2026!";
+    string text = "Hello  World 2026!";
     int letters = 0, digits = 0, spaces = 0, words = 0;
-    for (std::size_t i = 0; i < text.size(); i++) {
+    for (size_t i = 0; i < text.size(); i++) {
         unsigned char c = static_cast<unsigned char>(text[i]);
-        if (std::isalpha(c)) letters++;
-        else if (std::isdigit(c)) digits++;
-        else if (std::isspace(c)) spaces++;
-        bool startsWord = !std::isspace(c) &&
-            (i == 0 || std::isspace(static_cast<unsigned char>(text[i - 1])));
+        if (isalpha(c)) letters++;
+        else if (isdigit(c)) digits++;
+        else if (isspace(c)) spaces++;
+        bool startsWord = !isspace(c) &&
+            (i == 0 || isspace(static_cast<unsigned char>(text[i - 1])));
         if (startsWord) words++;
     }
-    std::cout << letters << " letters, " << digits << " digits, "
+    cout << letters << " letters, " << digits << " digits, "
               << spaces << " spaces, " << words << " words\n";
     return 0;
 }
@@ -460,17 +478,18 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string s = "Programming";
+    string s = "Programming";
     int vowels = 0;
-    for (std::size_t i = 0; i < s.size(); i++) {
+    for (size_t i = 0; i < s.size(); i++) {
         char c = s[i];
         if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
             vowels++;
         }
     }
-    std::cout << vowels << " of " << s.size() << "\n";
+    cout << vowels << " of " << s.size() << "\n";
     return 0;
 }
 `,
@@ -490,24 +509,25 @@ int main() {
           code: C`#include <iostream>
 #include <string>
 #include <cctype>
+using namespace std;
 
-bool isPalindrome(const std::string& text) {
-    std::string s;
-    for (std::size_t i = 0; i < text.size(); i++) {
+bool isPalindrome(const string& text) {
+    string s;
+    for (size_t i = 0; i < text.size(); i++) {
         unsigned char c = static_cast<unsigned char>(text[i]);
-        if (std::isalpha(c)) s += static_cast<char>(std::tolower(c));
+        if (isalpha(c)) s += static_cast<char>(tolower(c));
     }
-    std::size_t n = s.size();
-    for (std::size_t i = 0; i < n / 2; i++) {
+    size_t n = s.size();
+    for (size_t i = 0; i < n / 2; i++) {
         if (s[i] != s[n - 1 - i]) return false;
     }
     return true;
 }
 
 int main() {
-    std::cout << std::boolalpha;
-    std::cout << isPalindrome("Never odd or even") << "\n";
-    std::cout << isPalindrome("Lagos") << "\n";
+    cout << boolalpha;
+    cout << isPalindrome("Never odd or even") << "\n";
+    cout << isPalindrome("Lagos") << "\n";
     return 0;
 }
 `,
@@ -517,17 +537,18 @@ int main() {
           task: "Fill the comparison inside the loop: it should find a mismatch between character i and its mirror image from the end.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
-    std::string s = "racecar";
+    string s = "racecar";
     bool same = true;
-    std::size_t n = s.size();
-    for (std::size_t i = 0; i < n / 2; i++) {
+    size_t n = s.size();
+    for (size_t i = 0; i < n / 2; i++) {
         if ({{1}}) {
             same = false;
         }
     }
-    std::cout << s << (same ? " is" : " is not") << " a palindrome\n";
+    cout << s << (same ? " is" : " is not") << " a palindrome\n";
     return 0;
 }
 `,
@@ -547,19 +568,20 @@ int main() {
           code: C`#include <iostream>
 #include <string>
 #include <cctype>
+using namespace std;
 
-void checkPassword(const std::string& p) {
+void checkPassword(const string& p) {
     bool hasDigit = false, hasUpper = false;
-    for (std::size_t i = 0; i < p.size(); i++) {
+    for (size_t i = 0; i < p.size(); i++) {
         unsigned char c = static_cast<unsigned char>(p[i]);
-        if (std::isdigit(c)) hasDigit = true;
-        if (std::isupper(c)) hasUpper = true;
+        if (isdigit(c)) hasDigit = true;
+        if (isupper(c)) hasUpper = true;
     }
-    std::cout << p << ": ";
-    if (p.size() < 8) std::cout << "too short\n";
-    else if (!hasDigit) std::cout << "needs a digit\n";
-    else if (!hasUpper) std::cout << "needs a capital letter\n";
-    else std::cout << "OK\n";
+    cout << p << ": ";
+    if (p.size() < 8) cout << "too short\n";
+    else if (!hasDigit) cout << "needs a digit\n";
+    else if (!hasUpper) cout << "needs a capital letter\n";
+    else cout << "OK\n";
 }
 
 int main() {
@@ -630,15 +652,16 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
     int age = 0;
-    std::string name;
-    std::cout << "Age: ";
-    std::cin >> age;
-    std::cout << "Full name: ";
-    std::getline(std::cin, name);
-    std::cout << "Hello, [" << name << "] aged " << age << "\n";
+    string name;
+    cout << "Age: ";
+    cin >> age;
+    cout << "Full name: ";
+    getline(cin, name);
+    cout << "Hello, [" << name << "] aged " << age << "\n";
     return 0;
 }
 `,
@@ -651,22 +674,23 @@ int main() {
         id: "a-cp-buffer-fix",
         title: "The fix: clear the leftover line",
         explain:
-          "After a cin >> that is followed by a getline, throw away the rest of the current line: std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\\n'); discards characters up to and including the next newline (it needs #include <limits>). A shorter alternative is std::getline(std::cin >> std::ws, name);, where std::ws skips any whitespace, including that newline, before getline starts.",
+          "After a cin >> that is followed by a getline, throw away the rest of the current line: cin.ignore(numeric_limits<streamsize>::max(), '\\n'); discards characters up to and including the next newline (it needs #include <limits>). A shorter alternative is getline(cin >> ws, name);, where ws skips any whitespace, including that newline, before getline starts.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <limits>
 #include <string>
+using namespace std;
 
 int main() {
     int age = 0;
-    std::string name;
-    std::cout << "Age: ";
-    std::cin >> age;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::cout << "Full name: ";
-    std::getline(std::cin, name);
-    std::cout << "Hello, [" << name << "] aged " << age << "\n";
+    string name;
+    cout << "Age: ";
+    cin >> age;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cout << "Full name: ";
+    getline(cin, name);
+    cout << "Hello, [" << name << "] aged " << age << "\n";
     return 0;
 }
 `,
@@ -677,44 +701,46 @@ int main() {
           task: "Fill the gap with the getline call that first skips leftover whitespace, so the city is read correctly after the number.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 int main() {
     int year = 0;
-    std::string city;
-    std::cout << "Year: ";
-    std::cin >> year;
-    std::cout << "City: ";
+    string city;
+    cout << "Year: ";
+    cin >> year;
+    cout << "City: ";
     {{1}}
-    std::cout << city << ", " << year << "\n";
+    cout << city << ", " << year << "\n";
     return 0;
 }
 `,
-          blanks: [{ answers: ["std::getline(std::cin >> std::ws, city);"], width: 40 }],
+          blanks: [{ answers: ["getline(cin >> ws, city);", "std::getline(std::cin >> std::ws, city);"], width: 40 }],
           inputs: ["2026", "Port Harcourt"],
           expectedOutput: "Year: 2026\nCity: Port Harcourt\nPort Harcourt, 2026",
-          hint: "Use std::getline as usual, but instead of plain std::cin pass std::cin >> std::ws.",
-          successMessage: "std::getline(std::cin >> std::ws, city); The leftover newline is skipped, then the whole line is read.",
+          hint: "Use getline as usual, but instead of plain cin pass cin >> ws.",
+          successMessage: "getline(cin >> ws, city); The leftover newline is skipped, then the whole line is read.",
         },
       },
       {
         id: "a-cp-bad-input",
         title: "When the user types the wrong thing",
         explain:
-          "If cin >> age meets letters instead of a number, the read FAILS: age is set to 0, cin goes into a failed state, and every later read is ignored until you deal with it. Check the read itself, if (std::cin >> age), which is true only on success. On failure, call std::cin.clear() to reset the stream and ignore the bad line, then ask again. This is the first step towards the full input validation in Week 11.",
+          "If cin >> age meets letters instead of a number, the read FAILS: age is set to 0, cin goes into a failed state, and every later read is ignored until you deal with it. Check the read itself, if (cin >> age), which is true only on success. On failure, call cin.clear() to reset the stream and ignore the bad line, then ask again. This is the first step towards the full input validation in Week 11.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <limits>
+using namespace std;
 
 int main() {
     int age = 0;
-    std::cout << "Age: ";
-    while (!(std::cin >> age)) {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Please type a whole number.\nAge: ";
+    cout << "Age: ";
+    while (!(cin >> age)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Please type a whole number.\nAge: ";
     }
-    std::cout << "Age accepted: " << age << "\n";
+    cout << "Age accepted: " << age << "\n";
     return 0;
 }
 `,
@@ -755,9 +781,9 @@ int main() {
     task: {
       title: "Mini-project: text analyser",
       intro:
-        "Write textstats.cpp: it reads a line of text and reports on it. Every analysis is a function taking const std::string&.",
+        "Write textstats.cpp: it reads a line of text and reports on it. Every analysis is a function taking const string&.",
       prompts: [
-        "Read a whole line of text with std::getline.",
+        "Read a whole line of text with getline.",
         "Report the number of characters, letters, digits, spaces and words (count word starts, so double spaces do not add words).",
         "Count the vowels, upper case and lower case alike, using a lower-case copy of the text.",
         "Report the longest word, by scanning the text for words separated by spaces.",

@@ -18,6 +18,17 @@ import { Loop, makeDate, real, tick } from "./loop.js";
 import { Volume } from "./fs.js";
 import proc, { resetProcess, ProcessExit, NODE_VERSION, parseEnv, PID } from "./process.js";
 import { ModuleSystem, ModuleSyntaxError } from "./modules.js";
+
+const OS_RELEASE = `PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+VERSION_CODENAME=bookworm
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+`;
 import { ctx } from "./context.js";
 import { inspect, format } from "./inspect.js";
 import { Buffer } from "./buffer.js";
@@ -389,6 +400,9 @@ export class Machine {
     this.vol = new Volume(() => this.loop.now());
     this.vol.load(opts.files || {}, "/app");
     this.vol.mkdirp("/tmp");
+    // The server the lab imitates: Debian 12, as in the official node:24 image. Tools that inspect
+    // the system (Prisma looks for OpenSSL) find what they would find there.
+    this.vol.load({ "etc/os-release": OS_RELEASE, "usr/lib/x86_64-linux-gnu/libssl.so.3": "" }, "/");
     this.network = new Network(this);
     this.output = []; // { stream, text }
     this.exited = false;
@@ -511,6 +525,28 @@ export class Machine {
   async run(command, { args: extraArgs = [] } = {}) {
     this.activate();
     await this.ensurePackages();
+    // a && b: run b only if a exited with 0, as a shell does (npm scripts chain setup steps this way).
+    const steps = splitAnd(command);
+    if (steps.length > 1) {
+      let result;
+      for (const [i, step] of steps.entries()) {
+        if (i > 0) {
+          this.exited = false;
+          this.exitCode = null;
+          this.revive();
+          this.activate();
+        }
+        this.chained = i < steps.length - 1;
+        result = await this.run(step, i === steps.length - 1 ? { args: extraArgs } : {});
+        this.chained = false;
+        if (i < steps.length - 1 && (result !== "exit" || this.exitCode !== 0)) {
+          // A step that failed (or never finished) ends the chain, and the machine reports that exit.
+          if (result === "exit") this.onExit?.(this.exitCode);
+          return result;
+        }
+      }
+      return result;
+    }
     const words = splitCommand(command);
     // NAME=value before a command sets it in that command's environment, as in a shell.
     while (words.length > 1 && /^[A-Za-z_][A-Za-z0-9_]*=/.test(words[0])) {
@@ -752,7 +788,8 @@ export class Machine {
     this.exited = true;
     this.network.abortAll();
     this.loop.stop();
-    this.onExit?.(code);
+    // Inside a && chain, only the chain's end is the program's exit.
+    if (!this.chained) this.onExit?.(code);
   }
 
   signal(name) {
@@ -959,6 +996,29 @@ ${inspect(err)}${tail}`;
   stop() {
     if (!this.exited) this.exit(137);
   }
+}
+
+/** Splits a command line at && (outside quotes). */
+export function splitAnd(command) {
+  const out = [];
+  let cur = "";
+  let quote = null;
+  const s = String(command);
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (quote) {
+      if (ch === quote) quote = null;
+    } else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === "&" && s[i + 1] === "&") {
+      out.push(cur.trim());
+      cur = "";
+      i += 1;
+      continue;
+    }
+    cur += ch;
+  }
+  out.push(cur.trim());
+  return out.filter(Boolean);
 }
 
 export function splitCommand(command) {

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { STEPS } from "../utils/constants";
 import { callClaude } from "../utils/callClaude";
 import { smartCase, liveTitleCase, liveCapitalizeSentences, liveCommaListTitleCase } from "../utils/textCasing";
+import { compressImage, readFileAsDataURL } from "../utils/imageCompress";
 
 //comment
 // ── UI ELEMENTS ──
@@ -294,12 +295,22 @@ const moveEdu = (i, dir) => {
     setLoading(l => ({ ...l, certifications: false }));
   };
 
-  const handlePhoto = (e) => {
+  const handlePhoto = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setCV(p => ({ ...p, photo: ev.target.result }));
-    reader.readAsDataURL(file);
+    try {
+      const raw = await readFileAsDataURL(file);
+      let photo = raw;
+      try {
+        photo = await compressImage(raw);
+      } catch {
+        // Unsupported format for canvas (e.g. HEIC on some browsers) — keep the
+        // original; shrinkPhoto runs again at save time.
+      }
+      setCV(p => ({ ...p, photo }));
+    } catch {
+      alert("Could not read that image. Please try a JPG or PNG.");
+    }
   };
 
   // ── STEPS ──

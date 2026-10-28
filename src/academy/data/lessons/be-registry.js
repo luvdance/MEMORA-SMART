@@ -13,6 +13,8 @@ import { LESSONS as BE_W5 } from "./be-w5-node.js";
 import { LESSONS as BE_W6 } from "./be-w6-http-rest.js";
 import { LESSONS as BE_W7 } from "./be-w7-express.js";
 import { LESSONS as BE_W8 } from "./be-w8-api-design.js";
+import { LESSONS as BE_W9 } from "./be-w9-relational.js";
+import { LESSONS as BE_W10 } from "./be-w10-sql.js";
 
 export const BACKEND_ENGINEERING_LESSONS = {
   "be-w1-web": BE_W1,
@@ -23,6 +25,8 @@ export const BACKEND_ENGINEERING_LESSONS = {
   "be-w6-http-rest": BE_W6,
   "be-w7-express": BE_W7,
   "be-w8-api-design": BE_W8,
+  "be-w9-relational": BE_W9,
+  "be-w10-sql": BE_W10,
 };
 
 export default BACKEND_ENGINEERING_LESSONS;

@@ -178,3 +178,149 @@ export default [
   { languageOptions: { globals: globals.node } },
 ];
 `;
+
+/* ── Week 10: roles and a reporting view (psql -f roles.sql) ─────────── */
+
+export const W10_ROLES = `-- The API's role: reads and writes rows, never changes the schema.
+CREATE ROLE academy_app LOGIN PASSWORD 'app-password';
+GRANT CONNECT ON DATABASE academy TO academy_app;
+GRANT USAGE ON SCHEMA public TO academy_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO academy_app;
+
+-- Per-course numbers for reporting, with no personal data.
+CREATE VIEW course_report AS
+SELECT c.code, c.title,
+       count(e.id) AS enrollments,
+       count(e.id) FILTER (WHERE e.status = 'completed') AS completed
+FROM courses c
+LEFT JOIN enrollments e ON e.course_id = c.id
+GROUP BY c.id
+ORDER BY c.code;
+
+-- The reporting role sees the view and nothing else.
+CREATE ROLE reporting LOGIN PASSWORD 'reporting-password';
+GRANT CONNECT ON DATABASE academy TO reporting;
+GRANT USAGE ON SCHEMA public TO reporting;
+GRANT SELECT ON course_report TO reporting;
+`;
+
+/* ── Week 11: the course API's Prisma schema, as it evolves ──────────── */
+
+export const W11_SCHEMA = `generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Course {
+  id          Int          @id @default(autoincrement())
+  code        String       @unique
+  title       String
+  weeks       Int
+  price       Int
+  createdAt   DateTime     @default(now()) @map("created_at")
+  enrollments Enrollment[]
+
+  @@map("courses")
+}
+
+model Student {
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  fullName    String       @map("full_name")
+  enrollments Enrollment[]
+
+  @@map("students")
+}
+
+model Enrollment {
+  id         Int      @id @default(autoincrement())
+  student    Student  @relation(fields: [studentId], references: [id])
+  studentId  Int      @map("student_id")
+  course     Course   @relation(fields: [courseId], references: [id])
+  courseId   Int      @map("course_id")
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+
+  @@unique([studentId, courseId])
+  @@map("enrollments")
+}
+`;
+
+/** Week 11, second migration: a level with a default (safe: existing rows get it). */
+export const W11_SCHEMA_LEVEL = W11_SCHEMA.replace(
+  "  price       Int\n",
+  '  price       Int\n  level       String       @default("beginner")\n'
+);
+
+/** Week 11, a careless change: renaming title in the schema (Prisma drops and re-adds the column). */
+export const W11_SCHEMA_RENAME = W11_SCHEMA_LEVEL.replace("  title       String\n", "  name        String\n");
+
+export const W11_PRISMA_CONFIG = `import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+`;
+
+export const W11_DB = `import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "./generated/prisma/client.ts";
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+export const prisma = new PrismaClient({ adapter });
+`;
+
+export const W11_TRY = `import { prisma } from "./db.ts";
+
+const course = await prisma.course.create({
+  data: { code: "BE-101", title: "Backend Engineering", weeks: 24, price: 120000 },
+});
+console.log(course);
+
+const student = await prisma.student.create({
+  data: {
+    email: "ada@example.com",
+    fullName: "Ada Obi",
+    enrollments: { create: { courseId: course.id } },
+  },
+  include: { enrollments: true },
+});
+console.log(student);
+
+console.log(await prisma.course.findMany({ select: { code: true, _count: { select: { enrollments: true } } } }));
+await prisma.$disconnect();
+`;
+
+/** Week 11, the safe rename: the field is called name in code, the column keeps its name. */
+export const W11_SCHEMA_MAPPED = W11_SCHEMA_LEVEL.replace("  title       String\n", '  name        String       @map("title")\n');
+
+/** Week 11, later: seats per course, and payments for enrollments. */
+export const W11_SCHEMA_SEATS = W11_SCHEMA_LEVEL.replace(
+  '  level       String       @default("beginner")\n',
+  '  level       String       @default("beginner")\n  seats       Int          @default(30)\n'
+)
+  .replace(
+    '  enrolledAt DateTime @default(now()) @map("enrolled_at")\n',
+    '  enrolledAt DateTime @default(now()) @map("enrolled_at")\n  payments   Payment[]\n'
+  )
+  .concat(`
+model Payment {
+  id           Int        @id @default(autoincrement())
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  enrollmentId Int        @map("enrollment_id")
+  amount       Int
+  paidAt       DateTime   @default(now()) @map("paid_at")
+
+  @@map("payments")
+}
+`);

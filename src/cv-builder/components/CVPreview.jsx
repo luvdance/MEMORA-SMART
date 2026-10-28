@@ -9,6 +9,10 @@ import SectionOrderPanel from "./SectionOrderPanel";
 
 const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo,];
 
+// A4 at 96dpi
+const PAGE_WIDTH = 794;
+const PAGE_HEIGHT = 1123;
+
 //cv preview component
 export default function CVPreview({
   cv, accent, template, previewRef, tab,
@@ -17,26 +21,39 @@ export default function CVPreview({
   showOrder, setShowOrder,
 }) {
   const TemplateComponent = templates[template];
-  const [mobileScale, setMobileScale] = useState(1);
+  const [scale, setScale] = useState(1);
+  const [pageHeight, setPageHeight] = useState(PAGE_HEIGHT);
   const wrapperRef = useRef();
 
-  // Compute mobile scale in JS — avoids unreliable CSS calc()-in-scale() across browsers
+  // Scale the A4 page to whatever width the preview actually has. Measuring the
+  // wrapper (not the window) covers phones, small laptops and the open
+  // Format/Reorder side panel alike. The page height is tracked too so the
+  // scaled page's layout box can be shrunk to its visual size (see margins below),
+  // which keeps multi-page CVs fully visible and scrollable.
   useEffect(() => {
-    const computeScale = () => {
-      const isMobile = window.innerWidth <= 900;
-      if (!isMobile) {
-        setMobileScale(1);
-        return;
+    const wrapper = wrapperRef.current;
+    const page = previewRef.current;
+    if (!wrapper || !page) return;
+
+    const measure = () => {
+      const available = wrapper.clientWidth;
+      // 0 while the panel is hidden (mobile form tab) — keep the last scale
+      if (available > 0) {
+        setScale(Math.min(1, Math.floor((available / PAGE_WIDTH) * 1000) / 1000));
       }
-      const availableWidth = window.innerWidth - 32; // 16px padding each side
-      const ratio = availableWidth / 794;
-      setMobileScale(ratio);
+      if (page.offsetHeight > 0) setPageHeight(page.offsetHeight);
     };
 
-    computeScale();
-    window.addEventListener("resize", computeScale);
-    return () => window.removeEventListener("resize", computeScale);
-  }, []);
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const ro = new ResizeObserver(measure);
+    ro.observe(wrapper);
+    ro.observe(page);
+    return () => ro.disconnect();
+  }, [previewRef]);
 
   const handleFormatToggle = () => {
   setShowFormat(v => !v);
@@ -48,7 +65,7 @@ const handleOrderToggle = () => {
   setShowFormat(false);
 };
 
-  const isMobile = mobileScale !== 1;
+  const isScaled = scale < 1;
 
   return (
     <div className={`cv-preview-panel ${tab === "form" ? "cv-preview-panel--hidden" : ""}`}>
@@ -87,23 +104,21 @@ const handleOrderToggle = () => {
           )}
         </div>
         {/* A4 PAGE */}
-        <div
-          className="cv-preview__page-wrapper"
-          ref={wrapperRef}
-          style={isMobile ? {
-            width: `${794 * mobileScale}px`,
-            overflow: "visible",
-          } : undefined}
-        >
+        <div className="cv-preview__page-wrapper" ref={wrapperRef}>
           <div
             className="cv-preview__page"
             ref={previewRef}
             style={{
               background: theme.bg,
-              width: "794px",
-              minHeight: "1123px",
-              transform: isMobile ? `scale(${mobileScale})` : undefined,
+              width: `${PAGE_WIDTH}px`,
+              minHeight: `${PAGE_HEIGHT}px`,
+              transform: isScaled ? `scale(${scale})` : undefined,
               transformOrigin: "top left",
+              // A transform doesn't change layout size, so pull the right and
+              // bottom edges in to match what's drawn. Print and PDF reset
+              // margin/transform, so exports stay full-size A4.
+              marginRight: isScaled ? `${-PAGE_WIDTH * (1 - scale)}px` : undefined,
+              marginBottom: isScaled ? `${-pageHeight * (1 - scale)}px` : undefined,
             }}
           >
             <TemplateComponent

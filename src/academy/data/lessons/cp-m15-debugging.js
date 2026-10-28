@@ -77,13 +77,14 @@ export const LESSONS = [
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int total = 0;
     for (int i = 1; i <= 3; i++) {
         totl += i;
     }
-    std::cout << total << "\n";
+    cout << total << "\n";
     return 0;
 }
 `,
@@ -94,13 +95,14 @@ int main() {
         codeFill: {
           task: "Fix line 6, the line g++ complained about, so the program compiles and prints the total.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int total = 0;
     for (int i = 1; i <= 3; i++) {
         {{1}}
     }
-    std::cout << total << "\n";
+    cout << total << "\n";
     return 0;
 }
 `,
@@ -138,6 +140,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int discounted(int price) {
     int discount = price / 10;
@@ -150,7 +153,7 @@ int main() {
     for (int p : prices) {
         total += discounted(p);
     }
-    std::cout << total << "\n";
+    cout << total << "\n";
     return 0;
 }
 `,
@@ -211,6 +214,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 char gradeFor(int score) {
     if (score > 70) return 'A';
@@ -221,8 +225,8 @@ char gradeFor(int score) {
 
 int main() {
     int tests[] = {85, 70, 69, 50, 49};
-    for (int s : tests) std::cout << s << ":" << gradeFor(s) << " ";
-    std::cout << "\n";
+    for (int s : tests) cout << s << ":" << gradeFor(s) << " ";
+    cout << "\n";
     return 0;
 }
 `,
@@ -243,6 +247,7 @@ int main() {
           code: C`#include <cassert>
 #include <iostream>
 #include <string>
+using namespace std;
 
 char gradeFor(int score) {
     assert(score >= 0 && score <= 100);
@@ -254,8 +259,8 @@ char gradeFor(int score) {
 
 int failures = 0;
 
-void check(bool ok, const std::string& name) {
-    std::cout << (ok ? "PASS " : "FAIL ") << name << "\n";
+void check(bool ok, const string& name) {
+    cout << (ok ? "PASS " : "FAIL ") << name << "\n";
     if (!ok) failures++;
 }
 
@@ -264,7 +269,7 @@ int main() {
     check(gradeFor(70) == 'A', "boundary: 70 is an A");
     check(gradeFor(69) == 'B', "boundary: 69 is a B");
     check(gradeFor(0) == 'F', "lowest score");
-    std::cout << failures << " failure(s)\n";
+    cout << failures << " failure(s)\n";
     return failures == 0 ? 0 : 1;
 }
 `,
@@ -275,6 +280,7 @@ int main() {
           task: "Add a test that checks the boundary at 50: gradeFor(50) must be 'C'.",
           code: C`#include <iostream>
 #include <string>
+using namespace std;
 
 char gradeFor(int score) {
     if (score >= 70) return 'A';
@@ -283,8 +289,8 @@ char gradeFor(int score) {
     return 'F';
 }
 
-void check(bool ok, const std::string& name) {
-    std::cout << (ok ? "PASS " : "FAIL ") << name << "\n";
+void check(bool ok, const string& name) {
+    cout << (ok ? "PASS " : "FAIL ") << name << "\n";
 }
 
 int main() {
@@ -296,7 +302,7 @@ int main() {
           blanks: [
             {
               answers: [
-                "check(gradeFor(50) == 'C', \"50 is a C\");",
+                "check(gradeFor(50) == 'C', \"50 is a C\");"
               ],
               width: 40,
             },
@@ -371,6 +377,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 #ifndef POINT_H
 #define POINT_H
@@ -389,7 +396,7 @@ struct Point {
 int main() {
     Point p;
     p.x = 3;
-    std::cout << "Defined once: " << p.x << "\n";
+    cout << "Defined once: " << p.x << "\n";
     return 0;
 }
 `,
@@ -399,6 +406,7 @@ int main() {
         codeFill: {
           task: "Fill the first line of the guard: only process the header if CONFIG_H has NOT been defined yet.",
           code: C`#include <iostream>
+using namespace std;
 
 {{1}}
 #define CONFIG_H
@@ -406,7 +414,7 @@ constexpr int MAX_STUDENTS = 40;
 #endif
 
 int main() {
-    std::cout << MAX_STUDENTS << "\n";
+    cout << MAX_STUDENTS << "\n";
     return 0;
 }
 `,
@@ -418,9 +426,9 @@ int main() {
       },
       {
         id: "a-cp-namespaces",
-        title: "Namespaces and the std namespace",
+        title: "Namespaces, and bringing std:: back",
         explain:
-          "A namespace groups names so that they cannot clash with names elsewhere: the standard library's names live in std, which is why you write std::cout. Put your own project's code in its own namespace, such as namespace bank { ... }, and refer to its names as bank::Account. using namespace std; in a header is a serious mistake, because it pours every std name into every file that includes it; even in a .cpp file it invites clashes, which is why this course has always written std:: in full.",
+          "Since Week 1 every program in this course has started with using namespace std; so that you could write cout instead of std::cout. Now that your programs are growing into real projects, it is time to look at what that line costs. A namespace groups names so that they cannot clash: the standard library keeps its names in std, and you can put your own project's code in its own namespace, such as namespace bank { ... }, reached as bank::Account. using namespace std; pours ALL of std's names (hundreds of them, including common words such as count, size, distance and move) into your program. In a small learning program that is harmless and convenient. In a large project it invites clashes, and in a header file it is a serious mistake, because it pours those names into every file that includes the header. That is why professional C++ usually writes std:: in full, exactly as you did in your very first programs.",
         code: {
           language: CPP,
           code: C`#include <iostream>
@@ -444,7 +452,89 @@ int main() {
 `,
           expectedOutput: "500\n200\n1000",
         },
-        why: "Two functions called interest coexist because they live in different namespaces. using school::interest; brings in just that one name, a much safer habit than using a whole namespace.",
+        why: "Two functions called interest coexist because they live in different namespaces. using school::interest; brings in just that one name, a much safer habit than using a whole namespace. Notice the program writes std::cout in full: it has no using namespace std;.",
+        decision: {
+          scenario: "You are writing Account.h, a header that four other files in your capstone will include.",
+          question: "Should Account.h contain using namespace std;?",
+          options: [
+            {
+              id: "a",
+              text: "No: write std::string and std::vector in full in headers, so the header does not force every std name onto the files that include it",
+              why: "A header's using-directive spreads to every includer, whether they want it or not. In headers, always write std:: in full.",
+            },
+            {
+              id: "b",
+              text: "Yes, it saves typing",
+              whyWrong: "The typing saved in one file is paid for in name clashes in every file that includes it.",
+            },
+            {
+              id: "c",
+              text: "Yes, otherwise the header cannot use strings",
+              whyWrong: "It can: std::string works in any header that includes <string>.",
+            },
+            {
+              id: "d",
+              text: "It makes no difference either way",
+              whyWrong: "It changes which names are visible in every file that includes the header.",
+            },
+          ],
+          correct: "a",
+          aftermath: "In small learning programs, using namespace std; is fine. In headers and large projects, write std:: in full.",
+        },
+      },
+      {
+        id: "a-cp-namespace-clash",
+        title: "A real clash, and the fix",
+        explain:
+          "Here is the problem using namespace std; can cause. This program has its own global variable called count. But <algorithm> also contains a function called std::count, and the using-directive has brought it in too. When main says count, the compiler cannot tell which one is meant, and refuses. Removing the using-directive and writing std:: in front of the standard names fixes it: count then means only your variable.",
+        code: {
+          language: CPP,
+          code: C`#include <algorithm>
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int count = 0;
+
+int main() {
+    vector<int> v = {1, 2, 3};
+    for (int x : v) count += x;
+    cout << count << "\n";
+    return 0;
+}
+`,
+          compileError: "reference to 'count' is ambiguous",
+        },
+        codeFill: {
+          task: "Here is the fixed program: it has no using namespace std;, so standard names need std:: in front. Fill the gap so it prints the value of count.",
+          code: C`#include <algorithm>
+#include <iostream>
+#include <vector>
+
+int count = 0;
+
+int main() {
+    std::vector<int> v = {1, 2, 3};
+    for (int x : v) count += x;
+    {{1}}
+    return 0;
+}
+`,
+          blanks: [
+            {
+              answers: [
+                C`std::cout << count << "\n";`,
+                C`std::cout << count << std::endl;`,
+                C`std::cout << count << '\n';`,
+              ],
+              width: 30,
+            },
+          ],
+          expectedOutput: "6",
+          hint: "Exactly how you wrote it in your first lesson: std::cout << ... << \"\\n\";",
+          successMessage:
+            "std::cout, just like your very first program. Without the using-directive, count means only your variable, and the clash is gone.",
+        },
       },
       {
         id: "a-cp-cmake",
@@ -547,6 +637,7 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 constexpr double VAT_RATE = 0.075;
 constexpr double DELIVERY_FREE_FROM = 10000;
@@ -561,7 +652,7 @@ double orderTotal(double subtotal) {
 }
 
 int main() {
-    std::cout << orderTotal(8000) << " " << orderTotal(12000) << "\n";
+    cout << orderTotal(8000) << " " << orderTotal(12000) << "\n";
     return 0;
 }
 `,
@@ -572,6 +663,7 @@ int main() {
         codeFill: {
           task: "Refactor: replace the magic number 0.075 inside vat() with the named constant already defined above it.",
           code: C`#include <iostream>
+using namespace std;
 
 constexpr double VAT_RATE = 0.075;
 
@@ -580,7 +672,7 @@ double vat(double amount) {
 }
 
 int main() {
-    std::cout << vat(4000) << "\n";
+    cout << vat(4000) << "\n";
     return 0;
 }
 `,
@@ -594,23 +686,24 @@ int main() {
         id: "a-cp-secure-coding",
         title: "Introduction to secure coding practices",
         explain:
-          "In C++, many security holes are memory bugs: writing past the end of a buffer can let an attacker overwrite other data, and C++ will not stop you. The defences are habits you already have: use std::string and std::vector, not raw char arrays; check indexes or use .at(); validate every input for type, range and length; check for integer overflow before arithmetic on untrusted values; never use the size of user input to allocate memory without a limit; and never write secrets such as passwords into code, logs or error messages. Compile with warnings on, and treat them as errors.",
+          "In C++, many security holes are memory bugs: writing past the end of a buffer can let an attacker overwrite other data, and C++ will not stop you. The defences are habits you already have: use string and vector, not raw char arrays; check indexes or use .at(); validate every input for type, range and length; check for integer overflow before arithmetic on untrusted values; never use the size of user input to allocate memory without a limit; and never write secrets such as passwords into code, logs or error messages. Compile with warnings on, and treat them as errors.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <limits>
 #include <optional>
 #include <string>
+using namespace std;
 
-std::optional<int> safeMultiply(int a, int b) {
-    if (a != 0 && (b > std::numeric_limits<int>::max() / a ||
-                   b < std::numeric_limits<int>::min() / a)) {
-        return std::nullopt;
+optional<int> safeMultiply(int a, int b) {
+    if (a != 0 && (b > numeric_limits<int>::max() / a ||
+                   b < numeric_limits<int>::min() / a)) {
+        return nullopt;
     }
     return a * b;
 }
 
-bool validUsername(const std::string& name) {
+bool validUsername(const string& name) {
     if (name.size() < 3 || name.size() > 20) return false;
     for (char c : name) {
         bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
@@ -620,9 +713,9 @@ bool validUsername(const std::string& name) {
 }
 
 int main() {
-    std::cout << safeMultiply(1000, 2000).value_or(-1) << "\n";
-    std::cout << safeMultiply(100000, 100000).value_or(-1) << "\n";
-    std::cout << std::boolalpha << validUsername("ada_99") << " "
+    cout << safeMultiply(1000, 2000).value_or(-1) << "\n";
+    cout << safeMultiply(100000, 100000).value_or(-1) << "\n";
+    cout << boolalpha << validUsername("ada_99") << " "
               << validUsername("x'; DROP TABLE users;--") << "\n";
     return 0;
 }

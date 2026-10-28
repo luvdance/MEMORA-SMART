@@ -50,7 +50,6 @@ const MAX_ACTIVE = 20;
 export const ACTIVE_WINDOW_MS = PRESENCE_TTL_MS;
 
 /* ── Refs ───────────────────────────────────────────────────────────────── */
-
 const presenceRef = (uid) => doc(db, "presence", uid);
 const publicKeyRef = (uid) => doc(db, "publicKeys", uid);
 const blockRef = (uid, target) => doc(db, "students", uid, "blocks", target);

@@ -1,6 +1,6 @@
 import {
   require_fs
-} from "./node-runtime-chunk-2HFUVLLM.js";
+} from "./node-runtime-chunk-GTV3XHWV.js";
 import {
   __commonJS,
   __name,
@@ -4227,15 +4227,15 @@ var require_chunk_NVNI2SRU = __commonJS({
         var POOL_SIZE2 = 65536;
         if (!globalThis.ReadableStream) {
           try {
-            const process = (0, import_chunk_4VNS5WPM.__require)("node:process");
-            const { emitWarning } = process;
+            const process2 = (0, import_chunk_4VNS5WPM.__require)("node:process");
+            const { emitWarning } = process2;
             try {
-              process.emitWarning = () => {
+              process2.emitWarning = () => {
               };
               Object.assign(globalThis, (0, import_chunk_4VNS5WPM.__require)("node:stream/web"));
-              process.emitWarning = emitWarning;
+              process2.emitWarning = emitWarning;
             } catch (error) {
-              process.emitWarning = emitWarning;
+              process2.emitWarning = emitWarning;
               throw error;
             }
           } catch (error) {

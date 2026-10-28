@@ -44,7 +44,7 @@ export const LESSONS = [
           "A data structure is a way of organising data in memory so that certain operations are efficient. An array keeps elements side by side, so reaching element i is instant, but inserting at the front means shifting everything. A linked list chains elements together, so inserting is cheap, but reaching element i means walking from the start. No structure is best at everything; choosing one means choosing which operations you want to be fast.",
         table: {
           caption: "The same operations on different structures.",
-          headers: ["Operation", "Array / vector", "Linked list", "Hash table", "Balanced tree (std::map)"],
+          headers: ["Operation", "Array / vector", "Linked list", "Hash table", "Balanced tree (map)"],
           rows: [
             ["Reach element i", "Instant", "Walk i steps", "Not applicable", "Not applicable"],
             ["Find a value", "Check each (or binary search if sorted)", "Check each", "Instant on average", "Fast (halving)"],
@@ -101,15 +101,16 @@ export const LESSONS = [
         id: "a-cp-linear-search",
         title: "Linear search",
         explain:
-          "Linear search checks each element from the start until it finds the target or reaches the end. It works on any data, sorted or not, and it is O(n): in the worst case, when the target is last or missing, it checks every element. For small or unsorted collections it is perfectly good. std::find is a linear search.",
+          "Linear search checks each element from the start until it finds the target or reaches the end. It works on any data, sorted or not, and it is O(n): in the worst case, when the target is last or missing, it checks every element. For small or unsorted collections it is perfectly good. find is a linear search.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
-int linearSearch(const std::vector<int>& v, int target, int& checks) {
+int linearSearch(const vector<int>& v, int target, int& checks) {
     checks = 0;
-    for (std::size_t i = 0; i < v.size(); i++) {
+    for (size_t i = 0; i < v.size(); i++) {
         checks++;
         if (v[i] == target) return static_cast<int>(i);
     }
@@ -117,11 +118,11 @@ int linearSearch(const std::vector<int>& v, int target, int& checks) {
 }
 
 int main() {
-    std::vector<int> v;
+    vector<int> v;
     for (int i = 1; i <= 1000; i++) v.push_back(i * 3);
     int checks = 0;
-    std::cout << "Found at " << linearSearch(v, 30, checks) << " after " << checks << " checks\n";
-    std::cout << "Found at " << linearSearch(v, 7, checks) << " after " << checks << " checks\n";
+    cout << "Found at " << linearSearch(v, 30, checks) << " after " << checks << " checks\n";
+    cout << "Found at " << linearSearch(v, 7, checks) << " after " << checks << " checks\n";
     return 0;
 }
 `,
@@ -137,8 +138,9 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
-int binarySearch(const std::vector<int>& v, int target, int& checks) {
+int binarySearch(const vector<int>& v, int target, int& checks) {
     int low = 0, high = static_cast<int>(v.size()) - 1;
     checks = 0;
     while (low <= high) {
@@ -152,24 +154,25 @@ int binarySearch(const std::vector<int>& v, int target, int& checks) {
 }
 
 int main() {
-    std::vector<int> v;
+    vector<int> v;
     for (int i = 1; i <= 1000; i++) v.push_back(i * 3);
     int checks = 0;
-    std::cout << "Found at " << binarySearch(v, 2997, checks) << " after " << checks << " checks\n";
-    std::cout << "Found at " << binarySearch(v, 7, checks) << " after " << checks << " checks\n";
+    cout << "Found at " << binarySearch(v, 2997, checks) << " after " << checks << " checks\n";
+    cout << "Found at " << binarySearch(v, 7, checks) << " after " << checks << " checks\n";
     return 0;
 }
 `,
           expectedOutput: "Found at 998 after 9 checks\nFound at -1 after 10 checks",
         },
-        why: "mid = low + (high - low) / 2 instead of (low + high) / 2 avoids overflowing an int when low and high are both very large: a real bug that sat in widely used libraries for years. The standard library offers std::binary_search and std::lower_bound for sorted ranges.",
+        why: "mid = low + (high - low) / 2 instead of (low + high) / 2 avoids overflowing an int when low and high are both very large: a real bug that sat in widely used libraries for years. The standard library offers binary_search and lower_bound for sorted ranges.",
         codeFill: {
           task: "Fill the two gaps: when the middle value is smaller than the target, search the right half; otherwise the left half.",
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> v = {4, 9, 15, 22, 31, 48, 56, 70};
+    vector<int> v = {4, 9, 15, 22, 31, 48, 56, 70};
     int target = 48;
     int low = 0, high = 7, found = -1;
     while (low <= high) {
@@ -178,7 +181,7 @@ int main() {
         if (v[mid] < target) {{1}}
         else {{2}}
     }
-    std::cout << "Index: " << found << "\n";
+    cout << "Index: " << found << "\n";
     return 0;
 }
 `,
@@ -209,7 +212,7 @@ int main() {
     subtitle: "Bubble, selection and insertion sort, and how they compare",
     estimatedMinutes: 26,
     intro:
-      "You met bubble sort in Week 6 and std::sort in Week 12. Here are the three classic simple sorts side by side, with the comparisons each one makes counted by the program itself, so you can see their cost instead of taking it on trust.",
+      "You met bubble sort in Week 6 and sort in Week 12. Here are the three classic simple sorts side by side, with the comparisons each one makes counted by the program itself, so you can see their cost instead of taking it on trust.",
 
     atoms: [
       {
@@ -222,21 +225,22 @@ int main() {
           code: C`#include <iostream>
 #include <utility>
 #include <vector>
+using namespace std;
 
-void selectionSort(std::vector<int>& a) {
-    for (std::size_t i = 0; i + 1 < a.size(); i++) {
-        std::size_t smallest = i;
-        for (std::size_t j = i + 1; j < a.size(); j++) {
+void selectionSort(vector<int>& a) {
+    for (size_t i = 0; i + 1 < a.size(); i++) {
+        size_t smallest = i;
+        for (size_t j = i + 1; j < a.size(); j++) {
             if (a[j] < a[smallest]) smallest = j;
         }
-        std::swap(a[i], a[smallest]);
+        swap(a[i], a[smallest]);
     }
 }
 
-void insertionSort(std::vector<int>& a) {
-    for (std::size_t i = 1; i < a.size(); i++) {
+void insertionSort(vector<int>& a) {
+    for (size_t i = 1; i < a.size(); i++) {
         int key = a[i];
-        std::size_t j = i;
+        size_t j = i;
         while (j > 0 && a[j - 1] > key) {
             a[j] = a[j - 1];
             j--;
@@ -246,14 +250,14 @@ void insertionSort(std::vector<int>& a) {
 }
 
 int main() {
-    std::vector<int> x = {29, 10, 14, 37, 13};
-    std::vector<int> y = x;
+    vector<int> x = {29, 10, 14, 37, 13};
+    vector<int> y = x;
     selectionSort(x);
     insertionSort(y);
-    for (int v : x) std::cout << v << " ";
-    std::cout << "\n";
-    for (int v : y) std::cout << v << " ";
-    std::cout << "\n";
+    for (int v : x) cout << v << " ";
+    cout << "\n";
+    for (int v : y) cout << v << " ";
+    cout << "\n";
     return 0;
 }
 `,
@@ -263,20 +267,21 @@ int main() {
           task: "Complete insertion sort's inner loop condition: keep shifting while there is an element to the left AND it is bigger than key.",
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::vector<int> a = {5, 2, 9, 1, 6};
-    for (std::size_t i = 1; i < a.size(); i++) {
+    vector<int> a = {5, 2, 9, 1, 6};
+    for (size_t i = 1; i < a.size(); i++) {
         int key = a[i];
-        std::size_t j = i;
+        size_t j = i;
         while ({{1}}) {
             a[j] = a[j - 1];
             j--;
         }
         a[j] = key;
     }
-    for (int v : a) std::cout << v << " ";
-    std::cout << "\n";
+    for (int v : a) cout << v << " ";
+    cout << "\n";
     return 0;
 }
 `,
@@ -290,17 +295,18 @@ int main() {
         id: "a-cp-compare-sorts",
         title: "Comparing sorting algorithms",
         explain:
-          "Count the comparisons and the cost becomes visible. On random data all three simple sorts do roughly n²/2 to n²/4 comparisons. On already-sorted data insertion sort does only n - 1, because each element is already in place, which is why it is used inside faster sorts for small pieces. std::sort is O(n log n): for a million items, roughly twenty million comparisons instead of hundreds of billions.",
+          "Count the comparisons and the cost becomes visible. On random data all three simple sorts do roughly n²/2 to n²/4 comparisons. On already-sorted data insertion sort does only n - 1, because each element is already in place, which is why it is used inside faster sorts for small pieces. sort is O(n log n): for a million items, roughly twenty million comparisons instead of hundreds of billions.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
-long insertionComparisons(std::vector<int> a) {
+long insertionComparisons(vector<int> a) {
     long comparisons = 0;
-    for (std::size_t i = 1; i < a.size(); i++) {
+    for (size_t i = 1; i < a.size(); i++) {
         int key = a[i];
-        std::size_t j = i;
+        size_t j = i;
         while (j > 0) {
             comparisons++;
             if (a[j - 1] <= key) break;
@@ -313,13 +319,13 @@ long insertionComparisons(std::vector<int> a) {
 }
 
 int main() {
-    std::vector<int> sorted, reversed;
+    vector<int> sorted, reversed;
     for (int i = 0; i < 1000; i++) {
         sorted.push_back(i);
         reversed.push_back(1000 - i);
     }
-    std::cout << "Already sorted: " << insertionComparisons(sorted) << "\n";
-    std::cout << "Reversed:       " << insertionComparisons(reversed) << "\n";
+    cout << "Already sorted: " << insertionComparisons(sorted) << "\n";
+    cout << "Reversed:       " << insertionComparisons(reversed) << "\n";
     return 0;
 }
 `,
@@ -332,7 +338,7 @@ int main() {
             ["Bubble sort", "O(n²)", "O(n) with an early-exit check", "Simple; slowest in practice"],
             ["Selection sort", "O(n²)", "O(n²)", "At most n - 1 swaps"],
             ["Insertion sort", "O(n²)", "O(n) on sorted data", "Excellent for small or nearly-sorted data"],
-            ["std::sort", "O(n log n)", "O(n log n)", "What you should use in real code"],
+            ["sort", "O(n log n)", "O(n log n)", "What you should use in real code"],
           ],
         },
         decision: {
@@ -389,59 +395,61 @@ int main() {
         id: "a-cp-linked-list",
         title: "Introduction to linked lists",
         explain:
-          "A linked list is a chain of nodes, where each node holds a value and a pointer to the next node; the last node points to nothing. The list itself only remembers the first node, the head. Adding at the front is O(1): make a new node point to the old head. Reaching the i-th element is O(n): follow i links. Using std::unique_ptr for the links means each node owns the next one, so the whole chain is freed automatically.",
+          "A linked list is a chain of nodes, where each node holds a value and a pointer to the next node; the last node points to nothing. The list itself only remembers the first node, the head. Adding at the front is O(1): make a new node point to the old head. Reaching the i-th element is O(n): follow i links. Using unique_ptr for the links means each node owns the next one, so the whole chain is freed automatically.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <memory>
 #include <string>
+using namespace std;
 
 struct Node {
-    std::string value;
-    std::unique_ptr<Node> next;
+    string value;
+    unique_ptr<Node> next;
 };
 
 int main() {
-    std::unique_ptr<Node> head;
-    for (std::string name : {"Chi", "Bayo", "Ada"}) {
-        auto node = std::make_unique<Node>();
+    unique_ptr<Node> head;
+    for (string name : {"Chi", "Bayo", "Ada"}) {
+        auto node = make_unique<Node>();
         node->value = name;
-        node->next = std::move(head);
-        head = std::move(node);
+        node->next = move(head);
+        head = move(node);
     }
     for (Node* p = head.get(); p != nullptr; p = p->next.get()) {
-        std::cout << p->value << " -> ";
+        cout << p->value << " -> ";
     }
-    std::cout << "end\n";
+    cout << "end\n";
     return 0;
 }
 `,
           expectedOutput: "Ada -> Bayo -> Chi -> end",
         },
-        why: "Each name was added at the FRONT, so the last one added is first. std::move hands ownership from one unique_ptr to another (Week 14 explains it). head.get() gives a plain, non-owning pointer for walking the list.",
+        why: "Each name was added at the FRONT, so the last one added is first. move hands ownership from one unique_ptr to another (Week 14 explains it). head.get() gives a plain, non-owning pointer for walking the list.",
         codeFill: {
           task: "Fill the update part of the for loop so p moves to the next node each time.",
           code: C`#include <iostream>
 #include <memory>
+using namespace std;
 
 struct Node {
     int value;
-    std::unique_ptr<Node> next;
+    unique_ptr<Node> next;
 };
 
 int main() {
-    auto head = std::make_unique<Node>();
+    auto head = make_unique<Node>();
     head->value = 1;
-    head->next = std::make_unique<Node>();
+    head->next = make_unique<Node>();
     head->next->value = 2;
-    head->next->next = std::make_unique<Node>();
+    head->next->next = make_unique<Node>();
     head->next->next->value = 3;
 
     int total = 0;
     for (Node* p = head.get(); p != nullptr; {{1}}) {
         total += p->value;
     }
-    std::cout << "Total: " << total << "\n";
+    cout << "Total: " << total << "\n";
     return 0;
 }
 `,
@@ -455,15 +463,16 @@ int main() {
         id: "a-cp-stack-queue-practice",
         title: "Stacks and queues in practice",
         explain:
-          "Stacks and queues are the structures behind many classic problems. A stack checks that brackets match: push every opening bracket, and every closing bracket must match the one on top. A queue processes things in arrival order and drives breadth-first search, which you will see in the graph atom below. Both can be built on a vector, a deque or a linked list; std::stack and std::queue are ready-made.",
+          "Stacks and queues are the structures behind many classic problems. A stack checks that brackets match: push every opening bracket, and every closing bracket must match the one on top. A queue processes things in arrival order and drives breadth-first search, which you will see in the graph atom below. Both can be built on a vector, a deque or a linked list; stack and queue are ready-made.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <stack>
 #include <string>
+using namespace std;
 
-bool balanced(const std::string& text) {
-    std::stack<char> open;
+bool balanced(const string& text) {
+    stack<char> open;
     for (char c : text) {
         if (c == '(' || c == '[' || c == '{') {
             open.push(c);
@@ -480,10 +489,10 @@ bool balanced(const std::string& text) {
 }
 
 int main() {
-    std::cout << std::boolalpha;
-    std::cout << balanced("v[i] = (a + b) * {c}") << "\n";
-    std::cout << balanced("f(x[1)]") << "\n";
-    std::cout << balanced("((x)") << "\n";
+    cout << boolalpha;
+    cout << balanced("v[i] = (a + b) * {c}") << "\n";
+    cout << balanced("f(x[1)]") << "\n";
+    cout << balanced("((x)") << "\n";
     return 0;
 }
 `,
@@ -495,21 +504,22 @@ int main() {
         id: "a-cp-trees-bst",
         title: "Trees and binary search trees",
         explain:
-          "A tree is a structure of nodes where each node has children, starting from one root: folders on a disk, a family tree, an organisation chart. In a binary tree each node has at most two children, left and right. A binary search tree (BST) keeps a rule: everything in the left subtree is smaller than the node, everything in the right is larger. Searching then works like binary search, going left or right at each node: O(log n) when the tree is balanced. Visiting left, node, right (an in-order traversal) prints the values sorted. std::set and std::map are balanced search trees.",
+          "A tree is a structure of nodes where each node has children, starting from one root: folders on a disk, a family tree, an organisation chart. In a binary tree each node has at most two children, left and right. A binary search tree (BST) keeps a rule: everything in the left subtree is smaller than the node, everything in the right is larger. Searching then works like binary search, going left or right at each node: O(log n) when the tree is balanced. Visiting left, node, right (an in-order traversal) prints the values sorted. set and map are balanced search trees.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <memory>
+using namespace std;
 
 struct TreeNode {
     int value;
-    std::unique_ptr<TreeNode> left, right;
+    unique_ptr<TreeNode> left, right;
     explicit TreeNode(int v) : value(v) {}
 };
 
-void insert(std::unique_ptr<TreeNode>& node, int v) {
+void insert(unique_ptr<TreeNode>& node, int v) {
     if (!node) {
-        node = std::make_unique<TreeNode>(v);
+        node = make_unique<TreeNode>(v);
     } else if (v < node->value) {
         insert(node->left, v);
     } else {
@@ -528,15 +538,15 @@ bool contains(const TreeNode* node, int v) {
 void inOrder(const TreeNode* node) {
     if (!node) return;
     inOrder(node->left.get());
-    std::cout << node->value << " ";
+    cout << node->value << " ";
     inOrder(node->right.get());
 }
 
 int main() {
-    std::unique_ptr<TreeNode> root;
+    unique_ptr<TreeNode> root;
     for (int v : {50, 30, 70, 20, 40, 60, 80}) insert(root, v);
     inOrder(root.get());
-    std::cout << "\n" << std::boolalpha << contains(root.get(), 60) << " " << contains(root.get(), 65) << "\n";
+    cout << "\n" << boolalpha << contains(root.get(), 60) << " " << contains(root.get(), 65) << "\n";
     return 0;
 }
 `,
@@ -556,9 +566,10 @@ int main() {
 #include <queue>
 #include <string>
 #include <vector>
+using namespace std;
 
 int main() {
-    std::map<std::string, std::vector<std::string>> roads = {
+    map<string, vector<string>> roads = {
         {"Lagos", {"Ibadan", "Abeokuta"}},
         {"Ibadan", {"Lagos", "Ilorin", "Osogbo"}},
         {"Abeokuta", {"Lagos"}},
@@ -566,22 +577,22 @@ int main() {
         {"Ilorin", {"Ibadan", "Osogbo", "Abuja"}},
         {"Abuja", {"Ilorin"}},
     };
-    std::map<std::string, int> hops;
-    std::queue<std::string> frontier;
+    map<string, int> hops;
+    queue<string> frontier;
     hops["Lagos"] = 0;
     frontier.push("Lagos");
     while (!frontier.empty()) {
-        std::string city = frontier.front();
+        string city = frontier.front();
         frontier.pop();
-        for (const std::string& next : roads[city]) {
+        for (const string& next : roads[city]) {
             if (hops.count(next) == 0) {
                 hops[next] = hops[city] + 1;
                 frontier.push(next);
             }
         }
     }
-    std::cout << "Lagos to Abuja: " << hops["Abuja"] << " roads\n";
-    std::cout << "Lagos to Osogbo: " << hops["Osogbo"] << " roads\n";
+    cout << "Lagos to Abuja: " << hops["Abuja"] << " roads\n";
+    cout << "Lagos to Osogbo: " << hops["Osogbo"] << " roads\n";
     return 0;
 }
 `,
@@ -646,8 +657,9 @@ int main() {
           language: CPP,
           code: C`#include <iostream>
 #include <vector>
+using namespace std;
 
-int recursiveSearch(const std::vector<int>& v, int target, int low, int high) {
+int recursiveSearch(const vector<int>& v, int target, int low, int high) {
     if (low > high) return -1;
     int mid = low + (high - low) / 2;
     if (v[mid] == target) return mid;
@@ -661,9 +673,9 @@ int hanoiMoves(int discs) {
 }
 
 int main() {
-    std::vector<int> v = {3, 8, 12, 19, 25, 31, 40};
-    std::cout << recursiveSearch(v, 31, 0, 6) << "\n";
-    std::cout << hanoiMoves(3) << " " << hanoiMoves(10) << "\n";
+    vector<int> v = {3, 8, 12, 19, 25, 31, 40};
+    cout << recursiveSearch(v, 31, 0, 6) << "\n";
+    cout << hanoiMoves(3) << " " << hanoiMoves(10) << "\n";
     return 0;
 }
 `,
@@ -673,6 +685,7 @@ int main() {
         codeFill: {
           task: "Count the digits of a positive number recursively. Fill the recursive case: one digit, plus the digits of the number without its last digit.",
           code: C`#include <iostream>
+using namespace std;
 
 int digits(int n) {
     if (n < 10) return 1;
@@ -680,7 +693,7 @@ int digits(int n) {
 }
 
 int main() {
-    std::cout << digits(7) << " " << digits(2026) << " " << digits(1000000) << "\n";
+    cout << digits(7) << " " << digits(2026) << " " << digits(1000000) << "\n";
     return 0;
 }
 `,
@@ -701,8 +714,9 @@ int main() {
 #include <list>
 #include <string>
 #include <vector>
+using namespace std;
 
-int simpleHash(const std::string& key, int buckets) {
+int simpleHash(const string& key, int buckets) {
     int sum = 0;
     for (char c : key) sum += c;
     return sum % buckets;
@@ -710,14 +724,14 @@ int simpleHash(const std::string& key, int buckets) {
 
 int main() {
     const int BUCKETS = 5;
-    std::vector<std::list<std::string>> table(BUCKETS);
-    for (std::string name : {"Ada", "Bayo", "Chi", "Dayo", "Eze"}) {
+    vector<list<string>> table(BUCKETS);
+    for (string name : {"Ada", "Bayo", "Chi", "Dayo", "Eze"}) {
         table[simpleHash(name, BUCKETS)].push_back(name);
     }
     for (int b = 0; b < BUCKETS; b++) {
-        std::cout << b << ":";
-        for (const std::string& n : table[b]) std::cout << " " << n;
-        std::cout << "\n";
+        cout << b << ":";
+        for (const string& n : table[b]) cout << " " << n;
+        cout << "\n";
     }
     return 0;
 }
@@ -730,7 +744,7 @@ int main() {
         id: "a-cp-choosing-structure",
         title: "Choosing an appropriate data structure",
         explain:
-          "Choose by the operations that matter most and how often they happen. List them (insert, find, delete, iterate in order, access by position), estimate the data size, and pick the structure whose fast operations match your frequent ones. Then measure: if it is fast enough with real data, stop. Premature cleverness is a bug factory; a vector and std::sort solve a surprising number of problems.",
+          "Choose by the operations that matter most and how often they happen. List them (insert, find, delete, iterate in order, access by position), estimate the data size, and pick the structure whose fast operations match your frequent ones. Then measure: if it is fast enough with real data, stop. Premature cleverness is a bug factory; a vector and sort solve a surprising number of problems.",
         table: {
           caption: "Common requirements and good choices.",
           headers: ["Most frequent operation", "Good choice", "Why"],
@@ -749,7 +763,7 @@ int main() {
           options: [
             {
               id: "a",
-              text: "An unordered_map from phone number to contact for look-ups, and sort a copy by name with std::sort when the list is requested",
+              text: "An unordered_map from phone number to contact for look-ups, and sort a copy by name with sort when the list is requested",
               why: "The frequent operation, look-up by number, gets O(1). The occasional listing pays O(n log n) only when asked for.",
             },
             {
@@ -780,10 +794,10 @@ int main() {
         "Write contacts.cpp: a directory that stays fast as it grows. Before coding, write down which operations your program does most often and which structure you will use for each, and why.",
       prompts: [
         "A Contact has a name, phone number and email. Validate that the phone number is all digits and 11 characters long.",
-        "Keep contacts in a std::unordered_map keyed by phone number for O(1) look-up, insertion and deletion.",
+        "Keep contacts in a unordered_map keyed by phone number for O(1) look-up, insertion and deletion.",
         "List all contacts sorted by name: copy them into a vector and sort with a lambda.",
-        "Search by name prefix (for example, all names starting with \"Ad\"): sort by name and use binary search (std::lower_bound) to find the first match.",
-        "Implement your own insertion sort and compare its number of comparisons with std::sort's on the same data, printing both.",
+        "Search by name prefix (for example, all names starting with \"Ad\"): sort by name and use binary search (lower_bound) to find the first match.",
+        "Implement your own insertion sort and compare its number of comparisons with sort's on the same data, printing both.",
         "Keep a stack of recent actions so the user can undo the last add or delete.",
         "Save to and load from a CSV file, and generate 10,000 test contacts to check that look-ups stay instant.",
       ],

@@ -53,13 +53,14 @@ export const LESSONS = [
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int totalSeconds = 3725;
     int hours = totalSeconds / 3600;
     int minutes = totalSeconds % 3600 / 60;
     int seconds = totalSeconds % 60;
-    std::cout << hours << "h " << minutes << "m " << seconds << "s\n";
+    cout << hours << "h " << minutes << "m " << seconds << "s\n";
     return 0;
 }
 `,
@@ -69,12 +70,13 @@ int main() {
         codeFill: {
           task: "A price of 1575 kobo should be shown in naira and kobo. Fill the two gaps: the whole naira, then the kobo left over (100 kobo = 1 naira).",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int priceKobo = 1575;
     int naira = {{1}};
     int kobo = {{2}};
-    std::cout << naira << " naira " << kobo << " kobo\n";
+    cout << naira << " naira " << kobo << " kobo\n";
     return 0;
 }
 `,
@@ -103,6 +105,7 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int balance = 10000;
@@ -110,7 +113,7 @@ int main() {
     balance += 1200;
     balance *= 2;
     balance /= 3;
-    std::cout << balance << "\n";
+    cout << balance << "\n";
     return 0;
 }
 `,
@@ -128,19 +131,20 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int count = 5;
     count++;
-    std::cout << count << "\n";
+    cout << count << "\n";
 
     int a = 5;
     int b = a++;
-    std::cout << "a = " << a << ", b = " << b << "\n";
+    cout << "a = " << a << ", b = " << b << "\n";
 
     int c = 5;
     int d = ++c;
-    std::cout << "c = " << c << ", d = " << d << "\n";
+    cout << "c = " << c << ", d = " << d << "\n";
     return 0;
 }
 `,
@@ -150,12 +154,13 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int stock = 10;
     int sold = stock--;
     int left = --stock;
-    std::cout << stock << " " << sold << " " << left << "\n";
+    cout << stock << " " << sold << " " << left << "\n";
     return 0;
 }
 `,
@@ -205,14 +210,15 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 49;
     int passMark = 50;
-    std::cout << std::boolalpha;
-    std::cout << (score >= passMark) << "\n";
-    std::cout << (score + 1 == passMark) << "\n";
-    std::cout << (score != passMark) << "\n";
+    cout << boolalpha;
+    cout << (score >= passMark) << "\n";
+    cout << (score + 1 == passMark) << "\n";
+    cout << (score != passMark) << "\n";
     return 0;
 }
 `,
@@ -240,15 +246,16 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int age = 17;
     bool hasPaid = true;
     bool isStudent = false;
-    std::cout << std::boolalpha;
-    std::cout << "Can register: " << (age >= 16 && hasPaid) << "\n";
-    std::cout << "Gets discount: " << (isStudent || age >= 60) << "\n";
-    std::cout << "Owes fees: " << !hasPaid << "\n";
+    cout << boolalpha;
+    cout << "Can register: " << (age >= 16 && hasPaid) << "\n";
+    cout << "Gets discount: " << (isStudent || age >= 60) << "\n";
+    cout << "Owes fees: " << !hasPaid << "\n";
     return 0;
 }
 `,
@@ -263,11 +270,12 @@ int main() {
         codeFill: {
           task: "A valid score is from 0 to 100, inclusive. Fill the gap with the condition that checks score is valid.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int score = 87;
     bool valid = {{1}};
-    std::cout << std::boolalpha << score << " is valid: " << valid << "\n";
+    cout << boolalpha << score << " is valid: " << valid << "\n";
     return 0;
 }
 `,
@@ -277,7 +285,7 @@ int main() {
                 "score >= 0 && score <= 100",
                 "0 <= score && score <= 100",
                 "score <= 100 && score >= 0",
-                "(score >= 0) && (score <= 100)",
+                "(score >= 0) && (score <= 100)"
               ],
               width: 28,
             },
@@ -295,10 +303,11 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int x = 150;
-    std::cout << (0 <= x <= 100) << "\n";
+    cout << (0 <= x <= 100) << "\n";
     return 0;
 }
 `,
@@ -380,12 +389,13 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << 2 + 3 * 4 - 6 / 2 << "\n";
-    std::cout << (2 + 3) * (4 - 6) / 2 << "\n";
-    std::cout << 10 - 4 - 3 << "\n";
-    std::cout << 100 / 10 / 5 << "\n";
+    cout << 2 + 3 * 4 - 6 / 2 << "\n";
+    cout << (2 + 3) * (4 - 6) / 2 << "\n";
+    cout << 10 - 4 - 3 << "\n";
+    cout << 100 / 10 / 5 << "\n";
     return 0;
 }
 `,
@@ -401,7 +411,7 @@ int main() {
         explain:
           "Precedence says how an expression is grouped, not always which part is calculated first. In price() + tax(), C++ may call either function first. Usually that does not matter. It matters a great deal if one part changes a variable that another part uses: writing i++ + i++, or using x and changing x in the same expression, gives undefined behaviour, meaning the C++ standard makes no promise at all about the result.",
         example:
-          "Do not write:\n\n  int i = 1;\n  int n = i++ + i++;      // undefined behaviour\n  std::cout << i << ++i;  // fine in C++17, confusing in any version\n\nWrite instead:\n\n  int i = 1;\n  int first = i;\n  i++;\n  int second = i;\n  i++;\n  int n = first + second;  // clearly 1 + 2\n\nOne change per statement. The compiler produces equally fast code,\nand every reader knows exactly what happens.",
+          "Do not write:\n\n  int i = 1;\n  int n = i++ + i++;      // undefined behaviour\n  cout << i << ++i;  // fine in C++17, confusing in any version\n\nWrite instead:\n\n  int i = 1;\n  int first = i;\n  i++;\n  int second = i;\n  i++;\n  int n = first + second;  // clearly 1 + 2\n\nOne change per statement. The compiler produces equally fast code,\nand every reader knows exactly what happens.",
         decision: {
           scenario: "You see the line total = count++ + count * 2; in a program you are reviewing.",
           question: "What is the best response?",
@@ -439,12 +449,13 @@ int main() {
         code: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << 5 / 2 * 2.0 << "\n";
-    std::cout << 5 * 2.0 / 2 << "\n";
-    std::cout << 'A' + 1 << "\n";
-    std::cout << true + true << "\n";
+    cout << 5 / 2 * 2.0 << "\n";
+    cout << 5 * 2.0 / 2 << "\n";
+    cout << 'A' + 1 << "\n";
+    cout << true + true << "\n";
     return 0;
 }
 `,
@@ -454,11 +465,12 @@ int main() {
         codeFill: {
           task: "c holds a temperature of 37 °C as an int. c * 9 / 5 + 32 would do integer division and give 98. Fill the gap with a formula that gives the exact Fahrenheit value, 98.6.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     int c = 37;
     double f = {{1}};
-    std::cout << c << " C = " << f << " F\n";
+    cout << c << " C = " << f << " F\n";
     return 0;
 }
 `,
@@ -471,7 +483,7 @@ int main() {
                 "c * 1.8 + 32",
                 "1.8 * c + 32",
                 "static_cast<double>(c) * 9 / 5 + 32",
-                "c * 9 / 5.0 + 32",
+                "c * 9 / 5.0 + 32"
               ],
               width: 24,
             },
@@ -513,7 +525,7 @@ int main() {
           rows: [
             ["sum / count (both int)", "A whole number", "static_cast<double>(sum) / count"],
             ["a + b / 2", "a plus half of b", "(a + b) / 2"],
-            ["2 ^ 3", "1", "std::pow(2, 3), which gives 8"],
+            ["2 ^ 3", "1", "pow(2, 3), which gives 8"],
             ["int bytes = 3000000000;", "Overflow", "long long bytes = 3000000000LL;"],
             ["percent = part / whole * 100;", "0 when part < whole", "percent = part * 100.0 / whole;"],
           ],
@@ -521,13 +533,14 @@ int main() {
         codeExercise: {
           language: CPP,
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
-    std::cout << (2 ^ 3) << "\n";
-    std::cout << -7 / 2 << "\n";
-    std::cout << -7 % 2 << "\n";
+    cout << (2 ^ 3) << "\n";
+    cout << -7 / 2 << "\n";
+    cout << -7 % 2 << "\n";
     int part = 45, whole = 60;
-    std::cout << part / whole * 100 << "\n";
+    cout << part / whole * 100 << "\n";
     return 0;
 }
 `,
@@ -543,29 +556,30 @@ int main() {
         id: "a-cp-cmath",
         title: "The maths library: <cmath>",
         explain:
-          "#include <cmath> gives you the mathematical functions: std::pow(x, y) for powers, std::sqrt for square roots, std::abs for the size of a number without its sign, and std::round, std::floor and std::ceil for rounding to the nearest, down, and up. They take and return doubles, so their results can be printed or used in further calculations.",
+          "#include <cmath> gives you the mathematical functions: pow(x, y) for powers, sqrt for square roots, abs for the size of a number without its sign, and round, floor and ceil for rounding to the nearest, down, and up. They take and return doubles, so their results can be printed or used in further calculations.",
         code: {
           language: CPP,
           code: C`#include <iostream>
 #include <cmath>
+using namespace std;
 
 int main() {
-    std::cout << std::pow(2, 10) << "\n";
-    std::cout << std::sqrt(144) << "\n";
-    std::cout << std::abs(-15) << "\n";
-    std::cout << std::round(2.5) << " " << std::floor(4.9) << " " << std::ceil(4.1) << "\n";
+    cout << pow(2, 10) << "\n";
+    cout << sqrt(144) << "\n";
+    cout << abs(-15) << "\n";
+    cout << round(2.5) << " " << floor(4.9) << " " << ceil(4.1) << "\n";
     return 0;
 }
 `,
           expectedOutput: "1024\n12\n15\n3 4 5",
         },
-        why: "std::ceil is how you answer \"how many buses do 130 students need if each holds 50?\": 130 / 50.0 is 2.6, and you cannot hire 0.6 of a bus, so std::ceil gives 3.",
+        why: "ceil is how you answer \"how many buses do 130 students need if each holds 50?\": 130 / 50.0 is 2.6, and you cannot hire 0.6 of a bus, so ceil gives 3.",
       },
       {
         id: "a-cp-formula-translate",
         title: "Translating a formula into C++",
         explain:
-          "To turn a formula into C++: give every quantity a well-named variable of the right type; write multiplication explicitly, because PRT means P * R * T; add brackets wherever the formula has a fraction bar or grouping; use std::pow for powers; and test the result against one example you have worked by hand.",
+          "To turn a formula into C++: give every quantity a well-named variable of the right type; write multiplication explicitly, because PRT means P * R * T; add brackets wherever the formula has a fraction bar or grouping; use pow for powers; and test the result against one example you have worked by hand.",
         table: {
           caption: "Formulas and their C++.",
           headers: ["Formula", "C++"],
@@ -573,7 +587,7 @@ int main() {
             ["Simple interest I = PRT / 100", "principal * rate * years / 100"],
             ["Area of a circle A = πr²", "PI * radius * radius"],
             ["Fahrenheit F = 9C/5 + 32", "celsius * 9.0 / 5 + 32"],
-            ["Compound A = P(1 + r/n)^(nt)", "p * std::pow(1 + r / n, n * t)"],
+            ["Compound A = P(1 + r/n)^(nt)", "p * pow(1 + r / n, n * t)"],
             ["Percentage = part / whole × 100", "part * 100.0 / whole"],
           ],
         },
@@ -582,31 +596,33 @@ int main() {
           code: C`#include <iostream>
 #include <iomanip>
 #include <cmath>
+using namespace std;
 
 int main() {
     double p = 100000;  // amount invested, naira
     double r = 0.10;    // 10% a year
     double n = 12;      // compounded monthly
     double t = 2;       // years
-    double amount = p * std::pow(1 + r / n, n * t);
-    std::cout << std::fixed << std::setprecision(2);
-    std::cout << "After " << t << " years: " << amount << "\n";
+    double amount = p * pow(1 + r / n, n * t);
+    cout << fixed << setprecision(2);
+    cout << "After " << t << " years: " << amount << "\n";
     return 0;
 }
 `,
           expectedOutput: "After 2.00 years: 122039.10",
         },
-        why: "std::fixed affects every double printed afterwards, including t, which is why it shows as 2.00. If you want t without decimals, make it an int.",
+        why: "fixed affects every double printed afterwards, including t, which is why it shows as 2.00. If you want t without decimals, make it an int.",
         codeFill: {
           task: "Fill the gap with the simple interest formula, I = PRT / 100, using the variables provided.",
           code: C`#include <iostream>
+using namespace std;
 
 int main() {
     double principal = 50000;
     double rate = 12.5;
     double years = 3;
     double interest = {{1}};
-    std::cout << "Interest: " << interest << " naira\n";
+    cout << "Interest: " << interest << " naira\n";
     return 0;
 }
 `,
@@ -617,7 +633,7 @@ int main() {
                 "principal * rate * years / 100.0",
                 "(principal * rate * years) / 100",
                 "principal * years * rate / 100",
-                "rate * principal * years / 100",
+                "rate * principal * years / 100"
               ],
               width: 32,
             },
@@ -649,7 +665,7 @@ int main() {
             {
               id: "c",
               text: "weight / height ^ 2",
-              whyWrong: "^ is not a power in C++. Use height * height or std::pow(height, 2).",
+              whyWrong: "^ is not a power in C++. Use height * height or pow(height, 2).",
             },
             {
               id: "d",
@@ -672,7 +688,7 @@ int main() {
         "Read a mark and a maximum mark and print the percentage, making sure the division keeps its decimals.",
         "Read a temperature in Celsius and print it in Fahrenheit and in Kelvin (K = C + 273.15).",
         "Read a principal, a yearly rate and a number of years, and print the simple interest and the total amount repaid.",
-        "Use std::fixed and std::setprecision(2) for every result, and store any fixed values (such as 273.15) as constexpr constants.",
+        "Use fixed and setprecision(2) for every result, and store any fixed values (such as 273.15) as constexpr constants.",
         "Test each section with a value you have worked out by hand first, including at least one case that would go wrong with integer division.",
       ],
       closing:
