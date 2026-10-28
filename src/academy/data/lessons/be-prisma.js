@@ -5,5 +5,6 @@
  */
 
 export const PRISMA_MIGRATIONS = {
-  "seats_payments": ""
+  "seats_payments": "-- AlterTable\nALTER TABLE \"courses\" ADD COLUMN     \"seats\" INTEGER NOT NULL DEFAULT 30;\n\n-- CreateTable\nCREATE TABLE \"payments\" (\n    \"id\" SERIAL NOT NULL,\n    \"enrollment_id\" INTEGER NOT NULL,\n    \"amount\" INTEGER NOT NULL,\n    \"paid_at\" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,\n\n    CONSTRAINT \"payments_pkey\" PRIMARY KEY (\"id\")\n);\n\n-- AddForeignKey\nALTER TABLE \"payments\" ADD CONSTRAINT \"payments_enrollment_id_fkey\" FOREIGN KEY (\"enrollment_id\") REFERENCES \"enrollments\"(\"id\") ON DELETE RESTRICT ON UPDATE CASCADE;\n\n",
+  "add_course_seats": "-- AlterTable\nALTER TABLE \"courses\" ADD COLUMN     \"seats\" INTEGER NOT NULL DEFAULT 30;\n\n"
 };

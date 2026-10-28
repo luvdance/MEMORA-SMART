@@ -482,7 +482,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Drivers and connection strings, connection pools, parameterized queries and SQL injection, transactions and rollback, isolation levels, migrations and seed data, ORMs and Prisma, repositories and database errors, and changing schemas safely.",
           objective: "Persist an API's data in PostgreSQL safely, with pooled, parameterized queries, transactions and migrations.",
-          atoms: 15,
+          atoms: 18,
           topics: ["Drivers, connection strings and pools", "Parameterized queries", "Transactions and isolation", "Migrations and seeds", "Prisma and repositories"],
           curriculum: [
             ["11.1", "Database drivers and connection strings"],
@@ -514,7 +514,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Choosing indexes and composite indexes, EXPLAIN ANALYZE, isolation anomalies, locking, deadlocks and concurrent updates, offset and cursor pagination, business constraints, backups and restores, soft deletion and audit records, access permissions, and when to cache with Redis.",
           objective: "Make a database-backed API fast and correct under concurrency, and prove you can recover its data.",
-          atoms: 14,
+          atoms: 15,
           topics: ["Indexes and query plans", "Concurrency, locks and deadlocks", "Pagination strategies", "Integrity, soft deletes and audits", "Backups, permissions and caching"],
           curriculum: [
             ["12.1", "Index selection and composite indexes"],
@@ -555,7 +555,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Authentication versus authorization, registration, login, logout and verification, password hashing with Argon2id or bcrypt, sessions and cookies, access and refresh tokens, JWT structure and pitfalls, password reset and email verification, MFA, lockout and throttling, and secure cookies.",
           objective: "Build a secure authentication module: registration, login, sessions or tokens, verification and password reset.",
-          atoms: 14,
+          atoms: 15,
           topics: ["Authentication and authorization", "Passwords and hashing", "Sessions and cookies", "Access and refresh tokens, JWTs", "Verification, reset, MFA and throttling"],
           curriculum: [
             ["13.1", "Authentication vs. authorization"],
@@ -586,7 +586,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Role-based and permission-based access control, resource ownership, the OWASP API Security Top 10, SQL injection, broken access control and IDOR, XSS and CSRF, CORS and security headers, validation and output encoding, secrets, dependency scanning, and file upload and sensitive data security.",
           objective: "Enforce who can do what on every endpoint, and find and fix the common API security weaknesses.",
-          atoms: 15,
+          atoms: 16,
           topics: ["RBAC, permissions and ownership", "OWASP API risks: injection, broken access control, IDOR", "XSS, CSRF, CORS and headers", "Validation, encoding and secrets", "Dependencies, uploads and sensitive data"],
           curriculum: [
             ["14.1", "Role-based access control (RBAC)"],
@@ -618,7 +618,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Why automated tests matter, unit, integration and end-to-end tests, test-driven development, fixtures, factories and isolated data, mocking external services, testing Express endpoints and database operations, auth tests, negative and boundary tests, and coverage and continuous integration.",
           objective: "Write an automated test suite that protects an API's business logic, routes and security boundaries.",
-          atoms: 15,
+          atoms: 17,
           topics: ["Why and what to test", "Unit tests and TDD", "Fixtures, factories and mocks", "Testing endpoints and the database", "Security, negative and boundary tests", "Coverage and CI"],
           curriculum: [
             ["15.1", "Why automated tests matter"],
@@ -650,7 +650,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Operational versus programming errors, structured error responses and classification, logging without secrets, request IDs and traceable errors, timeouts, retries and exponential backoff, third-party failures, idempotency keys, contract testing, and health and readiness checks.",
           objective: "Build an API that fails predictably, recovers from other services' failures and can be diagnosed from its logs.",
-          atoms: 14,
+          atoms: 15,
           topics: ["Kinds of errors and structured responses", "Safe, traceable logging", "Timeouts, retries and backoff", "Idempotency keys", "Contract tests and health checks"],
           curriculum: [
             ["16.1", "Operational vs. programming errors"],
@@ -691,7 +691,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Separation of concerns, single responsibility and dependency management, layered architecture, controllers, services and repositories, domain models and business rules, dependency injection, domain-driven design, the modular monolith, design patterns that solve real problems, and refactoring and technical debt.",
           objective: "Structure a backend so each module has one job, business rules live in one place and external services can be swapped.",
-          atoms: 14,
+          atoms: 15,
           topics: ["Separation of concerns and layers", "Domain models and business rules", "Dependency injection and interfaces", "DDD and the modular monolith", "Patterns, refactoring and decisions"],
           curriculum: [
             ["17.1", "Separation of concerns"],
@@ -722,7 +722,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Background jobs and task queues, scheduled and recurring jobs, email notifications, Redis caching and invalidation, rate limiting with shared storage, object storage for files, search and filtering, WebSockets, event-driven architecture, and message queues.",
           objective: "Move slow work off the request path, cache safely and push real-time updates to clients.",
-          atoms: 14,
+          atoms: 15,
           topics: ["Background jobs and schedules", "Email notifications", "Redis caching and shared rate limits", "Object storage and search", "WebSockets and events"],
           curriculum: [
             ["18.1", "Background jobs and task queues"],
@@ -753,7 +753,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Development, testing and production environments, Docker images and containers, Dockerfiles, Docker Compose, networking and volumes, production secrets, continuous integration and delivery, test and build pipelines, migrations during deployment, hosting, DNS, HTTPS and reverse proxies, and rolling deployments and rollback.",
           objective: "Ship a backend through a repeatable pipeline: containerized, tested, migrated, deployed and reversible.",
-          atoms: 15,
+          atoms: 16,
           topics: ["Environments and configuration", "Docker images, containers and Dockerfiles", "Compose, networks and volumes", "CI/CD pipelines and migrations", "Hosting, HTTPS, proxies and rollbacks"],
           curriculum: [
             ["19.1", "Development, testing, and production environments"],
@@ -785,7 +785,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Performance bottlenecks, query optimization, load testing and capacity, memory and event-loop blocking, caching strategies, structured logs, metrics and tracing, monitoring and alerting, uptime and latency, backups and disaster recovery, graceful shutdown, and cost and incident response.",
           objective: "Measure, monitor and operate a backend in production, and respond to incidents with a plan.",
-          atoms: 15,
+          atoms: 17,
           topics: ["Bottlenecks and load testing", "Memory and the event loop", "Logs, metrics and tracing", "Monitoring, alerting and uptime", "Backups, graceful shutdown and incidents"],
           curriculum: [
             ["20.1", "Application performance bottlenecks"],
@@ -827,7 +827,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Choosing a project and turning it into a technical plan: user stories, functional and non-functional requirements, the database schema and ERD, the API contract, authentication and authorization design, architecture diagrams, threat modeling, planning and measurable acceptance criteria.",
           objective: "Turn a project idea into a complete technical specification a team could build from.",
-          atoms: 10,
+          atoms: 11,
           topics: ["Requirements and user stories", "Data and API design", "Security design and threat modeling", "Architecture and planning", "Acceptance criteria"],
           curriculum: [
             ["21.1", "Requirements gathering and user stories"],
@@ -854,7 +854,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Implementing the most important business workflows: a persistent database, well-structured endpoints, authentication and authorization, validation, business rules and constraints, consistent errors, automated tests and a GitHub history of meaningful commits.",
           objective: "Implement the capstone's primary user journeys as a working, tested backend MVP.",
-          atoms: 8,
+          atoms: 9,
           topics: ["Persistence and endpoints", "Auth and validation", "Business rules and errors", "Tests and commits"],
           curriculum: [
             ["22.1", "Requirement: a persistent database"],
@@ -879,7 +879,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Critical integration tests, security and permission checks, migrations and seed scripts, API documentation, environment-specific configuration, a deployment pipeline, logging and health checks, performance testing of critical endpoints, and fixing what the tests find.",
           objective: "Harden the capstone into a deployed, tested, documented and observable backend.",
-          atoms: 9,
+          atoms: 10,
           topics: ["Integration and security tests", "Migrations, seeds and configuration", "Documentation and deployment", "Logs, health and performance", "Fixing what tests find"],
           curriculum: [
             ["23.1", "Requirement: complete critical integration tests"],
@@ -905,7 +905,7 @@ export const BACKEND_ENGINEERING_COURSE = {
           summary:
             "Demonstrating that you understand the system you built: the problem and solution, the architecture, the database design, the endpoints, authentication and authorization, the tests, a difficult bug, performance and security trade-offs, deployment and recovery, and questions about your code.",
           objective: "Present and defend a production-style backend, and turn it into a portfolio a hiring team can evaluate.",
-          atoms: 10,
+          atoms: 11,
           topics: ["Presenting the problem and architecture", "Defending the data and API design", "Security, tests and a hard bug", "Trade-offs, deployment and recovery", "Answering questions and the portfolio"],
           curriculum: [
             ["24.1", "Present the problem and solution"],

@@ -573,7 +573,8 @@ export class WebSocketClient extends WsEnd {
   }
   _fire(type, event) {
     this[`on${type}`]?.(event);
-    this.emit(type, event);
+    // An EventTarget never throws for an "error" nobody listens to; an EventEmitter would.
+    if (type !== "error" || this.listenerCount("error")) this.emit(type, event);
   }
   _opened() {
     this.readyState = OPEN;
@@ -626,9 +627,15 @@ function connectWs(client) {
   });
   req.upgrade = true;
   socket._labClient = client;
-  socket.write = () => true;
+  // A server refusing the upgrade writes a status line, then destroys the socket.
+  let refusal = 400;
+  socket.write = (data) => {
+    const m = /^HTTP\/1\.[01] (\d{3})/.exec(String(data));
+    if (m) refusal = Number(m[1]);
+    return true;
+  };
   socket.destroy = () => {
-    client._failed(codeError("ECONNRESET", "Unexpected server response: 400"));
+    client._failed(codeError("ECONNRESET", `Unexpected server response: ${refusal}`));
     return socket;
   };
   if (server.listenerCount("upgrade") === 0) {

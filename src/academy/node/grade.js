@@ -213,6 +213,10 @@ function makeHelpers(state) {
       const r = await state.db.query(text, params);
       return r.rows;
     },
+    /** Takes the lab's PostgreSQL down (new connections refused, queries on open ones fail) or back up. */
+    dbDown: (down = true) => {
+      state.outage.down = down;
+    },
     outgoing: () => m().network.log.slice(),
     service: (origin) => m().service(origin),
     emails: () => m().mailbox.slice(),
@@ -300,14 +304,14 @@ function makeHelpers(state) {
  */
 export async function runLab(lab, files, { createMachine, freshDatabase, onOutput } = {}) {
   const dbConf = databaseConfig(lab);
-  const state = { files, db: null, machine: null, restart: null };
+  const state = { files, db: null, machine: null, restart: null, outage: { down: false } };
   if (dbConf) state.db = await freshDatabase(dbConf.setup || "");
   const env = { ...(lab.env || {}) };
   const make = () => {
     const machine = createMachine({
       files: state.machine ? state.machine.vol.snapshot() : files,
       env,
-      database: state.db ? { db: state.db, ...dbConf, version: "18.0" } : null,
+      database: state.db ? { db: state.db, ...dbConf, version: "18.0", outage: state.outage } : null,
       services: lab.services,
       stdin: lab.stdin,
       redis: lab.redis ? (lab.redis === true ? {} : lab.redis) : null,

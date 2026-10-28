@@ -29,7 +29,7 @@ const MODULE = "be-w9-relational";
  *   entities: { STUDENT: [{ type, name, keys: ["PK"] }] }
  *   rels: [{ a, b, left: "||", right: "o{", label }]   (a ||--o{ b : label)
  */
-const PARSE_ERD = (file) => `
+export const PARSE_ERD = (file) => `
 const doc = file(${JSON.stringify(file)}) || "";
 const block = /\`\`\`mermaid\\s*([\\s\\S]*?)\`\`\`/.exec(doc);
 assert(block, "put the diagram in a \`\`\`mermaid block");

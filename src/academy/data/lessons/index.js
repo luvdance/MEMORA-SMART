@@ -10,6 +10,7 @@ import CODEBASE_ENGINEERING_COURSE from "../codebaseEngineeringCourse.js";
 import REACT_COURSE from "../reactCourse.js";
 import MOBILE_DEVELOPMENT_COURSE from "../mobileDevelopmentCourse.js";
 import RDBMS_COURSE from "../rdbmsCourse.js";
+import BACKEND_ENGINEERING_COURSE from "../backendEngineeringCourse.js";
 import { LESSONS as FOUNDATIONS } from "./m1-data-foundations.js";
 import { LESSONS as EXCEL_SETUP } from "./m1-excel-setup.js";
 import { LESSONS as EXCEL_ESSENTIALS } from "./m1-excel-essentials.js";
@@ -59,6 +60,9 @@ import { MOBILE_DEVELOPMENT_LESSONS } from "./md-registry.js";
 
 // ── Relational Databases (RDBMS) & SQL: one file per week, db-registry.js ──
 import { RDBMS_LESSONS } from "./db-registry.js";
+
+// ── Backend Engineering with Node.js: one file per week, be-registry.js ───
+import { BACKEND_ENGINEERING_LESSONS } from "./be-registry.js";
 
 // ── Cybersecurity, one file per week ──────────────────────────────────────
 import { LESSONS as CS_W1 } from "./cs-w1-fundamentals.js";
@@ -140,6 +144,8 @@ const REGISTRY = {
 
   rdbms: RDBMS_LESSONS,
 
+  "backend-engineering": BACKEND_ENGINEERING_LESSONS,
+
   cybersecurity: {
     "cs-w1-fundamentals": CS_W1,
     "cs-w2-accounts": CS_W2,
@@ -182,6 +188,7 @@ const CURRICULA = {
   [REACT_COURSE.slug]: REACT_COURSE,
   [MOBILE_DEVELOPMENT_COURSE.slug]: MOBILE_DEVELOPMENT_COURSE,
   [RDBMS_COURSE.slug]: RDBMS_COURSE,
+  [BACKEND_ENGINEERING_COURSE.slug]: BACKEND_ENGINEERING_COURSE,
 };
 
 /**

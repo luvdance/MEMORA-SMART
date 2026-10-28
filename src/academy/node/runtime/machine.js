@@ -560,7 +560,7 @@ export class Machine {
     if (cmd === "tsc") return this.runTsc(rest);
     if (cmd === "prisma") return this.runPrisma(rest);
     if (cmd === "vitest") {
-      resetProcess({ env: { ...this.baseEnv(), NODE_ENV: "test", VITEST: "true", ...(this.npmEnv || {}) }, argv: ["/usr/local/bin/node", "/app/node_modules/vitest/vitest.mjs", ...rest], stdin: Readable.from([]) });
+      resetProcess({ env: { ...this.baseEnv(), NODE_ENV: "test", VITEST: "true", ...(this.npmEnv || {}), ...(this.commandEnv || {}) }, argv: ["/usr/local/bin/node", "/app/node_modules/vitest/vitest.mjs", ...rest], stdin: Readable.from([]) });
       this.modules = new ModuleSystem(this, { strictDependencies: this.opts.strictDependencies !== false });
       return this.runTests(rest);
     }
@@ -954,6 +954,8 @@ ${inspect(err)}${tail}`;
     this.revive();
     this.activate();
     await this.ensurePackages();
+    // A lab with no command still has its external services (a check may load code that calls them).
+    if (this.opts.services && !this.network.services.size) await this.startServices();
     if (!this.modules) {
       resetProcess({ env: { ...this.baseEnv() }, argv: ["/usr/local/bin/node", "/app/[check]"], stdin: Readable.from([]) });
       this.modules = new ModuleSystem(this, { strictDependencies: this.opts.strictDependencies !== false });
@@ -970,7 +972,7 @@ ${inspect(err)}${tail}`;
   async runTests(args = []) {
     const filters = args.filter((a) => a !== "run" && !a.startsWith("-"));
     if (!proc.env || !this.modules) {
-      resetProcess({ env: { ...this.baseEnv(), NODE_ENV: "test", VITEST: "true", ...(this.npmEnv || {}) }, argv: ["/usr/local/bin/node", "/app/node_modules/vitest/vitest.mjs", "run", ...filters], stdin: Readable.from([]) });
+      resetProcess({ env: { ...this.baseEnv(), NODE_ENV: "test", VITEST: "true", ...(this.npmEnv || {}), ...(this.commandEnv || {}) }, argv: ["/usr/local/bin/node", "/app/node_modules/vitest/vitest.mjs", "run", ...filters], stdin: Readable.from([]) });
     } else {
       proc.env.NODE_ENV = "test";
       proc.env.VITEST = "true";

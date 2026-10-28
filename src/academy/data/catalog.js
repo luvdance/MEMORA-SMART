@@ -10,6 +10,7 @@ import CODEBASE_ENGINEERING_COURSE from "./codebaseEngineeringCourse.js";
 import REACT_COURSE from "./reactCourse.js";
 import MOBILE_DEVELOPMENT_COURSE from "./mobileDevelopmentCourse.js";
 import RDBMS_COURSE from "./rdbmsCourse.js";
+import BACKEND_ENGINEERING_COURSE from "./backendEngineeringCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -380,6 +381,31 @@ export const CATALOG = [
       "Node.js integration & capstone",
     ],
     course: RDBMS_COURSE,
+  },
+  {
+    id: "backend-engineering",
+    code: "BE-101",
+    slug: "backend-engineering",
+    title: "Backend Engineering with Node.js",
+    subtitle: "Build, secure, test, deploy and run production APIs",
+    category: "web",
+    icon: "fab fa-node-js",
+    status: "open",
+    beta: true,
+    level: "Beginner → Job-ready",
+    summary:
+      "Twenty-four weeks from how the web works to production backends you can defend line by line. JavaScript and TypeScript, Node.js, REST APIs with Express and OpenAPI, PostgreSQL with node-postgres and Prisma, then authentication, security, testing, reliability, architecture, background jobs, Docker and CI/CD, monitoring, and a capstone you specify, build, deploy and defend. Every lesson makes you build: your code runs as a real Node.js project in the page and is checked before you move on.",
+    covers: [
+      "Node.js, JavaScript & TypeScript",
+      "REST APIs with Express & OpenAPI",
+      "PostgreSQL, SQL & Prisma",
+      "Authentication & API security",
+      "Testing & reliability",
+      "Architecture, jobs, caching & WebSockets",
+      "Docker, CI/CD & operations",
+      "A capstone backend, specified and defended",
+    ],
+    course: BACKEND_ENGINEERING_COURSE,
   },
   {
     id: "ai-automation",

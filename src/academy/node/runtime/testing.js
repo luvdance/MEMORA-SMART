@@ -568,7 +568,7 @@ ${err?.stack || err}
     const modules = new ModuleSystem(machine, { strictDependencies: machine.opts.strictDependencies !== false });
     modules.sourceHook = (id, source) => (id === file ? hoistMocks(source) : source);
     modules.mockHook = (spec, fromFile, resolved) => {
-      const hit = machine.testRun.mocks.find((m) => {
+      const hit = machine.testRun?.mocks.find((m) => {
         try {
           const r = modules.resolve(m.spec, m.from, modules.formatOf(m.from));
           return (r.kind === "file" ? r.id : r.id) === resolved;

@@ -172,6 +172,7 @@ export class LabPgSocket extends EventEmitter {
     };
     const known = (h) => (["localhost", "127.0.0.1", "::1"].includes(h) ? "localhost" : h);
     loop.setImmediate(() => {
+      if (s?.outage?.down) return fail(); // a check took the database down
       if (!s || known(String(host || "localhost")) !== known(s.host) || Number(port || 5432) !== Number(s.port)) {
         if (s && !["localhost", "127.0.0.1", "::1"].includes(String(host || "localhost")) && known(String(host)) !== known(s.host)) {
           const err = new Error(`getaddrinfo ENOTFOUND ${host}`);
@@ -234,6 +235,11 @@ export class LabPgSocket extends EventEmitter {
   }
   async _receive(chunk) {
     if (this.destroyed) return;
+    if (this.server?.outage?.down) {
+      this._push(errorResponse({ S: "FATAL", V: "FATAL", C: "57P01", M: "terminating connection due to administrator command", R: "ProcessInterrupts" }));
+      await this._close();
+      return;
+    }
     if (this._state === "startup") {
       const len = chunk.readInt32BE(0);
       const code = chunk.readInt32BE(4);

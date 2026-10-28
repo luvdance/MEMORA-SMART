@@ -15,6 +15,20 @@ import { LESSONS as BE_W7 } from "./be-w7-express.js";
 import { LESSONS as BE_W8 } from "./be-w8-api-design.js";
 import { LESSONS as BE_W9 } from "./be-w9-relational.js";
 import { LESSONS as BE_W10 } from "./be-w10-sql.js";
+import { LESSONS as BE_W11 } from "./be-w11-node-postgres.js";
+import { LESSONS as BE_W12 } from "./be-w12-db-performance.js";
+import { LESSONS as BE_W13 } from "./be-w13-authentication.js";
+import { LESSONS as BE_W14 } from "./be-w14-security.js";
+import { LESSONS as BE_W15 } from "./be-w15-testing.js";
+import { LESSONS as BE_W16 } from "./be-w16-reliability.js";
+import { LESSONS as BE_W17 } from "./be-w17-architecture.js";
+import { LESSONS as BE_W18 } from "./be-w18-advanced.js";
+import { LESSONS as BE_W19 } from "./be-w19-devops.js";
+import { LESSONS as BE_W20 } from "./be-w20-operations.js";
+import { LESSONS as BE_W21 } from "./be-w21-system-design.js";
+import { LESSONS as BE_W22 } from "./be-w22-implementation.js";
+import { LESSONS as BE_W23 } from "./be-w23-hardening.js";
+import { LESSONS as BE_W24 } from "./be-w24-defense.js";
 
 export const BACKEND_ENGINEERING_LESSONS = {
   "be-w1-web": BE_W1,
@@ -27,6 +41,20 @@ export const BACKEND_ENGINEERING_LESSONS = {
   "be-w8-api-design": BE_W8,
   "be-w9-relational": BE_W9,
   "be-w10-sql": BE_W10,
+  "be-w11-node-postgres": BE_W11,
+  "be-w12-db-performance": BE_W12,
+  "be-w13-authentication": BE_W13,
+  "be-w14-security": BE_W14,
+  "be-w15-testing": BE_W15,
+  "be-w16-reliability": BE_W16,
+  "be-w17-architecture": BE_W17,
+  "be-w18-advanced": BE_W18,
+  "be-w19-devops": BE_W19,
+  "be-w20-operations": BE_W20,
+  "be-w21-system-design": BE_W21,
+  "be-w22-implementation": BE_W22,
+  "be-w23-hardening": BE_W23,
+  "be-w24-defense": BE_W24,
 };
 
 export default BACKEND_ENGINEERING_LESSONS;

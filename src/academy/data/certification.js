@@ -391,6 +391,45 @@ export const CERTIFICATION = {
     ],
   },
 
+  "backend-engineering": {
+    examId: "mst-be-final",
+    courseCode: "BE-101",
+    path: "/academy/exam/backend-engineering",
+    title: "Memora Smart Certification — Backend Engineering with Node.js",
+    subtitle: "Foundations · APIs · Data · Security & quality · Production · Capstone",
+    questionCount: 36,
+    durationMinutes: 90,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/backend/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "be-w1-web",
+      "be-w2-javascript",
+      "be-w3-async-ts",
+      "be-w4-tools",
+      "be-w5-node",
+      "be-w6-http-rest",
+      "be-w7-express",
+      "be-w8-api-design",
+      "be-w9-relational",
+      "be-w10-sql",
+      "be-w11-node-postgres",
+      "be-w12-db-performance",
+      "be-w13-authentication",
+      "be-w14-security",
+      "be-w15-testing",
+      "be-w16-reliability",
+      "be-w17-architecture",
+      "be-w18-advanced",
+      "be-w19-devops",
+      "be-w20-operations",
+      "be-w21-system-design",
+      "be-w22-implementation",
+      "be-w23-hardening",
+      "be-w24-defense",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"

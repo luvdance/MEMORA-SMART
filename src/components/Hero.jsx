@@ -11,6 +11,12 @@ const services = [
   // `course` sends the visitor into that course's enrolment, signing them in
   // first if needed, instead of dropping them on the Academy landing page.
   {
+    icon: "fab fa-node-js",
+    label: "Become a Backend Engineer",
+    path: "/academy/enroll/backend-engineering",
+    course: "backend-engineering",
+  },
+  {
     icon: "fab fa-react",
     label: "Learn React",
     path: "/academy/enroll/react",

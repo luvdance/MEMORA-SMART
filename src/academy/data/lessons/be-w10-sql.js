@@ -311,7 +311,7 @@ export const LESSONS = [
         },
       },
       {
-        id: "a-be-permissions",
+        id: "a-be-db-permissions",
         title: "Basic database permissions",
         explain:
           "Connect your API as a role with only what it needs, not as the superuser: GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO academy_app lets it work with rows but not DROP or ALTER tables (only the owner can). A reporting role gets SELECT on the view and nothing else. GRANT … ON ALL TABLES covers tables that exist NOW: a view created later is not included (ALTER DEFAULT PRIVILEGES changes that for future objects). If the API is ever compromised, least privilege limits what the attacker's SQL can do. The recording below ran roles.sql, then tried each role.",

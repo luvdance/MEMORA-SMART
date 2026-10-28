@@ -26,9 +26,10 @@ const P = await import(pathToFileURL(join(ROOT, "src/academy/data/lessons/be-pro
 /** Schema changes the labs need, in order: name → [before, after]. */
 export const STEPS = {
   seats_payments: ["W11_SCHEMA_LEVEL", "W11_SCHEMA_SEATS"],
+  add_course_seats: ["W11_SCHEMA_LEVEL", "W11_SCHEMA_LEVEL_SEATS"],
 };
 /** Schemas the labs show, which must be as `prisma format` writes them. */
-const SCHEMAS = ["W11_SCHEMA", "W11_SCHEMA_LEVEL", "W11_SCHEMA_SEATS", "W11_SCHEMA_MAPPED"];
+const SCHEMAS = ["W11_SCHEMA", "W11_SCHEMA_LEVEL", "W11_SCHEMA_SEATS", "W11_SCHEMA_MAPPED", "W11_SCHEMA_LEVEL_SEATS"];
 
 const dir = mkdtempSync(join(tmpdir(), "be-prisma-"));
 symlinkSync(join(WORKSPACE, "node_modules"), join(dir, "node_modules"), "junction");

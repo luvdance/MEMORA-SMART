@@ -44,6 +44,7 @@ export const SESSION_FOLDERS = {
   "w4-lint": "course-api",
   "w10-psql": "academy-db",
   "w10-roles": "academy-db",
+  "w11-prisma": "course-api",
 };
 
 export function term(session, spec = {}) {
@@ -135,6 +136,9 @@ export const V = {
   "@types/pg": "^8.23.1",
   "@types/jsonwebtoken": "^9.0.10",
   "@types/supertest": "^7.2.1",
+  prisma: "^7.10.1",
+  "@prisma/client": "^7.10.1",
+  "@prisma/adapter-pg": "^7.10.1",
 };
 
 /**

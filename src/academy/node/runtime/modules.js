@@ -660,7 +660,7 @@ export class ModuleSystem {
     } else if (/\bimport\s*\(/.test(out)) {
       out = replaceFree(out, { import: "__labImportKeyword" }).replace(/__labImportKeyword\s*\(/g, "__labDynamicImport(");
     }
-    const tla = esm && hasTopLevelAwait(out);
+    const tla = esm && hasTopLevelAwait(out) && !compilesWithoutAwait(out);
     const globalNames = this.machine.globalNames;
     const params = ["exports", "require", "module", "__filename", "__dirname", ...(esm ? ["__labImportMeta", "__labDynamicImport", "__labNoCjs"] : []), ...globalNames];
     if (!esm && /\b__labDynamicImport\(/.test(out)) params.splice(5, 0, "__labDynamicImport");
@@ -747,6 +747,20 @@ function niceSyntax(msg) {
     .replace(/^Unexpected token, expected "(.)"$/, (_, c) => (c === ")" ? "missing ) after argument list" : `Unexpected token, expected "${c}"`))
     .replace(/^Unterminated string constant$/, "Invalid or unexpected token")
     .replace(/^Unexpected token$/, "Unexpected token");
+}
+
+/**
+ * The masking heuristic cannot see where an expression-bodied arrow ends
+ * (async (req, res) => res.json({ data: await x })), so a positive is
+ * confirmed by the engine: top-level await only fails to compile as a plain function.
+ */
+function compilesWithoutAwait(code) {
+  try {
+    new Function(`"use strict";${code}`);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function hasTopLevelAwait(code) {

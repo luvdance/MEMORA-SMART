@@ -310,8 +310,20 @@ export const W11_SCHEMA_SEATS = W11_SCHEMA_LEVEL.replace(
   '  level       String       @default("beginner")\n  seats       Int          @default(30)\n'
 )
   .replace(
-    '  enrolledAt DateTime @default(now()) @map("enrolled_at")\n',
-    '  enrolledAt DateTime @default(now()) @map("enrolled_at")\n  payments   Payment[]\n'
+    /model Enrollment \{[\s\S]*?\n\}\n/,
+    `model Enrollment {
+  id         Int       @id @default(autoincrement())
+  student    Student   @relation(fields: [studentId], references: [id])
+  studentId  Int       @map("student_id")
+  course     Course    @relation(fields: [courseId], references: [id])
+  courseId   Int       @map("course_id")
+  enrolledAt DateTime  @default(now()) @map("enrolled_at")
+  payments   Payment[]
+
+  @@unique([studentId, courseId])
+  @@map("enrollments")
+}
+`
   )
   .concat(`
 model Payment {
@@ -324,3 +336,63 @@ model Payment {
   @@map("payments")
 }
 `);
+
+/** Week 11 exercise: only seats added to the level schema (the migration the learner writes by hand). */
+export const W11_SCHEMA_LEVEL_SEATS = W11_SCHEMA_LEVEL.replace(
+  '  level       String       @default("beginner")\n',
+  '  level       String       @default("beginner")\n  seats       Int          @default(30)\n'
+);
+
+/* ── Week 12: a million lesson views for measuring queries ───────────── */
+
+export const W12_PERF = `CREATE TABLE lesson_views (
+  id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  student_id integer NOT NULL,
+  lesson_id  integer NOT NULL,
+  viewed_at  timestamptz NOT NULL
+);
+
+-- 1,000,000 views by 20,000 students of 600 lessons over 2026.
+INSERT INTO lesson_views (student_id, lesson_id, viewed_at)
+SELECT 1 + (n::bigint * 7919) % 20000,
+       1 + n % 600,
+       timestamptz '2026-01-01' + (n * 31) % 31536000 * interval '1 second'
+FROM generate_series(1, 1000000) AS n;
+
+ANALYZE lesson_views;
+`;
+
+/* ── Week 15: a priced quote and its tests (vitest, real coverage) ───── */
+
+export const W15_PRICING = `/** The price of a course for a number of seats, in naira. */
+export function quote(price, seats, { earlyBird = false } = {}) {
+  if (!Number.isInteger(seats) || seats < 1) throw new RangeError("seats must be a whole number, 1 or more");
+  let discount = 0;
+  if (seats >= 10) discount = 20;
+  else if (seats >= 3) discount = 10;
+  if (earlyBird) discount += 5;
+  const unit = Math.round(price * (1 - discount / 100));
+  return { unit, total: unit * seats, discount };
+}
+`;
+
+export const W15_PRICING_TEST = `import { describe, expect, it } from "vitest";
+import { quote } from "../src/pricing.js";
+
+describe("quote", () => {
+  it("charges the full price for one seat", () => {
+    expect(quote(120000, 1)).toEqual({ unit: 120000, total: 120000, discount: 0 });
+  });
+
+  it("gives 10% off from 3 seats", () => {
+    expect(quote(100000, 3)).toEqual({ unit: 90000, total: 270000, discount: 10 });
+  });
+
+  it("refuses 0 seats", () => {
+    expect(() => quote(100000, 0)).toThrow(RangeError);
+  });
+});
+`;
+
+/** The same function with a boundary bug: 3 seats no longer get the group discount. */
+export const W15_PRICING_BUG = W15_PRICING.replace("else if (seats >= 3) discount = 10;", "else if (seats > 3) discount = 10;");

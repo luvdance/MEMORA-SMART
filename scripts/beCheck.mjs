@@ -51,6 +51,15 @@ const nodeDemos = [];
 const jsSnippets = [];
 const sqlAtoms = [];
 
+// The Prisma migrations the labs ship must still be what the real Prisma CLI writes (scripts/bePrisma.mjs).
+if (ids.some((id) => Number(/^be-w(\d+)-/.exec(id)?.[1]) >= 11)) {
+  try {
+    execFileSync(process.execPath, [join("scripts", "bePrisma.mjs"), "--check"], { stdio: "pipe", encoding: "utf8" });
+  } catch (err) {
+    errors.push(`Prisma migrations: ${(err.stderr || err.stdout || err.message).trim()}`);
+  }
+}
+
 for (const id of ids) {
   const module = modules.find((m) => m.id === id);
   if (!module) {
