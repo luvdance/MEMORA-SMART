@@ -15,7 +15,8 @@
     "test:e2ee": "node lib/academy/e2eeSelfTest.mjs",
     "test:typing": "node lib/academy/typing/selfTest.mjs",
     "preview": "vite preview",
-    "check:terms": "node lib/academy/checkTerms.mjs"
+    "check:terms": "node lib/academy/checkTerms.mjs",
+    "test:cv": "node lib/cv/selfTest.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

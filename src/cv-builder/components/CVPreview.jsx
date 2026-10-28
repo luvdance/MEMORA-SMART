@@ -100,6 +100,7 @@ const handleOrderToggle = () => {
             <SectionOrderPanel
               sectionOrder={sectionOrder}
               setSectionOrder={setSectionOrder}
+              template={template}
             />
           )}
         </div>

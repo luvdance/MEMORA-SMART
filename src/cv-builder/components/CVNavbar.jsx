@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TEMPLATES, ACCENT, FONT_OPTIONS, THEME_PRESETS } from "../utils/constants";
+import { isPremiumTemplate } from "../utils/templateMeta";
 import { TEMPLATE_INFO } from "../utils/sampleCV";
 import cvLogo from "../../assets/cv logo.png";
 
@@ -143,6 +144,9 @@ export default function CVNavbar({
                             style={{ background: TEMPLATE_INFO[idx]?.accent || "#6699FF" }}
                           />
                           <span>{TEMPLATES[idx]}</span>
+                          {isPremiumTemplate(idx) && (
+                            <i className="fas fa-crown cvb-premium-crown" title="Premium template" aria-label="Premium"></i>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -416,6 +420,9 @@ export default function CVNavbar({
                     style={{ background: TEMPLATE_INFO[idx]?.accent || "#6699FF" }}
                   />
                   <span>{TEMPLATES[idx]}</span>
+                  {isPremiumTemplate(idx) && (
+                    <i className="fas fa-crown cvb-premium-crown" title="Premium template" aria-label="Premium"></i>
+                  )}
                   {template === idx && (
                     <i
                       className="fas fa-check"

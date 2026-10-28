@@ -1,21 +1,23 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   collection, query, where, getDocs,
-  doc, updateDoc, serverTimestamp, increment, orderBy, limit, getDoc
+  doc, updateDoc, serverTimestamp, increment, orderBy, getDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
 import "./Admin.css";
-import { getLaunchPromoState } from "../utils/userService";
 import AcademyAdmin from "./admin/AcademyAdmin";
+import AdminCVs from "./admin/AdminCVs";
+import { PLANS, addPlanPeriod, computeEntitlement, describeEntitlement, toMillis } from "../cv-builder/utils/plans";
 
 export default function Admin() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
-  const [mainTab, setMainTab] = useState("users"); // "users" | "transfers"
+  const [mainTab, setMainTab] = useState(location.state?.tab || "users"); // "users" | "cvs" | "transfers" | "academy"
 
   // Transfers state
   const [transfers, setTransfers] = useState([]);
@@ -34,28 +36,6 @@ export default function Admin() {
   const [fetching, setFetching] = useState(true);
   const [processing, setProcessing] = useState(null);
 
-  // Promo state
-  const [promoState, setPromoState] = useState(null);
-
-useEffect(() => {
-  if (isAdmin) {
-    loadPromoState();
-  }
-}, [isAdmin]);
-
-const loadPromoState = async () => {
-  const state = await getLaunchPromoState();
-  setPromoState(state);
-};
-
-const togglePromo = async () => {
-  const ref = doc(db, "settings", "global");
-  await updateDoc(ref, {
-    launchPromoActive: !promoState.active,
-    updatedAt: serverTimestamp(),
-  });
-  loadPromoState();
-};
 
   useEffect(() => {
   if (loading) return;
@@ -77,7 +57,7 @@ const togglePromo = async () => {
   useEffect(() => {
   if (isAdmin) {
     if (mainTab === "users") fetchUsers();
-    else fetchTransfers();
+    else if (mainTab === "transfers") fetchTransfers();
   }
 }, [isAdmin, mainTab, transferTab]);
 
@@ -85,9 +65,9 @@ const togglePromo = async () => {
   useEffect(() => {
     let result = [...users];
 
-    if (userFilter === "pro") result = result.filter(u => u.isPro);
-    else if (userFilter === "credits") result = result.filter(u => u.paidDownloads > 0 && !u.isPro);
-    else if (userFilter === "free") result = result.filter(u => !u.isPro && !u.paidDownloads);
+    if (userFilter === "pro") result = result.filter(u => u.entitlement.premium);
+    else if (userFilter === "credits") result = result.filter(u => u.entitlement.credits > 0 && !u.entitlement.premium);
+    else if (userFilter === "free") result = result.filter(u => !u.entitlement.premium && !u.entitlement.credits);
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -112,12 +92,13 @@ const togglePromo = async () => {
       // Fetch download count for each user (count of payments)
       const enriched = await Promise.all(
         data.map(async u => {
+          const entitlement = computeEntitlement(u);
           try {
             const payQ = query(collection(db, "payments"), where("userId", "==", u.uid || u.id));
             const paySnap = await getDocs(payQ);
-            return { ...u, paymentCount: paySnap.size };
+            return { ...u, entitlement, paymentCount: paySnap.size };
           } catch {
-            return { ...u, paymentCount: 0 };
+            return { ...u, entitlement, paymentCount: 0 };
           }
         })
       );
@@ -127,9 +108,9 @@ const togglePromo = async () => {
       // Stats
       setUserStats({
         total: enriched.length,
-        pro: enriched.filter(u => u.isPro).length,
-        paid: enriched.filter(u => u.paidDownloads > 0 && !u.isPro).length,
-        free: enriched.filter(u => !u.isPro && !u.paidDownloads).length,
+        pro: enriched.filter(u => u.entitlement.premium).length,
+        paid: enriched.filter(u => u.entitlement.credits > 0 && !u.entitlement.premium).length,
+        free: enriched.filter(u => !u.entitlement.premium && !u.entitlement.credits).length,
       });
     } catch (err) {
       console.error("fetchUsers error:", err);
@@ -151,18 +132,42 @@ const togglePromo = async () => {
     setProcessing(null);
   };
 
-  const grantPro = async (u) => {
-    if (!window.confirm(`Grant Pro to ${u.email} for 31 days?`)) return;
+  // Give a plan by hand (e.g. a bank transfer or a goodwill gesture).
+  // Monthly/Yearly extend from the later of now or the current end date.
+  const grantPlan = async (u, planId) => {
+    const plan = PLANS[planId];
+    if (!window.confirm(`Grant ${plan.name} to ${u.email}?`)) return;
     setProcessing(u.id);
     try {
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 31);
+      let updates;
+      if (planId === "lifetime") {
+        updates = {
+          plan: "lifetime",
+          lifetime: true,
+          planExpiresAt: null,
+          autoRenew: false,
+          isPro: true,
+          proExpiresAt: new Date("2099-12-31T00:00:00Z"),
+        };
+      } else {
+        const currentEnd = u.entitlement?.premium ? (u.entitlement.expiresAt || 0) : 0;
+        const end = new Date(addPlanPeriod(Math.max(Date.now(), currentEnd), plan.months));
+        updates = {
+          plan: planId,
+          lifetime: false,
+          planExpiresAt: end,
+          autoRenew: false,
+          isPro: true,
+          proExpiresAt: end,
+        };
+      }
       await updateDoc(doc(db, "users", u.id), {
-        isPro: true,
-        proExpiresAt: expiresAt,
+        ...updates,
+        planSource: "admin",
         updatedAt: serverTimestamp(),
       });
       await fetchUsers();
+      setSelectedUser(null);
     } catch (err) {
       alert("Error: " + err.message);
     }
@@ -170,15 +175,36 @@ const togglePromo = async () => {
   };
 
   const revokePro = async (u) => {
-    if (!window.confirm(`Revoke Pro from ${u.email}?`)) return;
+    if (!window.confirm(`Remove Premium from ${u.email}? They go back to the free plan.`)) return;
     setProcessing(u.id);
     try {
       await updateDoc(doc(db, "users", u.id), {
+        plan: "free",
+        lifetime: false,
+        planExpiresAt: null,
+        autoRenew: false,
         isPro: false,
         proExpiresAt: null,
         updatedAt: serverTimestamp(),
       });
       await fetchUsers();
+      setSelectedUser(null);
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+    setProcessing(null);
+  };
+
+  // Give a free user their 5 daily downloads back now.
+  const resetFreeDownloads = async (u) => {
+    setProcessing(u.id);
+    try {
+      await updateDoc(doc(db, "users", u.id), {
+        freeDownloads: { windowStart: null, used: 0 },
+        updatedAt: serverTimestamp(),
+      });
+      await fetchUsers();
+      setSelectedUser(null);
     } catch (err) {
       alert("Error: " + err.message);
     }
@@ -284,10 +310,8 @@ const togglePromo = async () => {
   };
 
   const getUserBadge = (u) => {
-    if (u.isPro) return { label: "Pro", color: "pro" };
-    if (u.paidDownloads > 0) return { label: `${u.paidDownloads} credit${u.paidDownloads !== 1 ? "s" : ""}`, color: "credits" };
-    if (u.freeCVUsed) return { label: "Free (used)", color: "exhausted" };
-    return { label: "Free", color: "free" };
+    const d = describeEntitlement(u.entitlement || computeEntitlement(u));
+    return { label: d.label, color: d.tone, sub: d.sub };
   };
 
   if (loading || checkingAdmin) {
@@ -323,6 +347,12 @@ if (!isAdmin) return null;
             <i className="fas fa-users"></i> Users
           </button>
           <button
+            className={`admin__main-tab ${mainTab === "cvs" ? "admin__main-tab--active" : ""}`}
+            onClick={() => setMainTab("cvs")}
+          >
+            <i className="fas fa-file-alt"></i> CVs
+          </button>
+          <button
             className={`admin__main-tab ${mainTab === "transfers" ? "admin__main-tab--active" : ""}`}
             onClick={() => setMainTab("transfers")}
           >
@@ -336,20 +366,6 @@ if (!isAdmin) return null;
           </button>
         </div>
 
-        {/* PROMO STATUS */}
-        <div className={`admin__promo-card ${!promoState?.active ? "admin__promo-card--ended" : ""}`}>
-        <div>
-            <h3>🔥 Launch Promo</h3>
-            {promoState?.active ? (
-            <p>{promoState.spotsLeft} of {promoState.limit} spots remaining</p>
-            ) : (
-            <p>Ended — customers now get 1 CV per ₦3,500</p>
-            )}
-        </div>
-        <button onClick={togglePromo}>
-            {promoState?.active ? "End Promo Now" : "Reactivate Promo"}
-        </button>
-        </div>
 
         {/* ────── USERS TAB ────── */}
         {mainTab === "users" && (
@@ -358,8 +374,8 @@ if (!isAdmin) return null;
             <div className="admin__stats">
               {[
                 { label: "Total Users", value: userStats.total, color: "#6699FF", icon: "users" },
-                { label: "Pro Users", value: userStats.pro, color: "#9D00FF", icon: "bolt" },
-                { label: "Paid (Credits)", value: userStats.paid, color: "#16a34a", icon: "coins" },
+                { label: "Premium Users", value: userStats.pro, color: "#9D00FF", icon: "crown" },
+                { label: "Legacy Credits", value: userStats.paid, color: "#16a34a", icon: "coins" },
                 { label: "Free Users", value: userStats.free, color: "#888", icon: "gift" },
               ].map((s, i) => (
                 <div key={i} className="admin__stat-card">
@@ -381,13 +397,13 @@ if (!isAdmin) return null;
                 />
               </div>
               <div className="admin__filter">
-                {["all", "pro", "credits", "free"].map(f => (
+                {[["all", "All"], ["pro", "Premium"], ["credits", "Credits"], ["free", "Free"]].map(([f, label]) => (
                   <button
                     key={f}
                     onClick={() => setUserFilter(f)}
                     className={`admin__filter-btn ${userFilter === f ? "admin__filter-btn--active" : ""}`}
                   >
-                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -431,7 +447,7 @@ if (!isAdmin) return null;
                         </div>
                       </div>
 
-                      <div className={`admin__badge admin__badge--${badge.color}`}>
+                      <div className={`admin__badge admin__badge--${badge.color}`} title={badge.sub}>
                         {badge.label}
                       </div>
 
@@ -444,20 +460,20 @@ if (!isAdmin) return null;
                         >
                           <i className="fas fa-coins"></i>
                         </button>
-                        {u.isPro ? (
+                        {u.entitlement.premium ? (
                           <button
                             onClick={() => revokePro(u)}
                             disabled={processing === u.id}
-                            title="Revoke Pro"
+                            title="Remove Premium"
                             className="admin__action-btn admin__action-btn--danger"
                           >
                             <i className="fas fa-ban"></i>
                           </button>
                         ) : (
                           <button
-                            onClick={() => grantPro(u)}
+                            onClick={() => grantPlan(u, "monthly")}
                             disabled={processing === u.id}
-                            title="Grant Pro for 31 days"
+                            title="Grant Premium Monthly (more plans in details)"
                             className="admin__action-btn admin__action-btn--primary"
                           >
                             <i className="fas fa-bolt"></i>
@@ -588,11 +604,21 @@ if (!isAdmin) return null;
                   <strong>{getUserBadge(selectedUser).label}</strong>
                 </div>
                 <div className="admin__modal-item">
-                  <span>Pro Expires</span>
-                  <strong>{selectedUser.isPro ? formatDate(selectedUser.proExpiresAt) : "—"}</strong>
+                  <span>{selectedUser.entitlement.autoRenew ? "Renews" : "Premium Until"}</span>
+                  <strong>
+                    {selectedUser.entitlement.plan === "lifetime"
+                      ? "Lifetime"
+                      : selectedUser.entitlement.premium
+                        ? formatDate(selectedUser.entitlement.expiresAt)
+                        : "—"}
+                  </strong>
                 </div>
                 <div className="admin__modal-item">
-                  <span>Credits</span>
+                  <span>Free Downloads Today</span>
+                  <strong>{selectedUser.entitlement.free.used} of {selectedUser.entitlement.free.limit}</strong>
+                </div>
+                <div className="admin__modal-item">
+                  <span>Legacy Credits</span>
                   <strong>{selectedUser.paidDownloads || 0}</strong>
                 </div>
                 <div className="admin__modal-item">
@@ -600,17 +626,53 @@ if (!isAdmin) return null;
                   <strong>{selectedUser.paymentCount || 0}</strong>
                 </div>
                 <div className="admin__modal-item">
-                  <span>Free CV Used</span>
-                  <strong>{selectedUser.freeCVUsed ? "Yes" : "No"}</strong>
+                  <span>Plan Source</span>
+                  <strong>{selectedUser.planSource === "admin" ? "Granted by admin" : selectedUser.entitlement.premium ? "Paystack" : "—"}</strong>
                 </div>
                 <div className="admin__modal-item">
-                  <span>Email Verified</span>
-                  <strong>{selectedUser.emailVerified ? "Yes" : "No"}</strong>
+                  <span>Last Renewal Failed</span>
+                  <strong>{toMillis(selectedUser.lastRenewalFailedAt) ? formatDate(selectedUser.lastRenewalFailedAt) : "—"}</strong>
+                </div>
+              </div>
+
+              <div className="admin__modal-actions">
+                <span className="admin__modal-actions-label">Change plan</span>
+                <div className="admin__modal-actions-row">
+                  {["monthly", "yearly", "lifetime"].map(p => (
+                    <button
+                      key={p}
+                      className="admin__action-btn admin__action-btn--primary"
+                      disabled={processing === selectedUser.id}
+                      onClick={() => grantPlan(selectedUser, p)}
+                    >
+                      <i className={`fas fa-${p === "lifetime" ? "crown" : "bolt"}`}></i> {PLANS[p].shortName}
+                    </button>
+                  ))}
+                  {selectedUser.entitlement.premium && (
+                    <button
+                      className="admin__action-btn admin__action-btn--danger"
+                      disabled={processing === selectedUser.id}
+                      onClick={() => revokePro(selectedUser)}
+                    >
+                      <i className="fas fa-ban"></i> Remove Premium
+                    </button>
+                  )}
+                  {selectedUser.entitlement.free.used > 0 && (
+                    <button
+                      className="admin__action-btn"
+                      disabled={processing === selectedUser.id}
+                      onClick={() => resetFreeDownloads(selectedUser)}
+                    >
+                      <i className="fas fa-redo"></i> Reset free downloads
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         )}
+
+        {mainTab === "cvs" && <AdminCVs />}
 
         {mainTab === "academy" && <AcademyAdmin />}
 

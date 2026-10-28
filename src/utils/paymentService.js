@@ -1,72 +1,50 @@
+import { PLANS } from "../cv-builder/utils/plans";
+
+// Paystack plan codes make Monthly and Yearly auto-renewing subscriptions.
+// Without them the same amount is charged once and the plan simply runs out.
+const PLAN_CODES = {
+  monthly: import.meta.env.VITE_PAYSTACK_PLAN_MONTHLY,
+  yearly: import.meta.env.VITE_PAYSTACK_PLAN_YEARLY,
+};
+
 /**
- * Open Paystack popup for single CV purchase (₦3,500)
+ * Open Paystack popup for a CV Premium plan: "monthly" | "yearly" | "lifetime".
+ * The server grants the plan from what Paystack reports (plan + amount paid),
+ * never from what this popup claims.
  */
-export function buyCV({ email, onSuccess, onClose }) {
+export function buyPlan({ user, plan, onSuccess, onClose }) {
   if (!window.PaystackPop) {
     alert("Payment system not loaded. Please refresh the page and try again.");
     return;
   }
+  const info = PLANS[plan];
+  if (!info || !user?.email) return;
 
-  const reference = "cv_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+  const reference = `cv_${plan}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const planCode = PLAN_CODES[plan];
 
   const handler = window.PaystackPop.setup({
     key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-    email: email,
-    amount: 350000,
+    email: user.email,
+    amount: info.price * 100,
     currency: "NGN",
+    ...(planCode ? { plan: planCode } : {}),
     ref: reference,
     metadata: {
-      purchase_type: "single_cv",
+      purchase_type: "cv_plan",
+      plan,
+      uid: user.uid,
       custom_fields: [
         {
-          display_name: "Purchase Type",
-          variable_name: "purchase_type",
-          value: "Single CV Download",
+          display_name: "Plan",
+          variable_name: "plan",
+          value: info.name,
         },
       ],
     },
     callback: function(response) {
       // Must be a plain function, not async — Paystack validates this
-      verifyAndNotify(response.reference, onSuccess);
-    },
-    onClose: function() {
-      if (typeof onClose === "function") onClose();
-    },
-  });
-
-  handler.openIframe();
-}
-
-/**
- * Open Paystack popup for Pro subscription (₦7,500/month)
- */
-export function subscribePro({ email, onSuccess, onClose }) {
-  if (!window.PaystackPop) {
-    alert("Payment system not loaded. Please refresh the page and try again.");
-    return;
-  }
-
-  const reference = "pro_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-
-  const handler = window.PaystackPop.setup({
-    key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-    email: email,
-    amount: 750000,
-    currency: "NGN",
-    plan: import.meta.env.VITE_PAYSTACK_PLAN_CODE_PRO,
-    ref: reference,
-    metadata: {
-      purchase_type: "pro_subscription",
-      custom_fields: [
-        {
-          display_name: "Purchase Type",
-          variable_name: "purchase_type",
-          value: "Memora Pro Monthly",
-        },
-      ],
-    },
-    callback: function(response) {
-      verifyAndNotify(response.reference, onSuccess);
+      verifyAndNotify(response.reference, onSuccess, user);
     },
     onClose: function() {
       if (typeof onClose === "function") onClose();
@@ -127,11 +105,15 @@ export function buyBook({ email, book, onSuccess, onClose }) {
  * Internal: verify payment server-side then notify caller.
  * Separated from callback so Paystack gets a plain sync function.
  */
-async function verifyAndNotify(reference, onSuccess) {
+async function verifyAndNotify(reference, onSuccess, user) {
   try {
-    const verify = await fetch("/api/verify-paystack-payment", {
+    const headers = { "Content-Type": "application/json" };
+    if (user?.getIdToken) headers.Authorization = `Bearer ${await user.getIdToken()}`;
+    // Verifies with Paystack and, for CV plans, grants access right away
+    // (the webhook does the same; whichever lands first wins, once).
+    const verify = await fetch("/api/cv/verify-payment", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ reference }),
     });
 

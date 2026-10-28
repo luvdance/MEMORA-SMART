@@ -40,6 +40,26 @@
       "destination": "/api/academy?action=:action"
     },
     {
+      "source": "/api/cv/:action",
+      "destination": "/api/cv?action=:action"
+    },
+    {
+      "source": "/api/ats-score",
+      "destination": "/api/cv?action=ats-score"
+    },
+    {
+      "source": "/api/optimize-cv",
+      "destination": "/api/cv?action=optimize"
+    },
+    {
+      "source": "/api/verify-paystack-payment",
+      "destination": "/api/cv?action=verify-payment"
+    },
+    {
+      "source": "/api/requery-payment",
+      "destination": "/api/cv?action=requery"
+    },
+    {
       "source": "/api/project-formatter/classify",
       "destination": "/api/project-formatter/ai?action=classify"
     },

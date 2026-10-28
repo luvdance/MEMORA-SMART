@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -14,6 +8,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TEMPLATES, ACCENT, THEME_PRESETS, FONT_OPTIONS } from "../utils/constants";
+import { sidebarSectionsFor, isPremiumTemplate } from "../utils/templateMeta";
+import { useReorderSensors } from "../utils/reorderSensors";
 
 const SECTION_LABELS = {
   biodata: "Personal Details",
@@ -31,16 +27,36 @@ const SECTION_LABELS = {
   references: "References",
 };
 
-function SortableItem({ id }) {
+function SortableItem({ id, inSidebar, isFirst, isLast, onMove }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  const label = SECTION_LABELS[id] || id;
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cvb-quick-design__reorder-item">
-      <i className="fas fa-grip-vertical"></i>
-      <span>{SECTION_LABELS[id] || id}</span>
+    <div ref={setNodeRef} style={style} className="cvb-quick-design__reorder-item">
+      {/* Only the grip starts a drag, so the list itself still scrolls by touch. */}
+      <span
+        className="cvb-quick-design__reorder-handle"
+        {...attributes}
+        {...listeners}
+        aria-label={`Drag to move ${label}`}
+      >
+        <i className="fas fa-grip-vertical"></i>
+      </span>
+      <span className="section-order__label">
+        {label}
+        {inSidebar && <span className="section-order__col">Sidebar</span>}
+      </span>
+      <span className="section-order__moves">
+        <button type="button" className="section-order__move" onClick={() => onMove(id, -1)} disabled={isFirst} aria-label={`Move ${label} up`}>
+          <i className="fas fa-chevron-up"></i>
+        </button>
+        <button type="button" className="section-order__move" onClick={() => onMove(id, 1)} disabled={isLast} aria-label={`Move ${label} down`}>
+          <i className="fas fa-chevron-down"></i>
+        </button>
+      </span>
     </div>
   );
 }
@@ -53,15 +69,23 @@ export default function CVQuickDesign({
   format, setFormat,
 }) {
   const [activeTab, setActiveTab] = useState("templates");
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const sensors = useReorderSensors();
+  const sidebar = sidebarSectionsFor(template);
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    if (active.id !== over?.id) {
+    if (over && active.id !== over.id) {
       const oldIndex = sectionOrder.indexOf(active.id);
       const newIndex = sectionOrder.indexOf(over.id);
       setSectionOrder(arrayMove(sectionOrder, oldIndex, newIndex));
     }
+  };
+
+  const moveSection = (id, dir) => {
+    const from = sectionOrder.indexOf(id);
+    const to = from + dir;
+    if (from < 0 || to < 0 || to >= sectionOrder.length) return;
+    setSectionOrder(arrayMove(sectionOrder, from, to));
   };
 
   const setFont = (fontValue) => {
@@ -116,8 +140,10 @@ export default function CVQuickDesign({
                 key={i}
                 onClick={() => setTemplate(i)}
                 className={`cvb-quick-design__chip ${template === i ? "cvb-quick-design__chip--active" : ""}`}
+                title={isPremiumTemplate(i) ? "Premium template" : undefined}
               >
                 {name}
+                {isPremiumTemplate(i) && <i className="fas fa-crown cvb-premium-crown" aria-label="Premium"></i>}
               </button>
             ))}
           </div>
@@ -246,8 +272,15 @@ export default function CVQuickDesign({
           >
             <SortableContext items={sectionOrder} strategy={verticalListSortingStrategy}>
               <div className="cvb-quick-design__reorder">
-                {sectionOrder.map((id) => (
-                  <SortableItem key={id} id={id} />
+                {sectionOrder.map((id, i) => (
+                  <SortableItem
+                    key={id}
+                    id={id}
+                    inSidebar={sidebar.includes(id)}
+                    isFirst={i === 0}
+                    isLast={i === sectionOrder.length - 1}
+                    onMove={moveSection}
+                  />
                 ))}
               </div>
             </SortableContext>

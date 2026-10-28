@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { cvApi } from "../cv-builder/utils/cvAccess";
+import { PLANS } from "../cv-builder/utils/plans";
 import "./PaymentRequery.css";
 
 export default function PaymentRequery({ onClose, onSuccess }) {
@@ -18,16 +20,10 @@ export default function PaymentRequery({ onClose, onSuccess }) {
     setResult(null);
 
     try {
-      const res = await fetch("/api/requery-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reference: reference.trim(),
-          userId: user?.uid,
-        }),
+      const { data } = await cvApi("requery", user, {
+        reference: reference.trim(),
+        userId: user?.uid,
       });
-
-      const data = await res.json();
 
       if (data.success) {
         if (data.alreadyProcessed) {
@@ -38,10 +34,12 @@ export default function PaymentRequery({ onClose, onSuccess }) {
         } else {
           setResult({
             type: "success",
-            message: `Payment verified! ₦${data.amount?.toLocaleString()} credited. ${
-              data.purchaseType === "single_cv" 
-                ? "You can now download your CV." 
-                : "Your Pro subscription is now active."
+            message: `Payment verified! ₦${data.amount?.toLocaleString()} received. ${
+              data.plan === "credit"
+                ? "Your download credit has been added."
+                : PLANS[data.plan]
+                  ? `${PLANS[data.plan].name} is now active.`
+                  : "Your access is now active."
             }`,
           });
           setTimeout(() => {

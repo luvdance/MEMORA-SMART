@@ -865,3 +865,96 @@
   .acad__drawer { width: 100%; padding: 18px; }
   .acad__export { width: 100%; justify-content: center; }
 }
+
+/* ── USER DETAIL: PLAN ACTIONS ── */
+.admin__modal-actions {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.admin__modal-actions-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+
+.admin__modal-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin__modal-actions-row .admin__action-btn {
+  width: auto;
+  padding: 0 12px;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ── CVs TAB ── */
+.admin-cvs__job {
+  font-weight: 500;
+  color: #888;
+}
+
+.admin-cvs__crown {
+  color: #d97706;
+  margin-left: 5px;
+  font-size: 0.7rem;
+}
+
+.admin-cvs__edit-btn {
+  width: auto;
+  padding: 0 12px;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.admin-cvs__modal {
+  max-width: 640px;
+  width: 100%;
+}
+
+/* A4 page (794px) scaled to fit the modal; scrolls for multi-page CVs. */
+.admin-cvs__preview-scale {
+  margin-top: 14px;
+  height: 62vh;
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+.admin-cvs__preview-page {
+  width: 794px;
+  min-height: 1123px;
+  transform: scale(0.72);
+  transform-origin: top left;
+  margin-bottom: -315px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.admin-cvs__modal-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-cvs__modal-actions .admin__action-btn {
+  width: auto;
+  padding: 0 14px;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .admin-cvs__preview-page {
+    transform: scale(0.4);
+    margin-bottom: -674px;
+  }
+}

@@ -5,6 +5,8 @@ import { getUserDoc } from "../../utils/userService";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 import PaymentRequery from "../../components/PaymentRequery";
+import { computeEntitlement, describeEntitlement, PLANS } from "../../cv-builder/utils/plans";
+import { cvApi } from "../../cv-builder/utils/cvAccess";
 import "./Payments.css";
 
 export default function Payments() {
@@ -56,15 +58,35 @@ export default function Payments() {
     });
   };
 
-  const planBadge = () => {
-    if (!planData) return null;
-    if (planData.isPro) return { label: "Memora Pro", color: "pro", icon: "bolt" };
-    if (planData.paidDownloads > 0) return { label: `${planData.paidDownloads} credit${planData.paidDownloads !== 1 ? "s" : ""}`, color: "credits", icon: "coins" };
-    if (planData.freeCVUsed) return { label: "Free (used)", color: "exhausted", icon: "lock" };
-    return { label: "Free", color: "free", icon: "gift" };
+  const entitlement = planData ? computeEntitlement(planData) : null;
+  const described = entitlement ? describeEntitlement(entitlement) : null;
+  const badge = described ? { label: described.label, color: described.tone, icon: described.icon } : null;
+
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelMessage, setCancelMessage] = useState("");
+
+  const handleCancelRenewal = async () => {
+    if (!window.confirm("Turn off auto-renew? You keep Premium until the end of the period you've paid for.")) return;
+    setCancelling(true);
+    setCancelMessage("");
+    try {
+      const { data } = await cvApi("cancel-subscription", user);
+      setCancelMessage(data.message || (data.success ? "Auto-renew is off." : "Could not cancel. Please try again."));
+      if (data.success) loadData();
+    } catch (err) {
+      setCancelMessage("Network error: " + err.message);
+    }
+    setCancelling(false);
   };
 
-  const badge = planBadge();
+  const paymentTitle = (p) => {
+    if (p.plan && PLANS[p.plan]) {
+      return p.purchaseType === "cv_plan_renewal" ? `${PLANS[p.plan].name} (renewal)` : PLANS[p.plan].name;
+    }
+    if (p.purchaseType === "pro_subscription") return "Memora Pro Subscription";
+    if (p.purchaseType === "book_purchase") return "Book Purchase";
+    return "Single CV Download";
+  };
 
   return (
     <div className="payments-page">
@@ -98,21 +120,29 @@ export default function Payments() {
                     {badge.label}
                   </div>
                 )}
-                {planData?.isPro && planData?.proExpiresAt && (
+                {described?.sub && (
+                  <p className="payments-page__plan-meta">{described.sub}</p>
+                )}
+                {entitlement?.credits > 0 && (
                   <p className="payments-page__plan-meta">
-                    Renews on {formatDate(planData.proExpiresAt)}
+                    {entitlement.credits} download credit{entitlement.credits !== 1 ? "s" : ""} from earlier purchases. Use them anytime.
                   </p>
                 )}
-                {planData?.paidDownloads > 0 && (
-                  <p className="payments-page__plan-meta">
-                    Use them anytime — no expiry
-                  </p>
-                )}
+                {cancelMessage && <p className="payments-page__plan-meta">{cancelMessage}</p>}
               </div>
-              {!planData?.isPro && (
+              {!entitlement?.premium && (
                 <a href="/pricing" className="payments-page__upgrade-btn">
-                  <i className="fas fa-bolt"></i> Upgrade to Pro
+                  <i className="fas fa-crown"></i> Go Premium
                 </a>
+              )}
+              {entitlement?.premium && entitlement.autoRenew && (
+                <button
+                  className="payments-page__verify-btn"
+                  onClick={handleCancelRenewal}
+                  disabled={cancelling}
+                >
+                  {cancelling ? <><i className="fas fa-spinner fa-spin"></i> Cancelling...</> : "Cancel auto-renew"}
+                </button>
               )}
             </div>
           )}
@@ -159,14 +189,15 @@ export default function Payments() {
                 <div key={p.id} className="payments-page__item">
                   <div className="payments-page__item-icon">
                     <i className={`fas fa-${
-                      p.purchaseType === "pro_subscription" ? "bolt" : "file-alt"
+                      p.plan === "lifetime" ? "crown"
+                        : p.plan || p.purchaseType === "pro_subscription" ? "bolt"
+                        : p.purchaseType === "book_purchase" ? "book"
+                        : "file-alt"
                     }`}></i>
                   </div>
                   <div className="payments-page__item-info">
                     <div className="payments-page__item-title">
-                      {p.purchaseType === "pro_subscription"
-                        ? "Memora Pro Subscription"
-                        : "Single CV Download"}
+                      {paymentTitle(p)}
                     </div>
                     <div className="payments-page__item-meta">
                       {formatDate(p.createdAt)}

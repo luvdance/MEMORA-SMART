@@ -4,6 +4,10 @@ import "./ATSChecker.css";
 import { track } from "../utils/analytics";
 import { useEffect } from "react"; 
 import { useAuth } from "../context/AuthContext";
+import PaywallModal from "../components/PaywallModal";
+import PaymentRequery from "../components/PaymentRequery";
+import { useEntitlement, cvApi } from "../cv-builder/utils/cvAccess";
+import { PLANS, FREE_DAILY_DOWNLOADS } from "../cv-builder/utils/plans";
 
 export default function ATSChecker() {
   const navigate = useNavigate();
@@ -30,6 +34,10 @@ export default function ATSChecker() {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [showAuthGate, setShowAuthGate] = useState(false);
+  // ATS checks and AI optimization are Premium features.
+  const entitlement = useEntitlement(user);
+  const [paywallFor, setPaywallFor] = useState(null); // "analyze" | "optimize" | null
+  const [showRequery, setShowRequery] = useState(false);
 
   //cv optimizer state
   const [optimizing, setOptimizing] = useState(false);
@@ -168,6 +176,24 @@ const parseImageFile = async (file) => {
     return;
   }
 
+  if (!user) {
+    // Keep what they pasted so it's still here after signing in.
+    try {
+      localStorage.setItem("ats_last_cv", cvText);
+      localStorage.setItem("ats_last_jd", jobDescription || "");
+    } catch {
+      // Storage blocked (private mode): they'll just paste again.
+    }
+    track("ats_check_auth_gate_shown");
+    setShowAuthGate(true);
+    return;
+  }
+  if (entitlement && !entitlement.premium) {
+    track("paywall_shown", { reason: "premium_feature", source: "ats_page" });
+    setPaywallFor("analyze");
+    return;
+  }
+
   track("ats_check_started", { hasJobDescription: !!jobDescription.trim() });
   setError("");
   setAnalyzing(true);
@@ -175,18 +201,16 @@ const parseImageFile = async (file) => {
   const progressInterval = startProgressMessages(setAnalyzeProgress, "analyze");
 
   try {
-    const res = await fetch("/api/ats-score", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cvText: cvText.trim(),
-        jobDescription: jobDescription.trim(),
-      }),
+    const { status, data } = await cvApi("ats-score", user, {
+      cvText: cvText.trim(),
+      jobDescription: jobDescription.trim(),
     });
 
-    const data = await res.json();
-
-    if (data.success) {
+    if (status === 401) {
+      setShowAuthGate(true);
+    } else if (status === 402) {
+      setPaywallFor("analyze");
+    } else if (data.success) {
       setResult(data);
       track("ats_check_completed", { score: data.overallScore, rating: data.rating });
       try {
@@ -279,26 +303,28 @@ const startProgressMessages = (setter, type = "optimize") => {
     return;
   }
 
+  if (entitlement && !entitlement.premium) {
+    track("paywall_shown", { reason: "premium_feature", source: "ats_optimize" });
+    setPaywallFor("optimize");
+    return;
+  }
+
   track("ats_optimize_started", { score: result.overallScore });
   setOptimizing(true);
   setOptimizeError("");
   const progressInterval = startProgressMessages(setOptimizeProgress, "optimize");  // ← START
 
   try {
-    const res = await fetch("/api/optimize-cv", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cvText: textToOptimize,
-        improvements: result.topImprovements || [],
-        atsScore: result.overallScore,
-        jobDescription: jobDescription || "",
-      }),
+    const { status, data } = await cvApi("optimize", user, {
+      cvText: textToOptimize,
+      improvements: result.topImprovements || [],
+      atsScore: result.overallScore,
+      jobDescription: jobDescription || "",
     });
 
-    const data = await res.json();
-
-    if (data.success && data.cv) {
+    if (status === 402) {
+      setPaywallFor("optimize");
+    } else if (data.success && data.cv) {
       localStorage.setItem("optimized_cv", JSON.stringify(data.cv));
       localStorage.setItem("optimized_cv_source", JSON.stringify({
         previousScore: result.overallScore,
@@ -384,15 +410,15 @@ useEffect(() => {
     track("ats_optimize_resumed_after_signup");
     const progressInterval = startProgressMessages(setOptimizeProgress, "optimize");   // ← ADD
 
-    fetch("/api/optimize-cv", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pending),
-    })
-      .then(res => res.json())
-      .then(data => {
+    cvApi("optimize", user, pending)
+      .then(({ status, data }) => {
         clearInterval(progressInterval);   // ← ADD
-        if (data.success && data.cv) {
+        if (status === 402) {
+          // Signed up, but optimizing needs Premium. Their analysis is still on screen.
+          setOptimizing(false);
+          setOptimizeProgress("");
+          setPaywallFor("optimize");
+        } else if (data.success && data.cv) {
           localStorage.setItem("optimized_cv", JSON.stringify(data.cv));
           localStorage.setItem("optimized_cv_source", JSON.stringify({
             previousScore: pending.atsScore,
@@ -809,6 +835,31 @@ Responsibilities:
         )}
 
       {/* AUTH GATE MODAL */}
+{paywallFor && (
+  <PaywallModal
+    reason="premium_feature"
+    entitlement={entitlement}
+    onClose={(action) => {
+      const pending = paywallFor;
+      setPaywallFor(null);
+      if (action === "requery") setShowRequery(pending);
+    }}
+    onPaymentSuccess={() => {
+      const pending = paywallFor;
+      setPaywallFor(null);
+      // Give the payment a moment to reach the server, then carry on.
+      setTimeout(() => (pending === "optimize" ? handleOptimize() : handleAnalyze()), 2500);
+    }}
+  />
+)}
+
+{showRequery && (
+  <PaymentRequery
+    onClose={() => setShowRequery(false)}
+    onSuccess={() => setShowRequery(false)}
+  />
+)}
+
 {showAuthGate && (
   <div className="ats__auth-gate" onClick={() => setShowAuthGate(false)}>
     <div className="ats__auth-gate-box" onClick={(e) => e.stopPropagation()}>
@@ -824,10 +875,10 @@ Responsibilities:
         <i className="fas fa-magic"></i>
       </div>
 
-      <h2>Save your optimized CV ✨</h2>
+      <h2>Sign in to check & optimize your CV ✨</h2>
       <p>
-        Sign up free in 30 seconds and we'll rewrite your CV with all the 
-        improvements automatically. Your CV will be ready to download.
+        Create a free account in 30 seconds. ATS checks and AI optimization are
+        part of Memora Premium, and your CV will be waiting in the builder.
       </p>
 
       <div className="ats__auth-gate-perks">
@@ -835,13 +886,13 @@ Responsibilities:
           <i className="fas fa-check"></i> AI rewrites your weak sections
         </div>
         <div className="ats__auth-gate-perk">
-          <i className="fas fa-check"></i> 7 ATS-friendly templates
+          <i className="fas fa-check"></i> ATS-friendly templates
         </div>
         <div className="ats__auth-gate-perk">
-          <i className="fas fa-check"></i> First download free
+          <i className="fas fa-check"></i> {FREE_DAILY_DOWNLOADS} free downloads every 24 hours
         </div>
         <div className="ats__auth-gate-perk">
-          <i className="fas fa-check"></i> First 50 paying customers: 6 CVs for ₦3,500
+          <i className="fas fa-check"></i> Premium from {PLANS.monthly.priceLabel}/month, unlimited everything
         </div>
       </div>
 

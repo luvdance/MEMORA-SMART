@@ -5,10 +5,16 @@ import CVForm from "../cv-builder/components/CVForm";
 import CVPreview from "../cv-builder/components/CVPreview";
 import CVQuickDesign from "../cv-builder/components/CVQuickDesign";
 import { emptyCV, ACCENT, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER } from "../cv-builder/utils/constants";
-import { saveCV, loadCV } from "../cv-builder/utils/cvService";
+import { saveCV, loadCV, adminSaveCV } from "../cv-builder/utils/cvService";
 import { shrinkPhoto } from "../cv-builder/utils/imageCompress";
 import { useAuth } from "../context/AuthContext";
-import { checkDownloadAccess, recordDownload } from "../utils/userService";
+import { useEntitlement, consumeDownload } from "../cv-builder/utils/cvAccess";
+import { PLANS, formatResetIn, describeEntitlement, toMillis } from "../cv-builder/utils/plans";
+import { isPremiumTemplate, PREMIUM_TEMPLATES } from "../cv-builder/utils/templateMeta";
+import { mergeOptimizedCV } from "../cv-builder/utils/cvText";
+import CVAtsPanel from "../cv-builder/components/CVAtsPanel";
+import { doc as fsDoc, getDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 import PaywallModal from "../components/PaywallModal";
 import "../cv-builder/CVBuilder.css";
 import { printCV } from "../cv-builder/utils/printEngine";
@@ -22,15 +28,18 @@ import SectionOrderPanel from "../cv-builder/components/SectionOrderPanel";
 
 const LOCAL_KEY = "memora_cv_draft";
 
-export default function CVBuilder() {
+// adminMode: opened from the admin panel (/admin/cv/:cvId) to review and
+// correct a user's saved CV. Saves go straight to the user's document.
+export default function CVBuilder({ adminMode = false }) {
   const { cvId: urlCvId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [showOptimizedBanner, setShowOptimizedBanner] = useState(false);
 
-  // ── DRAFT RESTORE ──
+  // ── DRAFT RESTORE ── (never in admin mode: that's the admin's own draft)
   const getSavedDraft = () => {
+    if (adminMode) return null;
     try {
       const saved = localStorage.getItem(LOCAL_KEY);
       if (saved) return JSON.parse(saved);
@@ -77,14 +86,39 @@ export default function CVBuilder() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   //PAYWALL
-  const [pendingAction, setPendingAction] = useState(null); // "print" | "download" | null
+  const [pendingAction, setPendingAction] = useState(null); // "print" | "download" | "ats" | null
+  const [paywallReason, setPaywallReason] = useState("upgrade");
+  const [paywallEntitlement, setPaywallEntitlement] = useState(null);
   const [showRequery, setShowRequery] = useState(false);
+  const [downloadToast, setDownloadToast] = useState(null); // { text, tone }
+
+  // ── PLAN ──
+  const liveEntitlement = useEntitlement(user);
+  // Admins reviewing a CV get every tool; the server lets admins through too.
+  const entitlement = adminMode && liveEntitlement
+    ? { ...liveEntitlement, premium: true, canUseAi: true }
+    : liveEntitlement;
+
+  // ── ATS TOOLS & AI OPTIMIZE ──
+  const [showAts, setShowAts] = useState(false);
+  const [preOptimizeCV, setPreOptimizeCV] = useState(null); // for Undo
+
+  // ── ADMIN / SUPPORT EDITS ──
+  const [adminInfo, setAdminInfo] = useState(null); // admin mode: { ownerId, ownerEmail, ownerName, title }
+  const [remoteUpdate, setRemoteUpdate] = useState(null); // owner side: newer admin edit
+  const adminSyncedAtRef = useRef(0);
 
   const previewRef = useRef();
 
   //ACCENT FIRE
   // ── SYNC ACCENT TO TEMPLATE DEFAULT WHEN TEMPLATE CHANGES ──
+  // Skipped once when a saved CV is loaded, so its own accent isn't overwritten.
+  const keepAccentRef = useRef(false);
 useEffect(() => {
+  if (keepAccentRef.current) {
+    keepAccentRef.current = false;
+    return;
+  }
   const templateDefault = TEMPLATE_INFO[template]?.accent;
   if (templateDefault) {
     setAccent(templateDefault);
@@ -109,23 +143,78 @@ useEffect(() => {
     } catch (e) {}
   }, [cv, template, accent, format, sectionOrder, theme, urlCvId]);
 
+  // ── APPLY A SAVED CV DOCUMENT TO THE EDITOR ──
+  const applySavedCV = (data) => {
+    setCV(data.data);
+    if (data.template !== undefined && data.template !== template) keepAccentRef.current = true;
+    setTemplate(data.template ?? 0);
+    if (data.accent) setAccent(data.accent);
+    if (data.format) setFormat(data.format);
+    if (data.sectionOrder) setSectionOrder(data.sectionOrder);
+    if (data.theme) setTheme(data.theme);
+    adminSyncedAtRef.current = toMillis(data.adminEditedAt) || 0;
+  };
+
   // ── LOAD CV FROM URL ID ──
   useEffect(() => {
-    if (urlCvId) {
-      loadCV(urlCvId).then((data) => {
-        if (data) {
-          setCV(data.data);
-          setTemplate(data.template);
-          setAccent(data.accent);
-          if (data.format) setFormat(data.format);
-          if (data.sectionOrder) setSectionOrder(data.sectionOrder);
-          if (data.theme) setTheme(data.theme);
-          setCvId(urlCvId);
-          setIsOwner(user?.uid === data.ownerId);
+    if (!urlCvId) return;
+    loadCV(urlCvId).then(async (data) => {
+      if (!data) return;
+      applySavedCV(data);
+      setCvId(urlCvId);
+      if (adminMode) {
+        // Admins edit someone else's CV: no "Clear", and show whose it is.
+        setIsOwner(false);
+        let owner = {};
+        try {
+          const snap = await getDoc(fsDoc(db, "users", data.ownerId));
+          owner = snap.exists() ? snap.data() : {};
+        } catch (err) {
+          console.error("Could not load CV owner:", err);
         }
-      });
-    }
-  }, [urlCvId, user]);
+        setAdminInfo({
+          ownerId: data.ownerId,
+          ownerEmail: owner.email || "",
+          ownerName: owner.name || owner.displayName || "",
+          title: data.title || "My CV",
+        });
+      } else {
+        setIsOwner(user?.uid === data.ownerId);
+      }
+    }).catch((err) => console.error("Could not load CV:", err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlCvId, user?.uid, adminMode]);
+
+  // ── LIVE: SUPPORT EDITED THIS CV ──
+  // When an admin corrects the CV while its owner has it open, offer the
+  // update instead of letting the owner's next save silently overwrite it.
+  useEffect(() => {
+    if (adminMode || !cvId || !user?.uid || !isOwner) return undefined;
+    return onSnapshot(
+      fsDoc(db, "cvs", cvId),
+      (snap) => {
+        if (!snap.exists() || snap.metadata.hasPendingWrites) return;
+        const data = snap.data();
+        const editedAt = toMillis(data.adminEditedAt) || 0;
+        if (data.lastEditedBy === "admin" && editedAt > adminSyncedAtRef.current) {
+          setRemoteUpdate({ id: snap.id, ...data });
+        }
+      },
+      () => {},
+    );
+  }, [adminMode, cvId, user?.uid, isOwner]);
+
+  const acceptRemoteUpdate = () => {
+    if (!remoteUpdate) return;
+    applySavedCV(remoteUpdate);
+    setRemoteUpdate(null);
+    track("cv_support_update_accepted");
+  };
+
+  const dismissRemoteUpdate = () => {
+    adminSyncedAtRef.current = toMillis(remoteUpdate?.adminEditedAt) || Date.now();
+    setRemoteUpdate(null);
+  };
 
   // ── BODY SCROLL LOCK ──
   useEffect(() => {
@@ -143,13 +232,7 @@ useEffect(() => {
 
     const optimizedCV = JSON.parse(optimizedRaw);
 
-    setCV(prev => ({
-      ...prev,
-      ...optimizedCV,
-      experience: optimizedCV.experience?.length ? optimizedCV.experience : prev.experience,
-      education: optimizedCV.education?.length ? optimizedCV.education : prev.education,
-      certifications: optimizedCV.certifications?.length ? optimizedCV.certifications : prev.certifications,
-    }));
+    setCV(prev => mergeOptimizedCV(prev, optimizedCV));
 
     setShowOptimizedBanner(true);
     track("optimized_cv_loaded");
@@ -165,52 +248,93 @@ useEffect(() => {
   }
 }, [searchParams]);
 
-  // ── PRINT ──
-  const handlePrint = async () => {
-  if (!user) {
-    setShowDownloadGate(true);
-    return;
-  }
-  try {
-    const access = await checkDownloadAccess(user.uid);
-    if (access.canDownload) {
-      await recordDownload(user.uid, access);
-      triggerPrint();
-    } else {
-      setPendingAction("print");
-      track("paywall_shown", { action: "download" });
-      setShowPaywall(true);
+  // ── DOWNLOAD TOAST ──
+  const toastTimer = useRef(null);
+  const showToast = (text, tone = "success", ms = 5000) => {
+    clearTimeout(toastTimer.current);
+    setDownloadToast({ text, tone });
+    toastTimer.current = setTimeout(() => setDownloadToast(null), ms);
+  };
+
+  const describeDownload = (kind, ent) => {
+    if (kind === "premium") return "Downloading. Premium: unlimited downloads.";
+    if (kind === "credit") {
+      return `Used 1 download credit. ${ent.credits} credit${ent.credits !== 1 ? "s" : ""} left.`;
     }
-  } catch (err) {
-    console.error("Print access check failed:", err);
-    triggerPrint();
-  }
-};
+    const { used, limit, remaining, resetsAt } = ent.free;
+    return remaining > 0
+      ? `Free download ${used} of ${limit} used today. ${remaining} left.`
+      : `Free download ${used} of ${limit} used today. Resets ${formatResetIn(resetsAt)}.`;
+  };
+
+  // ── OPEN THE PAYWALL ──
+  const openPaywall = (reason, ent = entitlement, action = null) => {
+    setPaywallReason(reason);
+    setPaywallEntitlement(ent);
+    setPendingAction(action);
+    track("paywall_shown", { reason, action });
+    setShowPaywall(true);
+  };
+
+  // ── PRINT / DOWNLOAD ──
+  // The server decides and records every download (free allowance, credits,
+  // Premium), so the count can't be skipped from the browser.
+  const runDownload = async (action, { afterPayment = false } = {}) => {
+    const doIt = async () => {
+      if (action === "print") triggerPrint();
+      else await triggerPdfDownload();
+    };
+
+    if (adminMode) {
+      await doIt();
+      return;
+    }
+    if (!user) {
+      setShowDownloadGate(true);
+      return;
+    }
+
+    if (action === "download") setPdfLoading(true);
+    let result;
+    try {
+      result = await consumeDownload(user, { template, cvId });
+    } catch (err) {
+      result = { ok: false, reason: "error", error: err.message };
+    }
+    if (action === "download") setPdfLoading(false);
+
+    if (result.ok) {
+      showToast(describeDownload(result.kind, result.entitlement), "success");
+      await doIt();
+      return;
+    }
+    if (result.reason === "auth_required") {
+      setShowDownloadGate(true);
+      return;
+    }
+    if (result.reason === "daily_limit" || result.reason === "premium_template") {
+      if (afterPayment) {
+        // Paid, but the plan hasn't reached the server yet.
+        showToast("Your payment is still being confirmed. Use 'Verify payment' if access doesn't start in a minute.", "error", 8000);
+        setPendingAction(action);
+        setShowRequery(true);
+        return;
+      }
+      openPaywall(result.reason, result.entitlement, action);
+      return;
+    }
+    showToast(
+      `We couldn't check your download allowance${result.error ? ` (${result.error})` : ""}. Please check your connection and try again.`,
+      "error",
+      8000,
+    );
+  };
+
+  const handlePrint = () => runDownload("print");
+  const handleDownloadPDF = () => runDownload("download");
 
 const triggerPrint = () => {
   printCV({ previewRef, cv, theme, format });
-};
-
-  // ── DOWNLOAD PDF (with paywall check) ──
-  const handleDownloadPDF = async () => {
-  if (!user) {
-    setShowDownloadGate(true);
-    return;
-  }
-  try {
-    const access = await checkDownloadAccess(user.uid);
-    if (access.canDownload) {
-      await recordDownload(user.uid, access);
-      await triggerPdfDownload();
-    } else {
-      setPendingAction("download"); 
-      track("paywall_shown", { action: "download" });
-      setShowPaywall(true);
-    }
-  } catch (err) {
-    console.error("Download access check failed:", err);
-    await triggerPdfDownload();
-  }
 };
 
   // ── TRIGGER ACTUAL PDF DOWNLOAD ──
@@ -226,62 +350,40 @@ const triggerPrint = () => {
   };
 
   // ── PAYMENT SUCCESS HANDLER ──
-  const handlePaymentSuccess = (type, result) => {
-  track("payment_completed", { type });
-  setShowPaywall(false);
-  const action = pendingAction;
-  setPendingAction(null);
+  // verify-payment usually grants the plan before this runs; if it didn't, the
+  // webhook will within seconds, so wait briefly before resuming.
+  const handlePaymentSuccess = async (plan, result) => {
+    track("payment_completed", { plan });
+    setShowPaywall(false);
+    const action = pendingAction;
+    setPendingAction(null);
+    showToast(`${PLANS[plan]?.name || "Premium"} is active. Thank you!`, "success");
 
-  // Wait for webhook, then verify
-  setTimeout(async () => {
-    try {
-      const access = await checkDownloadAccess(user.uid);
-      if (access.canDownload) {
-        await recordDownload(user.uid, access);
-        if (action === "print") triggerPrint();
-        else await triggerPdfDownload();
-      } else {
-        // Webhook didn't fire — try requerying with the reference
-        if (result?.reference) {
-          try {
-            const requeryRes = await fetch("/api/requery-payment", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                reference: result.reference,
-                userId: user.uid,
-              }),
-            });
-            const requeryData = await requeryRes.json();
-            
-            if (requeryData.success) {
-              // Try the action again
-              setTimeout(async () => {
-                const newAccess = await checkDownloadAccess(user.uid);
-                if (newAccess.canDownload) {
-                  await recordDownload(user.uid, newAccess);
-                  if (action === "print") triggerPrint();
-                  else await triggerPdfDownload();
-                }
-              }, 1000);
-            } else {
-              alert("Your payment is processing. Please use 'Verify Payment' if access doesn't activate in a few minutes.");
-              setShowRequery(true);
-            }
-          } catch (err) {
-            console.error("Auto-requery failed:", err);
-            setShowRequery(true);
-          }
-        } else {
-          setShowRequery(true);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      setShowRequery(true);
+    if (!action) return;
+    if (result?.grant !== "granted" && result?.grant !== "already_processed") {
+      await new Promise((r) => setTimeout(r, 4000));
     }
-  }, 2000);
-};
+    if (action === "ats") {
+      setShowAts(true);
+      return;
+    }
+    await runDownload(action, { afterPayment: true });
+  };
+
+  // ── AI OPTIMIZE (in-builder) ──
+  const applyOptimized = (optimized) => {
+    setPreOptimizeCV(cv);
+    setCV(prev => mergeOptimizedCV(prev, optimized));
+    setShowOptimizedBanner(true);
+  };
+
+  const undoOptimize = () => {
+    if (!preOptimizeCV) return;
+    setCV(preOptimizeCV);
+    setPreOptimizeCV(null);
+    setShowOptimizedBanner(false);
+    track("builder_optimize_undone");
+  };
 
   // ── SAVE ──
   const handleSave = async () => {
@@ -297,6 +399,26 @@ const triggerPrint = () => {
       const photo = await shrinkPhoto(cv.photo);
       const cvData = photo === cv.photo ? cv : { ...cv, photo };
       if (cvData !== cv) setCV(p => ({ ...p, photo }));
+
+      if (adminMode) {
+        if (!cvId || !adminInfo?.ownerId) throw new Error("CV not loaded yet");
+        await adminSaveCV({
+          cvId,
+          ownerId: adminInfo.ownerId,
+          cvData,
+          template,
+          accent,
+          format,
+          sectionOrder,
+          theme,
+          title: adminInfo.title,
+        });
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus(""), 3000);
+        setSaving(false);
+        return;
+      }
+
       const id = await saveCV({
         cvId,
         userId: user.uid,
@@ -312,18 +434,23 @@ const triggerPrint = () => {
       setSaveStatus("saved");
       window.history.replaceState(null, "", `/cv/${id}`);
       setTimeout(() => setSaveStatus(""), 3000);
+      setSaving(false);
+      return id;
     } catch (err) {
       console.error(err);
       setSaveStatus("error");
       setTimeout(() => setSaveStatus(""), 3000);
     }
     setSaving(false);
+    return null;
   };
 
   // ── SHARE ──
   const handleShare = async () => {
-    if (!cvId) await handleSave();
-    const url = `${window.location.origin}/cv/${cvId}`;
+    // Use the id save returns: `cvId` in this closure is still the old value.
+    const id = cvId || await handleSave();
+    if (!id) return;
+    const url = `${window.location.origin}/cv/${id}`;
     setShareUrl(url);
     setShowShareModal(true);
   };
@@ -382,6 +509,36 @@ const triggerPrint = () => {
         setShowOrder={setShowOrder}
       />
 
+      {/* ADMIN MODE: whose CV this is */}
+      {adminMode && (
+        <div className="cvb-notice cvb-notice--admin">
+          <i className="fas fa-user-shield"></i>
+          <div className="cvb-notice__text">
+            <strong>Admin editing{adminInfo ? `: ${adminInfo.ownerName || adminInfo.ownerEmail || adminInfo.ownerId}` : "..."}</strong>
+            <span>
+              {adminInfo?.ownerEmail && adminInfo?.ownerName ? `${adminInfo.ownerEmail} · ` : ""}
+              Saving writes straight to this user's CV. They see it next time they open it, or right away if it's open.
+            </span>
+          </div>
+          <button className="cvb-notice__btn" onClick={() => navigate("/admin", { state: { tab: "cvs" } })}>
+            <i className="fas fa-arrow-left"></i> Back to admin
+          </button>
+        </div>
+      )}
+
+      {/* OWNER: support corrected this CV while it was open */}
+      {remoteUpdate && (
+        <div className="cvb-notice cvb-notice--info" role="status">
+          <i className="fas fa-user-edit"></i>
+          <div className="cvb-notice__text">
+            <strong>Memora support updated this CV</strong>
+            <span>{remoteUpdate.adminNote || "Load the corrected version to see the changes."}</span>
+          </div>
+          <button className="cvb-notice__btn cvb-notice__btn--primary" onClick={acceptRemoteUpdate}>Load update</button>
+          <button className="cvb-notice__btn" onClick={dismissRemoteUpdate}>Keep mine</button>
+        </div>
+      )}
+
       {showOptimizedBanner && (
       <div className="cv-optimized-banner">
         <div className="cv-optimized-banner__icon">
@@ -389,11 +546,16 @@ const triggerPrint = () => {
         </div>
         <div className="cv-optimized-banner__text">
           <strong>Your CV has been optimized by AI ✨</strong>
-          <p>Review the changes below — edit anything before downloading. Pick a template on the right.</p>
+          <p>Review the changes below — edit anything before downloading.</p>
         </div>
+        {preOptimizeCV && (
+          <button className="cvb-notice__btn" onClick={undoOptimize}>
+            <i className="fas fa-undo"></i> Undo
+          </button>
+        )}
         <button
           className="cv-optimized-banner__close"
-          onClick={() => setShowOptimizedBanner(false)}
+          onClick={() => { setShowOptimizedBanner(false); setPreOptimizeCV(null); }}
           aria-label="Close"
         >
           <i className="fas fa-times"></i>
@@ -401,29 +563,64 @@ const triggerPrint = () => {
       </div>
     )}
 
-    {/* ATS QUICK ACTIONS */}
+    {/* ATS QUICK ACTIONS + PLAN STATUS */}
     <div className="cvb__ats-actions">
       <div className="cvb__ats-actions-label">
         <i className="fas fa-bolt"></i>
         <span>ATS Tools</span>
+        {!entitlement?.premium && (
+          <span className="cvb__premium-tag"><i className="fas fa-crown"></i> Premium</span>
+        )}
       </div>
       <div className="cvb__ats-actions-buttons">
         <button
           className="cvb__ats-btn"
-          onClick={() => navigate("/ats-check")}
+          onClick={() => setShowAts(true)}
         >
           <i className="fas fa-search"></i>
           <span>Check ATS Score</span>
         </button>
         <button
           className="cvb__ats-btn cvb__ats-btn--secondary"
-          onClick={() => navigate("/ats-check")}
+          onClick={() => setShowAts(true)}
         >
           <i className="fas fa-magic"></i>
           <span>Optimize with AI</span>
         </button>
       </div>
+      {user && entitlement && !adminMode && (
+        <button
+          className={`cvb__plan-chip ${entitlement.premium ? "cvb__plan-chip--pro" : ""}`}
+          onClick={() => (entitlement.premium ? navigate("/dashboard/payments") : openPaywall("upgrade"))}
+          title={describeEntitlement(entitlement).sub}
+        >
+          <i className={`fas fa-${describeEntitlement(entitlement).icon}`}></i>
+          {entitlement.premium
+            ? <span>{describeEntitlement(entitlement).label}</span>
+            : <span>Free · {entitlement.free.used} of {entitlement.free.limit} downloads used today</span>}
+        </button>
+      )}
     </div>
+
+    {/* PREMIUM TEMPLATE NOTICE (free users) */}
+    {isPremiumTemplate(template) && !entitlement?.premium && !adminMode && (
+      <div className="cvb-notice cvb-notice--premium">
+        <i className="fas fa-crown"></i>
+        <div className="cvb-notice__text">
+          <strong>{TEMPLATE_INFO[template]?.name} is a Premium template</strong>
+          <span>Edit and preview it for free. Downloading it needs a Premium plan.</span>
+        </div>
+        <button className="cvb-notice__btn cvb-notice__btn--primary" onClick={() => openPaywall("premium_template")}>
+          See plans
+        </button>
+        <button
+          className="cvb-notice__btn"
+          onClick={() => setTemplate(TEMPLATE_INFO.findIndex((_, i) => !PREMIUM_TEMPLATES.includes(i)))}
+        >
+          Use a free template
+        </button>
+      </div>
+    )}
 
       <div className="cvb__body" data-active-tab={tab}>
 
@@ -478,19 +675,11 @@ const triggerPrint = () => {
           <div className="cv-fmt-group">
             <span className="cv-fmt-group-label">Template</span>
             <select value={template} onChange={(e) => setTemplate(Number(e.target.value))}>
-              <option value={0}>Classic Pro</option>
-              <option value={1}>Modern Edge</option>
-              <option value={2}>Executive Plus</option>
-              <option value={3}>Minimal Clean</option>
-              <option value={4}>Creative Side</option>
-              <option value={5}>Corporate Bold</option>
-              <option value={6}>Traditional Profile</option>
-              <option value={7}>Editorial Modern</option>
-              <option value={8}>Modern Timeline</option>
-              <option value={9}>Compact Pro</option>
-              <option value={10}>Bold Statement</option>
-              <option value={11}>Horizon</option>
-              <option value={12}>Refined</option>
+              {TEMPLATE_INFO.map((t, i) => (
+                <option key={i} value={i}>
+                  {t.name}{isPremiumTemplate(i) ? " ★ Premium" : ""}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -675,12 +864,15 @@ const triggerPrint = () => {
         </div>
       )}
 
-      {/* ── PAYWALL MODAL (authenticated but free CV used) ── */}
+      {/* ── PAYWALL MODAL (daily limit, Premium template or Premium feature) ── */}
       {showPaywall && (
         <PaywallModal
+          reason={paywallReason}
+          entitlement={paywallEntitlement || entitlement}
           onClose={(action) => {
             setShowPaywall(false);
             if (action === "requery") setShowRequery(true);
+            else setPendingAction(null);
           }}
           onPaymentSuccess={handlePaymentSuccess}
         />
@@ -688,14 +880,46 @@ const triggerPrint = () => {
 
       {showRequery && (
         <PaymentRequery
-          onClose={() => setShowRequery(false)}
+          onClose={() => { setShowRequery(false); setPendingAction(null); }}
           onSuccess={() => {
             setShowRequery(false);
             // Re-attempt their pending action
-            handlePaymentSuccess();
+            const action = pendingAction;
+            setPendingAction(null);
+            if (action === "ats") setShowAts(true);
+            else if (action) runDownload(action, { afterPayment: true });
           }}
         />
       )}
+
+      {/* ── IN-BUILDER ATS CHECK & AI OPTIMIZE ── */}
+      <CVAtsPanel
+        open={showAts}
+        onClose={() => setShowAts(false)}
+        cv={cv}
+        user={user}
+        entitlement={entitlement}
+        onRequireAuth={() => { setShowAts(false); setShowDownloadGate(true); }}
+        onUpgrade={(reason) => { setShowAts(false); openPaywall(reason, entitlement, "ats"); }}
+        onApplyOptimized={applyOptimized}
+      />
+
+      {/* ── DOWNLOAD TOAST ("1 of 5 used") ── */}
+      <div
+        className={`cvb-dl-toast ${downloadToast ? "cvb-dl-toast--show" : ""} ${downloadToast?.tone === "error" ? "cvb-dl-toast--error" : ""}`}
+        role="status"
+        aria-live="polite"
+      >
+        {downloadToast && (
+          <>
+            <i className={`fas fa-${downloadToast.tone === "error" ? "exclamation-circle" : "check-circle"}`}></i>
+            <span>{downloadToast.text}</span>
+            {downloadToast.tone !== "error" && entitlement && !entitlement.premium && (
+              <button onClick={() => { setDownloadToast(null); openPaywall("upgrade"); }}>Go unlimited</button>
+            )}
+          </>
+        )}
+      </div>
 
       {/* ── SAVE TOAST ── */}
       <div className={`cvb-toast ${
@@ -830,14 +1054,25 @@ const triggerPrint = () => {
 
           <button
             className="cvb-more-sheet__item"
-            onClick={() => { closeMore(); navigate("/pricing"); }}
+            onClick={() => {
+              closeMore();
+              if (entitlement?.premium) navigate("/dashboard/payments");
+              else if (user) setTimeout(() => openPaywall("upgrade"), 350);
+              else navigate("/pricing");
+            }}
           >
             <span className="cvb-more-sheet__item-icon">
-              <i className="fas fa-bolt"></i>
+              <i className="fas fa-crown"></i>
             </span>
             <div className="cvb-more-sheet__item-text">
-              <p className="cvb-more-sheet__item-label">Upgrade to Pro</p>
-              <p className="cvb-more-sheet__item-sub">Unlimited downloads — ₦7,500/mo</p>
+              <p className="cvb-more-sheet__item-label">
+                {entitlement?.premium ? describeEntitlement(entitlement).label : "Go Premium"}
+              </p>
+              <p className="cvb-more-sheet__item-sub">
+                {entitlement?.premium
+                  ? describeEntitlement(entitlement).sub
+                  : `Unlimited downloads & ATS tools, from ${PLANS.monthly.priceLabel}/mo`}
+              </p>
             </div>
             <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
           </button>
@@ -915,6 +1150,7 @@ const triggerPrint = () => {
         <SectionOrderPanel
           sectionOrder={sectionOrder}
           setSectionOrder={setSectionOrder}
+          template={template}
         />
       </div>
     </div>

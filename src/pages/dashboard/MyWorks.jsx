@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/DashboardLayout";
 import { getUserCVs, deleteCV } from "../../cv-builder/utils/cvService";
+import { TEMPLATES } from "../../cv-builder/utils/constants";
+import { TEMPLATE_INFO } from "../../cv-builder/utils/sampleCV";
 
-const TEMPLATE_NAMES = ["Classic Pro", "Modern Edge", "Executive Plus"];
-const TEMPLATE_COLORS = ["#2563eb", "#0f766e", "#7c3aed"];
+// All 15 templates (this list used to stop at 3, so most CVs showed "Classic Pro").
+const TEMPLATE_NAMES = TEMPLATES;
+const TEMPLATE_COLORS = TEMPLATE_INFO.map(t => t.accent);
 
 function timeAgo(timestamp) {
   if (!timestamp) return "Just now";
@@ -145,6 +148,11 @@ export default function MyWorks() {
                       <span className="myworks__card-time">
                         <i className="fas fa-clock"></i> {timeAgo(cv.updatedAt)}
                       </span>
+                      {cv.lastEditedBy === "admin" && (
+                        <span className="myworks__card-time" style={{ color: "#2563eb" }}>
+                          <i className="fas fa-user-edit"></i> Updated by Memora support
+                        </span>
+                      )}
                     </div>
                   </div>
 

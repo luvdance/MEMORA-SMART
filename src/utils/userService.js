@@ -4,7 +4,6 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  increment,
   serverTimestamp,
   collection,
   addDoc,
@@ -66,96 +65,9 @@ export async function getUserDoc(uid) {
 }
 
 /**
- * Check if a user can download a CV right now.
- * Returns { canDownload, reason, requiresPayment, isFree, userStatus }
+ * CV download checks moved to the server: see decideDownload() in
+ * src/cv-builder/utils/plans.js and POST /api/cv/download (lib/cv/handlers.js).
  */
-export async function checkDownloadAccess(uid) {
-  let userData = await getUserDoc(uid);
-
-  // If user doc doesn't exist yet, create it and allow free download
-  if (!userData) {
-    await initUserDoc({ uid, email: null, displayName: null, photoURL: null });
-    userData = await getUserDoc(uid);
-    // Still no doc after init — fail open (let them download)
-    if (!userData) {
-      return {
-        canDownload: true,
-        reason: "free_cv",
-        isFree: true,
-        userStatus: "free",
-        requiresPayment: false,
-      };
-    }
-  }
-
-  // Pro subscription active?
-  if (userData.isPro && userData.proExpiresAt) {
-    const expiresAt = userData.proExpiresAt?.toDate
-      ? userData.proExpiresAt.toDate()
-      : new Date(userData.proExpiresAt);
-
-    if (expiresAt > new Date()) {
-      return {
-        canDownload: true,
-        reason: "pro_active",
-        requiresPayment: false,
-        userStatus: "pro",
-      };
-    }
-  }
-
-  // Has paid download credits?
-  if (userData.paidDownloads > 0) {
-    return {
-      canDownload: true,
-      reason: "paid_credit",
-      requiresPayment: false,
-      userStatus: "credits",
-      creditsRemaining: userData.paidDownloads,
-    };
-  }
-
-  // First free CV still available?
-  if (!userData.freeCVUsed) {
-    return {
-      canDownload: true,
-      reason: "free_cv",
-      requiresPayment: false,
-      isFree: true,
-      userStatus: "free",
-    };
-  }
-
-  // Nothing left — must pay
-  return {
-    canDownload: false,
-    reason: "payment_required",
-    requiresPayment: true,
-    userStatus: "exhausted",
-  };
-}
-
-/**
- * Record a successful download.
- * Decrements paid credit OR marks free CV as used.
- */
-export async function recordDownload(uid, accessInfo) {
-  if (!uid) return;
-  const ref = doc(db, "users", uid);
-
-  if (accessInfo.isFree) {
-    await updateDoc(ref, {
-      freeCVUsed: true,
-      updatedAt: serverTimestamp(),
-    });
-  } else if (accessInfo.reason === "paid_credit") {
-    await updateDoc(ref, {
-      paidDownloads: increment(-1),
-      updatedAt: serverTimestamp(),
-    });
-  }
-  // Pro users — no change needed
-}
 
 /**
  * Create a pending NGN bank transfer record for admin review.

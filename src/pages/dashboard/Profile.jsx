@@ -5,6 +5,7 @@ import { updateProfile, sendPasswordResetEmail, } from "firebase/auth";
 import { auth } from "../../firebase";
 import DashboardLayout from "../../components/DashboardLayout";
 import { getUserDoc } from "../../utils/userService";
+import { computeEntitlement, describeEntitlement } from "../../cv-builder/utils/plans";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -165,38 +166,18 @@ export default function Profile() {
   {planData ? (
     <div className="dash-profile__plan-row">
       <div className="dash-profile__plan-info">
-        <div className={`dash-profile__plan-badge ${
-          planData.isPro
-            ? "dash-profile__plan-badge--pro"
-            : planData.paidDownloads > 0
-            ? "dash-profile__plan-badge--credits"
-            : planData.freeCVUsed
-            ? "dash-profile__plan-badge--exhausted"
-            : "dash-profile__plan-badge--free"
-        }`}>
-          <i className={`fas fa-${
-            planData.isPro ? "bolt"
-              : planData.paidDownloads > 0 ? "coins"
-              : planData.freeCVUsed ? "lock"
-              : "gift"
-          }`}></i>
-          {planData.isPro
-            ? "Memora Pro"
-            : planData.paidDownloads > 0
-            ? `${planData.paidDownloads} credit${planData.paidDownloads !== 1 ? "s" : ""}`
-            : planData.freeCVUsed
-            ? "Free (used)"
-            : "Free"}
-        </div>
-        <p className="dash-profile__plan-sub">
-          {planData.isPro
-            ? "Unlimited downloads"
-            : planData.paidDownloads > 0
-            ? "Use anytime — no expiry"
-            : planData.freeCVUsed
-            ? "Upgrade or buy a download to continue"
-            : "1 free download available"}
-        </p>
+        {(() => {
+          const plan = describeEntitlement(computeEntitlement(planData));
+          return (
+            <>
+              <div className={`dash-profile__plan-badge dash-profile__plan-badge--${plan.tone}`}>
+                <i className={`fas fa-${plan.icon}`}></i>
+                {plan.label}
+              </div>
+              <p className="dash-profile__plan-sub">{plan.sub}</p>
+            </>
+          );
+        })()}
       </div>
 
       <button

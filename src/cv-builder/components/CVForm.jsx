@@ -3,6 +3,7 @@ import { STEPS } from "../utils/constants";
 import { callClaude } from "../utils/callClaude";
 import { smartCase, liveTitleCase, liveCapitalizeSentences, liveCommaListTitleCase } from "../utils/textCasing";
 import { compressImage, readFileAsDataURL } from "../utils/imageCompress";
+import { templateUsesPhoto } from "../utils/templateMeta";
 
 //comment
 // ── UI ELEMENTS ──
@@ -321,11 +322,23 @@ const moveEdu = (i, dir) => {
       <div className="cv-form__section">
         <h2 className="cv-form__heading">Personal Information</h2>
 
-        {(template === 2 || template === 4 || template === 6) && (
+        {templateUsesPhoto(template) && (
           <div className="cv-form__field">
-            <Label>Profile Photo</Label>
+            <Label>Passport Photo</Label>
+            <p className="cv-form__hint">This template shows a photo. Use a clear, front-facing passport-style picture.</p>
             <input type="file" accept="image/*" onChange={handlePhoto} className="cv-file-input" />
-            {cv.photo && <img src={cv.photo} alt="preview" className="cv-photo-preview" />}
+            {cv.photo && (
+              <div className="cv-photo-row">
+                <img src={cv.photo} alt="preview" className="cv-photo-preview" />
+                <button
+                  type="button"
+                  className="cv-photo-remove"
+                  onClick={() => setCV(p => ({ ...p, photo: null }))}
+                >
+                  <i className="fas fa-trash-alt"></i> Remove photo
+                </button>
+              </div>
+            )}
           </div>
         )}
 

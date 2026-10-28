@@ -22,9 +22,36 @@ service cloud.firestore {
     }
 
     // ── USERS ──
+    // Plan, download allowance and billing fields are written only by the
+    // server (Paystack webhook / api/cv, via the Admin SDK) and by admins.
+    // Without this, anyone could set isPro or reset their own download count
+    // from the browser console.
+    function billingFields() {
+      return [
+        'plan', 'planExpiresAt', 'lifetime', 'autoRenew', 'planSource',
+        'isPro', 'proExpiresAt', 'paidDownloads', 'freeDownloads', 'freeCVUsed',
+        'paystackCustomerCode', 'paystackCustomerId', 'paystackSubscriptionCode',
+        'paystackEmailToken', 'lastRenewalFailedAt'
+      ];
+    }
+
     match /users/{userId} {
       allow read: if isLoggedIn();
-      allow write: if isOwner(userId);
+      // First sign-in (initUserDoc) may only create the free defaults.
+      allow create: if isOwner(userId)
+                    && request.resource.data.get('isPro', false) == false
+                    && request.resource.data.get('paidDownloads', 0) == 0
+                    && request.resource.data.get('proExpiresAt', null) == null
+                    && request.resource.data.get('paystackSubscriptionCode', null) == null
+                    && request.resource.data.get('paystackCustomerCode', null) == null
+                    && !request.resource.data.keys().hasAny([
+                         'plan', 'planExpiresAt', 'lifetime', 'autoRenew', 'planSource',
+                         'freeDownloads', 'paystackCustomerId', 'paystackEmailToken',
+                         'lastRenewalFailedAt'
+                       ]);
+      allow update: if isOwner(userId)
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(billingFields());
+      allow delete: if isOwner(userId);
     }
 
     // ── CVs ──

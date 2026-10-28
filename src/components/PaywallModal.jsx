@@ -1,153 +1,137 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { buyCV, subscribePro } from "../utils/paymentService";
+import { buyPlan } from "../utils/paymentService";
+import { PLANS, PREMIUM_FEATURES, formatResetIn } from "../cv-builder/utils/plans";
 import "./PaywallModal.css";
 
-export default function PaywallModal({ onClose, onPaymentSuccess }) {
+// Why the paywall opened, in the user's terms.
+const REASONS = {
+  daily_limit: {
+    icon: "hourglass-half",
+    title: "You've used today's free downloads",
+    body: (ent) => ent?.free?.resetsAt
+      ? `Your ${ent.free.limit} free downloads reset ${formatResetIn(ent.free.resetsAt)}. Go Premium to download now, as often as you like.`
+      : "Go Premium to download as often as you like.",
+  },
+  premium_template: {
+    icon: "crown",
+    title: "This is a Premium template",
+    body: () => "You can keep editing it for free. To download it, choose a Premium plan, or switch to one of the free templates.",
+  },
+  premium_feature: {
+    icon: "magic",
+    title: "ATS check & AI optimization are Premium",
+    body: () => "Score your CV against real ATS rules and rewrite it in one click, right inside the builder.",
+  },
+  upgrade: {
+    icon: "bolt",
+    title: "Go Premium",
+    body: () => "Unlimited downloads, every template, and AI tools built into the builder.",
+  },
+};
+
+const ORDER = ["yearly", "monthly", "lifetime"];
+
+export default function PaywallModal({ reason = "upgrade", entitlement, initialPlan = "yearly", onClose, onPaymentSuccess }) {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(null);
-  const [error, setError] = useState("");
+  const [selected, setSelected] = useState(PLANS[initialPlan] ? initialPlan : "yearly");
+  const [loading, setLoading] = useState(false);
+  const copy = REASONS[reason] || REASONS.upgrade;
 
-  const handleBuyCV = () => {
-    if (!user?.email) return;
-    setError("");
-    setLoading("cv");
-    buyCV({
-      email: user.email,
+  const handlePay = () => {
+    if (!user?.email || loading) return;
+    setLoading(true);
+    buyPlan({
+      user,
+      plan: selected,
       onSuccess: (result) => {
-        setLoading(null);
-        onPaymentSuccess("single_cv", result);
+        setLoading(false);
+        onPaymentSuccess(selected, result);
       },
-      onClose: () => setLoading(null),
+      onClose: () => setLoading(false),
     });
   };
 
-  const handleSubscribePro = () => {
-    if (!user?.email) return;
-    setError("");
-    setLoading("pro");
-    subscribePro({
-      email: user.email,
-      onSuccess: (result) => {
-        setLoading(null);
-        onPaymentSuccess("pro_subscription", result);
-      },
-      onClose: () => setLoading(null),
-    });
-  };
+  const chosen = PLANS[selected];
 
   return (
-    <div className="pw__backdrop" onClick={onClose}>
-      <div className="pw__modal" onClick={(e) => e.stopPropagation()}>
+    <div className="pw__backdrop" onClick={() => onClose()}>
+      <div className="pw__modal" role="dialog" aria-modal="true" aria-labelledby="pw-title" onClick={(e) => e.stopPropagation()}>
 
-        {/* CLOSE */}
-        <button className="pw__close" onClick={onClose}>
+        <button className="pw__close" onClick={() => onClose()} aria-label="Close">
           <i className="fas fa-times"></i>
         </button>
 
-        {/* HEADER */}
         <div className="pw__header">
           <div className="pw__header-icon">
-            <i className="fas fa-download"></i>
+            <i className={`fas fa-${copy.icon}`}></i>
           </div>
-          <h2>Download Your CV</h2>
-          <p>Your free download has been used. Choose a plan to continue.</p>
+          <h2 id="pw-title">{copy.title}</h2>
+          <p>{copy.body(entitlement)}</p>
+          {entitlement && !entitlement.premium && reason !== "premium_feature" && (
+            <div className="pw__usage">
+              <span>Free plan: {entitlement.free.used} of {entitlement.free.limit} downloads used today</span>
+              <span className="pw__usage-bar">
+                <span style={{ width: `${(entitlement.free.used / entitlement.free.limit) * 100}%` }} />
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* PLANS */}
-        <div className="pw__plans">
-
-          {/* SINGLE CV */}
-          <div className="pw__plan">
-            <div className="pw__plan-top">
-              <div className="pw__plan-info">
-                <h3>Single Download</h3>
-                <p>One PDF — use it, keep it</p>
-              </div>
-              <div className="pw__plan-price">
-                <span className="pw__amount">₦3,500</span>
-                <span className="pw__period">one-time</span>
-              </div>
-            </div>
-
-            <ul className="pw__features">
-              <li><i className="fas fa-check"></i> 1 high-quality PDF download</li>
-              <li><i className="fas fa-check"></i> All 7 professional templates</li>
-              <li><i className="fas fa-check"></i> ATS-optimized formatting</li>
-              <li><i className="fas fa-check"></i> AI-enhanced content</li>
-            </ul>
-
-            <button
-              className="pw__btn"
-              onClick={handleBuyCV}
-              disabled={loading !== null}
-            >
-              {loading === "cv" ? (
-                <><i className="fas fa-spinner fa-spin"></i> Opening payment...</>
-              ) : (
-                <>Pay ₦3,500 — Download Now</>
-              )}
-            </button>
-          </div>
-
-          {/* DIVIDER */}
-          <div className="pw__or">
-            <span>or</span>
-          </div>
-
-          {/* PRO */}
-          <div className="pw__plan pw__plan--pro">
-            <div className="pw__pro-badge">Most Popular</div>
-
-            <div className="pw__plan-top">
-              <div className="pw__plan-info">
-                <h3>Memora Pro</h3>
-                <p>Unlimited downloads, every month</p>
-              </div>
-              <div className="pw__plan-price">
-                <span className="pw__amount">₦7,500</span>
-                <span className="pw__period">/ month</span>
-              </div>
-            </div>
-
-            <ul className="pw__features">
-              <li><i className="fas fa-check"></i> Unlimited PDF downloads</li>
-              <li><i className="fas fa-check"></i> All 7 templates, unlimited switches</li>
-              <li><i className="fas fa-check"></i> Priority AI suggestions</li>
-              <li><i className="fas fa-check"></i> All future templates included</li>
-              <li><i className="fas fa-check"></i> Cancel anytime</li>
-            </ul>
-
-            <button
-              className="pw__btn"
-              onClick={handleSubscribePro}
-              disabled={loading !== null}
-            >
-              {loading === "pro" ? (
-                <><i className="fas fa-spinner fa-spin"></i> Opening payment...</>
-              ) : (
-                <>Subscribe — ₦7,500 / month</>
-              )}
-            </button>
-
-            <p className="pw__cancel-note">No contracts. Cancel from your profile anytime.</p>
-          </div>
-
+        <div className="pw__choices" role="radiogroup" aria-label="Choose a plan">
+          {ORDER.map((id) => {
+            const p = PLANS[id];
+            const active = selected === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                className={`pw__choice ${active ? "pw__choice--active" : ""}`}
+                onClick={() => setSelected(id)}
+              >
+                <span className="pw__choice-radio" aria-hidden="true" />
+                <span className="pw__choice-text">
+                  <span className="pw__choice-name">
+                    {p.shortName}
+                    {p.badge && <span className="pw__choice-badge">{p.badge}</span>}
+                  </span>
+                  <span className="pw__choice-blurb">{p.blurb}</span>
+                </span>
+                <span className="pw__choice-price">
+                  <strong>{p.priceLabel}</strong>
+                  <small>{p.periodLabel}</small>
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* ERROR */}
-        {error && (
-          <div className="pw__error">
-            <i className="fas fa-exclamation-circle"></i> {error}
-          </div>
-        )}
+        <ul className="pw__features pw__features--compact">
+          {PREMIUM_FEATURES.map((f) => (
+            <li key={f}><i className="fas fa-check"></i> {f}</li>
+          ))}
+        </ul>
+
+        <div className="pw__cta-wrap">
+          <button className="pw__btn" onClick={handlePay} disabled={loading}>
+            {loading ? (
+              <><i className="fas fa-spinner fa-spin"></i> Opening payment...</>
+            ) : (
+              <>Continue — {chosen.priceLabel} {chosen.periodLabel === "one-time" ? "once" : chosen.periodLabel}</>
+            )}
+          </button>
+          {selected !== "lifetime" && (
+            <p className="pw__cancel-note">Cancel auto-renew anytime from Payments.</p>
+          )}
+        </div>
 
         <div className="paywall__requery-link">
-            Already paid but no access?{" "}
-            <button onClick={() => onClose("requery")}>Verify payment</button>
+          Already paid but no access?{" "}
+          <button onClick={() => onClose("requery")}>Verify payment</button>
         </div>
 
-        {/* FOOTER */}
         <div className="pw__footer">
           <i className="fas fa-lock"></i>
           <span>Payments secured by Paystack. Your card details are never stored on our servers.</span>

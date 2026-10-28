@@ -1,4 +1,6 @@
 // Date helper
+import { SIDEBAR_SECTIONS } from "../utils/templateMeta";
+
 function formatDate(dateStr) {
   if (!dateStr) return "";
   try {
@@ -15,6 +17,16 @@ function formatDate(dateStr) {
 }
 
 // ── CERTIFICATION HELPERS ──
+
+// Personal details (biodata) as [label, value] pairs, empty ones dropped.
+function bioRows(cv) {
+  return [
+    ["Date of Birth", formatDate(cv.dateOfBirth)], ["Place of Birth", cv.placeOfBirth],
+    ["Gender", cv.gender], ["Marital Status", cv.maritalStatus],
+    ["Nationality", cv.nationality], ["State of Origin", cv.stateOfOrigin],
+    ["LGA", cv.lga], ["Religion", cv.religion], ["NIN", cv.nin],
+  ].filter(([, v]) => v);
+}
 
 function hasCertifications(cv) {
   if (!cv.certifications) return false;
@@ -96,9 +108,15 @@ function ContactItem({ icon, text, color, fontSize }) {
     }}>
       <i
         className={`${isFab ? "fab" : "fas"} ${iconClass}`}
-        style={{ fontSize: fontSize - 1, width: 12, textAlign: "center" }}
+        style={{ fontSize: fontSize - 1, width: 12, textAlign: "center", flexShrink: 0 }}
       ></i>
-      <span>{text}</span>
+      {/* Long emails/URLs wrap inside narrow sidebars instead of overflowing:
+          preferably after "@" or "/", mid-word only as a last resort. */}
+      <span style={{ minWidth: 0, overflowWrap: "anywhere", textAlign: "left" }}>
+        {String(text).split(/(?<=[@/])/).map((part, i) => (
+          <span key={i}>{i > 0 && <wbr />}{part}</span>
+        ))}
+      </span>
     </p>
   );
 }
@@ -747,7 +765,7 @@ function renderMinimalSection(key, cv, accent, format, theme) {
 }
 
 // Sections in ExecutivePlus / CreativeSide sidebar
-const SIDE_SECTIONS = ["skills", "languages", "certifications"];
+const SIDE_SECTIONS = SIDEBAR_SECTIONS[2];
 
 // ── SIDEBAR SECTION RENDERER (ExecutivePlus) ──
 function renderSideSection(key, cv, format) {
@@ -803,7 +821,7 @@ export function ClassicPro({ cv, accent, format, sectionOrder, theme }) {
     "biodata", "summary", "objective", "experience", "education",
     "achievements", "volunteer", "publications", "hobbies", "references"
   ];
-  const rightSections = ["skills", "languages", "certifications"];
+  const rightSections = SIDEBAR_SECTIONS[0];
 
   const orderedLeft = sectionOrder.filter(s => leftSections.includes(s));
   const orderedRight = sectionOrder.filter(s => rightSections.includes(s));
@@ -1108,7 +1126,7 @@ export function MinimalClean({ cv, accent, format, sectionOrder, theme }) {
 // ── TEMPLATE 5: CREATIVE SIDE ──
 // ══════════════════════════════════════════════
 export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
-  const sideKeys = ["summary", "skills", "languages", "certifications", "achievements"];
+  const sideKeys = SIDEBAR_SECTIONS[4];
   const mainSections = sectionOrder.filter(s => !sideKeys.includes(s));
   const orderedSide = sectionOrder.filter(s => sideKeys.includes(s));
 
@@ -1152,20 +1170,18 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
           <ContactItem icon="fa-github fab" text={cv.github} color="rgba(255,255,255,0.9)" fontSize={format.bodyFontSize - 1} />
         </CreativeSideSection>
 
+        {/* Sidebar holds only short, scannable facts. Profile, skills and
+            achievements read better at full width in the main column. */}
         {orderedSide.map(key => {
-          if (key === "summary" && cv.summary) return (
-            <CreativeSideSection key={key} title="Profile" accent={accent} format={format}>
-              <p style={{ fontSize: format.bodyFontSize - 1, color: "rgba(255,255,255,0.85)", lineHeight: format.lineHeight, margin: 0 }}>{cv.summary}</p>
-            </CreativeSideSection>
-          );
-          if (key === "skills" && cv.skills) return (
-            <CreativeSideSection key={key} title="Skills" accent={accent} format={format}>
-              <SkillList skills={cv.skills} dark format={format} accent={accent} />
-            </CreativeSideSection>
-          );
           if (key === "languages" && cv.languages) return (
             <CreativeSideSection key={key} title="Languages" accent={accent} format={format}>
-              <p style={{ fontSize: format.bodyFontSize - 1, color: "rgba(255,255,255,0.85)", margin: 0 }}>{cv.languages}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {cv.languages.split(/[,\n]+/).map(l => l.trim()).filter(Boolean).map((l, i) => (
+                  <span key={i} style={{ fontSize: format.bodyFontSize - 1, color: "rgba(255,255,255,0.9)", lineHeight: 1.35, textAlign: "left" }}>
+                    {l}
+                  </span>
+                ))}
+              </div>
             </CreativeSideSection>
           );
           if (key === "certifications" && hasCertifications(cv)) {
@@ -1173,15 +1189,15 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
             return (
               <CreativeSideSection key={key} title="Certifications" accent={accent} format={format}>
                 {certs.map((c, i) => (
-                  <div key={i} style={{ marginBottom: 6 }}>
-                    <div style={{ fontSize: format.bodyFontSize - 1, fontWeight: "bold", color: "#fff", lineHeight: 1.3 }}>
+                  <div key={i} style={{ marginBottom: 7 }}>
+                    <div style={{ fontSize: format.bodyFontSize - 1, fontWeight: "bold", color: "#fff", lineHeight: 1.3, overflowWrap: "anywhere" }}>
                       {c.name}
                     </div>
                     {c.issuer && (
-                      <div style={{ fontSize: format.bodyFontSize - 2, color: "rgba(255,255,255,0.7)" }}>{c.issuer}</div>
+                      <div style={{ fontSize: format.bodyFontSize - 2, color: "rgba(255,255,255,0.75)" }}>{c.issuer}</div>
                     )}
                     {(c.issueDate || c.noExpiry || c.expiryDate) && (
-                      <div style={{ fontSize: format.bodyFontSize - 2, color: "rgba(255,255,255,0.6)" }}>
+                      <div style={{ fontSize: format.bodyFontSize - 2, color: "rgba(255,255,255,0.65)" }}>
                         {c.issueDate}
                         {c.issueDate && (c.expiryDate || c.noExpiry) && " – "}
                         {c.noExpiry ? "No Expiry" : c.expiryDate}
@@ -1192,16 +1208,6 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
               </CreativeSideSection>
             );
           }
-          if (key === "achievements" && cv.achievements?.[0]?.title) return (
-            <CreativeSideSection key={key} title="Achievements" accent={accent} format={format}>
-              {cv.achievements.map((a, i) => (
-                <div key={i} style={{ marginBottom: 6 }}>
-                  <div style={{ fontSize: format.bodyFontSize - 1, fontWeight: "bold", color: "#fff" }}>{a.title}</div>
-                  {a.date && <div style={{ fontSize: format.bodyFontSize - 2, color: "rgba(255,255,255,0.6)" }}>{a.date}</div>}
-                </div>
-              ))}
-            </CreativeSideSection>
-          );
           return null;
         })}
       </div>
@@ -1291,14 +1297,14 @@ export function CorporateBold({ cv, accent, format, sectionOrder, theme }) {
           left={
             <>
               {sectionOrder
-                .filter(s => !["skills", "languages", "certifications"].includes(s))
+                .filter(s => !SIDEBAR_SECTIONS[5].includes(s))
                 .map(key => renderMainSection(key, cv, accent, format, theme))}
             </>
           }
           right={
             <>
               {sectionOrder
-                .filter(s => ["skills", "languages", "certifications"].includes(s))
+                .filter(s => SIDEBAR_SECTIONS[5].includes(s))
                 .map(key => renderMainSection(key, cv, accent, format, theme))}
             </>
           }
@@ -1313,6 +1319,82 @@ export function CorporateBold({ cv, accent, format, sectionOrder, theme }) {
 // ── TEMPLATE 7: TRADITIONAL PROFILE ──
 // ══════════════════════════════════════════════
 export function TraditionalProfile({ cv, accent, format, sectionOrder, theme }) {
+  // Personal Details render where the user puts them in Section Order.
+  const bioBlock = (cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin) ? (
+        <div key="biodata" className="cv-section cv-section-keep" style={{ marginBottom: 14 }}>
+          <div className="cv-section-heading" style={{
+            fontSize: format.headingFontSize,
+            fontWeight: format.headingBold ? "bold" : "normal",
+            color: accent,
+            textTransform: format.headingUppercase ? "uppercase" : "none",
+            letterSpacing: 1,
+            borderBottom: `1px solid ${accent}`,
+            paddingBottom: 2,
+            marginBottom: 8,
+          }}>
+            Personal Details
+          </div>
+          <table style={{ width: "100%", fontSize: format.bodyFontSize, borderCollapse: "collapse" }}>
+            <tbody>
+              {cv.dateOfBirth && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8, width: "30%" }}>Date of Birth:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{formatDate(cv.dateOfBirth)}</td>
+                </tr>
+              )}
+              {cv.placeOfBirth && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Place of Birth:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.placeOfBirth}</td>
+                </tr>
+              )}
+              {cv.gender && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Gender:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.gender}</td>
+                </tr>
+              )}
+              {cv.maritalStatus && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Marital Status:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.maritalStatus}</td>
+                </tr>
+              )}
+              {cv.nationality && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Nationality:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.nationality}</td>
+                </tr>
+              )}
+              {cv.stateOfOrigin && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>State of Origin:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.stateOfOrigin}</td>
+                </tr>
+              )}
+              {cv.lga && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>LGA:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.lga}</td>
+                </tr>
+              )}
+              {cv.religion && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Religion:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.religion}</td>
+                </tr>
+              )}
+              {cv.nin && (
+                <tr>
+                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>NIN:</td>
+                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.nin}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : null;
+
   return (
     <div style={{
       fontFamily: format.fontFamily,
@@ -1399,84 +1481,7 @@ export function TraditionalProfile({ cv, accent, format, sectionOrder, theme }) 
         </div>
       </div>
 
-      {(cv.dateOfBirth || cv.gender || cv.maritalStatus || cv.nationality || cv.stateOfOrigin || cv.lga || cv.placeOfBirth || cv.religion || cv.nin) && (
-        <div className="cv-section cv-section-keep" style={{ marginBottom: 14 }}>
-          <div className="cv-section-heading" style={{
-            fontSize: format.headingFontSize,
-            fontWeight: format.headingBold ? "bold" : "normal",
-            color: accent,
-            textTransform: format.headingUppercase ? "uppercase" : "none",
-            letterSpacing: 1,
-            borderBottom: `1px solid ${accent}`,
-            paddingBottom: 2,
-            marginBottom: 8,
-          }}>
-            Personal Details
-          </div>
-          <table style={{ width: "100%", fontSize: format.bodyFontSize, borderCollapse: "collapse" }}>
-            <tbody>
-              {cv.dateOfBirth && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8, width: "30%" }}>Date of Birth:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{formatDate(cv.dateOfBirth)}</td>
-                </tr>
-              )}
-              {cv.placeOfBirth && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Place of Birth:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.placeOfBirth}</td>
-                </tr>
-              )}
-              {cv.gender && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Gender:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.gender}</td>
-                </tr>
-              )}
-              {cv.maritalStatus && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Marital Status:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.maritalStatus}</td>
-                </tr>
-              )}
-              {cv.nationality && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Nationality:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.nationality}</td>
-                </tr>
-              )}
-              {cv.stateOfOrigin && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>State of Origin:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.stateOfOrigin}</td>
-                </tr>
-              )}
-              {cv.lga && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>LGA:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.lga}</td>
-                </tr>
-              )}
-              {cv.religion && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>Religion:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.religion}</td>
-                </tr>
-              )}
-              {cv.nin && (
-                <tr>
-                  <td style={{ padding: "3px 8px 3px 0", fontWeight: "bold", color: theme.text, opacity: 0.8 }}>NIN:</td>
-                  <td style={{ padding: "3px 0", color: theme.text }}>{cv.nin}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {sectionOrder
-        .filter(s => s !== "biodata")
-        .map(key => renderMainSection(key, cv, accent, format, theme))}
+      {sectionOrder.map(key => (key === "biodata" ? bioBlock : renderMainSection(key, cv, accent, format, theme)))}
 
     </div>
   );
@@ -1545,7 +1550,7 @@ export function EditorialModern({ cv, accent, format, sectionOrder, theme }) {
   const lh = format.lineHeight;
   const tc = theme.text;
 
-  const sideKeys = ["skills", "languages", "certifications", "hobbies"];
+  const sideKeys = SIDEBAR_SECTIONS[7];
   const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
   const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
 
@@ -1823,7 +1828,7 @@ export function ModernTimeline({ cv, accent, format, sectionOrder, theme }) {
   const lh = format.lineHeight;
   const tc = theme.text;
 
-  const sideKeys = ["skills", "languages", "certifications", "hobbies"];
+  const sideKeys = SIDEBAR_SECTIONS[8];
   const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
   const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
 
@@ -1889,6 +1894,18 @@ export function ModernTimeline({ cv, accent, format, sectionOrder, theme }) {
         {/* MAIN */}
         <div style={{ flex: 2.2 }}>
           {mainSections.map(key => {
+            if (key === "biodata" && bioRows(cv).length) return (
+              <TimelineSection key={key} title="Personal Details" accent={accent} format={format} theme={theme} keepTogether>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px" }}>
+                  {bioRows(cv).map(([label, val]) => (
+                    <div key={label} style={{ fontSize: s - 0.5 }}>
+                      <span style={{ fontWeight: 700, opacity: 0.75 }}>{label}: </span>
+                      <span style={{ opacity: 0.7 }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+              </TimelineSection>
+            );
             if (key === "summary" && cv.summary) return (
               <TimelineSection key={key} title="Profile" accent={accent} format={format} theme={theme} keepTogether>
                 <p style={{ fontSize: s, lineHeight: lh, margin: 0, opacity: 0.85 }}>{cv.summary}</p>
@@ -2045,7 +2062,7 @@ export function CompactPro({ cv, accent, format, sectionOrder, theme }) {
   const lh = Math.min(format.lineHeight, 1.32);
   const tc = theme.text;
 
-  const sideKeys = ["skills", "languages", "certifications", "hobbies"];
+  const sideKeys = SIDEBAR_SECTIONS[9];
   const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
   const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
 
@@ -3281,14 +3298,27 @@ export function SignatureEdge({ cv, accent, format, sectionOrder, theme }) {
   const getLevel = (i) => [5, 4, 5, 3, 4, 5, 4, 3][i % 8];
 
   // Strict section control — keeps template on one page
-  const MAIN_KEYS = ["summary", "objective", "experience", "achievements", "volunteer", "publications"];
-  const SIDE_KEYS = ["education", "skills", "languages", "certifications", "references", "hobbies"];
+  // Everything not in the sidebar goes in the main column (incl. Personal Details).
+  const SIDE_KEYS = SIDEBAR_SECTIONS[13];
 
-  const mainSections = sectionOrder.filter(k => MAIN_KEYS.includes(k));
+  const mainSections = sectionOrder.filter(k => !SIDE_KEYS.includes(k));
   const sideSections = sectionOrder.filter(k => SIDE_KEYS.includes(k));
 
   const renderMain = (key) => {
     switch (key) {
+      case "biodata":
+        return bioRows(cv).length ? (
+          <div key={key} style={{ marginBottom: 13 }} className="cv-section-keep">
+            <EdgeLabel title="Personal Details" accent={accent} format={format} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 14px" }}>
+              {bioRows(cv).map(([label, val]) => (
+                <div key={label} style={{ fontSize: s - 0.5, color: tc }}>
+                  <b>{label}: </b><span style={{ color: "#555" }}>{val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
       case "summary":
         return cv.summary ? (
           <div key={key} style={{ marginBottom: 13 }} className="cv-section-keep">
@@ -3647,7 +3677,7 @@ export function DarkGeo({ cv, accent, format, sectionOrder, theme }) {
   const tc = theme.text;
   const p = format.pagePadding;
 
-  const sideKeys = ["skills", "languages", "certifications", "hobbies", "references", "education"];
+  const sideKeys = SIDEBAR_SECTIONS[14];
   const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
   const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
 

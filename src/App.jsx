@@ -7,6 +7,7 @@ import CVBuilder from "./pages/CVBuilder";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
+import AdminCVEditor from "./pages/admin/AdminCVEditor";
 import ATSChecker from "./pages/ATSChecker";
 import DanielNwankwo from "./pages/Daniel-nwankwo";
 import LeadMagnetExcel from "./pages/LeadMagnetExcel";
@@ -36,6 +37,7 @@ function App() {
       <Route path="/cv-builder" element={<CVLanding />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/admin/cv/:cvId" element={<AdminCVEditor />} />
       {/* Public shared CV link - no auth required to view/edit */}
       <Route path="/cv/:cvId" element={<CVBuilder />} />
       <Route path="/ats-check" element={<ATSChecker />} />
