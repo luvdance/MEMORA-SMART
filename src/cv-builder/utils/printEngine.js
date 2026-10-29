@@ -23,7 +23,7 @@ function cvPrintRules(theme, format, scope = "") {
   return `
     ${s}.cv-preview__page {
       width: 210mm !important;
-      min-height: 297mm !important;
+      min-height: calc(297mm - 1mm) !important;
       height: auto !important;
       margin: 0 !important;
       padding: 0 !important;
@@ -35,11 +35,12 @@ function cvPrintRules(theme, format, scope = "") {
       box-sizing: border-box !important;
     }
 
-    /* Sidebar templates: run the sidebar the full page height
-       (297mm, because viewport units don't work in print). */
+    /* Sidebar templates: run the sidebar the full page height (in mm, because
+       viewport units don't work in print). Kept 1mm under A4 so rounding can't
+       spill a blank extra page. */
     ${s}.cv-preview__page > div[style*="display: flex"],
     ${s}.cv-preview__page > div[style*="display:flex"] {
-      min-height: 297mm !important;
+      min-height: calc(297mm - 1mm) !important;
       align-items: stretch !important;
     }
     ${s}.cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"],
@@ -47,13 +48,13 @@ function cvPrintRules(theme, format, scope = "") {
     ${s}.cv-preview__page > div[style*="display:flex"] > div[style*="width:190px"],
     ${s}.cv-preview__page > div[style*="display:flex"] > div[style*="width:200px"] {
       align-self: stretch !important;
-      min-height: 297mm !important;
+      min-height: calc(297mm - 1mm) !important;
       height: auto !important;
     }
     ${s}.cv-preview__page > div[style*="display: flex"] > div[style*="flex: 1"],
     ${s}.cv-preview__page > div[style*="display:flex"] > div[style*="flex:1"] {
       align-self: stretch !important;
-      min-height: 297mm !important;
+      min-height: calc(297mm - 1mm) !important;
     }
 
     /* Page breaks */

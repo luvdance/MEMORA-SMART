@@ -26,10 +26,27 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   // Capture HTML AFTER reset
   const clonedHTML = content.outerHTML;
 
+  // How tall is the CV itself (the template, not the A4-min-height page)?
+  // A CV that fits one page is printed as a single full-bleed page.
+  // The buffer absorbs small font-metric differences on the PDF server.
+  const contentHeight = content.firstElementChild?.offsetHeight || content.scrollHeight;
+  const singlePage = contentHeight <= 1123 - 40;
+
   // Restore immediately
   Object.assign(content.style, saved);
 
   const verticalMargin = Math.round((format?.pagePadding || 24) / 3.78);
+
+  // Height the page (and the template inside it) should fill on page 1, so
+  // sidebars and tinted backgrounds reach the bottom. It must be a little
+  // under the printable height: anything taller spills a blank second page.
+  //  - single page: no margins at all (full bleed)
+  //  - multi page: page 1 keeps its bottom margin (see @page below)
+  const fillHeight = singlePage ? "calc(297mm - 1mm)" : `calc(297mm - ${verticalMargin}mm - 1mm)`;
+  const pageCss = singlePage
+    ? `@page { size: A4 portrait; margin: 0; }`
+    : `@page { size: A4 portrait; margin: ${verticalMargin}mm 0; }
+    @page :first { margin-top: 0; }`;
 
   // ── Only send what Puppeteer actually needs ──
   // No site CSS collected — React inline styles are already in the HTML
@@ -73,7 +90,7 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
     /* ── THE CV PAGE — force A4 width, let height grow naturally ── */
     .cv-preview__page {
       width: 210mm !important;
-      min-height: 297mm !important;
+      min-height: ${fillHeight} !important;
       height: auto !important;
       background: ${theme?.bg || "#ffffff"} !important;
       box-shadow: none !important;
@@ -84,6 +101,12 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
       /* Absolutely critical — remove any transform */
       transform: none !important;
       transform-origin: top left !important;
+    }
+
+    /* The template fills the page height, so sidebars run to the bottom
+       (align-items: stretch is the flex default). */
+    .cv-preview__page > div {
+      min-height: ${fillHeight} !important;
     }
 
     /* ── PAGE BREAKS — respect section boundaries ── */
@@ -100,15 +123,8 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
       page-break-inside: avoid !important;
     }
 
-    /* ── MULTI-PAGE — allow natural page flow ── */
-    @page {
-      size: A4 portrait;
-      margin: ${verticalMargin}mm 0;
-    }
-
-    @page :first {
-      margin-top: 0;
-    }
+    /* ── PAGE SETUP — full bleed for one page; margins between pages otherwise ── */
+    ${pageCss}
 
     /* ── ICON FONTS — ensure Font Awesome renders ── */
     .fas, .far, .fab, .fa {
