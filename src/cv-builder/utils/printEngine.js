@@ -1,5 +1,6 @@
 import { shrinkPhoto } from "./imageCompress";
-import { measureCvLayout, paginateInPlace, pageMarginFor, PRINT_BASE_RESET } from "./cvLayout";
+import { measureCvLayout, paginateInPlace, pageMarginFor, PRINT_BASE_RESET, PREVIEW_TEXT_RULES } from "./cvLayout";
+import { cvFontFaceCss } from "./cvFonts";
 
 // ── PRINT ENGINE ──
 // Prints ONLY the CV, from a hidden iframe holding a copy of the preview and
@@ -165,12 +166,6 @@ function installParentPrintStyle(theme, format, layout) {
   `;
 }
 
-// Same justification the preview applies to body text.
-const PREVIEW_TEXT_RULES = `
-  .cv-preview__page p, .cv-preview__page .cv-item div { text-align: justify; text-justify: inter-word; }
-  .cv-preview__page .cv-section-heading { text-align: left; }
-`;
-
 /** Font and icon stylesheets the page already loaded (same URLs, so served from cache). */
 function fontStylesheetLinks() {
   return [...document.querySelectorAll('link[rel="stylesheet"]')]
@@ -252,6 +247,7 @@ export async function printCV({ previewRef, cv, theme, format }) {
 <base href="${escapeHtml(document.baseURI)}">
 <title>${title}</title>
 ${fontStylesheetLinks()}
+<style>${cvFontFaceCss()}</style>
 <style>
   ${PRINT_BASE_RESET}
   ${PREVIEW_TEXT_RULES}

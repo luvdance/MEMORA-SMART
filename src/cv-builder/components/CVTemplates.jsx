@@ -1,5 +1,9 @@
 // Date helper
 import { SIDEBAR_SECTIONS } from "../utils/templateMeta";
+import { ensureCvFonts } from "../utils/cvFonts";
+
+// Wherever a CV renders, its fonts are the shipped files the PDF uses too.
+ensureCvFonts();
 
 function formatDate(dateStr) {
   if (!dateStr) return "";

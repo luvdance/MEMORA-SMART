@@ -1,0 +1,17 @@
+CV fonts (see src/cv-builder/utils/cvFonts.js)
+
+These fonts stand in for the system fonts a CV can choose, so the preview,
+print and PDF use identical font files on every device.
+
+Gelasio, Arimo, Carlito, Tinos, EB Garamond, Fira Sans
+  SIL Open Font License 1.1 - https://openfontlicense.org
+  Files from Fontsource (https://fontsource.org), unmodified.
+
+DejaVu Sans
+  Bitstream Vera / DejaVu license (free, permissive) - https://dejavu-fonts.github.io/License.html
+  Files from Fontsource, unmodified.
+
+TeX Gyre Pagella
+  GUST Font License - https://www.gust.org.pl/projects/e-foundry/licenses
+  From CTAN (fonts/tex-gyre), subset to Latin, Latin Extended and
+  Vietnamese and converted to WOFF2.

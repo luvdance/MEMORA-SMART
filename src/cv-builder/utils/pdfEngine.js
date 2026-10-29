@@ -1,4 +1,5 @@
-import { paginationScript, PRINT_BASE_RESET } from "./cvLayout";
+import { paginationScript, PRINT_BASE_RESET, PREVIEW_TEXT_RULES } from "./cvLayout";
+import { embeddedCvFontCss } from "./cvFonts";
 
 // Builds the CV's PDF on the server and returns it as a Blob.
 export async function buildCvPdfBlob({ previewRef, cv, theme, format }) {
@@ -29,6 +30,15 @@ export async function buildCvPdfBlob({ previewRef, cv, theme, format }) {
   // Capture HTML AFTER reset
   const clonedHTML = content.outerHTML;
 
+  // The CV fonts the preview draws with, embedded so the PDF uses the same
+  // files (the server has no Georgia, Calibri...; see cvFonts.js).
+  let fontCss = "";
+  try {
+    fontCss = await embeddedCvFontCss(content);
+  } catch (err) {
+    console.error("Embedding CV fonts failed:", err);
+  }
+
   // Restore immediately
   Object.assign(content.style, saved);
 
@@ -54,10 +64,12 @@ export async function buildCvPdfBlob({ previewRef, cv, theme, format }) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&family=Source+Sans+3:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Georgia&display=swap" rel="stylesheet">
 
+  <style>${fontCss}</style>
   <style>
     /* ── BASE RESET — the slice of the site reset the preview runs under, so
        the PDF lays out like the on-screen preview ── */
     ${PRINT_BASE_RESET}
+    ${PREVIEW_TEXT_RULES}
 
     /* ── MINIMAL RESET — no site CSS, no mobile overrides ── */
     *, *::before, *::after {

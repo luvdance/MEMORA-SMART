@@ -270,3 +270,9 @@ export const PRINT_BASE_RESET = `
   table { border-collapse: collapse; text-indent: 0; border-color: inherit; }
   a { color: inherit; text-decoration: inherit; }
 `;
+
+// Same justification the preview applies to body text (CVBuilder.css).
+export const PREVIEW_TEXT_RULES = `
+  .cv-preview__page p, .cv-preview__page .cv-item div { text-align: justify; text-justify: inter-word; }
+  .cv-preview__page .cv-section-heading { text-align: left; }
+`;
