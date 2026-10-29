@@ -25,7 +25,7 @@ useEffect(() => {
   }, []);
 
   return (
-    <section className="services">
+    <section className="services" id="services">
 
       {/* SERVICE 1 */}
       <div className="service-row">

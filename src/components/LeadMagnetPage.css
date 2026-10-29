@@ -9,6 +9,7 @@
   font-family: 'Neulis', 'Raleway', sans-serif;
   color: #111;
   overflow-x: hidden;
+  overflow-x: clip; /* keeps sticky elements working */
   background: #fff;
 }
 

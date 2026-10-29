@@ -19,6 +19,9 @@ body {
   font-family: 'Neulis', 'Raleway', sans-serif;
   margin: 0;
   overflow-x: hidden;
+  /* clip (not hidden) stops sideways scroll WITHOUT making body a scroll
+     container, which would silently break every position: sticky bar. */
+  overflow-x: clip;
 }
 
 /* ══════════════════════════════════════
@@ -1953,6 +1956,7 @@ html, body, #root {
   margin: 0 !important;
   padding: 0 !important;
   overflow-x: hidden !important;
+  overflow-x: clip !important; /* keeps sticky headers working (see body) */
 }
 
 /* Force navbar to be full-width flex at all sizes */
@@ -2008,4 +2012,8 @@ html, body, #root {
   .nav-container > .nav-auth {
     display: none !important;
   }
+}
+/* Home sections reached by /#links clear the fixed navbar. */
+#services, #projects, #about, #contact {
+  scroll-margin-top: 88px;
 }

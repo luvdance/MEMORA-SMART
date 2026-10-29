@@ -8,6 +8,7 @@ import PaywallModal from "../components/PaywallModal";
 import PaymentRequery from "../components/PaymentRequery";
 import { useEntitlement, cvApi } from "../cv-builder/utils/cvAccess";
 import { PLANS, FREE_DAILY_DOWNLOADS } from "../cv-builder/utils/plans";
+import cvLogo from "../assets/cv logo.png";
 
 export default function ATSChecker() {
   const navigate = useNavigate();
@@ -370,16 +371,6 @@ const startProgressMessages = (setter, type = "optimize") => {
     return "#dc2626";
   };
 
-  const getRatingEmoji = (rating) => {
-    switch (rating) {
-      case "Excellent": return "🎯";
-      case "Good": return "👍";
-      case "Needs Work": return "⚠️";
-      case "Critical": return "🚨";
-      default: return "📄";
-    }
-  };
-
   const handleDownloadReport = () => {
   // Use browser print dialog (saves as PDF when user chooses "Save as PDF")
   document.body.classList.add("ats-printing");
@@ -444,481 +435,400 @@ useEffect(() => {
   }
 }, [user]);
 
+  // Back goes where the user came from inside the app; a fresh visit (shared
+  // link, bookmark) falls back to the CV builder that fits their sign-in state.
+  const builderPath = user ? "/dashboard/cv-builder" : "/cv-builder";
+  const goBack = () => {
+    if (window.history.state?.idx > 0) navigate(-1);
+    else navigate(builderPath);
+  };
+
+  const [dragOver, setDragOver] = useState(false);
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) handleFileUpload({ target: { files: [file] } });
+  };
+
+  const CATEGORY_META = [
+    { key: "structure", label: "Structure & formatting", icon: "fa-table-list" },
+    { key: "keywords", label: "Keywords & relevance", icon: "fa-key" },
+    { key: "achievements", label: "Achievements & metrics", icon: "fa-chart-line" },
+    { key: "summary", label: "Professional summary", icon: "fa-align-left" },
+    { key: "contact", label: "Contact & essentials", icon: "fa-id-card" },
+  ];
+
+  const lastDate = (() => {
+    try {
+      const d = new Date(localStorage.getItem("ats_last_date"));
+      return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    } catch { return null; }
+  })();
+
   return (
-    <div className="ats">
-      <div className="ats__container">
-
-        {/* HEADER */}
-        <header className="ats__header">
-          <button className="ats__back" onClick={() => navigate("/cv-builder")}>
-            <i className="fas fa-arrow-left"></i> Back to CV Builder
+    <div className="atsx">
+      {/* ── TOP BAR (pinned) ── */}
+      <header className="atsx-bar">
+        <button className="atsx-bar__back" onClick={goBack} aria-label="Go back">
+          <i className="fas fa-chevron-left"></i>
         </button>
-          <div className="ats__hero">
-            <div className="ats__hero-badge">FREE TOOL</div>
-            <h1>Is your CV invisible to ATS?</h1>
-            <p>
-              75% of Nigerian companies use Applicant Tracking Systems. 
-              Your CV gets filtered by software <strong>before</strong> a 
-              human sees it. Find out your score in 10 seconds.
-            </p>
-          </div>
-        </header>
-
-        {/* INPUT SECTION */}
-        {!result && (
-          <div className="ats__input-section">
-
-            {/* MODE TABS */}
-            <div className="ats__mode-tabs">
-              <button
-                className={`ats__mode-tab ${inputMode === "upload" ? "ats__mode-tab--active" : ""}`}
-                onClick={() => setInputMode("upload")}
-              >
-                <i className="fas fa-file-upload"></i> Upload File
-              </button>
-              <button
-                className={`ats__mode-tab ${inputMode === "paste" ? "ats__mode-tab--active" : ""}`}
-                onClick={() => setInputMode("paste")}
-              >
-                <i className="fas fa-paste"></i> Paste Text
-              </button>
-            </div>
-
-            {/* UPLOAD MODE */}
-              {inputMode === "upload" && (
-                <div className="ats__upload-zone">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp"
-                    onChange={handleFileUpload}
-                    style={{ display: "none" }}
-                  />
-                  {parsing ? (
-                    <div className="ats__upload-state">
-                      <i className="fas fa-spinner fa-spin"></i>
-                      <p>Reading your CV...</p>
-
-                      {/* Parsing progress */}
-                      <div className="ats__parsing-indicator">
-                        <i className="fas fa-circle-notch fa-spin"></i>
-                        <span>{parseProgress || "Parsing your CV..."}</span>
-                      </div>
-                    </div>
-                  ) : fileName ? (
-                    <div className="ats__upload-state">
-                      <i
-                        className="fas fa-file-check"
-                        style={{ color: "#16a34a" }}
-                      ></i>
-                      <p>
-                        <strong>{fileName}</strong>
-                      </p>
-                      <span>Successfully loaded</span>
-                    </div>
-                  ) : (
-                    <div
-                      className="ats__upload-state"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <i className="fas fa-cloud-upload-alt"></i>
-                      <p>Click to upload your CV</p>
-                      <span>PDF, DOCX, TXT, JPG, PNG — including scanned documents</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-            {/* PASTE MODE */}
-            {inputMode === "paste" && (
-              <div className="ats__paste-zone">
-                <label>Paste your CV text</label>
-                <textarea
-                  value={cvText}
-                  onChange={(e) => setCvText(e.target.value)}
-                  placeholder="Paste the full text of your CV here..."
-                  rows={12}
-                />
-                <div className="ats__char-count">
-                  {cvText.length} characters {cvText.length < 100 && "(minimum 100)"}
-                </div>
-              </div>
-            )}
-
-            {/* OPTIONAL JOB DESCRIPTION */}
-            <div className="ats__job-section">
-              <label>
-                <i className="fas fa-bullseye"></i> Target Job Description 
-                <span className="ats__optional">(optional — but boosts accuracy 3x)</span>
-                </label>
-                <p className="ats__hint">
-                Copy the entire job posting from LinkedIn, Jobberman, or wherever you found it. 
-                The more detail, the more accurate your match score.
-                </p>
-              <textarea
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                placeholder={`Paste the full job description here. Example:
-
-Job Title: Marketing Manager
-Company: Andela Nigeria
-Location: Lagos, Hybrid
-
-We are seeking an experienced Marketing Manager to lead our brand growth initiatives. The ideal candidate will:
-
-- 5+ years experience in digital marketing
-- Strong skills in SEO, content strategy, paid ads
-- Proven track record managing budgets of ₦5M+
-- Experience with HubSpot, Google Analytics, Meta Ads
-- Bachelor's degree in Marketing or related field
-
-Responsibilities:
-- Develop and execute marketing campaigns
-- Manage social media presence across platforms
-- Lead a team of 3 marketing associates`}
-                rows={8}
-                />
-            </div>
-
-            {error && (
-              <div className="ats__error">
-                <i className="fas fa-exclamation-circle"></i> {error}
-              </div>
-            )}
-
+        <button className="atsx-bar__brand" onClick={() => navigate("/")} aria-label="Memora home">
+          <img src={cvLogo} alt="" />
+        </button>
+        <div className="atsx-bar__title">
+          <strong>ATS Checker</strong>
+          <span>Memora CV tools</span>
+        </div>
+        <nav className="atsx-bar__links" aria-label="CV tools">
+          <button onClick={() => navigate(builderPath)}><i className="fas fa-file-lines"></i> <span>CV Builder</span></button>
+          {user && <button onClick={() => navigate("/dashboard")}><i className="fas fa-house"></i> <span>Dashboard</span></button>}
+          {user && entitlement && (
             <button
-              className="ats__analyze-btn"
-              onClick={handleAnalyze}
-              disabled={analyzing || !cvText || cvText.trim().length < 100}
+              className={`atsx-pill ${entitlement.premium ? "atsx-pill--pro" : ""}`}
+              onClick={() => (entitlement.premium ? navigate("/dashboard/payments") : setPaywallFor("analyze"))}
             >
-              {analyzing ? (
-                <><i className="fas fa-spinner fa-spin"></i> Analyzing your CV...</>
-              ) : (
-                <><i className="fas fa-magic"></i> Get My ATS Score</>
-              )}
+              {entitlement.premium ? <><i className="fas fa-crown"></i> PRO</> : <><i className="fas fa-crown"></i> Go Premium</>}
             </button>
+          )}
+          {!user && (
+            <button className="atsx-bar__signin" onClick={() => navigate("/auth", { state: { from: "/ats-check" } })}>
+              Sign in
+            </button>
+          )}
+        </nav>
+      </header>
 
-            {/* ANALYZE PROGRESS */}
-            {analyzing && analyzeProgress && (
-              <div className="ats__progress ats__progress--light">
-                <div className="ats__progress-bar">
-                  <div className="ats__progress-bar-fill"></div>
-                </div>
-                <div className="ats__progress-text">
-                  <i className="fas fa-magic"></i> {analyzeProgress}
-                </div>
-                <div className="ats__progress-sub">
-                  This takes about 15-20 seconds. Hang tight.
-                </div>
-              </div>
-            )}
+      <main className="atsx-main">
+        {/* ── INPUT ── */}
+        {!result && (
+          <>
+            <section className="atsx-hero">
+              <span className="atsx-eyebrow"><i className="fas fa-gauge-high"></i> ATS score check</span>
+              <h1>See your CV the way hiring software does</h1>
+              <p>
+                Most employers filter CVs with an Applicant Tracking System before a person reads them.
+                Get your score, what's holding it back, and exactly what to fix.
+              </p>
+              <ul className="atsx-facts">
+                <li><i className="fas fa-stopwatch"></i> Results in about 20 seconds</li>
+                <li><i className="fas fa-file-pdf"></i> PDF, Word, text or a photo</li>
+                <li><i className="fas fa-lock"></i> Analysed once, never stored</li>
+              </ul>
+            </section>
 
-            <p className="ats__privacy">
-              <i className="fas fa-lock"></i> Your CV is analyzed once and not stored.
-            </p>
-          </div>
-        )}
-
-        {/* RESULTS */}
-        {result && (
-          <div id="ats-results" className="ats__results">
-
-            {result && savedCvText && cvText !== savedCvText && (
-            <div className="ats__saved-banner">
-                <i className="fas fa-history"></i>
-                <span>
-                Showing your last analyzed CV from{" "}
-                {(() => {
-                    try {
-                    const d = new Date(localStorage.getItem("ats_last_date"));
-                    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-                    } catch { return "earlier"; }
-                })()}
-                </span>
-                <button onClick={handleReset}>
-                <i className="fas fa-times"></i> Start fresh
-                </button>
-            </div>
-            )}
-            {/* SCORE GAUGE */}
-            <div className="ats__score-card">
-              <div className="ats__score-gauge">
-                <svg viewBox="0 0 200 200" className="ats__gauge-svg">
-                  <circle cx="100" cy="100" r="85" className="ats__gauge-bg" />
-                  <circle
-                    cx="100" cy="100" r="85"
-                    className="ats__gauge-progress"
-                    style={{
-                      stroke: getScoreColor(result.overallScore),
-                      strokeDasharray: `${(result.overallScore / 100) * 534} 534`,
-                    }}
-                  />
-                </svg>
-                
-                <div className="ats__gauge-text">
-                  <div className="ats__gauge-score" style={{ color: getScoreColor(result.overallScore) }}>
-                    {result.overallScore}
+            <section className="atsx-card">
+              <div className="atsx-step">
+                <div className="atsx-step__head">
+                  <span className="atsx-step__n">1</span>
+                  <div>
+                    <h2>Your CV</h2>
+                    <p>Upload the file you send to employers, or paste its text.</p>
                   </div>
-                  <div className="ats__gauge-label">out of 100</div>
                 </div>
-              </div>
-              <div className="ats__rating">
-                <span>{getRatingEmoji(result.rating)}</span>
-                <h2>{result.rating}</h2>
-              </div>
-            </div>
 
-            {/* DOWNLOAD ACTIONS */}
-            <div className="ats__download-actions">
-              <button
-                className="ats__download-btn"
-                onClick={handleDownloadReport}
-              >
-                <i className="fas fa-file-pdf"></i> Download Report as PDF
-              </button>
-              <button
-                className="ats__download-btn ats__download-btn--secondary"
-                onClick={() => window.print()}
-              >
-                <i className="fas fa-print"></i> Print Report
-              </button>
-              <button
-                className="ats__download-btn ats__download-btn--secondary"
-                onClick={handleReset}
-              >
-                <i className="fas fa-redo"></i> Check New CV
-              </button>
-            </div>
+                <div className="atsx-seg" role="tablist" aria-label="How to add your CV">
+                  <button role="tab" aria-selected={inputMode === "upload"} className={inputMode === "upload" ? "atsx-seg--on" : ""} onClick={() => setInputMode("upload")}>
+                    <i className="fas fa-arrow-up-from-bracket"></i> Upload file
+                  </button>
+                  <button role="tab" aria-selected={inputMode === "paste"} className={inputMode === "paste" ? "atsx-seg--on" : ""} onClick={() => setInputMode("paste")}>
+                    <i className="fas fa-paste"></i> Paste text
+                  </button>
+                </div>
 
-            {/* CATEGORIES */}
-            <div className="ats__categories">
-              <h3>Score Breakdown</h3>
-              <div className="ats__categories-grid">
-                {[
-                  { key: "structure", label: "Structure & Formatting", icon: "th-list" },
-                  { key: "keywords", label: "Keywords & Relevance", icon: "key" },
-                  { key: "achievements", label: "Achievements & Metrics", icon: "chart-line" },
-                  { key: "summary", label: "Professional Summary", icon: "align-left" },
-                  { key: "contact", label: "Contact & Essentials", icon: "id-card" },
-                ].map(c => {
-                  const cat = result.categories?.[c.key];
-                  if (!cat) return null;
-                  const pct = (cat.score / cat.max) * 100;
-                  return (
-                    <div key={c.key} className="ats__category-card">
-                      <div className="ats__category-header">
-                        <i className={`fas fa-${c.icon}`}></i>
-                        <span>{c.label}</span>
-                      </div>
-                      <div className="ats__category-bar">
-                        <div
-                          className="ats__category-bar-fill"
-                          style={{
-                            width: `${pct}%`,
-                            background: getScoreColor(pct),
-                          }}
-                        ></div>
-                      </div>
-                      <div className="ats__category-meta">
-                        <strong>{cat.score}/{cat.max}</strong>
-                        <span>{cat.feedback}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* TOP IMPROVEMENTS */}
-            <div className="ats__improvements">
-              <h3>🎯 Top 5 Improvements (in priority order)</h3>
-              {result.topImprovements?.map((imp, i) => (
-                <div key={i} className="ats__improvement-card">
-                  <div className="ats__improvement-num">{i + 1}</div>
-                  <div className="ats__improvement-body">
-                    <h4>{imp.title}</h4>
-                    <p>{imp.description}</p>
-                    {imp.example && (
-                      <div className="ats__improvement-example">
-                        <strong>Example:</strong> {imp.example}
-                      </div>
+                {inputMode === "upload" && (
+                  <div
+                    className={`atsx-drop ${dragOver ? "atsx-drop--over" : ""} ${fileName && !parsing ? "atsx-drop--done" : ""}`}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={onDrop}
+                    onClick={() => !parsing && fileInputRef.current?.click()}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !parsing) fileInputRef.current?.click(); }}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp"
+                      onChange={handleFileUpload}
+                      hidden
+                    />
+                    {parsing ? (
+                      <>
+                        <span className="atsx-drop__icon"><i className="fas fa-circle-notch fa-spin"></i></span>
+                        <strong>Reading your CV…</strong>
+                        <span>{parseProgress || "Extracting the text"}</span>
+                      </>
+                    ) : fileName ? (
+                      <>
+                        <span className="atsx-drop__icon atsx-drop__icon--ok"><i className="fas fa-file-circle-check"></i></span>
+                        <strong>{fileName}</strong>
+                        <span>Ready to check · click to choose another file</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="atsx-drop__icon"><i className="fas fa-cloud-arrow-up"></i></span>
+                        <strong>Drop your CV here, or click to browse</strong>
+                        <span>PDF, DOCX, TXT, JPG or PNG, up to 10MB. Scanned CVs work too.</span>
+                      </>
                     )}
                   </div>
+                )}
+
+                {inputMode === "paste" && (
+                  <div className="atsx-field">
+                    <textarea
+                      value={cvText}
+                      onChange={(e) => setCvText(e.target.value)}
+                      placeholder="Paste the full text of your CV here…"
+                      rows={11}
+                    />
+                    <span className={`atsx-count ${cvText.trim().length >= 100 ? "atsx-count--ok" : ""}`}>
+                      {cvText.trim().length >= 100
+                        ? <><i className="fas fa-check"></i> {cvText.length} characters</>
+                        : `${cvText.length} / 100 characters minimum`}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="atsx-step">
+                <div className="atsx-step__head">
+                  <span className="atsx-step__n">2</span>
+                  <div>
+                    <h2>Target job <span className="atsx-optional">Optional</span></h2>
+                    <p>Paste the job advert to see how well your CV matches it. It makes the score much more accurate.</p>
+                  </div>
                 </div>
-              ))}
-            </div>
+                <div className="atsx-field">
+                  <textarea
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    placeholder="e.g. Marketing Manager at Andela, Lagos (Hybrid). 5+ years in digital marketing; SEO, content strategy and paid ads; HubSpot and Google Analytics…"
+                    rows={5}
+                  />
+                </div>
+              </div>
 
-            {/* STRENGTHS */}
-            {result.strengths?.length > 0 && (
-              <div className="ats__strengths">
-                <h3>✅ What's Working</h3>
-                <ul>
-                  {result.strengths.map((s, i) => <li key={i}>{s}</li>)}
-                </ul>
+              {error && (
+                <div className="atsx-alert atsx-alert--error">
+                  <i className="fas fa-circle-exclamation"></i> {error}
+                </div>
+              )}
+
+              <div className="atsx-submit">
+                <button
+                  className="atsx-btn atsx-btn--primary atsx-btn--lg"
+                  onClick={handleAnalyze}
+                  disabled={analyzing || !cvText || cvText.trim().length < 100}
+                >
+                  {analyzing
+                    ? <><i className="fas fa-circle-notch fa-spin"></i> Checking your CV…</>
+                    : <><i className="fas fa-gauge-high"></i> Check my ATS score</>}
+                </button>
+                {!entitlement?.premium && (
+                  <span className="atsx-submit__note"><i className="fas fa-crown"></i> Included with Premium, from {PLANS.monthly.priceLabel}/month</span>
+                )}
+              </div>
+
+              {analyzing && analyzeProgress && (
+                <div className="atsx-progress" role="status">
+                  <div className="atsx-progress__bar"><span /></div>
+                  <span>{analyzeProgress}</span>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
+        {/* ── RESULTS ── */}
+        {result && (
+          <div id="ats-results" className="atsx-results">
+            {savedCvText && cvText !== savedCvText && (
+              <div className="atsx-alert atsx-alert--info atsx-results__wide">
+                <i className="fas fa-clock-rotate-left"></i>
+                <span>Showing your last check{lastDate ? ` from ${lastDate}` : ""}.</span>
+                <button onClick={handleReset}>Start a new check</button>
               </div>
             )}
 
-            {/* RED FLAGS */}
-            {result.atsRedFlags?.length > 0 && (
-              <div className="ats__redflags">
-                <h3>🚨 ATS Red Flags</h3>
-                <ul>
-                  {result.atsRedFlags.map((f, i) => <li key={i}>{f}</li>)}
-                </ul>
+            <aside className="atsx-summary">
+              <div className="atsx-score">
+                <svg viewBox="0 0 120 120" className="atsx-score__ring" aria-hidden="true">
+                  <circle cx="60" cy="60" r="52" className="atsx-score__track" />
+                  <circle
+                    cx="60" cy="60" r="52"
+                    className="atsx-score__value"
+                    style={{ stroke: getScoreColor(result.overallScore), strokeDasharray: `${(result.overallScore / 100) * 326.7} 326.7` }}
+                  />
+                </svg>
+                <div className="atsx-score__num">
+                  <strong style={{ color: getScoreColor(result.overallScore) }}>{result.overallScore}</strong>
+                  <span>out of 100</span>
+                </div>
               </div>
-            )}
-
-            {/* CTA — OPTIMIZE */}
-            <div className="ats__cta-card">
-              <h2>Fix all of this automatically in 30 seconds ⚡</h2>
-              <p>
-                Let AI apply every improvement above to your CV. We'll rewrite weak sections,
-                add quantified achievements, and structure it for ATS — then load it into the
-                Memora CV builder ready to download.
+              <div className="atsx-rating" style={{ color: getScoreColor(result.overallScore) }}>{result.rating}</div>
+              <p className="atsx-summary__lead">
+                {result.overallScore >= 80
+                  ? "Strong. A few refinements will make it stand out."
+                  : result.overallScore >= 60
+                    ? "Good base. Fix the priorities below to pass more filters."
+                    : "Likely to be filtered out. The priorities below will help most."}
               </p>
 
               {optimizeError && (
-                <div className="ats__optimize-error">
-                  <i className="fas fa-exclamation-circle"></i> {optimizeError}
-                </div>
+                <div className="atsx-alert atsx-alert--error"><i className="fas fa-circle-exclamation"></i> {optimizeError}</div>
               )}
 
-              <div className="ats__cta-actions">
+              <button className="atsx-btn atsx-btn--primary atsx-btn--block" onClick={handleOptimize} disabled={optimizing}>
+                {optimizing
+                  ? <><i className="fas fa-circle-notch fa-spin"></i> Optimizing…</>
+                  : <><i className="fas fa-wand-magic-sparkles"></i> Fix it with AI</>}
+              </button>
+              {optimizing && optimizeProgress && (
+                <div className="atsx-progress" role="status">
+                  <div className="atsx-progress__bar"><span /></div>
+                  <span>{optimizeProgress}</span>
+                </div>
+              )}
+              <p className="atsx-summary__hint">Rewrites your CV with these fixes and opens it in the builder, ready to review.</p>
+
+              <div className="atsx-summary__actions">
                 <button
-                  className="ats__cta-btn ats__cta-btn--primary ats__cta-btn--optimize"
-                  onClick={handleOptimize}
+                  className="atsx-btn atsx-btn--ghost"
+                  onClick={() => { track("ats_build_manual_clicked"); navigate(builderPath); }}
                   disabled={optimizing}
                 >
-                  {optimizing ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin"></i> Optimizing...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-magic"></i> Optimize My CV with AI
-                    </>
-                  )}
+                  <i className="fas fa-pen"></i> Edit in builder
                 </button>
-                <button
-                  className="ats__cta-btn ats__cta-btn--secondary"
-                  onClick={() => {
-                    track("ats_build_manual_clicked");
-                    navigate("/cv-builder");
-                  }}
-                  disabled={optimizing}
-                >
-                  <i className="fas fa-edit"></i> I'll Build Manually
+                <button className="atsx-btn atsx-btn--ghost" onClick={handleDownloadReport}>
+                  <i className="fas fa-file-arrow-down"></i> Save report
+                </button>
+                <button className="atsx-btn atsx-btn--ghost" onClick={handleReset}>
+                  <i className="fas fa-rotate-right"></i> New check
                 </button>
               </div>
+            </aside>
 
-              {optimizing && optimizeProgress && (
-                <div className="ats__progress">
-                  <div className="ats__progress-bar">
-                    <div className="ats__progress-bar-fill"></div>
-                  </div>
-                  <div className="ats__progress-text">
-                    <i className="fas fa-magic"></i> {optimizeProgress}
-                  </div>
-                  <div className="ats__progress-sub">
-                    This takes about 20-30 seconds. Hang tight.
-                  </div>
+            <div className="atsx-detail">
+              <section className="atsx-panel">
+                <h3>Score breakdown</h3>
+                <div className="atsx-cats">
+                  {CATEGORY_META.map((c) => {
+                    const cat = result.categories?.[c.key];
+                    if (!cat) return null;
+                    const pct = (cat.score / cat.max) * 100;
+                    return (
+                      <div key={c.key} className="atsx-cat">
+                        <div className="atsx-cat__top">
+                          <span><i className={`fas ${c.icon}`}></i> {c.label}</span>
+                          <strong>{cat.score}<small>/{cat.max}</small></strong>
+                        </div>
+                        <div className="atsx-cat__bar"><span style={{ width: `${pct}%`, background: getScoreColor(pct) }} /></div>
+                        {cat.feedback && <p>{cat.feedback}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
+              </section>
+
+              {result.topImprovements?.length > 0 && (
+                <section className="atsx-panel">
+                  <h3>Top priorities</h3>
+                  <ol className="atsx-fixes">
+                    {result.topImprovements.map((imp, i) => (
+                      <li key={i}>
+                        <span className="atsx-fixes__n">{i + 1}</span>
+                        <div>
+                          <h4>{imp.title}</h4>
+                          <p>{imp.description}</p>
+                          {imp.example && <div className="atsx-fixes__example"><span>Example</span>{imp.example}</div>}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
               )}
 
-              <p className="ats__cta-hint">
-                <i className="fas fa-info-circle"></i>
-                Your CV stays editable in the builder — review and adjust anything before downloading.
-              </p>
+              <div className="atsx-duo">
+                {result.strengths?.length > 0 && (
+                  <section className="atsx-panel atsx-panel--good">
+                    <h3><i className="fas fa-circle-check"></i> What's working</h3>
+                    <ul>{result.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                  </section>
+                )}
+                {result.atsRedFlags?.length > 0 && (
+                  <section className="atsx-panel atsx-panel--warn">
+                    <h3><i className="fas fa-triangle-exclamation"></i> Red flags</h3>
+                    <ul>{result.atsRedFlags.map((f, i) => <li key={i}>{f}</li>)}</ul>
+                  </section>
+                )}
+              </div>
             </div>
-
           </div>
         )}
+      </main>
 
-      {/* AUTH GATE MODAL */}
-{paywallFor && (
-  <PaywallModal
-    reason="premium_feature"
-    entitlement={entitlement}
-    onClose={(action) => {
-      const pending = paywallFor;
-      setPaywallFor(null);
-      if (action === "requery") setShowRequery(pending);
-    }}
-    onPaymentSuccess={() => {
-      const pending = paywallFor;
-      setPaywallFor(null);
-      // Give the payment a moment to reach the server, then carry on.
-      setTimeout(() => (pending === "optimize" ? handleOptimize() : handleAnalyze()), 2500);
-    }}
-  />
-)}
+      {paywallFor && (
+        <PaywallModal
+          reason="premium_feature"
+          entitlement={entitlement}
+          onClose={(action) => {
+            const pending = paywallFor;
+            setPaywallFor(null);
+            if (action === "requery") setShowRequery(pending);
+          }}
+          onPaymentSuccess={() => {
+            const pending = paywallFor;
+            setPaywallFor(null);
+            // Give the payment a moment to reach the server, then carry on.
+            setTimeout(() => (pending === "optimize" ? handleOptimize() : handleAnalyze()), 2500);
+          }}
+        />
+      )}
 
-{showRequery && (
-  <PaymentRequery
-    onClose={() => setShowRequery(false)}
-    onSuccess={() => setShowRequery(false)}
-  />
-)}
+      {showRequery && (
+        <PaymentRequery
+          onClose={() => setShowRequery(false)}
+          onSuccess={() => setShowRequery(false)}
+        />
+      )}
 
-{showAuthGate && (
-  <div className="ats__auth-gate" onClick={() => setShowAuthGate(false)}>
-    <div className="ats__auth-gate-box" onClick={(e) => e.stopPropagation()}>
-      <button
-        className="ats__auth-gate-close"
-        onClick={() => setShowAuthGate(false)}
-        aria-label="Close"
-      >
-        <i className="fas fa-times"></i>
-      </button>
-
-      <div className="ats__auth-gate-icon">
-        <i className="fas fa-magic"></i>
-      </div>
-
-      <h2>Sign in to check & optimize your CV ✨</h2>
-      <p>
-        Create a free account in 30 seconds. ATS checks and AI optimization are
-        part of Memora Premium, and your CV will be waiting in the builder.
-      </p>
-
-      <div className="ats__auth-gate-perks">
-        <div className="ats__auth-gate-perk">
-          <i className="fas fa-check"></i> AI rewrites your weak sections
+      {showAuthGate && (
+        <div className="atsx-modal" onClick={() => setShowAuthGate(false)}>
+          <div className="atsx-modal__box" role="dialog" aria-modal="true" aria-labelledby="atsx-gate-title" onClick={(e) => e.stopPropagation()}>
+            <button className="atsx-modal__close" onClick={() => setShowAuthGate(false)} aria-label="Close">
+              <i className="fas fa-xmark"></i>
+            </button>
+            <span className="atsx-modal__icon"><i className="fas fa-user-lock"></i></span>
+            <h2 id="atsx-gate-title">Sign in to check your CV</h2>
+            <p>Create a free account in 30 seconds. ATS checks and AI fixes come with Memora Premium.</p>
+            <ul className="atsx-modal__perks">
+              <li><i className="fas fa-check"></i> Your ATS score with clear priorities</li>
+              <li><i className="fas fa-check"></i> One-tap AI rewrite into the CV builder</li>
+              <li><i className="fas fa-check"></i> {FREE_DAILY_DOWNLOADS} free CV downloads every 24 hours</li>
+              <li><i className="fas fa-check"></i> Premium from {PLANS.monthly.priceLabel}/month</li>
+            </ul>
+            <button
+              className="atsx-btn atsx-btn--primary atsx-btn--block"
+              onClick={() => {
+                track("ats_optimize_auth_gate_signup_clicked");
+                navigate("/auth", { state: { from: "/ats-check" } });
+              }}
+            >
+              Create free account
+            </button>
+            <p className="atsx-modal__login">
+              Already have an account?{" "}
+              <button onClick={() => {
+                track("ats_optimize_auth_gate_login_clicked");
+                navigate("/auth", { state: { from: "/ats-check" } });
+              }}>Log in</button>
+            </p>
+          </div>
         </div>
-        <div className="ats__auth-gate-perk">
-          <i className="fas fa-check"></i> ATS-friendly templates
-        </div>
-        <div className="ats__auth-gate-perk">
-          <i className="fas fa-check"></i> {FREE_DAILY_DOWNLOADS} free downloads every 24 hours
-        </div>
-        <div className="ats__auth-gate-perk">
-          <i className="fas fa-check"></i> Premium from {PLANS.monthly.priceLabel}/month, unlimited everything
-        </div>
-      </div>
-
-      <button
-        className="ats__auth-gate-btn"
-        onClick={() => {
-          track("ats_optimize_auth_gate_signup_clicked");
-          navigate("/auth", { state: { from: "/ats-check" } });
-        }}
-      >
-        <i className="fas fa-user-plus"></i> Create Free Account
-      </button>
-
-      <p className="ats__auth-gate-login">
-        Already have an account?{" "}
-        <span onClick={() => {
-          track("ats_optimize_auth_gate_login_clicked");
-          navigate("/auth", { state: { from: "/ats-check" } });
-        }}>
-          Log in
-        </span>
-      </p>
-    </div>
-  </div>
-)}
-      </div>
+      )}
     </div>
   );
 }

@@ -46,9 +46,9 @@ export default function Navbar() {
           </Link>
 
           <ul className="nav-links">
-            <li><a href="#services">Services</a></li>
-            <li><a href="#projects">Projects</a></li>
-            <li><a href="#about">About</a></li>
+            <li><a href="/#services">Services</a></li>
+            <li><a href="/#projects">Projects</a></li>
+            <li><a href="/#about">About</a></li>
             <li><a href="/" onClick={handleAppsClick}>Apps</a></li>
           </ul>
 
@@ -80,9 +80,9 @@ export default function Navbar() {
           <i className="fas fa-times"></i>
         </button>
 
-        <a href="#services" onClick={closeMenu}>Services</a>
-        <a href="#projects" onClick={closeMenu}>Projects</a>
-        <a href="#about" onClick={closeMenu}>About</a>
+        <a href="/#services" onClick={closeMenu}>Services</a>
+        <a href="/#projects" onClick={closeMenu}>Projects</a>
+        <a href="/#about" onClick={closeMenu}>About</a>
         <a href="/" onClick={handleMobileAppsClick}>Apps</a>
 
         <div className="mobile-menu-auth">

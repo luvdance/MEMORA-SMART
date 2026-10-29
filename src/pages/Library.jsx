@@ -111,7 +111,7 @@ export default function Library() {
             <button onClick={() => scrollTo("lib-ebooks")}>Browse Ebooks</button>
             <button onClick={() => scrollTo("lib-categories")}>Categories</button>
             <button onClick={() => scrollTo("lib-spotlight")}>Spotlight</button>
-            <a href="/">About</a>
+            <a href="/#about">About</a>
           </div>
 
           <div className="lib-nav-actions">
@@ -355,7 +355,7 @@ export default function Library() {
 
           <div className="lib-footer-col">
             <h4>Support</h4>
-            <a href="/">Contact</a>
+            <a href="/#contact">Contact</a>
             <a href="/">Privacy Policy</a>
             <a href="/">Terms & Conditions</a>
           </div>

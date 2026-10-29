@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getUserDoc } from "../../utils/userService";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -148,9 +148,9 @@ export default function Payments() {
                 {cancelMessage && <p className="payments-page__plan-meta">{cancelMessage}</p>}
               </div>
               {!entitlement?.premium && (
-                <a href="/pricing" className="payments-page__upgrade-btn">
+                <Link to="/pricing" className="payments-page__upgrade-btn">
                   <i className="fas fa-crown"></i> Go Premium
-                </a>
+                </Link>
               )}
               {entitlement?.premium && entitlement.autoRenew && (
                 <button

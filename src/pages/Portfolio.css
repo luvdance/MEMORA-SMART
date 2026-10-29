@@ -18,6 +18,7 @@
   color: var(--ink);
   font-family: var(--font-body);
   overflow-x: hidden;
+  overflow-x: clip; /* keeps sticky elements working */
 }
 
 .pf-page * {
