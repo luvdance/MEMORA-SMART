@@ -1,5 +1,5 @@
 import { shrinkPhoto } from "./imageCompress";
-import { measureCvLayout } from "./cvLayout";
+import { measureCvLayout, paginateInPlace, pageMarginFor, PRINT_BASE_RESET } from "./cvLayout";
 
 // ── PRINT ENGINE ──
 // Prints ONLY the CV, from a hidden iframe holding a copy of the preview and
@@ -18,7 +18,8 @@ import { measureCvLayout } from "./cvLayout";
 
 const READY_TIMEOUT_MS = 4000;
 
-// Rules the CV relies on, shared by the iframe and the parent fallback.
+// Rules for the parent-page fallback, which prints the live preview (no
+// laid-out page breaks, so the browser's keep-together rules do the work).
 // layout: { sidebar, pages } measured from the on-screen preview. Sidebar
 // templates print full bleed on every page; their columns repeat their own
 // padding per page (box-decoration-break), so text keeps a margin.
@@ -70,6 +71,33 @@ function cvPrintRules(theme, format, layout = {}, scope = "") {
     ${s}.cv-item { break-inside: avoid !important; page-break-inside: avoid !important; }
     ${s}.cv-section-heading { break-after: avoid !important; page-break-after: avoid !important; break-inside: avoid !important; }
     ${s}.cv-section-keep { break-inside: avoid !important; page-break-inside: avoid !important; }
+  `;
+}
+
+// Rules for the print frame. Its pages are laid out in the frame itself by
+// paginateInPlace (breaks, margins, page count), so every page prints full
+// bleed; one page fills a little under A4 so it can't spill a blank page.
+// Browser keep-together rules would move whole entries and undo the layout.
+function paginatedPrintRules(theme) {
+  return `
+    @page { size: A4 portrait; margin: 0; }
+    .cv-preview__page {
+      width: 210mm !important;
+      min-height: calc(297mm - 1mm) !important;
+      height: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      overflow: visible !important;
+      background: ${theme?.bg || "#ffffff"} !important;
+      transform: none !important;
+      box-sizing: border-box !important;
+    }
+    .cv-preview__page > div {
+      min-height: calc(297mm - 1mm) !important;
+    }
+    p, li { orphans: 2; widows: 2; }
   `;
 }
 
@@ -137,22 +165,6 @@ function installParentPrintStyle(theme, format, layout) {
   `;
 }
 
-// A minimal slice of the base reset (Tailwind preflight) the preview runs
-// under, so spacing in print matches what the user sees on screen.
-const BASE_RESET = `
-  *, *::before, *::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: currentColor; }
-  html { line-height: 1.5; -webkit-text-size-adjust: 100%; }
-  body { margin: 0; font-family: inherit; line-height: inherit; }
-  h1, h2, h3, h4, h5, h6, p, blockquote, figure, hr, pre { margin: 0; }
-  h1, h2, h3, h4, h5, h6 { font-size: inherit; font-weight: inherit; }
-  ol, ul { list-style: none; margin: 0; padding: 0; }
-  b, strong { font-weight: bolder; }
-  img, svg { display: block; vertical-align: middle; }
-  img { max-width: 100%; height: auto; }
-  table { border-collapse: collapse; text-indent: 0; border-color: inherit; }
-  a { color: inherit; text-decoration: inherit; }
-`;
-
 // Same justification the preview applies to body text.
 const PREVIEW_TEXT_RULES = `
   .cv-preview__page p, .cv-preview__page .cv-item div { text-align: justify; text-justify: inter-word; }
@@ -205,9 +217,8 @@ export async function printCV({ previewRef, cv, theme, format }) {
     return;
   }
 
-  const layout = measureCvLayout(content);
-
-  installParentPrintStyle(theme, format, layout);
+  // The fallback prints the live page, which has no laid-out page breaks.
+  installParentPrintStyle(theme, format, measureCvLayout(content));
 
   // One print frame at a time; the previous one is kept until now because
   // mobile browsers read it after print() has already returned.
@@ -224,16 +235,15 @@ export async function printCV({ previewRef, cv, theme, format }) {
 <title>${title}</title>
 ${fontStylesheetLinks()}
 <style>
-  ${BASE_RESET}
+  ${PRINT_BASE_RESET}
   ${PREVIEW_TEXT_RULES}
-  ${pageRules(format, layout)}
   *, *::before, *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
   html, body { margin: 0; padding: 0; background: ${theme?.bg || "#ffffff"}; }
-  ${cvPrintRules(theme, format, layout)}
+  ${paginatedPrintRules(theme)}
 </style>
 </head>
 <body>${clone.outerHTML}</body>
@@ -265,6 +275,9 @@ ${fontStylesheetLinks()}
   });
   await withTimeout(doc.fonts ? doc.fonts.ready : Promise.resolve(), 1500);
   await withTimeout(Promise.all([...doc.images].map((img) => (img.decode ? img.decode().catch(() => {}) : null))), 1500);
+
+  // Lay the pages out in the frame, now that its fonts are in.
+  paginateInPlace(doc.querySelector(".cv-preview__page"), pageMarginFor(format));
 
   // Some browsers name the saved PDF after the top-level page title.
   const originalTitle = document.title;

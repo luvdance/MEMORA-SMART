@@ -68,6 +68,12 @@ await page.evaluate(async () => {
   await document.fonts.ready;
 });
 
+// Lay the pages out again with every font loaded (the CV HTML ships its own
+// paginator, see paginationScript in src/cv-builder/utils/cvLayout.js).
+await page.evaluate(() => {
+  if (typeof window.__cvPaginate === "function") window.__cvPaginate();
+});
+
 // Extra wait for complex templates with many elements
 await new Promise(r => setTimeout(r, 1500));
 

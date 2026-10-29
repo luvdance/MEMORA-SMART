@@ -1,4 +1,4 @@
-import { measureCvLayout } from "./cvLayout";
+import { paginationScript, PRINT_BASE_RESET } from "./cvLayout";
 
 export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   const content = previewRef.current;
@@ -28,32 +28,15 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   // Capture HTML AFTER reset
   const clonedHTML = content.outerHTML;
 
-  // How tall is the CV itself (the template, not the A4-min-height page)?
-  // A CV that fits one page is printed as a single full-bleed page.
-  // The buffer absorbs small font-metric differences on the PDF server.
-  // Sidebar templates (flex row) print full bleed on every page, so the
-  // sidebar runs edge to edge; each column repeats its own padding per page.
-  const { singlePage, sidebar: sidebarLayout, pages: pageCount } = measureCvLayout(content);
-
   // Restore immediately
   Object.assign(content.style, saved);
 
-  const verticalMargin = Math.round((format?.pagePadding || 24) / 3.78);
-
-  // Height the page (and the template inside it) should fill on page 1, so
-  // sidebars and tinted backgrounds reach the bottom. It must be a little
-  // under the printable height: anything taller spills a blank second page.
-  //  - single page: no margins at all (full bleed)
-  //  - multi page: page 1 keeps its bottom margin (see @page below)
-  //  - sidebar layout: full bleed on every page, filled to the last page
-  const fullBleed = singlePage || sidebarLayout;
-  const fillHeight = sidebarLayout
-    ? `calc(${pageCount * 297}mm - 1mm)`
-    : singlePage ? "calc(297mm - 1mm)" : `calc(297mm - ${verticalMargin}mm - 1mm)`;
-  const pageCss = fullBleed
-    ? `@page { size: A4 portrait; margin: 0; }`
-    : `@page { size: A4 portrait; margin: ${verticalMargin}mm 0; }
-    @page :first { margin-top: 0; }`;
+  // Every page prints full bleed. The pages themselves (breaks, margins,
+  // page count) are laid out by paginationScript inside the PDF server's
+  // page, so they're measured with the exact fonts the PDF uses. One page
+  // fills a little under A4: anything taller spills a blank extra page.
+  const fillHeight = "calc(297mm - 1mm)";
+  const pageCss = `@page { size: A4 portrait; margin: 0; }`;
 
   // ── Only send what Puppeteer actually needs ──
   // No site CSS collected — React inline styles are already in the HTML
@@ -71,6 +54,10 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&family=Source+Sans+3:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Georgia&display=swap" rel="stylesheet">
 
   <style>
+    /* ── BASE RESET — the slice of the site reset the preview runs under, so
+       the PDF lays out like the on-screen preview ── */
+    ${PRINT_BASE_RESET}
+
     /* ── MINIMAL RESET — no site CSS, no mobile overrides ── */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -116,28 +103,11 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
       min-height: ${fillHeight} !important;
     }
 
-    /* Each sidebar/main column repeats its top and bottom padding on every
-       printed page, so text keeps a margin while backgrounds stay full bleed. */
-    ${sidebarLayout ? `.cv-preview__page > div > div {
-      -webkit-box-decoration-break: clone;
-      box-decoration-break: clone;
-    }` : ""}
+    /* Page breaks are laid out by paginationScript. Browser keep-together
+       rules would move whole entries and undo that, so only lines are kept. */
+    p, li { orphans: 2; widows: 2; }
 
-    /* ── PAGE BREAKS — respect section boundaries ── */
-    .cv-item {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
-    }
-    .cv-section-heading {
-      break-after: avoid !important;
-      page-break-after: avoid !important;
-    }
-    .cv-section-keep {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
-    }
-
-    /* ── PAGE SETUP — full bleed for one page; margins between pages otherwise ── */
+    /* ── PAGE SETUP — full bleed; page margins are part of the layout ── */
     ${pageCss}
 
     /* ── ICON FONTS — ensure Font Awesome renders ── */
@@ -149,6 +119,7 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
 </head>
 <body>
   ${clonedHTML}
+  ${paginationScript(format)}
 </body>
 </html>`;
 
