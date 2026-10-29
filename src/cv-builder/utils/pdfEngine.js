@@ -1,6 +1,7 @@
 import { paginationScript, PRINT_BASE_RESET } from "./cvLayout";
 
-export async function downloadCVPdf({ previewRef, cv, theme, format }) {
+// Builds the CV's PDF on the server and returns it as a Blob.
+export async function buildCvPdfBlob({ previewRef, cv, theme, format }) {
   const content = previewRef.current;
   if (!content) throw new Error("Preview not ready");
 
@@ -138,7 +139,11 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
     throw new Error(`PDF generation failed: ${response.status}`);
   }
 
-  const blob = await response.blob();
+  return response.blob();
+}
+
+export async function downloadCVPdf({ previewRef, cv, theme, format }) {
+  const blob = await buildCvPdfBlob({ previewRef, cv, theme, format });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

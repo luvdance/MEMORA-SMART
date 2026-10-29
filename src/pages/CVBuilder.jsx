@@ -20,8 +20,8 @@ import { doc as fsDoc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import PaywallModal from "../components/PaywallModal";
 import "../cv-builder/CVBuilder.css";
-import { printCV } from "../cv-builder/utils/printEngine";
-import { downloadCVPdf } from "../cv-builder/utils/pdfEngine";
+import { printCV, printNeedsPdf, isAppleMobile } from "../cv-builder/utils/printEngine";
+import { downloadCVPdf, buildCvPdfBlob } from "../cv-builder/utils/pdfEngine";
 import PaymentRequery from "../components/PaymentRequery";
 import { track } from "../utils/analytics";
 import { TEMPLATE_INFO } from "../cv-builder/utils/sampleCV";
@@ -110,6 +110,7 @@ export default function CVBuilder({ adminMode = false }) {
   const [paywallEntitlement, setPaywallEntitlement] = useState(null);
   const [showRequery, setShowRequery] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null); // { text, tone }
+  const [printReady, setPrintReady] = useState(null); // Safari/phones: { url, name } of the PDF to print
 
   // "new" (never saved) | "dirty" (unsaved changes) | "saving" | "saved" | "error"
   const saveState = saving ? "saving"
@@ -372,12 +373,44 @@ useEffect(() => {
 
 const triggerPrint = async () => {
   try {
+    if (printNeedsPdf()) {
+      // Safari and phones print the server-made PDF (see printNeedsPdf).
+      // Opening it needs a fresh tap, so it's offered in a small sheet.
+      showToast("Preparing your CV for printing...", "success", 30000);
+      const blob = await buildCvPdfBlob({ previewRef, cv, theme, format });
+      setDownloadToast(null);
+      setPrintReady({ url: URL.createObjectURL(blob), name: `${cv.name || "CV"}.pdf` });
+      return;
+    }
     await printCV({ previewRef, cv, theme, format });
   } catch (err) {
     console.error("Print failed:", err);
     showToast("Printing couldn't start. Please try Download instead.", "error", 8000);
   }
 };
+
+  // Open the print-ready PDF in the browser's PDF viewer, which prints it
+  // exactly (no browser header/footer). Falls back to saving it.
+  const openPrintPdf = () => {
+    if (!printReady) return;
+    const opened = window.open(printReady.url, "_blank");
+    if (!opened) {
+      const a = document.createElement("a");
+      a.href = printReady.url;
+      a.download = printReady.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    closePrintReady();
+  };
+
+  const closePrintReady = () => {
+    const url = printReady?.url;
+    setPrintReady(null);
+    // The new tab may still be reading it.
+    if (url) setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
 
   // ── TRIGGER ACTUAL PDF DOWNLOAD ──
   const triggerPdfDownload = async () => {
@@ -900,6 +933,26 @@ const triggerPrint = async () => {
           </>
         )}
       </div>
+
+      {/* ── PRINT-READY SHEET (Safari / phones print the PDF) ── */}
+      {printReady && (
+        <div className="cvb-print-ready__backdrop" onClick={closePrintReady}>
+          <div className="cvb-print-ready" role="dialog" aria-label="Print your CV" onClick={(e) => e.stopPropagation()}>
+            <div className="cvb-print-ready__icon"><i className="fas fa-print"></i></div>
+            <h3>Your CV is ready to print</h3>
+            <p>
+              It opens as a PDF, laid out exactly like your download.{" "}
+              {isAppleMobile()
+                ? <>Tap <b>Share</b>, then <b>Print</b>.</>
+                : <>Print it from there.</>}
+            </p>
+            <button className="cvb-print-ready__open" onClick={openPrintPdf}>
+              <i className="fas fa-file-pdf"></i> Open PDF
+            </button>
+            <button className="cvb-print-ready__cancel" onClick={closePrintReady}>Not now</button>
+          </div>
+        </div>
+      )}
 
       {/* ── SAVE TOAST ── */}
       <div className={`cvb-toast ${

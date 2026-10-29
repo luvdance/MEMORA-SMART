@@ -784,6 +784,19 @@
     scroll-behavior: smooth;
   }
   .cvb .cv-form-panel > * { flex-shrink: 0; }
+
+  /* Strength, step rail and progress stay pinned while the fields scroll.
+     -16px cancels the panel's top padding so it sits flush with the edge;
+     the side margins let its background span the panel's full width. */
+  .cvb .cv-form-panel .cvf-header {
+    position: sticky;
+    top: -16px;
+    z-index: 6;
+    margin: -16px -16px 0;
+    padding: 16px 16px 10px;
+    background: var(--cvf-bg);
+    box-shadow: 0 8px 12px -12px rgba(15, 23, 42, 0.35);
+  }
 }
 
 /* ══════════════════════════════════════

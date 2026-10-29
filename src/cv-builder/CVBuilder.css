@@ -6083,3 +6083,82 @@
   transform-origin: top left;
   pointer-events: none;
 }
+
+/* ══════════════════════════════════════
+   PRINT-READY SHEET (Safari / phones print the PDF)
+══════════════════════════════════════ */
+.cvb-print-ready__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.cvb-print-ready {
+  width: min(360px, 100%);
+  padding: 24px 22px 18px;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+}
+
+.cvb-print-ready__icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6699FF, #9D00FF);
+  color: #fff;
+  font-size: 1.3rem;
+}
+
+.cvb-print-ready h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.cvb-print-ready p {
+  margin: 0 0 18px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.cvb-print-ready__open {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #6699FF, #9D00FF);
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cvb-print-ready__cancel {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: #6b7280;
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+}

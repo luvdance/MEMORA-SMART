@@ -210,6 +210,24 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
 
+// Browsers whose print can't be trusted with the CV: every iPhone/iPad
+// browser (they are all Safari underneath), desktop Safari, and phone
+// browsers in general. They ignore the zero page margin, so they add their
+// own header/footer (URL, date, page numbers) and the shrunken page pushes a
+// one-page CV onto two; some print the whole app page instead of the frame.
+// These print the PDF the server makes instead, which is exact.
+export function isAppleMobile() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent || "")
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS reports as a Mac
+}
+
+export function printNeedsPdf() {
+  const ua = navigator.userAgent || "";
+  const safari = /Safari/.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/.test(ua);
+  const mobile = /Android|Mobi/i.test(ua);
+  return isAppleMobile() || safari || mobile;
+}
+
 export async function printCV({ previewRef, cv, theme, format }) {
   const content = previewRef.current;
   if (!content) {
