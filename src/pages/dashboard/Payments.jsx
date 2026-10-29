@@ -43,6 +43,23 @@ export default function Payments() {
     setLoading(false);
   };
 
+  // Back from Paystack's hosted page (used when the popup can't open):
+  // Paystack appends ?reference=… — confirm it so access starts right away.
+  useEffect(() => {
+    if (!user?.uid) return;
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get("reference") || params.get("trxref");
+    if (!reference) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    cvApi("verify-payment", user, { reference })
+      .then(({ data }) => {
+        setCancelMessage(data.verified ? "Payment confirmed. Premium is active." : (data.message || "We couldn't confirm that payment yet. Use Verify Payment below if access doesn't start shortly."));
+        loadData();
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]);
+
   const handleRequerySuccess = () => {
     setShowRequery(false);
     loadData(); // Refresh after successful verification

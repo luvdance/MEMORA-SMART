@@ -71,7 +71,7 @@ export async function consumeDownload(user, { template, cvId }) {
     return { ok: false, reason: data.reason, entitlement: data.entitlement };
   }
   if (status === 401) {
-    return { ok: false, reason: "auth_required" };
+    return { ok: false, reason: "auth_required", error: data.error };
   }
   return { ok: false, reason: "error", error: data.error || data.message || `Server error (${status})` };
 }

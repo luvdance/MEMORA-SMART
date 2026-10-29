@@ -958,3 +958,23 @@
     margin-bottom: -674px;
   }
 }
+
+/* ── USER ROW: GRANT PLAN MENU ── */
+.admin__plan-select {
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid #9D00FF;
+  background: #faf5ff;
+  color: #6b21a8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  max-width: 170px;
+}
+
+.admin__plan-select:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

@@ -309,7 +309,9 @@ useEffect(() => {
       return;
     }
     if (result.reason === "auth_required") {
-      setShowDownloadGate(true);
+      // We already know they're signed in here, so the server couldn't verify
+      // the session: show why instead of a misleading "Login to Download".
+      showToast(result.error || "Your sign-in couldn't be verified. Please sign out and back in, then try again.", "error", 10000);
       return;
     }
     if (result.reason === "daily_limit" || result.reason === "premium_template") {

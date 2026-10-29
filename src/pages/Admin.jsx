@@ -460,25 +460,29 @@ if (!isAdmin) return null;
                         >
                           <i className="fas fa-coins"></i>
                         </button>
-                        {u.entitlement.premium ? (
-                          <button
-                            onClick={() => revokePro(u)}
-                            disabled={processing === u.id}
-                            title="Remove Premium"
-                            className="admin__action-btn admin__action-btn--danger"
-                          >
-                            <i className="fas fa-ban"></i>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => grantPlan(u, "monthly")}
-                            disabled={processing === u.id}
-                            title="Grant Premium Monthly (more plans in details)"
-                            className="admin__action-btn admin__action-btn--primary"
-                          >
-                            <i className="fas fa-bolt"></i>
-                          </button>
-                        )}
+                        {/* Grant or change this user's plan in one step. */}
+                        <select
+                          className="admin__plan-select"
+                          value=""
+                          disabled={processing === u.id}
+                          aria-label={`Change plan for ${u.email}`}
+                          onChange={(e) => {
+                            const choice = e.target.value;
+                            e.target.value = "";
+                            if (choice === "remove") revokePro(u);
+                            else if (choice === "reset") resetFreeDownloads(u);
+                            else if (PLANS[choice]) grantPlan(u, choice);
+                          }}
+                        >
+                          <option value="" disabled>
+                            {processing === u.id ? "Saving..." : u.entitlement.premium ? "Change plan ▾" : "Grant plan ▾"}
+                          </option>
+                          <option value="monthly">Premium Monthly (1 month)</option>
+                          <option value="yearly">Premium Yearly (1 year)</option>
+                          <option value="lifetime">Premium Lifetime</option>
+                          {u.entitlement.premium && <option value="remove">Remove Premium</option>}
+                          {u.entitlement.free.used > 0 && <option value="reset">Reset free downloads</option>}
+                        </select>
                         <button
                           onClick={() => setSelectedUser(u)}
                           title="View details"

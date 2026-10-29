@@ -1,57 +1,97 @@
 import { PLANS } from "../cv-builder/utils/plans";
+import { cvApi } from "../cv-builder/utils/cvAccess";
 
-// Paystack plan codes make Monthly and Yearly auto-renewing subscriptions.
-// Without them the same amount is charged once and the plan simply runs out.
-const PLAN_CODES = {
-  monthly: import.meta.env.VITE_PAYSTACK_PLAN_MONTHLY,
-  yearly: import.meta.env.VITE_PAYSTACK_PLAN_YEARLY,
-};
+// Paystack Inline v2 opens a transaction the SERVER created (by access code),
+// so plan codes and prices stay on the server. v1 (index.html) is still used
+// by book purchases; both scripts define window.PaystackPop, so v2 is loaded
+// on demand and v1's global is put back afterwards.
+let inlineV2 = null;
+function loadPaystackV2() {
+  if (inlineV2) return inlineV2;
+  inlineV2 = new Promise((resolve, reject) => {
+    const v1 = window.PaystackPop;
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v2/inline.js";
+    script.async = true;
+    script.onload = () => {
+      const V2 = window.PaystackPop;
+      window.PaystackPop = v1;
+      if (typeof V2 === "function") resolve(V2);
+      else reject(new Error("Paystack v2 not available"));
+    };
+    script.onerror = () => {
+      window.PaystackPop = v1;
+      inlineV2 = null;
+      reject(new Error("Could not load Paystack"));
+    };
+    document.head.appendChild(script);
+  });
+  return inlineV2;
+}
+
+/** Ask the server whether `reference` was paid (and grant it if so). Null if not paid. */
+async function confirmPayment(reference, user) {
+  try {
+    const headers = { "Content-Type": "application/json" };
+    if (user?.getIdToken) headers.Authorization = `Bearer ${await user.getIdToken()}`;
+    const res = await fetch("/api/cv/verify-payment", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ reference }),
+    });
+    const result = await res.json();
+    return result.verified ? result : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
- * Open Paystack popup for a CV Premium plan: "monthly" | "yearly" | "lifetime".
- * The server grants the plan from what Paystack reports (plan + amount paid),
- * never from what this popup claims.
+ * Pay for a CV Premium plan: "monthly" | "yearly" | "lifetime".
+ * The server starts the transaction (with the plan code, from server-only env
+ * vars) and grants the plan from what Paystack reports, never from the browser.
  */
-export function buyPlan({ user, plan, onSuccess, onClose }) {
-  if (!window.PaystackPop) {
-    alert("Payment system not loaded. Please refresh the page and try again.");
-    return;
+export async function buyPlan({ user, plan, onSuccess, onClose }) {
+  const close = () => { if (typeof onClose === "function") onClose(); };
+  if (!PLANS[plan] || !user) return close();
+
+  let session;
+  try {
+    const { data } = await cvApi("start-checkout", user, { plan });
+    if (!data.success) throw new Error(data.error || "Could not start payment");
+    session = data;
+  } catch (err) {
+    alert(err.message || "Could not start payment. Please try again.");
+    return close();
   }
-  const info = PLANS[plan];
-  if (!info || !user?.email) return;
 
-  const reference = `cv_${plan}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const planCode = PLAN_CODES[plan];
+  // Confirm by reference however the popup ends: success callback, or the
+  // user closing it (they may have paid first). Runs at most once.
+  let settled = false;
+  const settle = async () => {
+    if (settled) return;
+    settled = true;
+    const result = await confirmPayment(session.reference, user);
+    if (result && typeof onSuccess === "function") onSuccess(result);
+    else close();
+  };
 
-  const handler = window.PaystackPop.setup({
-    key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-    email: user.email,
-    amount: info.price * 100,
-    currency: "NGN",
-    ...(planCode ? { plan: planCode } : {}),
-    ref: reference,
-    metadata: {
-      purchase_type: "cv_plan",
-      plan,
-      uid: user.uid,
-      custom_fields: [
-        {
-          display_name: "Plan",
-          variable_name: "plan",
-          value: info.name,
-        },
-      ],
-    },
-    callback: function(response) {
-      // Must be a plain function, not async — Paystack validates this
-      verifyAndNotify(response.reference, onSuccess, user);
-    },
-    onClose: function() {
-      if (typeof onClose === "function") onClose();
-    },
-  });
-
-  handler.openIframe();
+  try {
+    const PaystackPop = await loadPaystackV2();
+    const popup = new PaystackPop();
+    popup.resumeTransaction(session.accessCode, {
+      onSuccess: settle,
+      onCancel: settle,
+      onError: () => {
+        settled = true;
+        close();
+      },
+    });
+  } catch {
+    // Popup unavailable: continue on Paystack's own page. It returns to
+    // /dashboard/payments, which confirms the payment there.
+    window.location.href = session.authorizationUrl;
+  }
 }
 
 /**
