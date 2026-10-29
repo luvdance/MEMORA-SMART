@@ -1,51 +1,153 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { STEPS } from "../utils/constants";
+import { STEP_META, stepCompletion } from "../utils/cvStrength";
+import FormHeader from "./FormHeader";
+import "../CVForm.css";
 import { callClaude } from "../utils/callClaude";
 import { smartCase, liveTitleCase, liveCapitalizeSentences, liveCommaListTitleCase } from "../utils/textCasing";
 import { compressImage, readFileAsDataURL } from "../utils/imageCompress";
 import { templateUsesPhoto } from "../utils/templateMeta";
 
-//comment
 // ── UI ELEMENTS ──
-function Label({ children }) {
-  return <label className="cv-label">{children}</label>;
-}
-//comment
-function Input({ value, onChange, onBlur, placeholder, type = "text" }) {
+function Label({ children, optional }) {
   return (
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      onBlur={onBlur}
-      placeholder={placeholder}
-      className="cv-input"
-    />
+    <label className="cvf-label">
+      {children}
+      {optional && <span className="cvf-optional">Optional</span>}
+    </label>
   );
 }
 
-function Textarea({ value, onChange, onBlur, placeholder, rows = 3 }) {
+// A filled field shows a quiet tick: small, steady feedback while typing.
+function Input({ value, onChange, onBlur, placeholder, type = "text", icon, disabled, inputMode, autoComplete }) {
+  const filled = String(value ?? "").trim().length > 0;
   return (
-    <textarea
-      value={value}
-      onChange={onChange}
-      onBlur={onBlur}
-      placeholder={placeholder}
-      rows={rows}
-      className="cv-textarea"
-    />
+    <div className={`cvf-control ${icon ? "cvf-control--icon" : ""} ${filled ? "cvf-control--filled" : ""} ${disabled ? "cvf-control--disabled" : ""}`}>
+      {icon && <i className={`${icon} cvf-control__icon`} aria-hidden="true"></i>}
+      <input
+        type={type}
+        value={value ?? ""}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        disabled={disabled}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
+        className="cvf-input"
+      />
+      {filled && type !== "date" && <i className="fas fa-circle-check cvf-control__ok" aria-hidden="true"></i>}
+    </div>
   );
 }
 
-function AiBtn({ onClick, loading, label = "AI Suggest" }) {
+// meter: { min, max } character target, shown as a small length gauge.
+function Textarea({ value, onChange, onBlur, placeholder, rows = 3, meter, hint }) {
+  const len = String(value ?? "").trim().length;
+  let gauge = null;
+  if (meter) {
+    const state = len === 0 ? "empty" : len < meter.min ? "short" : len > meter.max ? "long" : "good";
+    const text = { empty: `Aim for ${meter.min}–${meter.max} characters`, short: "Keep going", good: "Great length", long: "A little long" }[state];
+    gauge = (
+      <div className={`cvf-meter cvf-meter--${state}`}>
+        <span className="cvf-meter__bar"><span style={{ width: `${Math.min(100, (len / meter.max) * 100)}%` }} /></span>
+        <span className="cvf-meter__text">{text} · {len}</span>
+      </div>
+    );
+  }
   return (
-    <button onClick={onClick} disabled={loading} className="cv-ai-btn">
+    <div className="cvf-area">
+      <textarea
+        value={value ?? ""}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        rows={rows}
+        className="cvf-textarea"
+      />
+      {(gauge || hint) && (
+        <div className="cvf-area__foot">
+          {hint && <span className="cvf-area__hint"><i className="fas fa-lightbulb"></i> {hint}</span>}
+          {gauge}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AiBtn({ onClick, loading, label = "Write with AI" }) {
+  return (
+    <button type="button" onClick={onClick} disabled={loading} className="cvf-ai">
       {loading ? (
-        <><i className="fas fa-spinner fa-spin"></i> Thinking...</>
+        <><i className="fas fa-circle-notch fa-spin"></i> Writing…</>
       ) : (
-        <><i className="fas fa-magic"></i> {label}</>
+        <><i className="fas fa-wand-magic-sparkles"></i> {label}</>
       )}
     </button>
+  );
+}
+
+// What each step is for, in a sentence: people fill forms better when they know why.
+const SECTION_COPY = [
+  { title: "About you", sub: "Your name and how recruiters reach you." },
+  { title: "Professional summary", sub: "Your elevator pitch: the first lines a recruiter reads." },
+  { title: "Work experience", sub: "Most recent first. Show results, not just duties." },
+  { title: "Education", sub: "Start with your highest qualification." },
+  { title: "Skills & certifications", sub: "Use the same words the job adverts use." },
+  { title: "Extras", sub: "Optional sections that help you stand out." },
+  { title: "Biodata", sub: "Optional. Often requested for Nigerian government and traditional roles." },
+];
+
+function SectionHeader({ step, done }) {
+  const meta = STEP_META[step];
+  const copy = SECTION_COPY[step];
+  return (
+    <div className="cvf-section-head">
+      <span className={`cvf-section-head__icon cvf-tone--${meta.tone}`}><i className={`fas ${meta.icon}`}></i></span>
+      <div className="cvf-section-head__text">
+        <h2>{copy.title}</h2>
+        <p>{copy.sub}</p>
+      </div>
+      {done && <span className="cvf-badge cvf-badge--done"><i className="fas fa-check"></i> Complete</span>}
+    </div>
+  );
+}
+
+// Card title for repeated entries: "Senior PM · Paystack" instead of "Experience 1".
+function EntryTitle({ n, title, subtitle, fallback }) {
+  return (
+    <div className="cvf-entry">
+      <span className="cvf-entry__n">{n}</span>
+      <span className="cvf-entry__text">
+        <strong className={title ? "" : "cvf-entry__placeholder"}>{title || fallback}</strong>
+        {subtitle && <small>{subtitle}</small>}
+      </span>
+    </div>
+  );
+}
+
+function Switch({ checked, onChange, children }) {
+  return (
+    <label className="cvf-switch">
+      <input type="checkbox" checked={!!checked} onChange={onChange} />
+      <span className="cvf-switch__track" aria-hidden="true"><span /></span>
+      <span className="cvf-switch__label">{children}</span>
+    </label>
+  );
+}
+
+function SkillChips({ text }) {
+  const list = String(text || "").split(/[,\n]+/).map(t => t.trim()).filter(Boolean);
+  if (!list.length) return null;
+  const target = list.length >= 8 ? "good" : list.length >= 5 ? "ok" : "low";
+  return (
+    <div className="cvf-chips">
+      <div className="cvf-chips__list">
+        {list.map((t, i) => <span key={i} className="cvf-chip">{t}</span>)}
+      </div>
+      <span className={`cvf-chips__count cvf-chips__count--${target}`}>
+        {list.length} skill{list.length !== 1 ? "s" : ""}{target !== "good" ? " · aim for 8–12" : " · nicely done"}
+      </span>
+    </div>
   );
 }
 
@@ -84,8 +186,9 @@ function CardActions({ index, total, onMoveUp, onMoveDown, onDelete, canDelete =
   );
 }
 
-export default function CVForm({ cv, setCV, template, step, setStep, tab }) {
+export default function CVForm({ cv, setCV, template, step, setStep, tab, entitlement, onAts, isMobile, onFinish }) {
   const [loading, setLoading] = useState({});
+  const steps = stepCompletion(cv);
 
   // ── LIVE FORMAT HELPER ──
   const getLiveFormat = (field) => {
@@ -320,67 +423,86 @@ const moveEdu = (i, dir) => {
     // STEP 0: PERSONAL
     if (step === 0) return (
       <div className="cv-form__section">
-        <h2 className="cv-form__heading">Personal Information</h2>
+        <SectionHeader step={0} done={steps[0]} />
 
         {templateUsesPhoto(template) && (
-          <div className="cv-form__field">
-            <Label>Passport Photo</Label>
-            <p className="cv-form__hint">This template shows a photo. Use a clear, front-facing passport-style picture.</p>
-            <label className="cv-photo-upload">
-              <input type="file" accept="image/*" onChange={handlePhoto} />
-              <i className="fas fa-camera"></i> {cv.photo ? "Change photo" : "Upload photo"}
-            </label>
-            {cv.photo && (
-              <div className="cv-photo-row">
-                <img src={cv.photo} alt="preview" className="cv-photo-preview" />
-                <button
-                  type="button"
-                  className="cv-photo-remove"
-                  onClick={() => setCV(p => ({ ...p, photo: null }))}
-                >
-                  <i className="fas fa-trash-alt"></i> Remove photo
-                </button>
+          <div className="cvf-photo">
+            <div className="cvf-photo__avatar">
+              {cv.photo
+                ? <img src={cv.photo} alt="Your passport photo" />
+                : <i className="fas fa-user" aria-hidden="true"></i>}
+            </div>
+            <div className="cvf-photo__body">
+              <strong>Passport photo</strong>
+              <span>This template shows a photo. Use a clear, front-facing picture.</span>
+              <div className="cvf-photo__actions">
+                <label className="cvf-btn cvf-btn--soft">
+                  <input type="file" accept="image/*" onChange={handlePhoto} />
+                  <i className="fas fa-camera"></i> {cv.photo ? "Change" : "Upload photo"}
+                </label>
+                {cv.photo && (
+                  <button type="button" className="cvf-btn cvf-btn--danger" onClick={() => setCV(p => ({ ...p, photo: null }))}>
+                    <i className="fas fa-trash-can"></i> Remove
+                  </button>
+                )}
               </div>
-            )}
+            </div>
           </div>
         )}
 
-        {[
-          ["Full Name", "name"],
-          ["Job Title / Target Role", "jobTitle"],
-          ["Email Address", "email"],
-          ["Phone Number", "phone"],
-          ["Address / Location", "address"],
-          ["LinkedIn URL", "linkedin"],
-          ["Website / Portfolio", "website"],
-          ["GitHub URL", "github"],
-        ].map(([lbl, key]) => (
-          <div className="cv-form__field" key={key}>
-            <Label>{lbl}</Label>
-            <Input
-              value={cv[key] || ""}
-              onChange={upd(key)}
-              onBlur={blur(key)}
-              placeholder={lbl}
-            />
+        <div className="cv-form__field">
+          <Label>Full name</Label>
+          <Input value={cv.name} onChange={upd("name")} onBlur={blur("name")} placeholder="e.g. Adaeze Okonkwo" icon="fas fa-user" autoComplete="name" />
+        </div>
+        <div className="cv-form__field">
+          <Label>Target job title</Label>
+          <Input value={cv.jobTitle} onChange={upd("jobTitle")} onBlur={blur("jobTitle")} placeholder="e.g. Senior Product Manager" icon="fas fa-briefcase" autoComplete="organization-title" />
+        </div>
+        <div className="cv-form__field">
+          <Label>Email</Label>
+          <Input type="email" value={cv.email} onChange={upd("email")} onBlur={blur("email")} placeholder="you@example.com" icon="fas fa-envelope" inputMode="email" autoComplete="email" />
+        </div>
+        <div className="cv-form__field">
+          <Label>Phone</Label>
+          <Input type="tel" value={cv.phone} onChange={upd("phone")} onBlur={blur("phone")} placeholder="+234 803 000 0000" icon="fas fa-phone" inputMode="tel" autoComplete="tel" />
+        </div>
+        <div className="cv-form__field">
+          <Label>Location</Label>
+          <Input value={cv.address} onChange={upd("address")} onBlur={blur("address")} placeholder="e.g. Lagos, Nigeria" icon="fas fa-location-dot" autoComplete="address-level2" />
+        </div>
+
+        <div className="cvf-subhead"><i className="fas fa-link"></i> Online presence <span className="cvf-optional">Optional</span></div>
+        <div className="cv-form__field">
+          <Label>LinkedIn</Label>
+          <Input value={cv.linkedin} onChange={upd("linkedin")} onBlur={blur("linkedin")} placeholder="linkedin.com/in/yourname" icon="fab fa-linkedin" inputMode="url" autoComplete="url" />
+        </div>
+        <div className="cv-form__grid cvf-grid--stack-sm">
+          <div className="cv-form__field">
+            <Label>Website</Label>
+            <Input value={cv.website} onChange={upd("website")} onBlur={blur("website")} placeholder="yourname.com" icon="fas fa-globe" inputMode="url" />
           </div>
-        ))}
+          <div className="cv-form__field">
+            <Label>GitHub</Label>
+            <Input value={cv.github} onChange={upd("github")} onBlur={blur("github")} placeholder="github.com/you" icon="fab fa-github" inputMode="url" />
+          </div>
+        </div>
       </div>
     );
 
     // STEP 1: SUMMARY & OBJECTIVE
     if (step === 1) return (
       <div className="cv-form__section">
-        <h2 className="cv-form__heading">Summary & Objective</h2>
+        <SectionHeader step={1} done={steps[1]} />
 
         <div className="cv-form__field">
-          <Label>Professional Summary</Label>
+          <Label>Professional summary</Label>
           <Textarea
             value={cv.summary}
             onChange={upd("summary")}
             onBlur={blur("summary")}
-            placeholder="A brief professional summary highlighting your key strengths..."
-            rows={4}
+            placeholder="e.g. Product manager with 6 years in fintech. I turn customer insight into features people use: grew retention 34% at Paystack."
+            rows={5}
+            meter={{ min: 150, max: 500 }}
           />
           <AiBtn
             loading={loading.summary}
@@ -392,12 +514,12 @@ const moveEdu = (i, dir) => {
         </div>
 
         <div className="cv-form__field">
-          <Label>Career Objective</Label>
+          <Label optional>Career objective</Label>
           <Textarea
             value={cv.objective}
             onChange={upd("objective")}
             onBlur={blur("objective")}
-            placeholder="Your career objective and what you aim to achieve..."
+            placeholder="One sentence: the role you want and the value you bring."
             rows={3}
           />
           <AiBtn
@@ -414,11 +536,11 @@ const moveEdu = (i, dir) => {
     // STEP 2: EXPERIENCE
     if (step === 2) return (
       <div className="cv-form__section">
-        <h2 className="cv-form__heading">Work Experience</h2>
+        <SectionHeader step={2} done={steps[2]} />
         {cv.experience.map((e, i) => (
         <div key={i} className="cv-form__card">
           <div className="cv-form__card-header">
-            <div className="cv-form__card-label">Experience {i + 1}</div>
+            <EntryTitle n={i + 1} title={e.role} subtitle={e.company} fallback="New role" />
             <CardActions
               index={i}
               total={cv.experience.length}
@@ -428,39 +550,38 @@ const moveEdu = (i, dir) => {
               canDelete={cv.experience.length > 1}
             />
           </div>
-            {[["Company / Organization", "company"], ["Job Title / Role", "role"]].map(([lbl, key]) => (
+            {[["Job title", "role", "fas fa-briefcase", "e.g. Product Manager"], ["Company", "company", "fas fa-building", "e.g. Paystack"]].map(([lbl, key, icon, ph]) => (
               <div className="cv-form__field" key={key}>
                 <Label>{lbl}</Label>
                 <Input
                   value={e[key]}
                   onChange={updExp(i, key)}
                   onBlur={blurExp(i, key)}
-                  placeholder={lbl}
+                  placeholder={ph}
+                  icon={icon}
                 />
               </div>
             ))}
             <div className="cv-form__grid">
               <div>
-                <Label>Start Date</Label>
-                <Input value={e.start} onChange={updExp(i, "start")} placeholder="e.g. Jan 2020" />
+                <Label>Start</Label>
+                <Input value={e.start} onChange={updExp(i, "start")} placeholder="e.g. Jan 2020" icon="far fa-calendar" />
               </div>
               <div>
-                <Label>End Date</Label>
-                <Input value={e.end} onChange={updExp(i, "end")} placeholder="e.g. Dec 2022" />
+                <Label>End</Label>
+                <Input value={e.current ? "Present" : e.end} onChange={updExp(i, "end")} placeholder="e.g. Dec 2022" icon="far fa-calendar" disabled={e.current} />
               </div>
             </div>
-            <label className="cv-form__checkbox">
-              <input type="checkbox" checked={e.current} onChange={updExp(i, "current")} />
-              Currently working here
-            </label>
+            <Switch checked={e.current} onChange={updExp(i, "current")}>I currently work here</Switch>
             <div className="cv-form__field">
-              <Label>Responsibilities & Achievements</Label>
+              <Label>What you achieved</Label>
               <Textarea
                 value={e.responsibilities}
                 onChange={updExp(i, "responsibilities")}
                 onBlur={blurExp(i, "responsibilities")}
-                placeholder="Describe your key duties and achievements in this role..."
-                rows={4}
+                placeholder={"- Led a team of 5 to launch…\n- Increased sales by 20% by…"}
+                rows={5}
+                hint="One win per line. Start with a verb and add a number."
               />
               <AiBtn
                 loading={loading["resp_" + i]}
@@ -476,7 +597,7 @@ const moveEdu = (i, dir) => {
           }))}
           className="cv-form__add-btn"
         >
-          + Add Another Experience
+          <i className="fas fa-plus"></i> Add another role
         </button>
       </div>
     );
@@ -484,11 +605,11 @@ const moveEdu = (i, dir) => {
     // STEP 3: EDUCATION
     if (step === 3) return (
       <div className="cv-form__section">
-        <h2 className="cv-form__heading">Education</h2>
+        <SectionHeader step={3} done={steps[3]} />
         {cv.education.map((e, i) => (
         <div key={i} className="cv-form__card">
           <div className="cv-form__card-header">
-            <div className="cv-form__card-label">Education {i + 1}</div>
+            <EntryTitle n={i + 1} title={e.degree ? `${e.degree}${e.field ? ` in ${e.field}` : ""}` : ""} subtitle={e.school} fallback="New qualification" />
             <CardActions
               index={i}
               total={cv.education.length}
@@ -499,28 +620,29 @@ const moveEdu = (i, dir) => {
             />
           </div>
             {[
-              ["School / University", "school"],
-              ["Degree / Qualification", "degree"],
-              ["Field of Study", "field"],
-            ].map(([lbl, key]) => (
+              ["School / university", "school", "fas fa-building-columns", "e.g. University of Lagos"],
+              ["Qualification", "degree", "fas fa-graduation-cap", "e.g. B.Sc."],
+              ["Field of study", "field", "fas fa-book-open", "e.g. Computer Science"],
+            ].map(([lbl, key, icon, ph]) => (
               <div className="cv-form__field" key={key}>
                 <Label>{lbl}</Label>
                 <Input
                   value={e[key]}
                   onChange={updEdu(i, key)}
                   onBlur={blurEdu(i, key)}
-                  placeholder={lbl}
+                  placeholder={ph}
+                  icon={icon}
                 />
               </div>
             ))}
             <div className="cv-form__grid">
               <div>
-                <Label>Start Year</Label>
-                <Input value={e.start} onChange={updEdu(i, "start")} placeholder="e.g. 2016" />
+                <Label>Start year</Label>
+                <Input value={e.start} onChange={updEdu(i, "start")} placeholder="e.g. 2016" icon="far fa-calendar" inputMode="numeric" />
               </div>
               <div>
-                <Label>End Year</Label>
-                <Input value={e.end} onChange={updEdu(i, "end")} placeholder="e.g. 2020" />
+                <Label>End year</Label>
+                <Input value={e.end} onChange={updEdu(i, "end")} placeholder="e.g. 2020" icon="far fa-calendar" inputMode="numeric" />
               </div>
             </div>
           </div>
@@ -532,7 +654,7 @@ const moveEdu = (i, dir) => {
           }))}
           className="cv-form__add-btn"
         >
-          + Add Another Education
+          <i className="fas fa-plus"></i> Add another qualification
         </button>
       </div>
     );
@@ -540,7 +662,7 @@ const moveEdu = (i, dir) => {
     // STEP 4: SKILLS & MORE
     if (step === 4) return (
       <div className="cv-form__section">
-        <h2 className="cv-form__heading">Skills & More</h2>
+        <SectionHeader step={4} done={steps[4]} />
 
         <div className="cv-form__field">
           <Label>Skills</Label>
@@ -548,9 +670,11 @@ const moveEdu = (i, dir) => {
             value={cv.skills}
             onChange={upd("skills")}
             onBlur={blur("skills")}
-            placeholder="e.g. Project Management, Microsoft Excel, Leadership..."
+            placeholder="e.g. Project Management, Microsoft Excel, Leadership"
             rows={3}
+            hint="Separate skills with commas."
           />
+          <SkillChips text={cv.skills} />
           <AiBtn
             loading={loading.skills}
             onClick={() => aiSuggest(
@@ -566,7 +690,8 @@ const moveEdu = (i, dir) => {
             value={cv.languages}
             onChange={upd("languages")}
             onBlur={blur("languages")}
-            placeholder="e.g. English (Fluent), Yoruba (Native), French (Intermediate)"
+            placeholder="e.g. English (Fluent), Yoruba (Native)"
+            icon="fas fa-language"
           />
           <AiBtn
             loading={loading.languages}
@@ -578,12 +703,13 @@ const moveEdu = (i, dir) => {
         </div>
 
         <div className="cv-form__field">
-          <Label>Hobbies & Interests</Label>
+          <Label optional>Hobbies & interests</Label>
           <Input
             value={cv.hobbies}
             onChange={upd("hobbies")}
             onBlur={blur("hobbies")}
-            placeholder="e.g. Reading, Football, Volunteering, Photography..."
+            placeholder="e.g. Reading, Football, Photography"
+            icon="fas fa-heart"
           />
           <AiBtn
             loading={loading.hobbies}
@@ -596,24 +722,23 @@ const moveEdu = (i, dir) => {
 
         {/* CERTIFICATIONS */}
         <div className="cv-form__field">
-          <Label>Certifications</Label>
+          <div className="cvf-subhead"><i className="fas fa-certificate"></i> Certifications <span className="cvf-optional">Optional</span></div>
           {Array.isArray(cv.certifications) && cv.certifications.map((cert, i) => (
             <div key={i} className="cv-form__card" style={{ marginBottom: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div className="cv-form__card-label">Certification {i + 1}</div>
+              <div className="cv-form__card-header">
+                <EntryTitle n={i + 1} title={cert.name} subtitle={cert.issuer} fallback="New certification" />
                 <button
+                  type="button"
+                  className="cv-form__card-btn cv-form__card-btn--delete"
                   onClick={() => removeCert(i)}
-                  style={{
-                    background: "none", border: "none", color: "#ef4444",
-                    cursor: "pointer", fontSize: "0.8rem", padding: "2px 6px"
-                  }}
+                  aria-label="Delete certification"
                 >
                   <i className="fas fa-trash"></i>
                 </button>
               </div>
 
               <div className="cv-form__field">
-                <Label>Certification Name</Label>
+                <Label>Certification name</Label>
                 <Input
                   value={cert.name}
                   onChange={updCert(i, "name")}
@@ -622,7 +747,7 @@ const moveEdu = (i, dir) => {
                 />
               </div>
               <div className="cv-form__field">
-                <Label>Issuing Organization</Label>
+                <Label>Issued by</Label>
                 <Input
                   value={cert.issuer}
                   onChange={updCert(i, "issuer")}
@@ -632,7 +757,7 @@ const moveEdu = (i, dir) => {
               </div>
               <div className="cv-form__grid">
                 <div>
-                  <Label>Issue Date</Label>
+                  <Label>Issued</Label>
                   <Input
                     value={cert.issueDate}
                     onChange={updCert(i, "issueDate")}
@@ -640,26 +765,19 @@ const moveEdu = (i, dir) => {
                   />
                 </div>
                 <div>
-                  <Label>Expiry Date</Label>
+                  <Label>Expires</Label>
                   <Input
-                    value={cert.expiryDate}
+                    value={cert.noExpiry ? "No expiry" : cert.expiryDate}
                     onChange={updCert(i, "expiryDate")}
                     placeholder="e.g. Jan 2026"
                     disabled={cert.noExpiry}
                   />
                 </div>
               </div>
-              <label className="cv-form__checkbox">
-                <input
-                  type="checkbox"
-                  checked={cert.noExpiry}
-                  onChange={updCert(i, "noExpiry")}
-                />
-                No expiry date
-              </label>
+              <Switch checked={cert.noExpiry} onChange={updCert(i, "noExpiry")}>Doesn't expire</Switch>
               <div className="cv-form__grid">
                 <div>
-                  <Label>Credential ID (optional)</Label>
+                  <Label optional>Credential ID</Label>
                   <Input
                     value={cert.credentialId}
                     onChange={updCert(i, "credentialId")}
@@ -667,7 +785,7 @@ const moveEdu = (i, dir) => {
                   />
                 </div>
                 <div>
-                  <Label>Credential URL (optional)</Label>
+                  <Label optional>Credential URL</Label>
                   <Input
                     value={cert.credentialUrl}
                     onChange={updCert(i, "credentialUrl")}
@@ -677,14 +795,14 @@ const moveEdu = (i, dir) => {
               </div>
             </div>
           ))}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="cvf-add-row">
             <button onClick={addCert} className="cv-form__add-btn">
-              + Add Certification
+              <i className="fas fa-plus"></i> Add certification
             </button>
             <AiBtn
               loading={loading.certifications}
               onClick={aiCertifications}
-              label="AI Suggest Certifications"
+              label="Suggest some"
             />
           </div>
         </div>
@@ -695,18 +813,19 @@ const moveEdu = (i, dir) => {
     // STEP 5: EXTRAS
     if (step === 5) return (
       <div className="cv-form__section">
-        <h2 className="cv-form__heading">Extras</h2>
+        <SectionHeader step={5} done={steps[5]} />
 
         {/* ACHIEVEMENTS */}
         <div className="cv-form__extras-group">
           <div className="cv-form__extras-header">
-            <i className="fas fa-trophy"></i>
+            <span className="cvf-extras__icon cvf-tone--amber"><i className="fas fa-trophy"></i></span>
             <span>Achievements & Awards</span>
+            <span className="cvf-optional">Optional</span>
           </div>
           {cv.achievements?.map((a, i) => (
             <div key={i} className="cv-form__card">
               <div className="cv-form__card-header">
-              <div className="cv-form__card-label">Achievement {i + 1}</div>
+              <EntryTitle n={i + 1} title={a.title} subtitle={a.date} fallback="New achievement" />
               <button
                 className="cv-form__card-btn cv-form__card-btn--delete"
                 onClick={() => delArr("achievements", i)}
@@ -761,20 +880,21 @@ const moveEdu = (i, dir) => {
               achievements: [...(p.achievements || []), { title: "", date: "", description: "" }]
             }))}
           >
-            + Add Achievement
+            <i className="fas fa-plus"></i> Add achievement
           </button>
         </div>
 
         {/* VOLUNTEER */}
         <div className="cv-form__extras-group">
           <div className="cv-form__extras-header">
-            <i className="fas fa-hands-helping"></i>
+            <span className="cvf-extras__icon cvf-tone--teal"><i className="fas fa-hands-helping"></i></span>
             <span>Volunteer Work</span>
+            <span className="cvf-optional">Optional</span>
           </div>
           {cv.volunteer?.map((v, i) => (
             <div key={i} className="cv-form__card">
               <div className="cv-form__card-header">
-                <div className="cv-form__card-label">Volunteer {i + 1}</div>
+                <EntryTitle n={i + 1} title={v.role} subtitle={v.organization} fallback="New volunteer role" />
                 <button
                   className="cv-form__card-btn cv-form__card-btn--delete"
                   onClick={() => delArr("volunteer", i)}
@@ -856,20 +976,21 @@ const moveEdu = (i, dir) => {
               volunteer: [...(p.volunteer || []), { organization: "", role: "", start: "", end: "", description: "" }]
             }))}
           >
-            + Add Volunteer Work
+            <i className="fas fa-plus"></i> Add volunteer work
           </button>
         </div>
 
         {/* PUBLICATIONS */}
         <div className="cv-form__extras-group">
           <div className="cv-form__extras-header">
-            <i className="fas fa-book"></i>
+            <span className="cvf-extras__icon cvf-tone--blue"><i className="fas fa-book"></i></span>
             <span>Publications</span>
+            <span className="cvf-optional">Optional</span>
           </div>
           {cv.publications?.map((pub, i) => (
             <div key={i} className="cv-form__card">
               <div className="cv-form__card-header">
-                <div className="cv-form__card-label">Publication {i + 1}</div>
+                <EntryTitle n={i + 1} title={pub.title} subtitle={pub.journal} fallback="New publication" />
                 <button
                   className="cv-form__card-btn cv-form__card-btn--delete"
                   onClick={() => delArr("publications", i)}
@@ -916,7 +1037,7 @@ const moveEdu = (i, dir) => {
                   />
                 </div>
                 <div>
-                  <Label>URL (optional)</Label>
+                  <Label optional>URL</Label>
                   <Input
                     value={pub.url}
                     onChange={(e) => {
@@ -937,20 +1058,21 @@ const moveEdu = (i, dir) => {
               publications: [...(p.publications || []), { title: "", journal: "", date: "", url: "", description: "" }]
             }))}
           >
-            + Add Publication
+            <i className="fas fa-plus"></i> Add publication
           </button>
         </div>
 
         {/* REFERENCES */}
         <div className="cv-form__extras-group">
           <div className="cv-form__extras-header">
-            <i className="fas fa-user-check"></i>
+            <span className="cvf-extras__icon cvf-tone--violet"><i className="fas fa-user-check"></i></span>
             <span>References</span>
+            <span className="cvf-optional">Optional</span>
           </div>
           {cv.references?.map((r, i) => (
             <div key={i} className="cv-form__card">
               <div className="cv-form__card-header">
-                <div className="cv-form__card-label">Reference {i + 1}</div>
+                <EntryTitle n={i + 1} title={r.name} subtitle={[r.title, r.company].filter(Boolean).join(", ")} fallback="New reference" />
                 <button
                   className="cv-form__card-btn cv-form__card-btn--delete"
                   onClick={() => delArr("references", i)}
@@ -1031,7 +1153,7 @@ const moveEdu = (i, dir) => {
               references: [...(p.references || []), { name: "", title: "", company: "", email: "", phone: "" }]
             }))}
           >
-            + Add Reference
+            <i className="fas fa-plus"></i> Add reference
           </button>
         </div>
 
@@ -1041,20 +1163,17 @@ const moveEdu = (i, dir) => {
     // STEP 6: BIODATA (Nigerian-specific)
     if (step === 6) return (
       <div className="cv-form__section">
-        <h2 className="cv-form__heading">Personal Details</h2>
-        <p style={{ fontSize: "0.8rem", color: "#888", margin: "-8px 0 8px" }}>
-          Optional. Used for Nigerian traditional/government CVs.
-        </p>
+        <SectionHeader step={6} done={steps[6]} />
 
         {[
-          ["Date of Birth", "dateOfBirth", "date"],
-          ["Place of Birth", "placeOfBirth", "text"],
-          ["State of Origin", "stateOfOrigin", "text"],
-          ["LGA", "lga", "text"],
-          ["Nationality", "nationality", "text"],
-          ["Religion", "religion", "text"],
-          ["NIN", "nin", "text"],
-        ].map(([lbl, key, type]) => (
+          ["Date of birth", "dateOfBirth", "date", "fas fa-cake-candles"],
+          ["Place of birth", "placeOfBirth", "text", "fas fa-location-dot"],
+          ["State of origin", "stateOfOrigin", "text", "fas fa-map"],
+          ["LGA", "lga", "text", "fas fa-map-pin"],
+          ["Nationality", "nationality", "text", "fas fa-flag"],
+          ["Religion", "religion", "text", "fas fa-hands-praying"],
+          ["NIN", "nin", "text", "fas fa-id-card"],
+        ].map(([lbl, key, type, icon]) => (
           <div className="cv-form__field" key={key}>
             <Label>{lbl}</Label>
             {type === "date" ? (
@@ -1066,6 +1185,7 @@ const moveEdu = (i, dir) => {
                   value={cv[key] || ""}
                   onChange={upd(key)}
                   placeholder={lbl}
+                  icon={icon}
                 />
                 {cv[key] ? (
                   <button
@@ -1086,6 +1206,8 @@ const moveEdu = (i, dir) => {
                 onChange={upd(key)}
                 onBlur={key !== "nin" ? blur(key) : undefined}
                 placeholder={lbl}
+                icon={icon}
+                inputMode={key === "nin" ? "numeric" : undefined}
               />
             )}
           </div>
@@ -1094,7 +1216,7 @@ const moveEdu = (i, dir) => {
         <div className="cv-form__field">
           <Label>Gender</Label>
           <select
-            className="cv-input"
+            className="cvf-select"
             value={cv.gender || ""}
             onChange={upd("gender")}
           >
@@ -1106,9 +1228,9 @@ const moveEdu = (i, dir) => {
         </div>
 
         <div className="cv-form__field">
-          <Label>Marital Status</Label>
+          <Label>Marital status</Label>
           <select
-            className="cv-input"
+            className="cvf-select"
             value={cv.maritalStatus || ""}
             onChange={upd("maritalStatus")}
           >
@@ -1126,36 +1248,38 @@ const moveEdu = (i, dir) => {
   return (
     <div className={`cv-form-panel ${tab === "preview" ? "cv-form-panel--hidden" : ""}`}>
 
-      {/* STEP NAV */}
-      <div className="cv-steps">
-        {STEPS.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setStep(i)}
-            className={`cv-steps__btn ${step === i ? "cv-steps__btn--active" : ""}`}
-          >
-            {i + 1}. {s}
-          </button>
-        ))}
-      </div>
+      <FormHeader
+        cv={cv}
+        template={template}
+        step={step}
+        setStep={setStep}
+        entitlement={entitlement}
+        onAts={onAts}
+        showTools={isMobile}
+      />
 
-      <div className="cv-form__body">
+      {/* key: each step fades in fresh */}
+      <div className="cv-form__body cvf-body" key={step}>
         {renderStep()}
-        <div className="cv-form__nav">
-          {step > 0 && (
+        <div className="cvf-nav">
+          {step > 0 ? (
             <button
               onClick={() => setStep(s => s - 1)}
-              className="cv-form__nav-btn cv-form__nav-btn--back"
+              className="cvf-nav__back"
             >
               <i className="fas fa-arrow-left"></i> Back
             </button>
-          )}
-          {step < STEPS.length - 1 && (
+          ) : <span />}
+          {step < STEPS.length - 1 ? (
             <button
               onClick={() => setStep(s => s + 1)}
-              className="cv-form__nav-btn cv-form__nav-btn--next"
+              className="cvf-nav__next"
             >
-              Next <i className="fas fa-arrow-right"></i>
+              Next: {STEP_META[step + 1].label} <i className="fas fa-arrow-right"></i>
+            </button>
+          ) : (
+            <button onClick={onFinish} className="cvf-nav__next cvf-nav__next--finish">
+              <i className="fas fa-flag-checkered"></i> {isMobile ? "Finish & preview" : "All done"}
             </button>
           )}
         </div>

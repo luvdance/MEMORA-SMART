@@ -6062,3 +6062,24 @@
   opacity: 0;
   cursor: pointer;
 }
+
+/* ── LIVE TEMPLATE THUMBNAIL (shared by the web template menu and phone Design tab) ── */
+.cv-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #eef0f4;
+}
+
+.cv-thumb__page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 794px;
+  min-height: 1123px;
+  transform-origin: top left;
+  pointer-events: none;
+}

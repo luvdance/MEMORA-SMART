@@ -1,8 +1,8 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TEMPLATES, ACCENT, THEME_PRESETS, FONT_OPTIONS } from "../../utils/constants";
 import { TEMPLATE_INFO } from "../../utils/sampleCV";
 import { isPremiumTemplate } from "../../utils/templateMeta";
-import { TEMPLATE_COMPONENTS } from "../templateRegistry";
+import TemplateThumb from "../TemplateThumb";
 import SectionOrderPanel from "../SectionOrderPanel";
 import FormatPanel from "../FormatPanel";
 
@@ -17,18 +17,6 @@ const SEGMENTS = [
 // A few extra accents that print well, alongside the brand set.
 const EXTRA_ACCENTS = ["#0f172a", "#0ea5e9", "#16a34a", "#b45309", "#be185d"];
 
-// The user's own CV drawn small in a template — the real thing, not a stock image.
-const TemplateThumb = memo(function TemplateThumb({ index, cv, accent, format, sectionOrder, theme }) {
-  const Template = TEMPLATE_COMPONENTS[index];
-  return (
-    <div className="mapp-thumb__viewport" aria-hidden="true">
-      <div className="mapp-thumb__page" style={{ background: theme.bg }}>
-        <Template cv={cv} accent={accent} format={format} sectionOrder={sectionOrder} theme={theme} />
-      </div>
-    </div>
-  );
-});
-
 export default function MobileDesignPanel({
   cv, template, setTemplate, accent, setAccent, theme, setTheme,
   format, setFormat, sectionOrder, setSectionOrder, entitlement,
@@ -42,7 +30,7 @@ export default function MobileDesignPanel({
     const grid = gridRef.current;
     if (!grid) return undefined;
     const measure = () => {
-      const viewport = grid.querySelector(".mapp-thumb__viewport");
+      const viewport = grid.querySelector(".cv-thumb");
       if (viewport?.clientWidth) setThumbScale(viewport.clientWidth / 794);
     };
     measure();
@@ -71,7 +59,7 @@ export default function MobileDesignPanel({
       </div>
 
       {segment === "templates" && (
-        <div className="mapp-thumbs" ref={gridRef} style={{ "--thumb-scale": thumbScale }}>
+        <div className="mapp-thumbs" ref={gridRef}>
           {TEMPLATES.map((name, i) => {
             const selected = template === i;
             const locked = isPremiumTemplate(i) && !entitlement?.premium;
@@ -90,6 +78,7 @@ export default function MobileDesignPanel({
                   format={format}
                   sectionOrder={sectionOrder}
                   theme={theme}
+                  scale={thumbScale}
                 />
                 {isPremiumTemplate(i) && (
                   <span className={`mapp-thumb__badge ${locked ? "" : "mapp-thumb__badge--owned"}`}>

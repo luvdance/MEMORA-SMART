@@ -4,7 +4,6 @@ import CVNavbar from "../cv-builder/components/CVNavbar";
 import CVForm from "../cv-builder/components/CVForm";
 import CVPreview from "../cv-builder/components/CVPreview";
 import { MobileAppBar, MobileTabBar, MobilePreviewBar } from "../cv-builder/components/mobile/MobileShell";
-import MobileEditHeader from "../cv-builder/components/mobile/MobileEditHeader";
 import MobileDesignPanel from "../cv-builder/components/mobile/MobileDesignPanel";
 import MobileMoreSheet from "../cv-builder/components/mobile/MobileMoreSheet";
 import "../cv-builder/CVMobile.css";
@@ -501,9 +500,14 @@ const triggerPrint = async () => {
 
       {!isMobile && (
         <CVNavbar
+          cv={cv}
+          cvId={cvId}
           template={template} setTemplate={setTemplate}
           accent={accent} setAccent={setAccent}
-          tab={tab} setTab={setTab}
+          entitlement={entitlement}
+          onPlan={() => (entitlement?.premium ? navigate("/dashboard/payments") : openPaywall("upgrade"))}
+          adminMode={adminMode}
+          sectionOrder={sectionOrder}
           onPrint={handlePrint}
           onDownload={handleDownloadPDF}
           pdfLoading={pdfLoading}
@@ -515,9 +519,7 @@ const triggerPrint = async () => {
           isOwner={isOwner}
           user={user}
           format={format}
-          setFormat={setFormat}
           theme={theme}
-          setTheme={setTheme}
           showFormat={showFormat}
           setShowFormat={setShowFormat}
           showOrder={showOrder}
@@ -657,17 +659,6 @@ const triggerPrint = async () => {
 
       <div className="cvb__body" data-active-tab={tab}>
 
-        {isMobile && tab === "form" && (
-          <MobileEditHeader
-            cv={cv}
-            template={template}
-            step={step}
-            setStep={setStep}
-            entitlement={entitlement}
-            onAts={() => setShowAts(true)}
-          />
-        )}
-
         {isMobile && tab === "design" && (
           <MobileDesignPanel
             cv={cv}
@@ -693,6 +684,13 @@ const triggerPrint = async () => {
           template={template}
           step={step} setStep={setStep}
           tab={tab}
+          entitlement={entitlement}
+          onAts={() => setShowAts(true)}
+          isMobile={isMobile}
+          onFinish={() => {
+            if (isMobile) { setTab("preview"); window.scrollTo({ top: 0 }); }
+            else showToast("Your CV is ready. Download it or print it from the top bar.", "success");
+          }}
         />
 
         {/* Always mounted: Print and Download copy this preview, whatever tab is showing. */}

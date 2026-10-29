@@ -114,7 +114,7 @@ function installParentPrintStyle(theme, format) {
       min-height: auto !important;
     }
     /* Take the app chrome out of layout entirely (visibility alone still paginates it). */
-    .cvnav, .cv-form-panel, .cv-preview__toolbar, .fmt-panel-wrapper, .cvb-quick-design,
+    .cvnav, .wnav, .cv-form-panel, .cv-preview__toolbar, .fmt-panel-wrapper, .cvb-quick-design,
     .cvb__ats-actions, .cvb-notice, .cv-optimized-banner, .cvnav__footer,
     .cvb-bottom-sheet, .cvb-bottom-sheet-backdrop, .cvb-bottom-nav, .cvb-more-sheet,
     .cvb-more-backdrop, .cvb-toast, .cvb-dl-toast, .cv-ats, .cv-ats__backdrop,
