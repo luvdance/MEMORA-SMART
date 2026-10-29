@@ -6027,3 +6027,38 @@
   margin: -2px 0 8px;
   line-height: 1.4;
 }
+
+/* ── PHOTO UPLOAD BUTTON (replaces the raw file input) ── */
+.cv-photo-upload {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1.5px dashed #c4b5fd;
+  background: #faf7ff;
+  color: #6d28d9;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.cv-photo-upload:hover {
+  background: #f3edff;
+}
+
+.cv-photo-upload:focus-within {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+/* Visually hidden but still the real, accessible file input. */
+.cv-photo-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}

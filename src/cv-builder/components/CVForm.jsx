@@ -326,7 +326,10 @@ const moveEdu = (i, dir) => {
           <div className="cv-form__field">
             <Label>Passport Photo</Label>
             <p className="cv-form__hint">This template shows a photo. Use a clear, front-facing passport-style picture.</p>
-            <input type="file" accept="image/*" onChange={handlePhoto} className="cv-file-input" />
+            <label className="cv-photo-upload">
+              <input type="file" accept="image/*" onChange={handlePhoto} />
+              <i className="fas fa-camera"></i> {cv.photo ? "Change photo" : "Upload photo"}
+            </label>
             {cv.photo && (
               <div className="cv-photo-row">
                 <img src={cv.photo} alt="preview" className="cv-photo-preview" />

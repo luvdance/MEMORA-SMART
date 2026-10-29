@@ -3,7 +3,11 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import CVNavbar from "../cv-builder/components/CVNavbar";
 import CVForm from "../cv-builder/components/CVForm";
 import CVPreview from "../cv-builder/components/CVPreview";
-import CVQuickDesign from "../cv-builder/components/CVQuickDesign";
+import { MobileAppBar, MobileTabBar, MobilePreviewBar } from "../cv-builder/components/mobile/MobileShell";
+import MobileEditHeader from "../cv-builder/components/mobile/MobileEditHeader";
+import MobileDesignPanel from "../cv-builder/components/mobile/MobileDesignPanel";
+import MobileMoreSheet from "../cv-builder/components/mobile/MobileMoreSheet";
+import "../cv-builder/CVMobile.css";
 import { emptyCV, ACCENT, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER } from "../cv-builder/utils/constants";
 import { saveCV, loadCV, adminSaveCV } from "../cv-builder/utils/cvService";
 import { shrinkPhoto } from "../cv-builder/utils/imageCompress";
@@ -82,7 +86,6 @@ export default function CVBuilder({ adminMode = false }) {
   //isMobile state
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
   // ── MOBILE UI STATE ──
-  const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   //PAYWALL
@@ -216,10 +219,16 @@ useEffect(() => {
     setRemoteUpdate(null);
   };
 
+  // ── PHONES: each new form step starts at the top ──
+  useEffect(() => {
+    if (isMobile) window.scrollTo({ top: 0, behavior: "smooth" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
   // ── BODY SCROLL LOCK ──
   useEffect(() => {
-    document.body.style.overflow = (showCustomizeSheet || showMoreMenu) ? "hidden" : "";
-  }, [showCustomizeSheet, showMoreMenu]);
+    document.body.style.overflow = showMoreMenu ? "hidden" : "";
+  }, [showMoreMenu]);
 
   // ── LOAD OPTIMIZED CV FROM ATS CHECKER ──
 useEffect(() => {
@@ -486,37 +495,50 @@ const triggerPrint = async () => {
   };
 
   // ── MOBILE SHEET HANDLERS ──
-  const openCustomize = () => setShowCustomizeSheet(true);
-  const closeCustomize = () => setShowCustomizeSheet(false);
-  const openMore = () => setShowMoreMenu(true);
-  const closeMore = () => setShowMoreMenu(false);
 
   return (
     <div className="cvb">
 
-      <CVNavbar
-        template={template} setTemplate={setTemplate}
-        accent={accent} setAccent={setAccent}
-        tab={tab} setTab={setTab}
-        onPrint={handlePrint}
-        onDownload={handleDownloadPDF}
-        pdfLoading={pdfLoading}
-        onSave={handleSave}
-        onShare={handleShare}
-        onClear={() => setShowClearModal(true)}
-        saving={saving}
-        saveStatus={saveStatus}
-        isOwner={isOwner}
-        user={user}
-        format={format}
-        setFormat={setFormat}
-        theme={theme}
-        setTheme={setTheme}
-        showFormat={showFormat}
-        setShowFormat={setShowFormat}
-        showOrder={showOrder}
-        setShowOrder={setShowOrder}
-      />
+      {!isMobile && (
+        <CVNavbar
+          template={template} setTemplate={setTemplate}
+          accent={accent} setAccent={setAccent}
+          tab={tab} setTab={setTab}
+          onPrint={handlePrint}
+          onDownload={handleDownloadPDF}
+          pdfLoading={pdfLoading}
+          onSave={handleSave}
+          onShare={handleShare}
+          onClear={() => setShowClearModal(true)}
+          saving={saving}
+          saveStatus={saveStatus}
+          isOwner={isOwner}
+          user={user}
+          format={format}
+          setFormat={setFormat}
+          theme={theme}
+          setTheme={setTheme}
+          showFormat={showFormat}
+          setShowFormat={setShowFormat}
+          showOrder={showOrder}
+          setShowOrder={setShowOrder}
+        />
+        )}
+
+      {isMobile && (
+        <MobileAppBar
+          cv={cv}
+          cvId={cvId}
+          saveStatus={saveStatus}
+          saving={saving}
+          onSave={handleSave}
+          onHome={() => navigate(adminMode ? "/admin" : "/dashboard", adminMode ? { state: { tab: "cvs" } } : undefined)}
+          user={user}
+          entitlement={entitlement}
+          onPlan={() => (entitlement?.premium ? navigate("/dashboard/payments") : openPaywall("upgrade"))}
+          adminMode={adminMode}
+        />
+      )}
 
       {/* ADMIN MODE: whose CV this is */}
       {adminMode && (
@@ -572,7 +594,8 @@ const triggerPrint = async () => {
       </div>
     )}
 
-    {/* ATS QUICK ACTIONS + PLAN STATUS */}
+    {/* ATS QUICK ACTIONS + PLAN STATUS (desktop; phones get them on the Edit tab) */}
+    {!isMobile && (
     <div className="cvb__ats-actions">
       <div className="cvb__ats-actions-label">
         <i className="fas fa-bolt"></i>
@@ -610,6 +633,7 @@ const triggerPrint = async () => {
         </button>
       )}
     </div>
+    )}
 
     {/* PREMIUM TEMPLATE NOTICE (free users) */}
     {isPremiumTemplate(template) && !entitlement?.premium && !adminMode && (
@@ -633,14 +657,36 @@ const triggerPrint = async () => {
 
       <div className="cvb__body" data-active-tab={tab}>
 
-        {/* MOBILE-ONLY QUICK DESIGN PANEL */}
-        <CVQuickDesign
-          template={template} setTemplate={setTemplate}
-          accent={accent} setAccent={setAccent}
-          theme={theme} setTheme={setTheme}
-          sectionOrder={sectionOrder} setSectionOrder={setSectionOrder}
-          format={format} setFormat={setFormat}
-        />
+        {isMobile && tab === "form" && (
+          <MobileEditHeader
+            cv={cv}
+            template={template}
+            step={step}
+            setStep={setStep}
+            entitlement={entitlement}
+            onAts={() => setShowAts(true)}
+          />
+        )}
+
+        {isMobile && tab === "design" && (
+          <MobileDesignPanel
+            cv={cv}
+            template={template} setTemplate={setTemplate}
+            accent={accent} setAccent={setAccent}
+            theme={theme} setTheme={setTheme}
+            format={format} setFormat={setFormat}
+            sectionOrder={sectionOrder} setSectionOrder={setSectionOrder}
+            entitlement={entitlement}
+          />
+        )}
+
+        {isMobile && tab === "preview" && (
+          <MobilePreviewBar
+            templateName={TEMPLATE_INFO[template]?.name || "Template"}
+            locked={isPremiumTemplate(template) && !entitlement?.premium}
+            onChange={() => setTab("design")}
+          />
+        )}
 
         <CVForm
           cv={cv} setCV={setCV}
@@ -649,6 +695,7 @@ const triggerPrint = async () => {
           tab={tab}
         />
 
+        {/* Always mounted: Print and Download copy this preview, whatever tab is showing. */}
         <CVPreview
           cv={cv} accent={accent}
           template={template}
@@ -667,137 +714,32 @@ const triggerPrint = async () => {
 
       </div>
 
-      {/* ── CUSTOMIZE BOTTOM SHEET ── */}
-      <div
-        className={`cvb-bottom-sheet-backdrop ${showCustomizeSheet ? "open" : ""}`}
-        onClick={closeCustomize}
-      ></div>
-      <div className={`cvb-bottom-sheet ${showCustomizeSheet ? "open" : ""}`}>
-        <div className="cvb-bottom-sheet-header">
-          <h3>Customize CV</h3>
-          <button className="cvb-bottom-sheet-close" onClick={closeCustomize}>
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-        <div className="cvb-bottom-sheet-body">
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Template</span>
-            <select value={template} onChange={(e) => setTemplate(Number(e.target.value))}>
-              {TEMPLATE_INFO.map((t, i) => (
-                <option key={i} value={i}>
-                  {t.name}{isPremiumTemplate(i) ? " ★ Premium" : ""}
-                </option>
-              ))}
-            </select>
+      {/* ── FOOTER (desktop) ── */}
+      {!isMobile && (
+        <footer className="cvnav__footer">
+          <div className="cvnav__footer-left">
+            <img src={cvLogo} alt="Memora" className="cvnav__footer-logo" />
+            <span className="cvnav__footer-brand">Memora Smart CV</span>
+            <span className="cvnav__footer-dot">·</span>
+            <span className="cvnav__footer-copy">© {new Date().getFullYear()} Memora Smart Technologies</span>
           </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Accent Color</span>
-            <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Background</span>
-            <input type="color" value={theme.bg} onChange={(e) => setTheme({ ...theme, bg: e.target.value })} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Text Color</span>
-            <input type="color" value={theme.text} onChange={(e) => setTheme({ ...theme, text: e.target.value })} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Font</span>
-            <select value={format.fontFamily} onChange={(e) => setFormat({ ...format, fontFamily: e.target.value })}>
-              <option value="Georgia, 'Source Serif 4', serif">Georgia</option>
-              <option value="'Helvetica Neue', Helvetica, 'Inter', sans-serif">Helvetica</option>
-              <option value="Calibri, 'Source Sans 3', 'Trebuchet MS', sans-serif">Calibri</option>
-              <option value="Garamond, 'EB Garamond', 'Times New Roman', serif">Garamond</option>
-              <option value="Arial, 'Inter', sans-serif">Arial</option>
-              <option value="'Palatino Linotype', Palatino, 'Cormorant Garamond', serif">Palatino</option>
-              <option value="Verdana, 'DM Sans', Geneva, sans-serif">Verdana</option>
-              <option value="'Trebuchet MS', 'Manrope', sans-serif">Trebuchet</option>
-            </select>
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Name Size: {format.nameFontSize}px</span>
-            <input type="range" min="14" max="36" value={format.nameFontSize}
-              onChange={(e) => setFormat({ ...format, nameFontSize: Number(e.target.value) })} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Body Size: {format.bodyFontSize}px</span>
-            <input type="range" min="8" max="14" value={format.bodyFontSize}
-              onChange={(e) => setFormat({ ...format, bodyFontSize: Number(e.target.value) })} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Heading Size: {format.headingFontSize}px</span>
-            <input type="range" min="9" max="16" value={format.headingFontSize}
-              onChange={(e) => setFormat({ ...format, headingFontSize: Number(e.target.value) })} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Page Padding: {format.pagePadding}px</span>
-            <input type="range" min="12" max="48" value={format.pagePadding}
-              onChange={(e) => setFormat({ ...format, pagePadding: Number(e.target.value) })} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Line Spacing: {format.lineHeight}</span>
-            <input type="range" min="1" max="2" step="0.1" value={format.lineHeight}
-              onChange={(e) => setFormat({ ...format, lineHeight: Number(e.target.value) })} />
-          </div>
-
-          <div className="cv-fmt-group">
-            <span className="cv-fmt-group-label">Heading Style</span>
-            <div className="cv-fmt-row">
-              <button
-                className={`cv-fmt-style-btn ${format.headingBold ? "active" : ""}`}
-                onClick={() => setFormat({ ...format, headingBold: !format.headingBold })}
-                style={{ fontWeight: 700 }}
-              >Bold</button>
-              <button
-                className={`cv-fmt-style-btn ${format.headingItalic ? "active" : ""}`}
-                onClick={() => setFormat({ ...format, headingItalic: !format.headingItalic })}
-                style={{ fontStyle: "italic" }}
-              >Italic</button>
-              <button
-                className={`cv-fmt-style-btn ${format.headingUppercase ? "active" : ""}`}
-                onClick={() => setFormat({ ...format, headingUppercase: !format.headingUppercase })}
-              >AA</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* ── FOOTER ── */}
-      <footer className="cvnav__footer">
-        <div className="cvnav__footer-left">
-          <img src={cvLogo} alt="Memora" className="cvnav__footer-logo" />
-          <span className="cvnav__footer-brand">Memora Smart CV</span>
-          <span className="cvnav__footer-dot">·</span>
-          <span className="cvnav__footer-copy">© {new Date().getFullYear()} Memora Smart Technologies</span>
-        </div>
-        <div className="cvnav__footer-right">
-          {saveStatus === "saved" && (
-            <span className="cvnav__footer-saved">
-              <i className="fas fa-check-circle"></i> All changes saved
+          <div className="cvnav__footer-right">
+            {saveStatus === "saved" && (
+              <span className="cvnav__footer-saved">
+                <i className="fas fa-check-circle"></i> All changes saved
+              </span>
+            )}
+            {saveStatus === "saving" && (
+              <span className="cvnav__footer-saving">
+                <i className="fas fa-circle-notch fa-spin"></i> Saving...
+              </span>
+            )}
+            <span className="cvnav__footer-hint">
+              <i className="fas fa-lock"></i> Your CV is private and secure
             </span>
-          )}
-          {saveStatus === "saving" && (
-            <span className="cvnav__footer-saving">
-              <i className="fas fa-circle-notch fa-spin"></i> Saving...
-            </span>
-          )}
-          <span className="cvnav__footer-hint">
-            <i className="fas fa-lock"></i> Your CV is private and secure
-          </span>
-        </div>
-      </footer>
+          </div>
+        </footer>
+      )}
 
       {/* ── CLEAR MODAL ── */}
       {showClearModal && (
@@ -947,166 +889,41 @@ const triggerPrint = async () => {
         )}
       </div>
 
-      {/* ── MOBILE BOTTOM NAV ── */}
-      <nav className="cvb-bottom-nav">
-        <button
-          className={`cvb-bottom-nav__item ${tab === "form" ? "cvb-bottom-nav__item--active" : ""}`}
-          onClick={() => setTab("form")}
-        >
-          <i className="fas fa-edit"></i>
-          <span>Form</span>
-        </button>
-
-        <button
-          className={`cvb-bottom-nav__item ${tab === "preview" ? "cvb-bottom-nav__item--active" : ""}`}
-          onClick={() => setTab("preview")}
-        >
-          <i className="fas fa-eye"></i>
-          <span>Preview</span>
-        </button>
-
-        <button
-          className={`cvb-bottom-nav__item ${saveStatus === "saved" ? "cvb-bottom-nav__item--saved" : ""} ${saving ? "cvb-bottom-nav__item--saving" : ""}`}
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <i className="fas fa-spinner fa-spin"></i>
-          ) : saveStatus === "saved" ? (
-            <i className="fas fa-check-circle"></i>
-          ) : (
-            <i className="fas fa-save"></i>
-          )}
-          <span>{saving ? "Saving" : saveStatus === "saved" ? "Saved" : "Save"}</span>
-        </button>
-
-        <button
-          className="cvb-bottom-nav__item cvb-bottom-nav__item--download"
-          onClick={handleDownloadPDF}
-          disabled={pdfLoading}
-        >
-          {pdfLoading ? (
-            <i className="fas fa-spinner fa-spin"></i>
-          ) : (
-            <i className="fas fa-download"></i>
-          )}
-          <span>{pdfLoading ? "..." : "Download"}</span>
-        </button>
-
-        <button
-          className={`cvb-bottom-nav__item ${showMoreMenu ? "cvb-bottom-nav__item--active" : ""}`}
-          onClick={openMore}
-        >
-          <i className="fas fa-ellipsis-h"></i>
-          <span>More</span>
-        </button>
-      </nav>
-
-      {/* ── MORE MENU BACKDROP ── */}
-      <div
-        className={`cvb-more-backdrop ${showMoreMenu ? "cvb-more-backdrop--open" : ""}`}
-        onClick={closeMore}
-      ></div>
-
-      {/* ── MORE MENU SHEET ── */}
-      <div className={`cvb-more-sheet ${showMoreMenu ? "cvb-more-sheet--open" : ""}`}>
-        <div className="cvb-more-sheet__header">
-          <h3 className="cvb-more-sheet__title">More options</h3>
-          <button className="cvb-more-sheet__close" onClick={closeMore}>
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-
-        <div className="cvb-more-sheet__list">
-
-          <button
-            className="cvb-more-sheet__item"
-            onClick={() => { closeMore(); setTimeout(() => openCustomize(), 350); }}
-          >
-            <span className="cvb-more-sheet__item-icon">
-              <i className="fas fa-sliders-h"></i>
-            </span>
-            <div className="cvb-more-sheet__item-text">
-              <p className="cvb-more-sheet__item-label">Customize</p>
-              <p className="cvb-more-sheet__item-sub">Fonts, sizes, spacing & colors</p>
-            </div>
-            <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
-          </button>
-
-          <button
-            className="cvb-more-sheet__item"
-            onClick={() => { closeMore(); setTimeout(() => handleShare(), 350); }}
-          >
-            <span className="cvb-more-sheet__item-icon">
-              <i className="fas fa-share-alt"></i>
-            </span>
-            <div className="cvb-more-sheet__item-text">
-              <p className="cvb-more-sheet__item-label">Share CV</p>
-              <p className="cvb-more-sheet__item-sub">Get a public link to share</p>
-            </div>
-            <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
-          </button>
-
-          <button
-            className="cvb-more-sheet__item"
-            onClick={() => { closeMore(); setTimeout(() => handlePrint(), 350); }}
-          >
-            <span className="cvb-more-sheet__item-icon">
-              <i className="fas fa-print"></i>
-            </span>
-            <div className="cvb-more-sheet__item-text">
-              <p className="cvb-more-sheet__item-label">Print</p>
-              <p className="cvb-more-sheet__item-sub">Open browser print dialog</p>
-            </div>
-            <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
-          </button>
-
-          <button
-            className="cvb-more-sheet__item"
-            onClick={() => {
-              closeMore();
-              if (entitlement?.premium) navigate("/dashboard/payments");
-              else if (user) setTimeout(() => openPaywall("upgrade"), 350);
-              else navigate("/pricing");
+      {/* ── MOBILE TAB BAR + MORE SHEET ── */}
+      {isMobile && (
+        <>
+          <MobileTabBar
+            tab={tab}
+            setTab={(t) => { setTab(t); window.scrollTo({ top: 0 }); }}
+            onDownload={handleDownloadPDF}
+            pdfLoading={pdfLoading}
+            onMore={() => setShowMoreMenu(v => !v)}
+            moreOpen={showMoreMenu}
+          />
+          <MobileMoreSheet
+            open={showMoreMenu}
+            onClose={() => setShowMoreMenu(false)}
+            user={user}
+            entitlement={entitlement}
+            isOwner={isOwner}
+            adminMode={adminMode}
+            actions={{
+              ats: () => setShowAts(true),
+              print: handlePrint,
+              share: handleShare,
+              save: handleSave,
+              design: () => { setTab("design"); window.scrollTo({ top: 0 }); },
+              works: () => navigate("/dashboard/my-works"),
+              payments: () => navigate("/dashboard/payments"),
+              dashboard: () => navigate("/dashboard"),
+              admin: () => navigate("/admin", { state: { tab: "cvs" } }),
+              upgrade: () => openPaywall("upgrade"),
+              signIn: () => navigate("/auth", { state: { from: window.location.pathname } }),
+              clear: () => setShowClearModal(true),
             }}
-          >
-            <span className="cvb-more-sheet__item-icon">
-              <i className="fas fa-crown"></i>
-            </span>
-            <div className="cvb-more-sheet__item-text">
-              <p className="cvb-more-sheet__item-label">
-                {entitlement?.premium ? describeEntitlement(entitlement).label : "Go Premium"}
-              </p>
-              <p className="cvb-more-sheet__item-sub">
-                {entitlement?.premium
-                  ? describeEntitlement(entitlement).sub
-                  : `Unlimited downloads & ATS tools, from ${PLANS.monthly.priceLabel}/mo`}
-              </p>
-            </div>
-            <i className="fas fa-chevron-right" style={{ color: "#ccc", fontSize: "0.8rem" }}></i>
-          </button>
-
-          {isOwner && (
-            <>
-              <div className="cvb-more-sheet__divider"></div>
-
-              <button
-                className="cvb-more-sheet__item cvb-more-sheet__item--danger"
-                onClick={() => { closeMore(); setShowClearModal(true); }}
-              >
-                <span className="cvb-more-sheet__item-icon">
-                  <i className="fas fa-eraser"></i>
-                </span>
-                <div className="cvb-more-sheet__item-text">
-                  <p className="cvb-more-sheet__item-label">Clear CV</p>
-                  <p className="cvb-more-sheet__item-sub">Erase all content (cannot be undone)</p>
-                </div>
-              </button>
-            </>
-          )}
-
-        </div>
-      </div>
+          />
+        </>
+      )}
 
 {/* Mobile Format Sheet */}
 {showFormat && isMobile && (
