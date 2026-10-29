@@ -1,4 +1,5 @@
 import { shrinkPhoto } from "./imageCompress";
+import { measureCvLayout } from "./cvLayout";
 
 // ── PRINT ENGINE ──
 // Prints ONLY the CV, from a hidden iframe holding a copy of the preview and
@@ -18,8 +19,12 @@ import { shrinkPhoto } from "./imageCompress";
 const READY_TIMEOUT_MS = 4000;
 
 // Rules the CV relies on, shared by the iframe and the parent fallback.
-function cvPrintRules(theme, format, scope = "") {
+// layout: { sidebar, pages } measured from the on-screen preview. Sidebar
+// templates print full bleed on every page; their columns repeat their own
+// padding per page (box-decoration-break), so text keeps a margin.
+function cvPrintRules(theme, format, layout = {}, scope = "") {
   const s = scope ? `${scope} ` : "";
+  const sidebarFill = layout.sidebar ? `calc(${(layout.pages || 1) * 297}mm - 1mm)` : "calc(297mm - 1mm)";
   return `
     ${s}.cv-preview__page {
       width: 210mm !important;
@@ -40,9 +45,13 @@ function cvPrintRules(theme, format, scope = "") {
        spill a blank extra page. */
     ${s}.cv-preview__page > div[style*="display: flex"],
     ${s}.cv-preview__page > div[style*="display:flex"] {
-      min-height: calc(297mm - 1mm) !important;
+      min-height: ${sidebarFill} !important;
       align-items: stretch !important;
     }
+    ${layout.sidebar ? `${s}.cv-preview__page > div > div {
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }` : ""}
     ${s}.cv-preview__page > div[style*="display: flex"] > div[style*="width: 190px"],
     ${s}.cv-preview__page > div[style*="display: flex"] > div[style*="width: 200px"],
     ${s}.cv-preview__page > div[style*="display:flex"] > div[style*="width:190px"],
@@ -64,7 +73,8 @@ function cvPrintRules(theme, format, scope = "") {
   `;
 }
 
-function pageRules(format) {
+function pageRules(format, layout = {}) {
+  if (layout.sidebar) return `@page { size: A4 portrait; margin: 0; }`;
   // pagePadding (px) → mm (1mm ≈ 3.78px): top margin on pages 2+.
   const verticalMargin = Math.round((format?.pagePadding || 24) / 3.78);
   return `
@@ -74,7 +84,7 @@ function pageRules(format) {
 }
 
 // ── FALLBACK: make the app page itself print as just the CV ──
-function installParentPrintStyle(theme, format) {
+function installParentPrintStyle(theme, format, layout) {
   const styleId = "cv-print-style";
   let style = document.getElementById(styleId);
   if (!style) {
@@ -83,7 +93,7 @@ function installParentPrintStyle(theme, format) {
     document.head.appendChild(style);
   }
   style.textContent = `
-  ${pageRules(format)}
+  ${pageRules(format, layout)}
   @media print {
     *, *::before, *::after {
       -webkit-print-color-adjust: exact !important;
@@ -122,7 +132,7 @@ function installParentPrintStyle(theme, format) {
     iframe[data-cv-print] {
       display: none !important;
     }
-    ${cvPrintRules(theme, format)}
+    ${cvPrintRules(theme, format, layout)}
   }
   `;
 }
@@ -195,7 +205,9 @@ export async function printCV({ previewRef, cv, theme, format }) {
     return;
   }
 
-  installParentPrintStyle(theme, format);
+  const layout = measureCvLayout(content);
+
+  installParentPrintStyle(theme, format, layout);
 
   // One print frame at a time; the previous one is kept until now because
   // mobile browsers read it after print() has already returned.
@@ -214,14 +226,14 @@ ${fontStylesheetLinks()}
 <style>
   ${BASE_RESET}
   ${PREVIEW_TEXT_RULES}
-  ${pageRules(format)}
+  ${pageRules(format, layout)}
   *, *::before, *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
   html, body { margin: 0; padding: 0; background: ${theme?.bg || "#ffffff"}; }
-  ${cvPrintRules(theme, format)}
+  ${cvPrintRules(theme, format, layout)}
 </style>
 </head>
 <body>${clone.outerHTML}</body>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 import { getAllCVs } from "../../cv-builder/utils/cvService";
-import { TEMPLATES, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER } from "../../cv-builder/utils/constants";
+import { TEMPLATES, defaultFormat, DEFAULT_SECTION_ORDER, resolveTheme } from "../../cv-builder/utils/constants";
 import { isPremiumTemplate } from "../../cv-builder/utils/templateMeta";
 import {
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile,
@@ -21,7 +21,7 @@ function formatDate(ts) {
 // Read-only rendering of a saved CV, scaled to fit the modal.
 function CVQuickPreview({ cvDoc }) {
   const Template = TEMPLATE_COMPONENTS[cvDoc.template] || ClassicPro;
-  const theme = { ...defaultTheme, ...(cvDoc.theme || {}) };
+  const theme = resolveTheme(cvDoc.theme);
   return (
     <div className="admin-cvs__preview-scale">
       <div className="admin-cvs__preview-page" style={{ background: theme.bg }}>

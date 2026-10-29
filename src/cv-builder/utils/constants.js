@@ -19,7 +19,7 @@ export const TEMPLATES = [
 export const ACCENT = ["#2563eb", "#0f766e", "#7c3aed", "#dc2626", "#d97706"];
 
 export const THEME_PRESETS = [
-  { label: "Default", bg: "#ffffff", text: "#222222", sidebar: "#1e293b" },
+  { label: "White", bg: "#ffffff", text: "#222222", sidebar: "#1e293b" },
   { label: "Warm", bg: "#fffaf5", text: "#2c1810", sidebar: "#7c3a20" },
   { label: "Cool", bg: "#f0f7ff", text: "#0f2a4a", sidebar: "#0f2a4a" },
   { label: "Dark", bg: "#1a1a2e", text: "#e0e0e0", sidebar: "#16213e" },
@@ -32,6 +32,18 @@ export const defaultTheme = {
   text: "#222222",
   sidebar: "#1e293b",
 };
+
+// Page background is white unless the user has picked one themselves.
+// A picked background is stored with chosen: true; anything without it
+// (older drafts, earlier accidental picks) falls back to white.
+export function resolveTheme(theme) {
+  return theme && theme.chosen ? { ...defaultTheme, ...theme } : defaultTheme;
+}
+
+// The theme to store when the user picks a background preset.
+export function chooseTheme(preset) {
+  return { bg: preset.bg, text: preset.text, sidebar: preset.sidebar, chosen: true };
+}
 
 export const defaultFormat = {
   fontFamily: "Georgia, serif",

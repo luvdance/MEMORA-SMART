@@ -1,3 +1,5 @@
+import { measureCvLayout } from "./cvLayout";
+
 export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   const content = previewRef.current;
   if (!content) throw new Error("Preview not ready");
@@ -29,8 +31,9 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   // How tall is the CV itself (the template, not the A4-min-height page)?
   // A CV that fits one page is printed as a single full-bleed page.
   // The buffer absorbs small font-metric differences on the PDF server.
-  const contentHeight = content.firstElementChild?.offsetHeight || content.scrollHeight;
-  const singlePage = contentHeight <= 1123 - 40;
+  // Sidebar templates (flex row) print full bleed on every page, so the
+  // sidebar runs edge to edge; each column repeats its own padding per page.
+  const { singlePage, sidebar: sidebarLayout, pages: pageCount } = measureCvLayout(content);
 
   // Restore immediately
   Object.assign(content.style, saved);
@@ -42,8 +45,12 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
   // under the printable height: anything taller spills a blank second page.
   //  - single page: no margins at all (full bleed)
   //  - multi page: page 1 keeps its bottom margin (see @page below)
-  const fillHeight = singlePage ? "calc(297mm - 1mm)" : `calc(297mm - ${verticalMargin}mm - 1mm)`;
-  const pageCss = singlePage
+  //  - sidebar layout: full bleed on every page, filled to the last page
+  const fullBleed = singlePage || sidebarLayout;
+  const fillHeight = sidebarLayout
+    ? `calc(${pageCount * 297}mm - 1mm)`
+    : singlePage ? "calc(297mm - 1mm)" : `calc(297mm - ${verticalMargin}mm - 1mm)`;
+  const pageCss = fullBleed
     ? `@page { size: A4 portrait; margin: 0; }`
     : `@page { size: A4 portrait; margin: ${verticalMargin}mm 0; }
     @page :first { margin-top: 0; }`;
@@ -108,6 +115,13 @@ export async function downloadCVPdf({ previewRef, cv, theme, format }) {
     .cv-preview__page > div {
       min-height: ${fillHeight} !important;
     }
+
+    /* Each sidebar/main column repeats its top and bottom padding on every
+       printed page, so text keeps a margin while backgrounds stay full bleed. */
+    ${sidebarLayout ? `.cv-preview__page > div > div {
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }` : ""}
 
     /* ── PAGE BREAKS — respect section boundaries ── */
     .cv-item {

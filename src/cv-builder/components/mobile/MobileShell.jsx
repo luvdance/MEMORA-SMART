@@ -2,14 +2,28 @@
 // Top app bar, bottom tab bar and the preview header used on phones
 // (≤900px). Desktop keeps CVNavbar and the side-by-side layout.
 
-export function MobileAppBar({ cv, cvId, saveStatus, saving, onSave, onHome, user, entitlement, onPlan, adminMode }) {
-  const title = cv.name ? `${cv.name.trim().split(/\s+/)[0]}'s CV` : "My CV";
+const STATUS = {
+  new: { text: "Not saved yet", icon: "fa-mobile-screen", tone: "muted" },
+  dirty: { text: "Unsaved changes", icon: "fa-circle", tone: "warn" },
+  saving: { text: "Saving…", icon: "fa-circle-notch fa-spin", tone: "muted" },
+  saved: { text: "All changes saved", icon: "fa-circle-check", tone: "ok" },
+  error: { text: "Couldn't save", icon: "fa-triangle-exclamation", tone: "bad" },
+};
+const SAVE_BTN = {
+  new: { label: "Save", icon: "fa-cloud-arrow-up" },
+  dirty: { label: "Save", icon: "fa-cloud-arrow-up" },
+  saving: { label: "Saving", icon: "fa-circle-notch fa-spin" },
+  saved: { label: "Saved", icon: "fa-circle-check" },
+  error: { label: "Retry", icon: "fa-rotate-right" },
+};
 
-  let status = { text: cvId ? "Saved to your account" : "Draft on this device", icon: cvId ? "fa-cloud" : "fa-mobile-screen", tone: "muted" };
-  if (saving || saveStatus === "saving") status = { text: "Saving…", icon: "fa-circle-notch fa-spin", tone: "muted" };
-  else if (saveStatus === "saved") status = { text: "All changes saved", icon: "fa-circle-check", tone: "ok" };
-  else if (saveStatus === "error") status = { text: "Couldn't save. Tap to retry", icon: "fa-triangle-exclamation", tone: "bad" };
-  if (adminMode) status = { text: "Admin editing", icon: "fa-user-shield", tone: "muted" };
+// saveState: "new" | "dirty" | "saving" | "saved" | "error" (see CVBuilder.jsx)
+export function MobileAppBar({ cv, saveState = "new", saving, onSave, onHome, user, entitlement, onPlan, adminMode }) {
+  const title = cv.name ? `${cv.name.trim().split(/\s+/)[0]}'s CV` : "My CV";
+  const status = adminMode && saveState !== "saving" && saveState !== "error"
+    ? { text: saveState === "saved" ? "Admin · changes saved" : "Admin editing", icon: "fa-user-shield", tone: saveState === "saved" ? "ok" : "muted" }
+    : STATUS[saveState] || STATUS.new;
+  const btn = SAVE_BTN[saveState] || SAVE_BTN.new;
 
   return (
     <header className="mapp-bar">
@@ -37,12 +51,14 @@ export function MobileAppBar({ cv, cvId, saveStatus, saving, onSave, onHome, use
       )}
 
       <button
-        className={`mapp-bar__icon mapp-bar__icon--save ${saveStatus === "saved" ? "mapp-bar__icon--saved" : ""}`}
+        className={`mapp-save mapp-save--${saveState}`}
         onClick={onSave}
         disabled={saving}
-        aria-label="Save CV"
+        aria-label={saveState === "saved" ? "Saved" : "Save CV"}
       >
-        <i className={`fas ${saving ? "fa-circle-notch fa-spin" : saveStatus === "saved" ? "fa-check" : "fa-cloud-arrow-up"}`}></i>
+        <i className={`fas ${btn.icon}`}></i>
+        <span>{btn.label}</span>
+        {saveState === "dirty" && <span className="mapp-save__dot" aria-hidden="true" />}
       </button>
     </header>
   );

@@ -395,3 +395,106 @@
 @media (min-width: 901px) {
   .cv-preview__toolbar > div { display: none !important; }
 }
+
+/* ── SAVE BUTTON: always labelled, colour says the state ── */
+.wnav__save {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 11px;
+  border: 1.5px solid #ddd6fe;
+  background: #faf7ff;
+  color: #5b21b6;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.wnav__save:hover:not(:disabled) { background: #f3edff; border-color: #c4b5fd; }
+.wnav__save:disabled { cursor: default; }
+.wnav__save--saving { color: #475569; border-color: var(--wn-line); background: #fff; }
+.wnav__save--saved { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+.wnav__save--saved:hover:not(:disabled) { background: #dcfce7; border-color: #86efac; }
+.wnav__save--error { border-color: #fecaca; background: #fff5f5; color: #b91c1c; }
+.wnav__save-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 2px solid #fff;
+}
+.wnav__status--warn { color: #b45309; }
+.wnav__status--warn i { font-size: 0.45rem; vertical-align: middle; }
+
+/* ── PAGE BACKGROUND MENU ── */
+.wnav__paper {
+  width: 16px;
+  height: 20px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.2);
+  flex-shrink: 0;
+}
+.wnav__panel--page { left: 0; width: 250px; padding: 8px; }
+.wnav__page-chip {
+  position: relative;
+  width: 26px;
+  height: 20px;
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.14);
+}
+.wnav__page-chip span { position: absolute; left: 0; top: 0; bottom: 0; width: 34%; }
+.wnav__rec {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e8f8ee;
+  color: #15803d;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+.wnav__page-note {
+  margin: 6px 8px 4px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f1f5;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--wn-sub);
+}
+
+/* ── BACKGROUND BUTTON: own colour + permanent label so it's easy to find ── */
+.wnav__bg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 7px 0 6px;
+  border-radius: 10px;
+  border: 1.5px solid #99e2d8;
+  background: #ecfbf8;
+  color: #0f766e;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.wnav__bg:hover { background: #dcf7f2; border-color: #5fd0c1; }
+.wnav__bg--on { background: #ccf3ec; border-color: #0f766e; }
+.wnav__bg-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 0.66rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+

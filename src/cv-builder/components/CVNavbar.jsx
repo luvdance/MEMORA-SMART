@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { TEMPLATES, ACCENT } from "../utils/constants";
+import { TEMPLATES, ACCENT, THEME_PRESETS, chooseTheme } from "../utils/constants";
 import { isPremiumTemplate } from "../utils/templateMeta";
 import { TEMPLATE_INFO } from "../utils/sampleCV";
 import cvLogo from "../../assets/cv logo.png";
@@ -16,13 +16,14 @@ const TEMPLATE_GROUPS = [
 // ── WEB NAVBAR (desktop) ──
 // Phones use the mobile app shell (components/mobile/MobileShell.jsx).
 export default function CVNavbar({
-  cv, cvId, template, setTemplate, accent, setAccent,
+  cv, template, setTemplate, accent, setAccent,
   onPrint, onDownload, pdfLoading, onSave, onShare, onClear,
-  saving, saveStatus, isOwner, user, entitlement, onPlan, adminMode,
+  saving, saveState = "new", isOwner, user, entitlement, onPlan, adminMode,
+  theme, setTheme,
   showFormat, setShowFormat, showOrder, setShowOrder,
 }) {
   const navigate = useNavigate();
-  const [menu, setMenu] = useState(null); // "templates" | "account" | null
+  const [menu, setMenu] = useState(null); // "templates" | "page" | "account" | null
   const navRef = useRef(null);
 
   // Close menus on outside click or Escape.
@@ -41,11 +42,25 @@ export default function CVNavbar({
   const toggle = (name) => setMenu((m) => (m === name ? null : name));
 
   const title = cv?.name ? `${cv.name.trim().split(/\s+/)[0]}'s CV` : "Untitled CV";
-  let status = { text: cvId ? "Saved to your account" : "Draft on this device", icon: cvId ? "fa-cloud" : "fa-laptop", tone: "" };
-  if (saving || saveStatus === "saving") status = { text: "Saving…", icon: "fa-circle-notch fa-spin", tone: "" };
-  else if (saveStatus === "saved") status = { text: "All changes saved", icon: "fa-circle-check", tone: "ok" };
-  else if (saveStatus === "error") status = { text: "Couldn't save", icon: "fa-triangle-exclamation", tone: "bad" };
-  if (adminMode) status = { text: "Admin editing", icon: "fa-user-shield", tone: "" };
+  const STATUS = {
+    new: { text: "Not saved yet", icon: "fa-laptop", tone: "" },
+    dirty: { text: "Unsaved changes", icon: "fa-circle", tone: "warn" },
+    saving: { text: "Saving…", icon: "fa-circle-notch fa-spin", tone: "" },
+    saved: { text: "All changes saved", icon: "fa-circle-check", tone: "ok" },
+    error: { text: "Couldn't save. Try again", icon: "fa-triangle-exclamation", tone: "bad" },
+  };
+  const status = adminMode && saveState !== "saving" && saveState !== "error"
+    ? { text: saveState === "saved" ? "Admin · changes saved" : "Admin editing", icon: "fa-user-shield", tone: saveState === "saved" ? "ok" : "" }
+    : STATUS[saveState] || STATUS.new;
+  const SAVE_BTN = {
+    new: { label: "Save", icon: "fa-cloud-arrow-up" },
+    dirty: { label: "Save", icon: "fa-cloud-arrow-up" },
+    saving: { label: "Saving…", icon: "fa-circle-notch fa-spin" },
+    saved: { label: "Saved", icon: "fa-circle-check" },
+    error: { label: "Retry", icon: "fa-rotate-right" },
+  };
+  const saveBtn = SAVE_BTN[saveState] || SAVE_BTN.new;
+  const activePage = THEME_PRESETS.find(p => p.bg === theme?.bg && p.text === theme?.text);
 
   const accents = [...new Set([TEMPLATE_INFO[template]?.accent, ...ACCENT].filter(Boolean))];
   const initial = (user?.displayName || user?.email || "?").charAt(0).toUpperCase();
@@ -143,6 +158,49 @@ export default function CVNavbar({
 
         <span className="wnav__tool-sep" aria-hidden="true" />
 
+        <div className="wnav__menu-wrap">
+          {/* Icon only (its own teal colour keeps it easy to spot); the swatch shows the current background. */}
+          <button
+            className={`wnav__bg ${menu === "page" ? "wnav__bg--on" : ""}`}
+            onClick={() => toggle("page")}
+            aria-expanded={menu === "page"}
+            aria-haspopup="true"
+            aria-label={`Page background: ${activePage ? activePage.label : "Custom"}`}
+            title={`Page background: ${activePage ? activePage.label : "Custom"}`}
+          >
+            <i className="fas fa-fill-drip wnav__bg-icon" aria-hidden="true"></i>
+            <span className="wnav__paper" style={{ background: theme?.bg || "#fff" }} aria-hidden="true" />
+          </button>
+
+          {menu === "page" && (
+            <div className="wnav__panel wnav__panel--page" role="menu">
+              <div className="wnav__group-label">Page background</div>
+              {THEME_PRESETS.map((p) => {
+                const on = theme?.bg === p.bg && theme?.text === p.text;
+                return (
+                  <button
+                    key={p.label}
+                    role="menuitemradio"
+                    aria-checked={on}
+                    className={`wnav__option ${on ? "wnav__option--on" : ""}`}
+                    onClick={() => { setTheme(chooseTheme(p)); setMenu(null); }}
+                  >
+                    <span className="wnav__page-chip" style={{ background: p.bg }}>
+                      <span style={{ background: p.sidebar }} />
+                    </span>
+                    <span className="wnav__option-name">{p.label}</span>
+                    {p.label === "White" && <span className="wnav__rec">Recommended</span>}
+                    {on && <i className="fas fa-check wnav__option-check" aria-hidden="true"></i>}
+                  </button>
+                );
+              })}
+              <p className="wnav__page-note">White prints cleanest and suits every template.</p>
+            </div>
+          )}
+        </div>
+
+        <span className="wnav__tool-sep" aria-hidden="true" />
+
         <button
           className={`wnav__tool ${showFormat ? "wnav__tool--on" : ""}`}
           onClick={() => { setShowFormat((v) => !v); setShowOrder(false); }}
@@ -176,9 +234,15 @@ export default function CVNavbar({
         )}
 
         {(isOwner || adminMode) && (
-          <button className="wnav__btn" onClick={onSave} disabled={saving} title="Save (to your account)">
-            <i className={`fas ${saving ? "fa-circle-notch fa-spin" : saveStatus === "saved" ? "fa-check" : "fa-cloud-arrow-up"}`}></i>
-            <span>Save</span>
+          <button
+            className={`wnav__save wnav__save--${saveState}`}
+            onClick={onSave}
+            disabled={saving}
+            title={saveState === "saved" ? "Everything is saved" : saveState === "dirty" ? "You have unsaved changes" : "Save to your account"}
+          >
+            <i className={`fas ${saveBtn.icon}`}></i>
+            <span>{saveBtn.label}</span>
+            {saveState === "dirty" && <span className="wnav__save-dot" aria-label="Unsaved changes" />}
           </button>
         )}
         <button className="wnav__btn" onClick={onShare} title="Get a share link">

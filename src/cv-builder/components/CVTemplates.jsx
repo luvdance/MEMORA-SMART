@@ -1044,8 +1044,8 @@ export function ExecutivePlus({ cv, accent, format, sectionOrder, theme }) {
         {sideSections.map(key => renderSideSection(key, cv, format))}
       </div>
 
-      <div style={{ flex: 1, padding: `0 ${format.pagePadding}px` }}>
-        <div style={{ paddingTop: format.pagePadding }}>
+      <div style={{ flex: 1, padding: `${format.pagePadding}px` }}>
+        <div>
           {mainSections.map(key => renderMainSection(key, cv, accent, format, theme))}
         </div>
       </div>
@@ -1141,7 +1141,7 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
       minHeight: "100%",
       boxSizing: "border-box",
     }}>
-      <div style={{ width: 200, background: accent, color: "#fff", padding: format.pagePadding, flexShrink: 0 }}>
+      <div style={{ width: 200, background: accent, color: "#fff", padding: `${Math.max(format.pagePadding, 36)}px ${format.pagePadding}px`, flexShrink: 0 }}>
         {cv.photo && (
           <div style={{ marginBottom: 16, textAlign: "center" }}>
             <img src={cv.photo} alt="profile" style={{ width: 90, height: 90, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(255,255,255,0.4)" }} />
@@ -1212,7 +1212,9 @@ export function CreativeSide({ cv, accent, format, sectionOrder, theme }) {
         })}
       </div>
 
-      <div style={{ flex: 1, padding: `${format.pagePadding}px ${format.pagePadding}px 0` }}>
+      {/* Vertical padding repeats on every printed page (box-decoration-break in
+          the print/PDF engines), so text never runs to the page edge. */}
+      <div style={{ flex: 1, padding: `${Math.max(format.pagePadding, 36)}px ${format.pagePadding}px` }}>
         {mainSections.map(key => renderMainSection(key, cv, accent, format, theme))}
       </div>
     </div>

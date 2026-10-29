@@ -693,3 +693,65 @@
 @media (prefers-reduced-motion: reduce) {
   .mapp-sheet, .mapp-sheet-backdrop, .mapp-tabs__fab { transition: none !important; }
 }
+
+/* ── PHONE SAVE BUTTON: icon + word, colour says the state ── */
+@media screen and (max-width: 900px) {
+  .mapp-save {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    margin-right: 2px;
+    border-radius: 11px;
+    border: none;
+    background: #7c3aed;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .mapp-save:active { background: #6d28d9; }
+  .mapp-save--saving { background: #ede9fe; color: #5b21b6; }
+  .mapp-save--saved { background: #e8f8ee; color: #15803d; box-shadow: inset 0 0 0 1.5px #bbf7d0; }
+  .mapp-save--error { background: #fef2f2; color: #b91c1c; box-shadow: inset 0 0 0 1.5px #fecaca; }
+  .mapp-save__dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #f59e0b;
+    border: 2px solid #fff;
+  }
+  .mapp-bar__status--warn { color: #b45309; }
+  .mapp-bar__status--warn i { font-size: 0.42rem !important; vertical-align: middle; }
+}
+
+@media screen and (max-width: 360px) {
+  .mapp-pill { display: none; }
+}
+
+@media screen and (max-width: 900px) {
+  .mapp-theme__name { display: inline-flex; align-items: center; gap: 5px; }
+  .mapp-theme__rec {
+    font-style: normal;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #e8f8ee;
+    color: #15803d;
+    font-size: 0.58rem;
+    font-weight: 800;
+  }
+}
+
+/* Background gets its own teal tab in Design so it's easy to find */
+@media screen and (max-width: 900px) {
+  .mapp-segments__btn--teal { border-color: #99e2d8; background: #ecfbf8; color: #0f766e; }
+  .mapp-segments__btn--teal.mapp-segments__btn--active { background: #0f766e; border-color: #0f766e; color: #fff; }
+  .mapp-card__note { margin: -6px 0 14px; font-size: 0.76rem; color: var(--mapp-sub); }
+}

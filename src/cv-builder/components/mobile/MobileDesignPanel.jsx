@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TEMPLATES, ACCENT, THEME_PRESETS, FONT_OPTIONS } from "../../utils/constants";
+import { TEMPLATES, ACCENT, THEME_PRESETS, FONT_OPTIONS, chooseTheme } from "../../utils/constants";
 import { TEMPLATE_INFO } from "../../utils/sampleCV";
 import { isPremiumTemplate } from "../../utils/templateMeta";
 import TemplateThumb from "../TemplateThumb";
@@ -9,6 +9,7 @@ import FormatPanel from "../FormatPanel";
 const SEGMENTS = [
   { id: "templates", label: "Templates", icon: "fa-table-cells-large" },
   { id: "colors", label: "Colours", icon: "fa-droplet" },
+  { id: "background", label: "Background", icon: "fa-fill-drip", tone: "teal" },
   { id: "fonts", label: "Fonts", icon: "fa-font" },
   { id: "order", label: "Order", icon: "fa-arrow-down-short-wide" },
   { id: "format", label: "Spacing", icon: "fa-sliders" },
@@ -49,7 +50,7 @@ export default function MobileDesignPanel({
             key={s.id}
             role="tab"
             aria-selected={segment === s.id}
-            className={`mapp-segments__btn ${segment === s.id ? "mapp-segments__btn--active" : ""}`}
+            className={`mapp-segments__btn ${segment === s.id ? "mapp-segments__btn--active" : ""} ${s.tone ? `mapp-segments__btn--${s.tone}` : ""}`}
             onClick={() => setSegment(s.id)}
           >
             <i className={`fas ${s.icon}`}></i>
@@ -114,8 +115,13 @@ export default function MobileDesignPanel({
               <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} />
             </label>
           </div>
+        </div>
+      )}
 
-          <h4 className="mapp-card__title">Page theme</h4>
+      {segment === "background" && (
+        <div className="mapp-card">
+          <h4 className="mapp-card__title">Page background</h4>
+          <p className="mapp-card__note">White prints cleanest and suits every template.</p>
           <div className="mapp-themes">
             {THEME_PRESETS.map((p) => {
               const active = theme.bg === p.bg && theme.text === p.text;
@@ -123,14 +129,17 @@ export default function MobileDesignPanel({
                 <button
                   key={p.label}
                   className={`mapp-theme ${active ? "mapp-theme--active" : ""}`}
-                  onClick={() => setTheme({ bg: p.bg, text: p.text, sidebar: p.sidebar })}
+                  onClick={() => setTheme(chooseTheme(p))}
                   aria-pressed={active}
                 >
                   <span className="mapp-theme__preview" style={{ background: p.bg }}>
                     <span style={{ background: p.sidebar }} />
                     <em style={{ color: p.text }}>Aa</em>
                   </span>
-                  <span className="mapp-theme__name">{p.label}</span>
+                  <span className="mapp-theme__name">
+                    {p.label}
+                    {p.label === "White" && <em className="mapp-theme__rec">Best</em>}
+                  </span>
                 </button>
               );
             })}

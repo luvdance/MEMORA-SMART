@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import CVNavbar from "../cv-builder/components/CVNavbar";
 import CVForm from "../cv-builder/components/CVForm";
@@ -7,7 +7,7 @@ import { MobileAppBar, MobileTabBar, MobilePreviewBar } from "../cv-builder/comp
 import MobileDesignPanel from "../cv-builder/components/mobile/MobileDesignPanel";
 import MobileMoreSheet from "../cv-builder/components/mobile/MobileMoreSheet";
 import "../cv-builder/CVMobile.css";
-import { emptyCV, ACCENT, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER } from "../cv-builder/utils/constants";
+import { emptyCV, ACCENT, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER, resolveTheme } from "../cv-builder/utils/constants";
 import { saveCV, loadCV, adminSaveCV } from "../cv-builder/utils/cvService";
 import { shrinkPhoto } from "../cv-builder/utils/imageCompress";
 import { useAuth } from "../context/AuthContext";
@@ -56,7 +56,7 @@ export default function CVBuilder({ adminMode = false }) {
   const [template, setTemplate] = useState(draft?.template ?? 0);
   const [accent, setAccent] = useState(draft?.accent || ACCENT[0]);
   const [format, setFormat] = useState(draft?.format || defaultFormat);
-  const [theme, setTheme] = useState(draft?.theme || defaultTheme);
+  const [theme, setTheme] = useState(() => resolveTheme(draft?.theme));
   const [sectionOrder, setSectionOrder] = useState(draft?.sectionOrder || DEFAULT_SECTION_ORDER);
   const [step, setStep] = useState(0);
   const [tab, setTab] = useState("form");
@@ -70,6 +70,23 @@ export default function CVBuilder({ adminMode = false }) {
   // ── SAVE STATE ──
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
+
+  // What was last saved, so the Save button can say "Saved" for as long as
+  // nothing has changed (not just for 3 seconds). Photos are fingerprinted
+  // rather than compared in full.
+  const snapshot = useMemo(() => JSON.stringify({
+    cv: { ...cv, photo: cv.photo ? `${cv.photo.length}:${cv.photo.slice(-24)}` : null },
+    template, accent, format, sectionOrder, theme,
+  }), [cv, template, accent, format, sectionOrder, theme]);
+  const [savedSnapshot, setSavedSnapshot] = useState(null);
+  // Set when a load/save is about to change state: the next snapshot is the saved one.
+  const markSavedRef = useRef(false);
+  useEffect(() => {
+    if (markSavedRef.current) {
+      markSavedRef.current = false;
+      setSavedSnapshot(snapshot);
+    }
+  }, [snapshot]);
 
   // ── DOWNLOAD STATE ──
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -93,6 +110,12 @@ export default function CVBuilder({ adminMode = false }) {
   const [paywallEntitlement, setPaywallEntitlement] = useState(null);
   const [showRequery, setShowRequery] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null); // { text, tone }
+
+  // "new" (never saved) | "dirty" (unsaved changes) | "saving" | "saved" | "error"
+  const saveState = saving ? "saving"
+    : saveStatus === "error" ? "error"
+    : savedSnapshot !== null && savedSnapshot === snapshot ? "saved"
+    : cvId ? "dirty" : "new";
 
   // ── PLAN ──
   const liveEntitlement = useEntitlement(user);
@@ -147,13 +170,14 @@ useEffect(() => {
 
   // ── APPLY A SAVED CV DOCUMENT TO THE EDITOR ──
   const applySavedCV = (data) => {
+    markSavedRef.current = true;
     setCV(data.data);
     if (data.template !== undefined && data.template !== template) keepAccentRef.current = true;
     setTemplate(data.template ?? 0);
     if (data.accent) setAccent(data.accent);
     if (data.format) setFormat(data.format);
     if (data.sectionOrder) setSectionOrder(data.sectionOrder);
-    if (data.theme) setTheme(data.theme);
+    setTheme(resolveTheme(data.theme));
     adminSyncedAtRef.current = toMillis(data.adminEditedAt) || 0;
   };
 
@@ -430,6 +454,8 @@ const triggerPrint = async () => {
           theme,
           title: adminInfo.title,
         });
+        setSavedSnapshot(snapshot);
+        if (cvData !== cv) markSavedRef.current = true;
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus(""), 3000);
         setSaving(false);
@@ -448,6 +474,9 @@ const triggerPrint = async () => {
         title: cv.name ? `${cv.name}'s CV` : "My CV",
       });
       setCvId(id);
+      setSavedSnapshot(snapshot);
+      // A shrunk photo changes state after saving; that version is the saved one.
+      if (cvData !== cv) markSavedRef.current = true;
       setSaveStatus("saved");
       window.history.replaceState(null, "", `/cv/${id}`);
       setTimeout(() => setSaveStatus(""), 3000);
@@ -516,10 +545,12 @@ const triggerPrint = async () => {
           onClear={() => setShowClearModal(true)}
           saving={saving}
           saveStatus={saveStatus}
+          saveState={saveState}
           isOwner={isOwner}
           user={user}
           format={format}
           theme={theme}
+          setTheme={setTheme}
           showFormat={showFormat}
           setShowFormat={setShowFormat}
           showOrder={showOrder}
@@ -530,9 +561,8 @@ const triggerPrint = async () => {
       {isMobile && (
         <MobileAppBar
           cv={cv}
-          cvId={cvId}
-          saveStatus={saveStatus}
           saving={saving}
+          saveState={saveState}
           onSave={handleSave}
           onHome={() => navigate(adminMode ? "/admin" : "/dashboard", adminMode ? { state: { tab: "cvs" } } : undefined)}
           user={user}
