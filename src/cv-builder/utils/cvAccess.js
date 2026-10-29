@@ -11,11 +11,27 @@ import { computeEntitlement } from "./plans";
 export async function cvApi(action, user, payload = {}) {
   const headers = { "Content-Type": "application/json" };
   if (user?.getIdToken) headers.Authorization = `Bearer ${await user.getIdToken()}`;
-  const res = await fetch(`/api/cv/${action}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(payload),
-  });
+  // Browsers don't time out a stuck request for minutes; fail fast instead.
+  // AI calls legitimately take ~20–40s, so they get longer.
+  const controller = new AbortController();
+  const limitMs = action === "optimize" || action === "ats-score" ? 90000 : 20000;
+  const timer = setTimeout(() => controller.abort(), limitMs);
+  let res;
+  try {
+    res = await fetch(`/api/cv/${action}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === "AbortError") {
+      return { status: 0, data: { success: false, error: "The connection timed out. Please check your internet and try again." } };
+    }
+    throw err;
+  }
+  clearTimeout(timer);
   let data = {};
   try {
     data = await res.json();

@@ -281,7 +281,7 @@ useEffect(() => {
   // Premium), so the count can't be skipped from the browser.
   const runDownload = async (action, { afterPayment = false } = {}) => {
     const doIt = async () => {
-      if (action === "print") triggerPrint();
+      if (action === "print") await triggerPrint();
       else await triggerPdfDownload();
     };
 
@@ -295,6 +295,8 @@ useEffect(() => {
     }
 
     if (action === "download") setPdfLoading(true);
+    // Print had no visible feedback, so any wait looked like a freeze.
+    if (action === "print") showToast("Preparing your CV for printing...", "success", 20000);
     let result;
     try {
       result = await consumeDownload(user, { template, cvId });
@@ -335,8 +337,13 @@ useEffect(() => {
   const handlePrint = () => runDownload("print");
   const handleDownloadPDF = () => runDownload("download");
 
-const triggerPrint = () => {
-  printCV({ previewRef, cv, theme, format });
+const triggerPrint = async () => {
+  try {
+    await printCV({ previewRef, cv, theme, format });
+  } catch (err) {
+    console.error("Print failed:", err);
+    showToast("Printing couldn't start. Please try Download instead.", "error", 8000);
+  }
 };
 
   // ── TRIGGER ACTUAL PDF DOWNLOAD ──
