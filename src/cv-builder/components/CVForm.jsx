@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { STEPS } from "../utils/constants";
 import { STEP_META, stepCompletion } from "../utils/cvStrength";
 import FormHeader from "./FormHeader";
@@ -189,6 +189,24 @@ function CardActions({ index, total, onMoveUp, onMoveDown, onDelete, canDelete =
 export default function CVForm({ cv, setCV, template, step, setStep, tab, entitlement, onAts, isMobile, onFinish }) {
   const [loading, setLoading] = useState({});
   const steps = stepCompletion(cv);
+
+  // ── "MORE BELOW" HINT (desktop, where the form scrolls on its own) ──
+  const panelRef = useRef(null);
+  const [moreBelow, setMoreBelow] = useState(false);
+  const checkMore = useCallback(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    setMoreBelow(el.scrollHeight - el.clientHeight - el.scrollTop > 120);
+  }, []);
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return undefined;
+    checkMore();
+    const ro = new ResizeObserver(checkMore);
+    ro.observe(el);
+    if (el.firstElementChild) [...el.children].forEach((c) => ro.observe(c));
+    return () => ro.disconnect();
+  }, [checkMore, step]);
 
   // ── LIVE FORMAT HELPER ──
   const getLiveFormat = (field) => {
@@ -509,24 +527,6 @@ const moveEdu = (i, dir) => {
             onClick={() => aiSuggest(
               "summary",
               `Write a 2-sentence professional summary for a ${cv.jobTitle || "professional"}${cv.name ? " named " + cv.name : ""}. Be specific, confident, and concise. No heading, no label, no markdown. Start directly with the person's name or role.`
-            )}
-          />
-        </div>
-
-        <div className="cv-form__field">
-          <Label optional>Career objective</Label>
-          <Textarea
-            value={cv.objective}
-            onChange={upd("objective")}
-            onBlur={blur("objective")}
-            placeholder="One sentence: the role you want and the value you bring."
-            rows={3}
-          />
-          <AiBtn
-            loading={loading.objective}
-            onClick={() => aiSuggest(
-              "objective",
-              `Write exactly 1 sentence career objective for a ${cv.jobTitle || "professional"}. State the role they want and the value they bring. Plain text only, no heading, start immediately with the content.`
             )}
           />
         </div>
@@ -1246,7 +1246,11 @@ const moveEdu = (i, dir) => {
   };
 
   return (
-    <div className={`cv-form-panel ${tab === "preview" ? "cv-form-panel--hidden" : ""}`}>
+    <div
+      ref={panelRef}
+      onScroll={checkMore}
+      className={`cv-form-panel ${tab === "preview" ? "cv-form-panel--hidden" : ""}`}
+    >
 
       <FormHeader
         cv={cv}
@@ -1284,6 +1288,21 @@ const moveEdu = (i, dir) => {
           )}
         </div>
       </div>
+
+      {/* Pinned to the panel's bottom edge: a soft fade plus a pill that says
+          there's more to fill in. Takes no space; hidden at the end. */}
+      {!isMobile && (
+        <div className={`cvf-more-wrap ${moreBelow ? "cvf-more-wrap--show" : ""}`} aria-hidden={!moreBelow}>
+          <button
+            type="button"
+            className="cvf-more"
+            onClick={() => panelRef.current?.scrollBy({ top: panelRef.current.clientHeight * 0.7, behavior: "smooth" })}
+            tabIndex={moreBelow ? 0 : -1}
+          >
+            More below <i className="fas fa-arrow-down"></i>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

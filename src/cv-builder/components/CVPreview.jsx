@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import {
   ClassicPro, ModernEdge, ExecutivePlus,
   MinimalClean, CreativeSide, CorporateBold, TraditionalProfile,
-  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo,
+  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit,
 } from "./CVTemplates";
 import FormatPanel from "./FormatPanel";
 import SectionOrderPanel from "./SectionOrderPanel";
 
-const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo,];
+const templates = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit,];
 
 // A4 at 96dpi
 const PAGE_WIDTH = 794;

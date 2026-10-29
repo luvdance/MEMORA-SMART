@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 import { getAllCVs } from "../../cv-builder/utils/cvService";
-import { TEMPLATES, defaultFormat, DEFAULT_SECTION_ORDER, resolveTheme } from "../../cv-builder/utils/constants";
+import { TEMPLATES, defaultFormat, resolveTheme, migrateCV, normalizeSectionOrder } from "../../cv-builder/utils/constants";
 import { isPremiumTemplate } from "../../cv-builder/utils/templateMeta";
 import {
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile,
-  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo,
+  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit,
 } from "../../cv-builder/components/CVTemplates";
 
-const TEMPLATE_COMPONENTS = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo];
+const TEMPLATE_COMPONENTS = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit];
 
 function formatDate(ts) {
   if (!ts) return "—";
@@ -26,10 +26,10 @@ function CVQuickPreview({ cvDoc }) {
     <div className="admin-cvs__preview-scale">
       <div className="admin-cvs__preview-page" style={{ background: theme.bg }}>
         <Template
-          cv={cvDoc.data || {}}
+          cv={migrateCV(cvDoc.data) || {}}
           accent={cvDoc.accent || "#2563eb"}
           format={{ ...defaultFormat, ...(cvDoc.format || {}) }}
-          sectionOrder={cvDoc.sectionOrder?.length ? cvDoc.sectionOrder : DEFAULT_SECTION_ORDER}
+          sectionOrder={normalizeSectionOrder(cvDoc.sectionOrder)}
           theme={theme}
         />
       </div>

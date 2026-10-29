@@ -10,7 +10,6 @@ export const SAMPLE_CV = {
   website: "adaezeokonkwo.com",
   github: "",
   summary: "Results-driven Product Manager with 6+ years leading cross-functional teams to deliver high-impact digital products. Increased user retention by 34% at a leading fintech startup.",
-  objective: "Seeking to leverage data-driven product strategy and stakeholder leadership to drive growth at a high-scale technology company.",
   photo: thumbPhoto,
   experience: [
     {
@@ -101,4 +100,5 @@ export const TEMPLATE_INFO = [
 { name: "Refined", accent: "#b45309", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Signature Edge", accent: "#d4a017", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Dark Geo", accent: "#f59e0b", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Summit", accent: "#1d6ff2", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 ];

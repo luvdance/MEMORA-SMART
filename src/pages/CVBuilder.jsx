@@ -7,7 +7,7 @@ import { MobileAppBar, MobileTabBar, MobilePreviewBar } from "../cv-builder/comp
 import MobileDesignPanel from "../cv-builder/components/mobile/MobileDesignPanel";
 import MobileMoreSheet from "../cv-builder/components/mobile/MobileMoreSheet";
 import "../cv-builder/CVMobile.css";
-import { emptyCV, ACCENT, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER, resolveTheme } from "../cv-builder/utils/constants";
+import { emptyCV, ACCENT, defaultFormat, defaultTheme, DEFAULT_SECTION_ORDER, resolveTheme, migrateCV, normalizeSectionOrder } from "../cv-builder/utils/constants";
 import { saveCV, loadCV, adminSaveCV } from "../cv-builder/utils/cvService";
 import { shrinkPhoto } from "../cv-builder/utils/imageCompress";
 import { useAuth } from "../context/AuthContext";
@@ -52,12 +52,12 @@ export default function CVBuilder({ adminMode = false }) {
   const draft = getSavedDraft();
 
   // ── CV STATE ──
-  const [cv, setCV] = useState(draft?.cv || emptyCV);
+  const [cv, setCV] = useState(() => migrateCV(draft?.cv) || emptyCV);
   const [template, setTemplate] = useState(draft?.template ?? 0);
   const [accent, setAccent] = useState(draft?.accent || ACCENT[0]);
   const [format, setFormat] = useState(draft?.format || defaultFormat);
   const [theme, setTheme] = useState(() => resolveTheme(draft?.theme));
-  const [sectionOrder, setSectionOrder] = useState(draft?.sectionOrder || DEFAULT_SECTION_ORDER);
+  const [sectionOrder, setSectionOrder] = useState(() => normalizeSectionOrder(draft?.sectionOrder));
   const [step, setStep] = useState(0);
   const [tab, setTab] = useState("form");
   const [cvId, setCvId] = useState(urlCvId || null);
@@ -171,12 +171,12 @@ useEffect(() => {
   // ── APPLY A SAVED CV DOCUMENT TO THE EDITOR ──
   const applySavedCV = (data) => {
     markSavedRef.current = true;
-    setCV(data.data);
+    setCV(migrateCV(data.data));
     if (data.template !== undefined && data.template !== template) keepAccentRef.current = true;
     setTemplate(data.template ?? 0);
     if (data.accent) setAccent(data.accent);
     if (data.format) setFormat(data.format);
-    if (data.sectionOrder) setSectionOrder(data.sectionOrder);
+    setSectionOrder(normalizeSectionOrder(data.sectionOrder));
     setTheme(resolveTheme(data.theme));
     adminSyncedAtRef.current = toMillis(data.adminEditedAt) || 0;
   };
@@ -242,9 +242,10 @@ useEffect(() => {
     setRemoteUpdate(null);
   };
 
-  // ── PHONES: each new form step starts at the top ──
+  // ── Each new form step starts at the top (the page on phones, the form panel on desktop) ──
   useEffect(() => {
     if (isMobile) window.scrollTo({ top: 0, behavior: "smooth" });
+    else document.querySelector(".cv-form-panel")?.scrollTo({ top: 0, behavior: "smooth" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 

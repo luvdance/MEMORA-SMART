@@ -760,3 +760,142 @@
     padding: 0 2px;
   }
 }
+
+/* ── DESKTOP: form and preview scroll independently ──
+   The builder is exactly one screen tall, so filling in the form never
+   scrolls the CV preview out of view. */
+@media screen and (min-width: 901px) {
+  .cvb {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .cvb .cvb__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .cvb .cv-form-panel,
+  .cvb .cv-preview-panel {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+  .cvb .cv-form-panel > * { flex-shrink: 0; }
+}
+
+/* ══════════════════════════════════════
+   SCROLLING — always visible, on-brand
+══════════════════════════════════════ */
+@media screen and (min-width: 901px) {
+  /* Chrome, Edge, Safari: a soft violet thumb on a light rail. Custom
+     scrollbars stay visible instead of fading out like overlay ones. */
+  .cvb .cv-form-panel::-webkit-scrollbar,
+  .cvb .cv-preview-panel::-webkit-scrollbar {
+    width: 14px;
+  }
+  .cvb .cv-form-panel::-webkit-scrollbar-track,
+  .cvb .cv-preview-panel::-webkit-scrollbar-track {
+    background: #eceef4;
+    border-radius: 12px;
+    margin: 10px 0;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  .cvb .cv-form-panel::-webkit-scrollbar-thumb,
+  .cvb .cv-preview-panel::-webkit-scrollbar-thumb {
+    min-height: 56px;
+    border-radius: 12px;
+    border: 3px solid transparent;
+    background: linear-gradient(180deg, #a78bfa, #7c3aed) content-box;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  }
+  .cvb .cv-form-panel::-webkit-scrollbar-thumb:hover,
+  .cvb .cv-preview-panel::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #8b5cf6, #6d28d9) content-box;
+  }
+  .cvb .cv-form-panel::-webkit-scrollbar-thumb:active,
+  .cvb .cv-preview-panel::-webkit-scrollbar-thumb:active {
+    background: #5b21b6 content-box;
+  }
+  /* The preview's thumb is quieter, so the form stays the obvious one. */
+  .cvb .cv-preview-panel::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #cbd2de, #aab3c3) content-box;
+  }
+  .cvb .cv-preview-panel::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #b6bfcd, #8f99ab) content-box;
+  }
+
+  /* Firefox: standard properties (only where the custom ones aren't supported,
+     because Chrome ignores the custom design once these are set). */
+  @supports not selector(::-webkit-scrollbar) {
+    .cvb .cv-form-panel { scrollbar-width: thin; scrollbar-color: #8b5cf6 #eceef4; }
+    .cvb .cv-preview-panel { scrollbar-width: thin; scrollbar-color: #b6bfcd #eceef4; }
+  }
+
+  /* "More below": a soft fade and a pill pinned to the form's bottom edge.
+     Height 0 so it never pushes content; shown only while there's more. */
+  .cvf-more-wrap {
+    position: sticky;
+    bottom: 0;
+    height: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .cvf-more-wrap::before {
+    content: "";
+    position: absolute;
+    left: -16px;
+    right: -16px;
+    bottom: -16px;
+    height: 96px;
+    background: linear-gradient(180deg, rgba(246, 247, 251, 0), rgba(246, 247, 251, 0.92) 70%, #f6f7fb);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .cvf-more {
+    position: absolute;
+    left: 50%;
+    bottom: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 999px;
+    background: #0f172a;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+    opacity: 0;
+    transform: translate(-50%, 10px);
+    transition: opacity 0.25s ease, transform 0.25s ease, background 0.15s ease;
+  }
+  .cvf-more i { font-size: 0.7rem; animation: cvfNudge 1.6s ease-in-out infinite; }
+  .cvf-more:hover { background: #1e293b; }
+  .cvf-more:focus-visible { outline: 3px solid rgba(124, 58, 237, 0.45); outline-offset: 2px; }
+  .cvf-more-wrap--show::before { opacity: 1; }
+  .cvf-more-wrap--show .cvf-more {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+  }
+}
+
+@keyframes cvfNudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cvf-more i { animation: none; }
+  .cvb .cv-form-panel, .cvb .cv-preview-panel { scroll-behavior: auto; }
+}

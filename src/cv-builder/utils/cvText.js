@@ -17,7 +17,6 @@ export function cvToText(cv) {
   add([cv.email, cv.phone, cv.address, cv.linkedin, cv.website, cv.github].filter(Boolean).join(" | "));
 
   if (cv.summary) { section("Professional Summary"); add(cv.summary); }
-  if (cv.objective) { section("Career Objective"); add(cv.objective); }
 
   const exp = (cv.experience || []).filter(e => e.company || e.role);
   if (exp.length) {
@@ -55,7 +54,7 @@ export function cvToText(cv) {
 }
 
 const ARRAY_FIELDS = ["experience", "education", "certifications", "achievements", "volunteer", "publications", "references"];
-const TEXT_FIELDS = ["name", "jobTitle", "email", "phone", "address", "linkedin", "website", "github", "summary", "objective", "skills", "languages", "hobbies"];
+const TEXT_FIELDS = ["name", "jobTitle", "email", "phone", "address", "linkedin", "website", "github", "summary", "skills", "languages", "hobbies"];
 
 /**
  * Apply an AI-optimized CV on top of the current one. Only fields the AI
@@ -64,6 +63,10 @@ const TEXT_FIELDS = ["name", "jobTitle", "email", "phone", "address", "linkedin"
  */
 export function mergeOptimizedCV(prev, optimized) {
   const next = { ...prev };
+  // The AI may still return an objective; use it only if it wrote no summary.
+  if (optimized && !String(optimized.summary || "").trim() && String(optimized.objective || "").trim()) {
+    optimized = { ...optimized, summary: optimized.objective };
+  }
   for (const key of TEXT_FIELDS) {
     const v = optimized?.[key];
     if (typeof v === "string" && v.trim()) next[key] = v.trim();

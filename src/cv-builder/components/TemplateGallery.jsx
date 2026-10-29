@@ -1,16 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
-  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, SignatureEdge, DarkGeo
-} from "./CVTemplates";
+import { TEMPLATE_COMPONENTS } from "./templateRegistry";
 import { SAMPLE_CV, SAMPLE_FORMAT, SAMPLE_SECTION_ORDER, TEMPLATE_INFO } from "../utils/sampleCV";
 
-
-
-const TEMPLATE_COMPONENTS = [
-  ClassicPro, ModernEdge, ExecutivePlus, MinimalClean,
-  CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, SignatureEdge, DarkGeo
-];
 
 export default function TemplateGallery({ onSelectTemplate }) {
   const [activeIndex, setActiveIndex] = useState(2); // start centered-ish

@@ -14,6 +14,7 @@ export const TEMPLATES = [
   "Refined",
   "Signature Edge", 
   "Dark Geo",
+  "Summit",
 ];
 
 export const ACCENT = ["#2563eb", "#0f766e", "#7c3aed", "#dc2626", "#d97706"];
@@ -59,9 +60,9 @@ export const defaultFormat = {
   headingUppercase: true,
 };
 
+// "objective" (career objective) was merged into the professional summary.
 export const DEFAULT_SECTION_ORDER = [
   "summary",
-  "objective",
   "biodata",
   "experience",
   "education",
@@ -74,6 +75,23 @@ export const DEFAULT_SECTION_ORDER = [
   "hobbies",
   "references",
 ];
+
+// Saved/drafted section orders: drop retired sections and add any new ones.
+export function normalizeSectionOrder(order) {
+  const base = Array.isArray(order) && order.length ? order : DEFAULT_SECTION_ORDER;
+  const kept = base.filter((k) => k !== "objective" && DEFAULT_SECTION_ORDER.includes(k));
+  return [...kept, ...DEFAULT_SECTION_ORDER.filter((k) => !kept.includes(k))];
+}
+
+// The career objective is no longer a separate section. A CV that only had
+// an objective keeps it as its summary, so no one loses text they wrote.
+export function migrateCV(cv) {
+  if (!cv) return cv;
+  const summary = String(cv.summary || "").trim();
+  const objective = String(cv.objective || "").trim();
+  if (!summary && objective) return { ...cv, summary: objective, objective: "" };
+  return cv;
+}
 
 export const FONT_OPTIONS = [
   { label: "Georgia",   value: "Georgia, 'Source Serif 4', serif" },

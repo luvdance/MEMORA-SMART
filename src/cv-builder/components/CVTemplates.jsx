@@ -3948,3 +3948,433 @@ export function DarkGeo({ cv, accent, format, sectionOrder, theme }) {
     </div>
   );
 }
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 16: SUMMIT ──
+// ══════════════════════════════════════════════
+// Rounded tinted sidebar card, two-tone name and a drawn backdrop: a gradient
+// corner behind the sidebar, faint rising chevrons top right and a sun,
+// layered mountains and a flag at the foot of the page. The decorations are
+// absolutely positioned SVG, so they print exactly as previewed.
+
+function isDarkColor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum < 0.45;
+}
+
+function SummitLabel({ title, icon, accent, format, ink, rule = true }) {
+  return (
+    <div className="cv-section-heading" style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 9 }}>
+      <span style={{
+        width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+        background: `${accent}1f`, color: accent,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        fontSize: 11,
+      }}>
+        <i className={`fas fa-${icon}`}></i>
+      </span>
+      <span style={{
+        fontSize: format.headingFontSize,
+        fontWeight: format.headingBold ? 800 : 500,
+        textTransform: format.headingUppercase ? "uppercase" : "none",
+        letterSpacing: format.headingUppercase ? 1.6 : 0.2,
+        color: ink,
+        whiteSpace: "nowrap",
+      }}>
+        {title}
+      </span>
+      {rule && <span style={{ flex: 1, height: 1, background: `${accent}40`, minWidth: 12 }} />}
+    </div>
+  );
+}
+
+function SummitSideLabel({ title, icon, accent, ink }) {
+  return (
+    <div className="cv-section-heading" style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
+      <i className={`fas fa-${icon}`} style={{ color: accent, fontSize: 10, width: 12, textAlign: "center" }}></i>
+      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 2.4, textTransform: "uppercase", color: ink }}>
+        {title}
+      </span>
+    </div>
+  );
+}
+
+function SummitBackdrop({ accent, ink }) {
+  return (
+    <>
+      {/* Gradient corner behind the sidebar card */}
+      <svg width="300" height="300" viewBox="0 0 300 300" aria-hidden="true"
+        style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+        <defs>
+          <linearGradient id="summitCorner" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={accent} stopOpacity="0.95" />
+            <stop offset="0.55" stopColor={accent} stopOpacity="0.35" />
+            <stop offset="1" stopColor={accent} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points="0,0 300,0 0,300" fill="url(#summitCorner)" />
+        <polygon points="0,0 170,0 0,170" fill={ink} fillOpacity="0.18" />
+      </svg>
+
+      {/* Rising chevrons, top right: the climb to the summit. Solid and
+          faint, fading toward the bottom. */}
+      <svg width="90" height="112" viewBox="-3 -3 118 146" aria-hidden="true"
+        style={{ position: "absolute", top: 16, right: 30, pointerEvents: "none" }}>
+        {[0.085, 0.06, 0.038].map((o, i) => (
+          // Group opacity keeps fill and rounded stroke one flat tint.
+          <g key={i} opacity={o} transform={`translate(0 ${i * 30})`}>
+            <polygon points="0,56 56,0 112,56 112,80 56,24 0,80"
+              fill={accent} stroke={accent} strokeWidth="5" strokeLinejoin="round" />
+          </g>
+        ))}
+      </svg>
+
+      {/* Sun, mountains and flag at the foot of the page */}
+      <svg width="360" height="146" viewBox="0 0 420 170" preserveAspectRatio="xMaxYMax meet" aria-hidden="true"
+        style={{ position: "absolute", right: 0, bottom: 0, pointerEvents: "none" }}>
+        <circle cx="258" cy="50" r="28" fill={accent} fillOpacity="0.14" />
+        <circle cx="258" cy="50" r="18" fill={accent} fillOpacity="0.22" />
+        <polygon points="40,170 170,72 250,130 330,58 420,120 420,170" fill={accent} fillOpacity="0.10" />
+        <polygon points="130,170 250,92 300,128 360,84 420,126 420,170" fill={accent} fillOpacity="0.20" />
+        <polygon points="230,170 330,62 420,150 420,170" fill={accent} fillOpacity="0.42" />
+        <polygon points="330,62 311,83 322,80 330,88 339,79 350,84" fill="#ffffff" fillOpacity="0.75" />
+        <line x1="330" y1="62" x2="330" y2="26" stroke={ink} strokeWidth="2" strokeLinecap="round" />
+        <polygon points="331,27 352,33 331,40" fill={accent} />
+      </svg>
+    </>
+  );
+}
+
+export function Summit({ cv, accent, format, sectionOrder, theme }) {
+  const s = format.bodyFontSize;
+  const lh = format.lineHeight;
+  const dark = isDarkColor(theme.bg);
+  const ink = dark ? "#f3f6fb" : "#14213d";
+  const tc = dark ? theme.text : "#3b4557";
+  const muted = dark ? "rgba(255,255,255,0.6)" : "#7a8496";
+  // Georgia is the builder default; this design is drawn for a geometric sans.
+  const font = format.fontFamily === "Georgia, serif"
+    ? "'Inter', 'Manrope', 'Helvetica Neue', Arial, sans-serif"
+    : format.fontFamily;
+
+  const nameParts = (cv.name || "Your Name").trim().split(/\s+/);
+  const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0];
+  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+
+  const sideKeys = SIDEBAR_SECTIONS[15];
+  const mainSections = sectionOrder.filter(k => !sideKeys.includes(k));
+  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+
+  const label = (title, icon) => <SummitLabel title={title} icon={icon} accent={accent} format={format} ink={ink} />;
+  const dates = (a, b) => [a, b].filter(Boolean).join(" – ");
+  const block = { marginBottom: 16 };
+
+  const renderMain = (key) => {
+    switch (key) {
+      case "summary":
+        return cv.summary ? (
+          <div key={key} className="cv-section-keep" style={{
+            ...block,
+            display: "flex", gap: 12, alignItems: "flex-start",
+            background: `${accent}12`, borderRadius: 14, padding: "12px 14px",
+          }}>
+            <span style={{
+              width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
+              background: accent, color: "#fff",
+              display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12,
+            }}>
+              <i className="fas fa-user"></i>
+            </span>
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: format.headingFontSize - 1, fontWeight: format.headingBold ? 800 : 500,
+                textTransform: format.headingUppercase ? "uppercase" : "none",
+                letterSpacing: format.headingUppercase ? 1.6 : 0.2, color: ink, marginBottom: 3,
+              }}>
+                Profile
+              </div>
+              <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc, textAlign: "justify" }}>{cv.summary}</p>
+            </div>
+          </div>
+        ) : null;
+      case "biodata": {
+        const rows = bioRows(cv);
+        return rows.length ? (
+          <div key={key} style={block} className="cv-section-keep">
+            {label("Personal Details", "id-card")}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 16px", paddingLeft: 33 }}>
+              {rows.map(([l, v]) => (
+                <div key={l} style={{ fontSize: s - 0.5, color: tc }}>
+                  <span style={{ color: ink, fontWeight: 600 }}>{l}: </span>{v}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      }
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <div key={key} style={block}>
+            {label("Work Experience", "briefcase")}
+            {cv.experience.map((e, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 11, paddingLeft: 33, position: "relative" }}>
+                <span style={{
+                  position: "absolute", left: 9, top: 5, width: 7, height: 7, borderRadius: "50%",
+                  background: theme.bg, border: `2px solid ${accent}`,
+                }} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                  <b style={{ fontSize: s + 1, color: ink }}>{e.role}</b>
+                  <span style={{ fontSize: s - 1.5, color: muted, fontWeight: 600, whiteSpace: "nowrap" }}>
+                    {dates(e.start, e.current ? "Present" : e.end)}
+                  </span>
+                </div>
+                <div style={{ fontSize: s - 0.5, color: accent, fontWeight: 700 }}>
+                  {e.company}{e.location ? <span style={{ color: muted, fontWeight: 500 }}> · {e.location}</span> : null}
+                </div>
+                <BulletList text={e.responsibilities} fontSize={s - 0.5} lineHeight={lh} color={tc} />
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "education":
+        return cv.education[0]?.school ? (
+          <div key={key} style={block}>
+            {label("Education", "graduation-cap")}
+            {cv.education.map((e, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 8, paddingLeft: 33 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                  <b style={{ fontSize: s + 0.5, color: ink }}>{e.degree}{e.field ? ` in ${e.field}` : ""}</b>
+                  <span style={{ fontSize: s - 1.5, color: muted, fontWeight: 600, whiteSpace: "nowrap" }}>{dates(e.start, e.end)}</span>
+                </div>
+                <div style={{ fontSize: s - 0.5, color: accent, fontWeight: 600 }}>{e.school}</div>
+                {e.grade && <div style={{ fontSize: s - 1, color: tc }}>{e.grade}</div>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <div key={key} style={block}>
+            {label("Achievements", "trophy")}
+            {cv.achievements.map((a, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 7, paddingLeft: 33 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <b style={{ fontSize: s, color: ink }}>{a.title}</b>
+                  <span style={{ fontSize: s - 1.5, color: muted, fontWeight: 600, whiteSpace: "nowrap" }}>{a.date}</span>
+                </div>
+                {a.description && <p style={{ fontSize: s - 0.5, lineHeight: lh, margin: "2px 0 0", color: tc, textAlign: "justify" }}>{a.description}</p>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <div key={key} style={block}>
+            {label("Volunteer", "hands-helping")}
+            {cv.volunteer.map((v, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 7, paddingLeft: 33 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                  <span><b style={{ color: ink }}>{v.role}</b><span style={{ color: accent, fontWeight: 600 }}> · {v.organization}</span></span>
+                  <span style={{ fontSize: s - 1.5, color: muted, fontWeight: 600, whiteSpace: "nowrap" }}>{dates(v.start, v.end)}</span>
+                </div>
+                {v.description && <p style={{ fontSize: s - 0.5, lineHeight: lh, margin: "2px 0 0", color: tc, textAlign: "justify" }}>{v.description}</p>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <div key={key} style={block}>
+            {label("Publications", "book-open")}
+            {cv.publications.map((p, i) => (
+              <div key={i} className="cv-item" style={{ marginBottom: 6, paddingLeft: 33, fontSize: s - 0.5, color: tc }}>
+                <b style={{ color: ink }}>{p.title}</b>
+                {(p.journal || p.date) && <span style={{ color: muted }}> · {[p.journal, p.date].filter(Boolean).join(", ")}</span>}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "certifications": {
+        if (!hasCertifications(cv)) return null;
+        return (
+          <div key={key} style={block} className="cv-section-keep">
+            {label("Certifications", "certificate")}
+            <div style={{ paddingLeft: 33 }}>
+              {normalizeCertifications(cv.certifications).map((c, i) => (
+                <CertificationItem key={i} cert={c} fontSize={s - 0.5} lineHeight={lh} color={tc} accent={accent} />
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <div key={key} style={block} className="cv-section-keep">
+            {label("References", "user-friends")}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px", paddingLeft: 33 }}>
+              {cv.references.map((r, i) => (
+                <div key={i} style={{ fontSize: s - 1 }}>
+                  <b style={{ fontSize: s - 0.5, color: ink, display: "block" }}>{r.name}</b>
+                  {(r.title || r.company) && <div style={{ color: accent, fontWeight: 600 }}>{[r.title, r.company].filter(Boolean).join(", ")}</div>}
+                  {r.email && <div style={{ color: tc }}>{r.email}</div>}
+                  {r.phone && <div style={{ color: tc }}>{r.phone}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  const sideInk = ink;
+  const dotted = (text) => text.split(/[,\n]+/).map(x => x.trim()).filter(Boolean);
+
+  const renderSide = (key) => {
+    switch (key) {
+      case "skills":
+        return cv.skills ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <SummitSideLabel title="Skills" icon="bolt" accent={accent} ink={sideInk} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {dotted(cv.skills).map((sk, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 7, fontSize: s - 1, color: tc, lineHeight: 1.35 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: accent, flexShrink: 0, transform: "translateY(-1px)" }} />
+                  {sk}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <SummitSideLabel title="Languages" icon="language" accent={accent} ink={sideInk} />
+            <div style={{ fontSize: s - 1, color: tc, lineHeight: 1.5 }}>
+              {dotted(cv.languages).map((l, i) => (
+                <span key={i}>{i > 0 && <span style={{ color: accent, fontWeight: 800 }}> · </span>}{l}</span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "hobbies":
+        return cv.hobbies ? (
+          <div key={key} style={{ marginBottom: 16 }} className="cv-section-keep">
+            <SummitSideLabel title="Interests" icon="heart" accent={accent} ink={sideInk} />
+            <div style={{ fontSize: s - 1, color: tc, lineHeight: 1.5 }}>
+              {dotted(cv.hobbies).map((h, i) => (
+                <span key={i}>{i > 0 && <span style={{ color: accent, fontWeight: 800 }}> · </span>}{h}</span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  const contacts = [
+    ["phone", cv.phone],
+    ["envelope", cv.email],
+    ["map-marker-alt", cv.address],
+    ["globe", cv.website],
+    ["linkedin-in", cv.linkedin, true],
+    ["github", cv.github, true],
+  ].filter(([, v]) => v);
+
+  return (
+    <div style={{
+      fontFamily: font,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+      display: "flex",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      <SummitBackdrop accent={accent} ink={ink} />
+
+      {/* SIDEBAR CARD */}
+      <div style={{
+        width: 214,
+        flexShrink: 0,
+        margin: "26px 0 26px 26px",
+        padding: "22px 16px 20px",
+        borderRadius: 20,
+        background: dark ? "rgba(255,255,255,0.06)" : "#f3f6fb",
+        border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : `${accent}1a`}`,
+        position: "relative",
+        zIndex: 1,
+        boxSizing: "border-box",
+      }}>
+        {/* Photo with offset backdrop */}
+        <div style={{ position: "relative", width: 138, height: 156, margin: "0 auto 18px" }}>
+          <div style={{
+            position: "absolute", inset: 0, transform: "translate(8px, 8px)",
+            borderRadius: 18, background: `${accent}38`,
+          }} />
+          <div style={{
+            position: "relative", width: "100%", height: "100%", borderRadius: 18,
+            overflow: "hidden", background: `${accent}1f`, border: "3px solid #fff", boxSizing: "border-box",
+          }}>
+            {cv.photo ? (
+              <img src={cv.photo} alt="profile" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+            ) : (
+              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <i className="fas fa-user" style={{ fontSize: "2.6rem", color: accent, opacity: 0.45 }}></i>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {contacts.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <SummitSideLabel title="Contact" icon="address-book" accent={accent} ink={sideInk} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {contacts.map(([icon, text, fab]) => (
+                <div key={icon} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: s - 1.5, color: tc, lineHeight: 1.35, overflowWrap: "anywhere" }}>
+                  <span style={{
+                    width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
+                    background: accent, color: "#fff", fontSize: 8,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <i className={`${fab ? "fab" : "fas"} fa-${icon}`}></i>
+                  </span>
+                  <span style={{ paddingTop: 1 }}>{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {sideSections.map(renderSide)}
+      </div>
+
+      {/* MAIN */}
+      <div style={{ flex: 1, minWidth: 0, padding: "40px 34px 120px 26px", position: "relative", zIndex: 1 }}>
+        <div style={{ marginBottom: 18 }}>
+          {cv.jobTitle && (
+            <div style={{ fontSize: s - 0.5, fontWeight: 700, letterSpacing: 3.2, textTransform: "uppercase", color: accent, marginBottom: 6 }}>
+              {cv.jobTitle}
+            </div>
+          )}
+          <div style={{ fontSize: format.nameFontSize + 8, fontWeight: 800, lineHeight: 1.05, letterSpacing: -0.5 }}>
+            <span style={{ color: ink }}>{firstName}</span>
+            {lastName && <span style={{ color: accent }}> {lastName}</span>}
+          </div>
+          <div style={{ display: "flex", gap: 5, marginTop: 10 }}>
+            <span style={{ width: 34, height: 4, borderRadius: 2, background: accent }} />
+            <span style={{ width: 10, height: 4, borderRadius: 2, background: `${accent}66` }} />
+          </div>
+        </div>
+
+        {mainSections.map(renderMain)}
+      </div>
+    </div>
+  );
+}
