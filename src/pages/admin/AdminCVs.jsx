@@ -7,10 +7,10 @@ import { TEMPLATES, defaultFormat, resolveTheme, migrateCV, normalizeSectionOrde
 import { isPremiumTemplate } from "../../cv-builder/utils/templateMeta";
 import {
   ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile,
-  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit,
+  EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit, Vantage,
 } from "../../cv-builder/components/CVTemplates";
 
-const TEMPLATE_COMPONENTS = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit];
+const TEMPLATE_COMPONENTS = [ClassicPro, ModernEdge, ExecutivePlus, MinimalClean, CreativeSide, CorporateBold, TraditionalProfile, EditorialModern, ModernTimeline, CompactPro, BoldStatement, Horizon, Refined, SignatureEdge, DarkGeo, Summit, Vantage];
 
 function formatDate(ts) {
   if (!ts) return "—";

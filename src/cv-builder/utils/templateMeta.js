@@ -19,6 +19,7 @@ export const SIDEBAR_SECTIONS = {
   13: ["education", "skills", "languages", "certifications", "references", "hobbies"], // Signature Edge
   14: ["skills", "languages", "certifications", "hobbies", "references", "education"], // Dark Geo
   15: ["skills", "languages", "hobbies"],                                // Summit
+  16: ["skills", "languages", "hobbies"],                                // Vantage
 };
 
 export function sidebarSectionsFor(template) {
@@ -27,17 +28,17 @@ export function sidebarSectionsFor(template) {
 
 // Templates that render the profile photo (passport). The form shows the
 // photo upload for exactly these.
-export const PHOTO_TEMPLATES = [2, 4, 6, 8, 11, 13, 14, 15];
+export const PHOTO_TEMPLATES = [2, 4, 6, 8, 11, 13, 14, 15, 16];
 
 export function templateUsesPhoto(template) {
   return PHOTO_TEMPLATES.includes(template);
 }
 
 // Premium-only templates: Executive Plus, Editorial Modern, Modern Timeline,
-// Horizon, Signature Edge, Dark Geo, Summit. Free users can preview and edit them but
+// Horizon, Signature Edge, Dark Geo, Summit, Vantage. Free users can preview and edit them but
 // need a paid plan to download. Change the list here; the builder, paywall and
 // server-side download check all read it.
-export const PREMIUM_TEMPLATES = [2, 7, 8, 11, 13, 14, 15];
+export const PREMIUM_TEMPLATES = [2, 7, 8, 11, 13, 14, 15, 16];
 
 export function isPremiumTemplate(template) {
   return PREMIUM_TEMPLATES.includes(template);

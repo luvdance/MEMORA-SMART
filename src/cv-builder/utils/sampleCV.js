@@ -101,4 +101,5 @@ export const TEMPLATE_INFO = [
 { name: "Signature Edge", accent: "#d4a017", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Dark Geo", accent: "#f59e0b", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 { name: "Summit", accent: "#1d6ff2", theme: { bg: "#ffffff", text: "#1a1a1a" } },
+{ name: "Vantage", accent: "#6f9bc8", theme: { bg: "#ffffff", text: "#1a1a1a" } },
 ];

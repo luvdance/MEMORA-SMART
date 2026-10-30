@@ -9,7 +9,7 @@ import "../CVNavbar.css";
 // Template menu groups (every template appears exactly once).
 const TEMPLATE_GROUPS = [
   { label: "Classic", templates: [0, 2, 5, 6, 9] },
-  { label: "Modern", templates: [1, 8, 7, 11, 15] },
+  { label: "Modern", templates: [1, 8, 7, 11, 15, 16] },
   { label: "Signature", templates: [3, 4, 10, 12, 13, 14] },
 ];
 

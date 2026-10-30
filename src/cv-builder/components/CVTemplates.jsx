@@ -4382,3 +4382,419 @@ export function Summit({ cv, accent, format, sectionOrder, theme }) {
     </div>
   );
 }
+
+// ══════════════════════════════════════════════
+// ── TEMPLATE 17: VANTAGE ──
+// ══════════════════════════════════════════════
+// Stone side panel with a shaped portrait over soft blobs, a very large
+// two-tone name, a capsule "window" onto a mountain and a timeline. Compact
+// sections that sit next to each other share a two-column block.
+
+// Text and level from an entry like "Igbo (Native)".
+const VANTAGE_LEVELS = {
+  native: 100, mother: 100, bilingual: 100, fluent: 85, proficient: 80, advanced: 75, professional: 75,
+  intermediate: 55, conversational: 45, basic: 30, beginner: 25, elementary: 25,
+};
+
+function parseLanguage(entry) {
+  const m = /^(.+?)\s*[(:–-]\s*([^)]+?)\)?$/.exec(entry);
+  const label = m ? m[2].trim() : "";
+  const pct = VANTAGE_LEVELS[label.toLowerCase().split(/\s+/)[0]];
+  return pct ? { name: m[1].trim(), label, pct } : { name: entry };
+}
+
+function VantageSideLabel({ title, ink, accent }) {
+  return (
+    <div className="cv-section-heading" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", color: ink, whiteSpace: "nowrap" }}>{title}</span>
+      <span style={{ flex: 1, height: 1, background: `${accent}80`, minWidth: 10 }} />
+    </div>
+  );
+}
+
+function VantageLabel({ title, format, ink, accent }) {
+  return (
+    <div className="cv-section-heading" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 11 }}>
+      <span style={{
+        fontSize: format.headingFontSize - 1,
+        fontWeight: format.headingBold ? 700 : 500,
+        textTransform: format.headingUppercase ? "uppercase" : "none",
+        letterSpacing: format.headingUppercase ? 3 : 0.4,
+        color: ink,
+        whiteSpace: "nowrap",
+      }}>
+        {title}
+      </span>
+      <span style={{ flex: 1, height: 1, background: `${accent}99`, minWidth: 12 }} />
+    </div>
+  );
+}
+
+// Portrait outline: an arch for the head that widens into the shoulder, cut
+// by the panel's diagonal. Drawn in SVG so the edge stays sharp in the PDF.
+const VANTAGE_PHOTO_CLIP = "M0 278 L0 250 C30 238 44 205 44 170 C44 110 72 58 130 58 C185 58 215 100 215 150 L215 230 C235 245 252 265 252 295 L252 340 Q252 364 226 359 Z";
+
+function VantageHero({ cv, accent, ink }) {
+  return (
+    <svg width="268" height="372" viewBox="0 0 268 372" aria-hidden="true"
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+      <defs>
+        <clipPath id="vantagePhoto"><path d={VANTAGE_PHOTO_CLIP} /></clipPath>
+      </defs>
+      <path d="M0 66 C34 50 74 52 104 72 L104 210 L0 240 Z" fill="#ffffff" fillOpacity="0.32" />
+      <path d="M122 72 C150 54 214 48 236 66 C254 84 242 132 216 168 C190 198 150 192 130 150 Z" fill={accent} fillOpacity="0.38" />
+      <path d="M0 118 C30 112 54 140 52 176 C50 216 20 242 0 252 Z" fill={ink} />
+      <path d={VANTAGE_PHOTO_CLIP} fill={ink} />
+      {cv.photo ? (
+        <image href={cv.photo} x="0" y="58" width="252" height="306" preserveAspectRatio="xMidYMin slice" clipPath="url(#vantagePhoto)" />
+      ) : (
+        <g clipPath="url(#vantagePhoto)">
+          <rect x="0" y="58" width="252" height="306" fill={accent} fillOpacity="0.55" />
+          <circle cx="130" cy="150" r="42" fill="#ffffff" fillOpacity="0.6" />
+          <ellipse cx="130" cy="290" rx="90" ry="84" fill="#ffffff" fillOpacity="0.6" />
+        </g>
+      )}
+    </svg>
+  );
+}
+
+function VantageWindow({ ink, accent }) {
+  return (
+    <svg width="112" height="190" viewBox="0 0 112 190" aria-hidden="true" style={{ flexShrink: 0, overflow: "visible" }}>
+      <defs>
+        <clipPath id="vantageWindow"><rect x="0" y="0" width="74" height="172" rx="37" /></clipPath>
+        <linearGradient id="vantageSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#4f6684" />
+          <stop offset="0.55" stopColor="#a9b2bd" />
+          <stop offset="0.8" stopColor="#d8c4b4" />
+        </linearGradient>
+      </defs>
+      <g clipPath="url(#vantageWindow)">
+        <rect width="74" height="172" fill="url(#vantageSky)" />
+        <polygon points="-6,112 22,84 42,72 58,84 84,100 84,150 -6,150" fill="#8b93a5" />
+        <polygon points="42,72 34,84 40,82 44,92 50,84 58,84" fill="#f1ece6" />
+        <polygon points="42,72 58,84 84,100 84,130 60,112 50,92" fill="#5d6780" />
+        <path d="M-6 132 C14 112 34 118 46 128 C60 138 72 130 84 124 L84 176 L-6 176 Z" fill={ink} />
+      </g>
+      <circle cx="74" cy="150" r="38" fill="none" stroke={accent} strokeOpacity="0.5" strokeWidth="0.8" />
+    </svg>
+  );
+}
+
+export function Vantage({ cv, accent, format, sectionOrder, theme }) {
+  const s = format.bodyFontSize;
+  const lh = format.lineHeight;
+  const dark = isDarkColor(theme.bg);
+  const ink = dark ? "#f3f6fb" : "#14191f";
+  const tc = dark ? theme.text : "#3c4552";
+  const muted = dark ? "rgba(255,255,255,0.6)" : "#6d7683";
+  const panel = dark ? "linear-gradient(180deg, #262a40, #1f2235)" : "linear-gradient(180deg, #e4e1da, #ebe8e2 55%, #e2dfd8)";
+  // Georgia is the builder default; this design is drawn for a geometric sans.
+  const font = format.fontFamily === "Georgia, serif"
+    ? "'Inter', 'Manrope', 'Helvetica Neue', Arial, sans-serif"
+    : format.fontFamily;
+
+  const nameParts = (cv.name || "Your Name").trim().split(/\s+/);
+  const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0];
+  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+  // The name is the design: as large as the room beside the window allows.
+  const longest = Math.max(firstName.length, lastName.length, 1);
+  const nameSize = Math.min(format.nameFontSize + 28, Math.floor(352 / (longest * 0.62)));
+
+  const sideKeys = SIDEBAR_SECTIONS[16];
+  const mainKeys = sectionOrder.filter(k => !sideKeys.includes(k));
+  const sideSections = sectionOrder.filter(k => sideKeys.includes(k));
+  // A summary placed first reads as the intro under the name.
+  const introSummary = mainKeys[0] === "summary" ? cv.summary : "";
+
+  const label = (title) => <VantageLabel title={title} format={format} ink={ink} accent={accent} />;
+  const dates = (a, b) => [a, b].filter(Boolean).join(" – ");
+  const block = { marginBottom: 16 };
+  const iconRow = (icon, key, children) => (
+    <div key={key} className="cv-item" style={{ display: "flex", gap: 10, marginBottom: 9 }}>
+      <i className={`fas fa-${icon}`} style={{ fontSize: 13, color: ink, width: 16, textAlign: "center", marginTop: 2, flexShrink: 0 }}></i>
+      <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>{children}</div>
+    </div>
+  );
+  const small = { fontSize: s - 1, color: muted, textAlign: "left" };
+
+  const renderMain = (key) => {
+    switch (key) {
+      case "summary":
+        return cv.summary && !introSummary ? (
+          <div key={key} style={block} className="cv-section-keep">
+            {label("Profile")}
+            <p style={{ fontSize: s, lineHeight: lh, margin: 0, color: tc }}>{cv.summary}</p>
+          </div>
+        ) : null;
+      case "experience":
+        return cv.experience[0]?.company ? (
+          <div key={key} style={block}>
+            {label("Work Experience")}
+            {cv.experience.map((e, i) => (
+              <div key={i} className="cv-item" style={{
+                position: "relative",
+                marginLeft: 3,
+                paddingLeft: 24,
+                paddingBottom: i === cv.experience.length - 1 ? 2 : 13,
+                borderLeft: `1px solid ${dark ? "rgba(255,255,255,0.3)" : "#7c8592"}`,
+              }}>
+                <span style={{ position: "absolute", left: -4, top: 6, width: 7, height: 7, borderRadius: "50%", background: ink }} />
+                <div style={{ fontSize: s + 1.5, fontWeight: 600, color: ink }}>{e.role}</div>
+                <div style={{ fontSize: s - 0.5, color: muted, marginBottom: 2 }}>
+                  {e.company}
+                  {(e.start || e.end || e.current) && <span> &nbsp;•&nbsp; {dates(e.start, e.current ? "Present" : e.end)}</span>}
+                </div>
+                <BulletList text={e.responsibilities} fontSize={s - 0.5} lineHeight={lh} color={tc} />
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "biodata": {
+        const rows = bioRows(cv);
+        return rows.length ? (
+          <div key={key} style={block} className="cv-section-keep">
+            {label("Personal Details")}
+            {rows.map(([l, v]) => (
+              <div key={l} style={{ fontSize: s - 0.5, color: tc, marginBottom: 2 }}>
+                <span style={{ color: ink, fontWeight: 600 }}>{l}: </span>{v}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      }
+      case "education":
+        return cv.education[0]?.school ? (
+          <div key={key} style={block}>
+            {label("Education")}
+            {cv.education.map((e, i) => iconRow("graduation-cap", i, (
+              <>
+                <div style={{ fontSize: s + 0.5, fontWeight: 600, color: ink }}>{e.degree}{e.field ? ` in ${e.field}` : ""}</div>
+                <div style={small}>{e.school}{(e.start || e.end) && <span> &nbsp;•&nbsp; {dates(e.start, e.end)}</span>}</div>
+              </>
+            )))}
+          </div>
+        ) : null;
+      case "certifications":
+        return hasCertifications(cv) ? (
+          <div key={key} style={block}>
+            {label("Certifications")}
+            {normalizeCertifications(cv.certifications).map((c, i) => iconRow("award", i, (
+              <>
+                <div style={{ fontSize: s, fontWeight: 600, color: ink }}>{c.name}</div>
+                <div style={small}>{c.issuer}{c.issueDate && <span> &nbsp;•&nbsp; {c.issueDate}</span>}</div>
+              </>
+            )))}
+          </div>
+        ) : null;
+      case "achievements":
+        return cv.achievements?.[0]?.title ? (
+          <div key={key} style={block}>
+            {label("Achievements")}
+            {cv.achievements.map((a, i) => iconRow("chevron-circle-right", i, (
+              <>
+                <div style={{ fontSize: s, fontWeight: 600, color: ink, textAlign: "left" }}>{a.title}</div>
+                {a.date && <div style={small}>{a.date}</div>}
+                {a.description && <div style={small}>{a.description}</div>}
+              </>
+            )))}
+          </div>
+        ) : null;
+      case "volunteer":
+        return cv.volunteer?.[0]?.organization ? (
+          <div key={key} style={block}>
+            {label("Volunteer")}
+            {cv.volunteer.map((v, i) => iconRow("hands-helping", i, (
+              <>
+                <div style={{ fontSize: s, fontWeight: 600, color: ink }}>{v.role}</div>
+                <div style={small}>{v.organization}{(v.start || v.end) && <span> &nbsp;•&nbsp; {dates(v.start, v.end)}</span>}</div>
+                {v.description && <div style={small}>{v.description}</div>}
+              </>
+            )))}
+          </div>
+        ) : null;
+      case "publications":
+        return cv.publications?.[0]?.title ? (
+          <div key={key} style={block}>
+            {label("Publications")}
+            {cv.publications.map((p, i) => iconRow("book-open", i, (
+              <>
+                <div style={{ fontSize: s, fontWeight: 600, color: ink }}>{p.title}</div>
+                {(p.journal || p.date) && <div style={small}>{[p.journal, p.date].filter(Boolean).join(" • ")}</div>}
+              </>
+            )))}
+          </div>
+        ) : null;
+      case "references":
+        return cv.references?.[0]?.name ? (
+          <div key={key} style={block}>
+            {label("References")}
+            {cv.references.map((r, i) => iconRow("user", i, (
+              <>
+                <div style={{ fontSize: s, fontWeight: 600, color: ink }}>{r.name}</div>
+                {(r.title || r.company) && <div style={small}>{[r.title, r.company].filter(Boolean).join(", ")}</div>}
+                {(r.email || r.phone) && <div style={small}>{[r.email, r.phone].filter(Boolean).join(" • ")}</div>}
+              </>
+            )))}
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  // Keep the chosen order; neighbouring compact sections fill two columns,
+  // reading left, right, left, right.
+  const rendered = mainKeys.map(k => ({ k, node: renderMain(k) })).filter(x => x.node);
+  const blocks = [];
+  rendered.forEach((item) => {
+    const last = blocks[blocks.length - 1];
+    if (item.k === "experience" || item.k === "summary") blocks.push({ wide: item });
+    else if (last?.run) last.run.push(item);
+    else blocks.push({ run: [item] });
+  });
+
+  const dotted = (text) => text.split(/[,\n]+/).map(x => x.trim()).filter(Boolean);
+
+  const renderSide = (key) => {
+    switch (key) {
+      case "skills":
+        return cv.skills ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <VantageSideLabel title="Skills" ink={ink} accent={accent} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 5px" }}>
+              {dotted(cv.skills).map((sk, i) => (
+                <span key={i} style={{
+                  fontSize: s - 1.5, color: tc, lineHeight: 1.3, padding: "3px 9px", borderRadius: 999,
+                  border: `1px solid ${dark ? "rgba(255,255,255,0.3)" : "#a8a59e"}`,
+                }}>{sk}</span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      case "languages":
+        return cv.languages ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <VantageSideLabel title="Languages" ink={ink} accent={accent} />
+            {dotted(cv.languages).map(parseLanguage).map((l, i) => (
+              <div key={i} style={{ marginBottom: 7 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: s - 1.5, color: tc }}>
+                  <span>{l.name}</span><span>{l.label}</span>
+                </div>
+                {l.pct && (
+                  <div style={{ height: 4, borderRadius: 2, marginTop: 3, background: dark ? "rgba(255,255,255,0.18)" : "#cbc8c1" }}>
+                    <div style={{ width: `${l.pct}%`, height: "100%", borderRadius: 2, background: ink }} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : null;
+      case "hobbies":
+        return cv.hobbies ? (
+          <div key={key} style={{ marginBottom: 18 }} className="cv-section-keep">
+            <VantageSideLabel title="Interests" ink={ink} accent={accent} />
+            <div style={{ fontSize: s - 1, color: tc, lineHeight: 1.5 }}>{dotted(cv.hobbies).join(" • ")}</div>
+          </div>
+        ) : null;
+      default: return null;
+    }
+  };
+
+  const contacts = [
+    ["fas", "envelope", cv.email],
+    ["fas", "phone", cv.phone],
+    ["fas", "map-marker-alt", cv.address],
+    ["fab", "linkedin", cv.linkedin],
+    ["fas", "globe", cv.website],
+    ["fab", "github", cv.github],
+  ].filter(([, , v]) => v);
+
+  return (
+    <div style={{
+      fontFamily: font,
+      fontSize: s,
+      color: tc,
+      lineHeight: lh,
+      background: theme.bg,
+      minHeight: "100%",
+      boxSizing: "border-box",
+      display: "flex",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* SIDE PANEL */}
+      <div style={{
+        width: 268,
+        flexShrink: 0,
+        boxSizing: "border-box",
+        padding: "352px 24px 96px 30px",
+        background: panel,
+        position: "relative",
+      }}>
+        <VantageHero cv={cv} accent={accent} ink={ink === "#14191f" ? ink : "#14171f"} />
+
+        {contacts.length > 0 && (
+          <div style={{ marginBottom: 18, position: "relative" }}>
+            <VantageSideLabel title="Contact" ink={ink} accent={accent} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              {contacts.map(([set, icon, text]) => (
+                <div key={icon} style={{ display: "flex", alignItems: "flex-start", gap: 11, fontSize: s - 1.5, color: tc, lineHeight: 1.35, overflowWrap: "anywhere" }}>
+                  <i className={`${set} fa-${icon}`} style={{ fontSize: 11, color: ink, width: 14, textAlign: "center", flexShrink: 0, marginTop: 1 }}></i>
+                  <span>{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {sideSections.map(renderSide)}
+
+        {/* Dark facets in the panel's foot */}
+        <svg width="148" height="92" viewBox="0 0 148 92" aria-hidden="true"
+          style={{ position: "absolute", right: 0, bottom: 0, pointerEvents: "none" }}>
+          <polygon points="0,92 148,0 148,92" fill={dark ? "#0f1120" : "#14191f"} />
+          <polygon points="56,92 148,40 148,92" fill={accent} fillOpacity="0.16" />
+        </svg>
+      </div>
+
+      {/* MAIN */}
+      <div style={{ flex: 1, minWidth: 0, padding: "48px 30px 36px 36px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {cv.jobTitle && (
+              <div style={{ fontSize: s - 1.5, fontWeight: 500, letterSpacing: 3.6, textTransform: "uppercase", color: ink, marginBottom: 14 }}>
+                {cv.jobTitle}
+              </div>
+            )}
+            <div style={{ fontSize: nameSize, fontWeight: 800, lineHeight: 0.98, letterSpacing: -1 }}>
+              <div style={{ color: ink }}>{firstName}</div>
+              {lastName && <div style={{ color: accent }}>{lastName}</div>}
+            </div>
+            {introSummary && (
+              <p style={{ fontSize: s + 0.5, lineHeight: lh, margin: "14px 0 0", color: tc }}>{introSummary}</p>
+            )}
+          </div>
+          <VantageWindow ink={dark ? "#0f1120" : ink} accent={accent} />
+        </div>
+
+        {blocks.map((b, i) => {
+          if (b.wide) return b.wide.node;
+          if (b.run.length === 1) return b.run[0].node;
+          return (
+            <div key={i} style={{ display: "flex", gap: 20 }}>
+              {[0, 1].map((col) => (
+                <div key={col} style={{
+                  flex: 1, minWidth: 0,
+                  paddingLeft: col ? 20 : 0,
+                  borderLeft: col ? `1px solid ${dark ? "rgba(255,255,255,0.25)" : "#b9bdc4"}` : "none",
+                }}>
+                  {b.run.filter((_, n) => n % 2 === col).map(x => x.node)}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
