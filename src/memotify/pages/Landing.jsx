@@ -8,14 +8,9 @@ import JobRow from "../JobRow";
 import { skillLabel } from "../data/skills";
 import { ArrowRight, Buildings, Prohibit, ShieldCheck } from "../icons";
 import CvBanner from "../CvBanner";
+// A 72 KB copy of assets/memotify_hero.jpg (2.8 MB), for mobile data.
+import heroImage from "../../assets/memotify/hero.webp";
 
-// Found at build time, so the page still builds before the image is added.
-const heroFiles = import.meta.glob("../../assets/memotify_hero.{png,jpg,jpeg,webp}", {
-  eager: true,
-  query: "?url",
-  import: "default",
-});
-const heroImage = Object.values(heroFiles)[0] || null;
 
 const LADDER = [
   { tier: "Claimed", text: "It is on your CV. A start, and exactly what every other applicant has." },
@@ -25,6 +20,7 @@ const LADDER = [
 ];
 
 const fmt = (n) => Number(n || 0).toLocaleString("en-US");
+const minus = (n) => (n ? `−${fmt(n)}` : "0");
 
 export default function Landing() {
   useSEO({
@@ -48,8 +44,7 @@ export default function Landing() {
 
   return (
     <Shell tabs={false} dark wide>
-      <section className={`mf-hero ${heroImage ? "mf-hero--image" : ""}`}>
-        {heroImage && <img className="mf-hero__img" src={heroImage} alt="" fetchPriority="high" />}
+      <section className="mf-hero">
         <div className="mf-hero__in">
           <p className="mf-eyebrow">For Nigerian graduates</p>
           <h1>
@@ -72,31 +67,38 @@ export default function Landing() {
           </div>
         </div>
 
-        <aside className="mf-receipt" aria-label="Today's job check">
-          <p className="mf-receipt__head">
-            Today's check
+        <div className="mf-hero__photo">
+          <img
+            src={heroImage}
+            alt="A smiling young professional in a shirt and tie, arms folded, in a bright office"
+            width="1400"
+            height="1045"
+            fetchPriority="high"
+          />
+        </div>
+      </section>
+
+      <section className="mf-tape" aria-label="Today's job check">
+        <div className="mf-tape__in">
+          <p className="mf-tape__head">
+            <b>Today's check</b>
             {data?.meta?.checkedAt && <span>{ago(data.meta.checkedAt)}</span>}
           </p>
           {counts ? (
             <>
               <dl>
                 <div><dt>Postings read</dt><dd>{fmt(counts.seen - counts.duplicate)}</dd></div>
-                <div><dt>Closed to Nigeria</dt><dd>−{fmt(counts.closedToNigeria)}</dd></div>
-                <div><dt>Too old to trust</dt><dd>−{fmt(counts.stale)}</dd></div>
-                <div><dt>Failed the scam check</dt><dd>−{fmt(counts.scam)}</dd></div>
+                <div><dt>Closed to Nigeria</dt><dd>{minus(counts.closedToNigeria)}</dd></div>
+                <div><dt>Too old to trust</dt><dd>{minus(counts.stale)}</dd></div>
+                <div><dt>Failed the scam check</dt><dd>{minus(counts.scam)}</dd></div>
+                <div className="mf-tape__total"><dt>On the board</dt><dd>{fmt(data.meta.count)}</dd></div>
               </dl>
-              <p className="mf-receipt__total">
-                <span>On the board</span>
-                <b>{fmt(data.meta.count)}</b>
-              </p>
-              <p className="mf-receipt__foot">
-                {fmt(turnedAway)} turned away so you don't waste an evening on them.
-              </p>
+              <p className="mf-tape__foot">{fmt(turnedAway)} turned away so you don't waste an evening on them.</p>
             </>
           ) : (
-            <p className="mf-receipt__foot">Running today's check. The numbers land here shortly.</p>
+            <p className="mf-tape__foot">Running today's check. The numbers land here shortly.</p>
           )}
-        </aside>
+        </div>
       </section>
 
       <section className="mf-band">
