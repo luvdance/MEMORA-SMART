@@ -78,6 +78,26 @@ export const ROUTE_META = {
     type: "website",
   },
 
+  /* ── Memotify ─────────────────────────────────────────────────────── */
+  "/memotify": {
+    title: "Memotify — Jobs for Nigerian Graduates, Checked and Current",
+    description:
+      "Real jobs open to people in Nigeria, remote and local. We check that each role accepts you, is still live and is not a scam. You prove your skills and go to the front.",
+    type: "website",
+  },
+  "/memotify/jobs": {
+    title: "Jobs Open to Nigerians, Remote and Local — Memotify",
+    description:
+      "Current graduate, remote and Nigerian roles, each checked for location limits, freshness and scam signs. See exactly which of your skills each job needs.",
+    type: "website",
+  },
+  "/memotify/hire": {
+    title: "Hire Nigerian Graduates by Proven Skill — Memotify",
+    description:
+      "Post a role and see applicants ranked by skills they have proved in graded checks and exams, not just claimed on a CV.",
+    type: "website",
+  },
+
   /* ── Academy ──────────────────────────────────────────────────────── */
   "/academy": {
     title: "Memora Smart Academy — Learn Data, Web Development, AI and Design",
@@ -157,6 +177,12 @@ export const NOINDEX_PREFIXES = [
   "/academy/profile",
   "/academy/exam",
   "/academy/jobs",
+  "/memotify/passport",
+  "/memotify/tracker",
+  "/memotify/check",
+  "/memotify/me",
+  "/memotify/p/",
+  "/memotify/hire/",
 ];
 
 /** The routes the build writes a real HTML file for. */

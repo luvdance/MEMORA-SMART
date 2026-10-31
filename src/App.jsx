@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import CVLanding from "./cv-builder/components/CVLanding";
 import AuthPage from "./pages/AuthPage";
@@ -21,13 +22,15 @@ import AcademyLanding from "./academy/pages/AcademyLanding";
 import AcademyCourses from "./academy/pages/AcademyCourses";
 import AcademyEnroll from "./academy/pages/AcademyEnroll";
 import AcademyEnrollChoose from "./academy/pages/AcademyEnrollChoose";
-import AcademyJobs from "./academy/pages/AcademyJobs";
 import AcademyLearn from "./academy/pages/AcademyLearn";
 import AcademyProfile from "./academy/pages/AcademyProfile";
 import LessonPlayer from "./academy/pages/LessonPlayer";
 import FinalExam from "./academy/pages/FinalExam";
 import TypingDojo from "./academy/pages/TypingDojo";
 import AcademyRoute from "./academy/components/AcademyRoute";
+
+// Loaded on demand: nobody on the CV Builder should pay for Memotify's bundle.
+const MemotifyApp = lazy(() => import("./memotify/MemotifyApp"));
 
 function App() {
   return (
@@ -54,6 +57,21 @@ function App() {
       <Route path="/digital-skills" element={<LeadMagnetComputerSkills />} />
       <Route path="/library" element={<Library />} />
       <Route path="/projectpilot" element={<ProjectPilot />} />
+
+      <Route
+        path="/memotify/*"
+        element={
+          <Suspense
+            fallback={
+              <p style={{ minHeight: "100vh", margin: 0, padding: 32, background: "#f6f4fb", color: "#1e1b4b", textAlign: "center" }}>
+                Loading Memotify…
+              </p>
+            }
+          >
+            <MemotifyApp />
+          </Suspense>
+        }
+      />
 
       {/* ── Memora Smart Academy ──
           Public landing, then everything behind AcademyRoute, which also
@@ -118,14 +136,8 @@ function App() {
           </AcademyRoute>
         }
       />
-      <Route
-        path="/academy/jobs"
-        element={
-          <AcademyRoute>
-            <AcademyJobs />
-          </AcademyRoute>
-        }
-      />
+      {/* Jobs moved to Memotify. Kept so that old links still land somewhere. */}
+      <Route path="/academy/jobs" element={<Navigate to="/memotify/jobs" replace />} />
       <Route
         path="/academy/profile"
         element={

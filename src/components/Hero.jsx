@@ -8,6 +8,7 @@ import heroImage from "../assets/hero image.png";
 // pressing "More", so the most-used destinations come first.
 const services = [
   { icon: "fas fa-graduation-cap", label: "Memora Academy", path: "/academy" },
+  { icon: "fas fa-briefcase", label: "Find Checked Jobs", path: "/memotify" },
   // `course` sends the visitor into that course's enrolment, signing them in
   // first if needed, instead of dropping them on the Academy landing page.
   {

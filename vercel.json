@@ -3,8 +3,17 @@
     "api/generate-pdf.js": {
       "memory": 1024,
       "maxDuration": 30
+    },
+    "api/memotify.js": {
+      "maxDuration": 60
     }
   },
+  "crons": [
+    {
+      "path": "/api/memotify?action=cron",
+      "schedule": "0 5 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
@@ -38,6 +47,10 @@
     {
       "source": "/api/academy/:action",
       "destination": "/api/academy?action=:action"
+    },
+    {
+      "source": "/api/memotify/:action",
+      "destination": "/api/memotify?action=:action"
     },
     {
       "source": "/api/cv/:action",
@@ -82,6 +95,18 @@
     {
       "source": "/pricing",
       "destination": "/pricing/index.html"
+    },
+    {
+      "source": "/memotify",
+      "destination": "/memotify/index.html"
+    },
+    {
+      "source": "/memotify/jobs",
+      "destination": "/memotify/jobs/index.html"
+    },
+    {
+      "source": "/memotify/hire",
+      "destination": "/memotify/hire/index.html"
     },
     {
       "source": "/academy",

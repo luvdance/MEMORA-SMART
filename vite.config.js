@@ -127,6 +127,46 @@ function academyApi() {
         }
       })
 
+      // Memotify. The production handlers on an in-memory backend, so the whole
+      // product runs locally without a service account. See devBackend.mjs.
+      server.middlewares.use('/api/memotify', async (req, res) => {
+        try {
+          const { install } = await server.ssrLoadModule('/lib/memotify/devBackend.mjs')
+          const { routes } = await server.ssrLoadModule('/lib/memotify/handlers.js')
+          install()
+          const url = new URL(req.url, 'http://localhost')
+          const action = url.pathname.split('/').filter(Boolean)[0] || url.searchParams.get('action')
+          const route = routes[action]
+
+          let body = {}
+          if (req.method === 'POST') {
+            let raw = ''
+            for await (const chunk of req) raw += chunk
+            body = JSON.parse(raw || '{}')
+          }
+
+          const shim = {
+            status(code) {
+              res.statusCode = code
+              return shim
+            },
+            json(payload) {
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify(payload))
+              return shim
+            },
+            setHeader: (k, v) => res.setHeader(k, v),
+          }
+          if (!route) return shim.status(404).json({ error: 'Unknown Memotify route' })
+          const query = Object.fromEntries(url.searchParams.entries())
+          await route({ method: req.method, query, body, headers: req.headers }, shim)
+        } catch (err) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
+
       // Mathematics. Reuses the production handler verbatim through the same
       // req/res shim the final exam uses, so the dev server and Vercel cannot
       // drift apart on the one endpoint that holds every maths answer.

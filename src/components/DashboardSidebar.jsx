@@ -10,6 +10,7 @@ const navItems = [
 const apps = [
   { label: "CV Builder", icon: "fas fa-file-alt", path: "/dashboard/cv-builder", tag: "Live" },
   { label: "Academy", icon: "fas fa-graduation-cap", path: "/academy", tag: "Live" },
+  { label: "Memotify Jobs", icon: "fas fa-briefcase", path: "/memotify/jobs", tag: "New" },
   { label: "Website Builder", icon: "fas fa-laptop-code", path: "/dashboard/web-builder", tag: "Soon" },
   { label: "Mobile App Builder", icon: "fas fa-mobile-alt", path: "/dashboard/app-builder", tag: "Soon" },
   { label: "AI Automation", icon: "fas fa-robot", path: "/dashboard/ai-automation", tag: "Soon" },

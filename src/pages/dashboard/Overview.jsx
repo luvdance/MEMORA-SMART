@@ -13,6 +13,13 @@ const apps = [
     path: "/dashboard/cv-builder",
   },
   {
+    icon: "fas fa-briefcase",
+    name: "Memotify",
+    desc: "Current jobs open to Nigerians, checked for scams. Prove your skills and see exactly which roles you're ready for.",
+    tag: "New",
+    path: "/memotify/jobs",
+  },
+  {
     icon: "fas fa-laptop-code",
     name: "Website Builder",
     desc: "Build and launch professional websites with our drag-and-drop builder.",

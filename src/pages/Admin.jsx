@@ -9,6 +9,7 @@ import { db } from "../firebase";
 import "./Admin.css";
 import AcademyAdmin from "./admin/AcademyAdmin";
 import AdminCVs from "./admin/AdminCVs";
+import MemotifyAdmin from "./admin/MemotifyAdmin";
 import { PLANS, addPlanPeriod, computeEntitlement, describeEntitlement, toMillis } from "../cv-builder/utils/plans";
 
 export default function Admin() {
@@ -364,7 +365,15 @@ if (!isAdmin) return null;
           >
             <i className="fas fa-graduation-cap"></i> Academy
           </button>
+          <button
+            className={`admin__main-tab ${mainTab === "memotify" ? "admin__main-tab--active" : ""}`}
+            onClick={() => setMainTab("memotify")}
+          >
+            <i className="fas fa-briefcase"></i> Memotify
+          </button>
         </div>
+
+        {mainTab === "memotify" && <MemotifyAdmin />}
 
 
         {/* ────── USERS TAB ────── */}
