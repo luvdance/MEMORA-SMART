@@ -118,6 +118,16 @@ export default function JobDetail({ id, onBack }) {
         <div><dt>Posted</dt><dd>{job.postedAt ? ago(job.postedAt) : "Not given"}</dd></div>
       </dl>
 
+      {["applied", "interview", "offer"].includes(trackStatus) && (
+        <Notice
+          tone="violet"
+          title="You've applied. Now rehearse."
+          action={<Link className="mf-link" to={`/memotify/interview/${encodeURIComponent(job.id)}`}>Start a practice interview</Link>}
+        >
+          A live mock interview built from this advert and your CV.
+        </Notice>
+      )}
+
       {closed && <Notice tone="warn" title="This role has closed">The employer is no longer taking applications.</Notice>}
 
       <section className="mf-panel mf-ticket" aria-labelledby="checked">

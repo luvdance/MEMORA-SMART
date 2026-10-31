@@ -6,7 +6,7 @@ import { api, useLoad } from "../api";
 import { Monogram, Notice, Spinner } from "../Bits";
 import { ago } from "../format";
 import { TRACK_STAGES } from "../data/skills";
-import { ArrowSquareOut, Kanban, Lightning, PaperPlaneTilt } from "../icons";
+import { ArrowSquareOut, Kanban, Lightning, PaperPlaneTilt, UserSound } from "../icons";
 
 const FOLLOW_UP_MS = 7 * 86400000;
 
@@ -104,6 +104,11 @@ function Item({ item, onChange }) {
         {!item.managed && <p className="mf-track__when">Updated {ago(item.updatedAt)}</p>}
         {quiet && !item.managed && (
           <p className="mf-track__flag"><Lightning size={15} weight="fill" /> A week of silence. A short follow-up is fair now.</p>
+        )}
+        {["applied", "interview", "offer"].includes(item.status) && (
+          <Link className="mf-link mf-track__practise" to={`/memotify/interview/${encodeURIComponent(item.jobId)}`}>
+            <UserSound size={16} weight="fill" /> Practise the interview
+          </Link>
         )}
         {!item.managed && (
           <div className="mf-track__do">

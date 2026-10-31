@@ -7,6 +7,15 @@ import { ago } from "../format";
 import JobRow from "../JobRow";
 import { skillLabel } from "../data/skills";
 import { ArrowRight, Buildings, Prohibit, ShieldCheck } from "../icons";
+import CvBanner from "../CvBanner";
+
+// Found at build time, so the page still builds before the image is added.
+const heroFiles = import.meta.glob("../../assets/memotify_hero.{png,jpg,jpeg,webp}", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+const heroImage = Object.values(heroFiles)[0] || null;
 
 const LADDER = [
   { tier: "Claimed", text: "It is on your CV. A start, and exactly what every other applicant has." },
@@ -39,7 +48,8 @@ export default function Landing() {
 
   return (
     <Shell tabs={false} dark wide>
-      <section className="mf-hero">
+      <section className={`mf-hero ${heroImage ? "mf-hero--image" : ""}`}>
+        {heroImage && <img className="mf-hero__img" src={heroImage} alt="" fetchPriority="high" />}
         <div className="mf-hero__in">
           <p className="mf-eyebrow">For Nigerian graduates</p>
           <h1>
@@ -109,6 +119,10 @@ export default function Landing() {
             All {data ? fmt(data.total) : ""} jobs <ArrowRight size={17} weight="bold" />
           </Link>
         </div>
+      </section>
+
+      <section className="mf-band mf-band--flush">
+        <div className="mf-band__in"><CvBanner /></div>
       </section>
 
       <section className="mf-band mf-band--paper">

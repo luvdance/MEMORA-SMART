@@ -156,6 +156,8 @@ function academyApi() {
               return shim
             },
             setHeader: (k, v) => res.setHeader(k, v),
+            write: (chunk) => res.write(chunk),
+            end: () => res.end(),
           }
           if (!route) return shim.status(404).json({ error: 'Unknown Memotify route' })
           const query = Object.fromEntries(url.searchParams.entries())

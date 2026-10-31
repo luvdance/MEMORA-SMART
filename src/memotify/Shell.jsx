@@ -1,11 +1,13 @@
 /* eslint-disable react-refresh/only-export-components -- the frame and its context belong together */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { api, devUser } from "./api";
 import lockup from "../assets/memotify/lockup.png";
 import lockupDark from "../assets/memotify/lockup-dark.png";
-import { Briefcase, Buildings, Kanban, Stamp, UserCircle } from "./icons";
+import {
+  Briefcase, Buildings, CaretDown, FileText, GraduationCap, Kanban, SignOut, Stamp, UserCircle, UserGear, UserSound,
+} from "./icons";
 import "./memotify.css";
 
 /**
@@ -73,6 +75,77 @@ const TABS = [
   { to: "/memotify/hire", label: "Hire", icon: Buildings },
 ];
 
+const ACCOUNT_LINKS = [
+  { to: "/memotify/passport", label: "My profile and Passport", icon: Stamp },
+  { to: "/memotify/tracker", label: "My applications", icon: Kanban },
+  { to: "/memotify/interview", label: "Interview practice", icon: UserSound },
+  { to: "/memotify/hire", label: "Employer workspace", icon: Buildings },
+  { to: "/dashboard/cv-builder", label: "CV Builder", icon: FileText },
+  { to: "/academy", label: "Academy", icon: GraduationCap },
+  { to: "/dashboard/profile", label: "Account settings", icon: UserGear },
+];
+
+/** Closes on an outside tap and on Escape. Every page has its own Shell, so navigating resets it. */
+function AccountMenu() {
+  const { user, me } = useMe();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (!box.current?.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const leave = async () => {
+    setOpen(false);
+    await logout();
+    navigate("/memotify");
+  };
+
+  return (
+    <div className="mf-acct" ref={box}>
+      <button
+        type="button"
+        className="mf-top__me"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        onClick={() => setOpen(!open)}
+      >
+        <UserCircle size={26} weight="duotone" />
+        <CaretDown size={12} weight="bold" />
+      </button>
+      {open && (
+        <div className="mf-acct__menu" role="menu">
+          <p className="mf-acct__who">
+            <b>{me?.name || user?.displayName || "Your account"}</b>
+            <span>{user?.email}</span>
+          </p>
+          {ACCOUNT_LINKS.map((item) => (
+            <Link key={item.to} to={item.to} role="menuitem" onClick={() => setOpen(false)}>
+              <item.icon size={19} /> {item.label}
+            </Link>
+          ))}
+          <button type="button" role="menuitem" className="mf-acct__out" onClick={leave}>
+            <SignOut size={19} /> Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Shell({ children, tabs = true, dark = false, wide = false }) {
   const { signedIn } = useMe();
   const { pathname } = useLocation();
@@ -96,9 +169,7 @@ export default function Shell({ children, tabs = true, dark = false, wide = fals
             ))}
           </nav>
           {signedIn ? (
-            <Link to="/memotify/passport" className="mf-top__me" aria-label="Your Passport">
-              <UserCircle size={26} weight="duotone" />
-            </Link>
+            <AccountMenu />
           ) : (
             <Link to="/auth" state={{ from: pathname }} className="mf-top__in-link">
               Sign in

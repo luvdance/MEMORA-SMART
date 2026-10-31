@@ -51,6 +51,32 @@ export async function api(action, { body, params } = {}) {
   return data;
 }
 
+/** A streamed route: calls onEvent for each line of newline-delimited JSON. */
+export async function apiStream(action, body, onEvent) {
+  const token = await tokenOf();
+  const res = await fetch(`/api/memotify/${action}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok || !res.body) {
+    const data = await res.json().catch(() => null);
+    const failure = new Error(data?.error || "We could not reach Memotify. Check your connection and try again.");
+    failure.reason = data?.reason;
+    throw failure;
+  }
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let held = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    held += value;
+    const lines = held.split("\n");
+    held = lines.pop();
+    for (const line of lines) if (line) onEvent(JSON.parse(line));
+  }
+}
+
 /** Load one route. `key` is what makes it reload; null waits. */
 export function useLoad(action, params, key) {
   const [state, setState] = useState({ data: null, error: null, loading: true, ran: null });

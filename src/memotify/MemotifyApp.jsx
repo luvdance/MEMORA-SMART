@@ -6,6 +6,7 @@ import Passport from "./pages/Passport";
 import Check from "./pages/Check";
 import Tracker from "./pages/Tracker";
 import PublicPassport from "./pages/PublicPassport";
+import { InterviewList, InterviewRoom } from "./pages/Interview";
 import Hire, { HireJob, HirePost, HireTalent } from "./pages/Hire";
 
 /**
@@ -22,6 +23,8 @@ export default function MemotifyApp() {
         <Route path="passport" element={<Passport />} />
         <Route path="check/:skill" element={<Check />} />
         <Route path="tracker" element={<Tracker />} />
+        <Route path="interview" element={<InterviewList />} />
+        <Route path="interview/:jobId" element={<InterviewRoom />} />
         <Route path="p/:id" element={<PublicPassport />} />
         <Route path="hire" element={<Hire />} />
         <Route path="hire/post" element={<HirePost />} />

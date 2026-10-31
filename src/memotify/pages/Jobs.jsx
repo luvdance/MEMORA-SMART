@@ -7,6 +7,7 @@ import { Notice, Spinner } from "../Bits";
 import { ago } from "../format";
 import JobRow from "../JobRow";
 import JobDetail from "../JobDetail";
+import CvBanner from "../CvBanner";
 import { FIELDS, VERDICTS, skillLabel } from "../data/skills";
 import { ArrowsClockwise, MagnifyingGlass, ShieldCheck, X } from "../icons";
 
@@ -213,7 +214,13 @@ export default function Jobs() {
           )}
 
           <div className="mf-list">
-            {jobs.map((job) => (
+            {jobs.slice(0, 5).map((job) => (
+              <JobRow key={job.id} job={job} active={job.id === id} search={query} />
+            ))}
+          </div>
+          {jobs.length > 5 && !data?.cvOnFile && <CvBanner compact />}
+          <div className="mf-list">
+            {jobs.slice(5).map((job) => (
               <JobRow key={job.id} job={job} active={job.id === id} search={query} />
             ))}
           </div>

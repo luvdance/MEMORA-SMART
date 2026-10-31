@@ -180,6 +180,7 @@ export const NOINDEX_PREFIXES = [
   "/memotify/passport",
   "/memotify/tracker",
   "/memotify/check",
+  "/memotify/interview",
   "/memotify/me",
   "/memotify/p/",
   "/memotify/hire/",
