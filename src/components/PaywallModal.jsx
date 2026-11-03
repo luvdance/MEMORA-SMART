@@ -23,6 +23,11 @@ const REASONS = {
     title: "ATS check & AI optimization are Premium",
     body: () => "Score your CV against real ATS rules and rewrite it in one click, right inside the builder.",
   },
+  job_match: {
+    icon: "magic",
+    title: "Match your CV to this job",
+    body: () => "Score your CV against this exact job and rewrite it in one click. You'll stay on this page, and your check runs as soon as you've paid.",
+  },
   upgrade: {
     icon: "bolt",
     title: "Go Premium",

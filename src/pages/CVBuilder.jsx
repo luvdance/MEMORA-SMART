@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { readReturnTrip, clearReturnTrip } from "../cv-builder/utils/returnTrip";
 import CVNavbar from "../cv-builder/components/CVNavbar";
 import CVForm from "../cv-builder/components/CVForm";
 import CVPreview from "../cv-builder/components/CVPreview";
@@ -38,6 +39,8 @@ export default function CVBuilder({ adminMode = false }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [returnTrip, setReturnTrip] = useState(() => (adminMode ? null : readReturnTrip(searchParams)));
+  const [returning, setReturning] = useState(false);
   const [showOptimizedBanner, setShowOptimizedBanner] = useState(false);
 
   // ── DRAFT RESTORE ── (never in admin mode: that's the admin's own draft)
@@ -461,6 +464,18 @@ const triggerPrint = async () => {
   };
 
   // ── SAVE ──
+  // Saves first: a saved CV only reaches the database through handleSave, so
+  // going straight back would quietly lose every edit made here.
+  const backToApplication = async () => {
+    setReturning(true);
+    const id = await handleSave();
+    setReturning(false);
+    if (!id) return;
+    const { path } = returnTrip;
+    clearReturnTrip();
+    navigate(path);
+  };
+
   const handleSave = async () => {
     if (!user) {
       navigate("/auth", { state: { from: `/dashboard/cv-builder` } });
@@ -633,6 +648,19 @@ const triggerPrint = async () => {
           </div>
           <button className="cvb-notice__btn cvb-notice__btn--primary" onClick={acceptRemoteUpdate}>Load update</button>
           <button className="cvb-notice__btn" onClick={dismissRemoteUpdate}>Keep mine</button>
+        </div>
+      )}
+
+      {returnTrip && (
+        <div className="cvb-notice">
+          <div className="cvb-notice__text">
+            <strong>Finish here, then go back to {returnTrip.label}</strong>
+            <span>We'll save your CV and return you to your application.</span>
+          </div>
+          <button className="cvb-notice__btn cvb-notice__btn--primary" disabled={returning} onClick={backToApplication}>
+            {returning ? "Saving…" : "Save and go back"}
+          </button>
+          <button className="cvb-notice__btn" onClick={() => { clearReturnTrip(); setReturnTrip(null); }}>Stay here</button>
         </div>
       )}
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import useSEO from "../hooks/useSEO";
 import { track } from "../utils/analytics";
 import { useMe, useRequireSignIn } from "./Shell";
@@ -7,11 +7,41 @@ import { api, useLoad } from "./api";
 import { CheckLink, Monogram, Notice, SkillChip, Spinner, Verdict } from "./Bits";
 import { ago, courseLink, payLine } from "./format";
 import JobRow from "./JobRow";
-import { LEVELS, REACH, SKILLS, TIERS, VERDICTS, skillLabel } from "./data/skills";
+import CvWorkbench from "./CvWorkbench";
+import { useCvTools } from "./useCvTools";
+import PaywallModal from "../components/PaywallModal";
+import { LEVELS, REACH, SKILLS, TIERS, VERDICTS } from "./data/skills";
 import {
-  ArrowLeft, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Flag, PaperPlaneTilt,
+  ArrowLeft, ArrowSquareOut, BookmarkSimple, CheckCircle, Flag, PaperPlaneTilt,
   SealCheck, Warning, WhatsappLogo,
 } from "./icons";
+
+/** A half-written application survives a trip to the builder or a dead connection. */
+const draftKey = (jobId) => `memotifyApply:${jobId}`;
+
+function readDraft(jobId) {
+  try {
+    return JSON.parse(localStorage.getItem(draftKey(jobId))) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDraft(jobId, patch) {
+  try {
+    localStorage.setItem(draftKey(jobId), JSON.stringify({ ...readDraft(jobId), ...patch }));
+  } catch {
+    /* The draft stays in memory for this visit. */
+  }
+}
+
+function clearDraft(jobId) {
+  try {
+    localStorage.removeItem(draftKey(jobId));
+  } catch {
+    /* Nothing to clear. */
+  }
+}
 
 function Checked({ ok = true, children }) {
   const Icon = ok ? CheckCircle : Warning;
@@ -43,7 +73,10 @@ export default function JobDetail({ id, onBack }) {
   const signIn = useRequireSignIn();
   const { data, error, loading, reload } = useLoad("job", { id }, [id, signedIn, me?.passport?.computedAt]);
   const [askApplied, setAskApplied] = useState(false);
-  const [applying, setApplying] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const [applying, setApplying] = useState(() => params.get("resume") === "apply");
+  const [cvChoice, setCvChoice] = useState(() => readDraft(id).cvId || "");
+  const cvPanel = useRef(null);
   const [saving, setSaving] = useState(false);
   const [reported, setReported] = useState(false);
   const job = data?.job;
@@ -53,6 +86,26 @@ export default function JobDetail({ id, onBack }) {
     description: job ? `${job.title} at ${job.company}. Checked by Memotify.` : "",
     structuredData: jobPosting(job),
   });
+
+  // Pick a CV that still exists: a draft can outlive the CV it named.
+  const cvs = me?.cvs || [];
+  const cvId = [cvChoice, me?.profile?.cvId, cvs[0]?.id].find((option) => cvs.some((cv) => cv.id === option)) || "";
+  const chooseCv = (next) => {
+    setCvChoice(next);
+    saveDraft(id, { cvId: next });
+  };
+  const tools = useCvTools({ id, title: job?.title, company: job?.company }, cvId, chooseCv);
+
+  // Back from the builder: drop the marker, and land on the CV panel.
+  const resume = params.get("resume");
+  const ready = Boolean(job);
+  useEffect(() => {
+    if (!resume || !ready) return;
+    if (resume === "cv") cvPanel.current?.scrollIntoView({ block: "start" });
+    const next = new URLSearchParams(params);
+    next.delete("resume");
+    setParams(next, { replace: true });
+  }, [resume, ready, params, setParams]);
 
   if (loading && !data) return <Spinner label="Opening the job" />;
   if (error || !job) {
@@ -154,7 +207,12 @@ export default function JobDetail({ id, onBack }) {
 
       <Fit job={job} fit={data.fit} signedIn={signedIn} onSignIn={signIn} />
 
-      {!closed && <CvReady job={job} me={me} signedIn={signedIn} />}
+      {!closed && signedIn && (
+        <section className="mf-panel" aria-labelledby="cvready" ref={cvPanel}>
+          <h2 id="cvready">Get your CV ready</h2>
+          <CvWorkbench job={job} me={me} cvId={cvId} setCvId={chooseCv} tools={tools} />
+        </section>
+      )}
 
       <section className="mf-prose" aria-labelledby="role">
         <h2 id="role">About the role</h2>
@@ -232,15 +290,31 @@ export default function JobDetail({ id, onBack }) {
         </div>
       )}
 
-      {applying && (
+      {applying && me && native && !data.application && !closed && (
         <ApplySheet
           job={job}
           fit={data.fit}
           me={me}
+          cvId={cvId}
+          setCvId={chooseCv}
+          tools={tools}
           onClose={() => setApplying(false)}
           onDone={async () => {
+            clearDraft(id);
             setApplying(false);
             await Promise.all([reload(), reloadMe()]);
+          }}
+        />
+      )}
+
+      {tools.paywall && (
+        <PaywallModal
+          reason="job_match"
+          entitlement={tools.paywall.entitlement}
+          onClose={tools.closePaywall}
+          onPaymentSuccess={() => {
+            reloadMe();
+            tools.paid();
           }}
         />
       )}
@@ -301,75 +375,17 @@ function Fit({ job, fit, signedIn, onSignIn }) {
   );
 }
 
-/** Which of this job's skills a CV mentions, with a route to fix the rest. */
-function CvReady({ job, me, signedIn }) {
-  const navigate = useNavigate();
-  const [cvId, setCvId] = useState("");
-  const [fit, setFit] = useState(null);
-  const chosen = cvId || me?.profile?.cvId || me?.cvs?.[0]?.id || "";
-
-  useEffect(() => {
-    if (!chosen) return undefined;
-    let alive = true;
-    api("cv-fit", { body: { jobId: job.id, cvId: chosen } })
-      .then((result) => alive && setFit(result))
-      .catch(() => alive && setFit(null));
-    return () => {
-      alive = false;
-    };
-  }, [chosen, job.id]);
-
-  if (!signedIn) return null;
-
-  if (!me?.cvs?.length) {
-    return (
-      <section className="mf-panel">
-        <h2>Get your CV ready</h2>
-        <p className="mf-panel__sub">You have no saved CV yet. Most Nigerian employers still screen on one.</p>
-        <Link className="mf-link" to="/dashboard/cv-builder"><FileText size={17} /> Build one in the CV Builder</Link>
-      </section>
-    );
-  }
-
-  const checkAts = () => {
-    try {
-      localStorage.setItem("ats_last_jd", `${job.title} at ${job.company}\n\n${fit?.jobText || job.text || ""}`.slice(0, 6000));
-    } catch {
-      /* The checker still opens; the job text just has to be pasted. */
-    }
-    navigate("/ats-check");
+function ApplySheet({ job, fit, me, cvId, setCvId, tools, onClose, onDone }) {
+  const [note, setNoteValue] = useState(() => readDraft(job.id).note || "");
+  const [answers, setAnswersValue] = useState(() => readDraft(job.id).answers || []);
+  const setNote = (value) => {
+    setNoteValue(value);
+    saveDraft(job.id, { note: value });
   };
-
-  return (
-    <section className="mf-panel" aria-labelledby="cvready">
-      <h2 id="cvready">Get your CV ready</h2>
-      {me.cvs.length > 1 && (
-        <select className="mf-input" value={chosen} onChange={(e) => setCvId(e.target.value)} aria-label="Choose a CV">
-          {me.cvs.map((cv) => <option key={cv.id} value={cv.id}>{cv.title}</option>)}
-        </select>
-      )}
-      {fit && (
-        fit.missing.length > 0 ? (
-          <p className="mf-panel__sub">
-            Your CV doesn't mention <b>{fit.missing.map(skillLabel).join(", ")}</b>. If you have the skill, add the
-            word: screening software matches it literally.
-          </p>
-        ) : (
-          <p className="mf-panel__sub">Your CV names every skill this role lists.</p>
-        )
-      )}
-      <div className="mf-actions">
-        <Link className="mf-link" to={`/cv/${chosen}`}>Edit this CV</Link>
-        <button type="button" className="mf-link" onClick={checkAts}>Run an ATS check against this job</button>
-      </div>
-    </section>
-  );
-}
-
-function ApplySheet({ job, fit, me, onClose, onDone }) {
-  const [cvId, setCvId] = useState(me?.profile?.cvId || me?.cvs?.[0]?.id || "");
-  const [note, setNote] = useState("");
-  const [answers, setAnswers] = useState([]);
+  const setAnswers = (value) => {
+    setAnswersValue(value);
+    saveDraft(job.id, { answers: value });
+  };
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const blocked = job.requireProof && fit && fit.proven < fit.needed;
@@ -401,18 +417,10 @@ function ApplySheet({ job, fit, me, onClose, onDone }) {
           </Notice>
         )}
 
-        {me?.cvs?.length ? (
-          <label className="mf-field">
-            <span>CV</span>
-            <select className="mf-input" value={cvId} onChange={(e) => setCvId(e.target.value)}>
-              {me.cvs.map((cv) => <option key={cv.id} value={cv.id}>{cv.title}</option>)}
-            </select>
-          </label>
-        ) : (
-          <Notice tone="warn" title="You need a saved CV">
-            <Link className="mf-link" to="/dashboard/cv-builder">Build one in the CV Builder</Link>
-          </Notice>
-        )}
+        <div className="mf-field">
+          <span>Your CV for this application</span>
+          <CvWorkbench job={job} me={me} cvId={cvId} setCvId={setCvId} tools={tools} resume="apply" />
+        </div>
 
         {(job.questions || []).map((question, i) => (
           <label className="mf-field" key={question}>

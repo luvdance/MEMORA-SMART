@@ -5,7 +5,7 @@
       "maxDuration": 30
     },
     "api/memotify.js": {
-      "maxDuration": 60
+      "maxDuration": 120
     }
   },
   "crons": [

@@ -34,3 +34,10 @@ export const isNew = (firstSeen) => Boolean(firstSeen) && Date.now() - firstSeen
 
 /** Where this skill can be learned, when an open course really teaches it. */
 export const courseLink = (id) => (SKILLS[id]?.course ? `/academy/enroll/${SKILLS[id].course}` : null);
+
+/** A builder link that brings someone back to exactly this application. */
+export function builderLink(base, job, resume) {
+  const back = `/memotify/jobs/${encodeURIComponent(job.id)}?resume=${resume}`;
+  const label = `${job.title} at ${job.company}`;
+  return `${base}?returnTo=${encodeURIComponent(back)}&returnLabel=${encodeURIComponent(label)}`;
+}
