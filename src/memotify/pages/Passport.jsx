@@ -18,7 +18,7 @@ export default function Passport() {
   const { signedIn, authLoading, me, meError, reloadMe } = useMe();
   const signIn = useRequireSignIn();
 
-  if (authLoading) return <Shell><Spinner /></Shell>;
+  if (authLoading) return <Shell><Spinner label="Opening your Passport" /></Shell>;
 
   if (!signedIn) {
     return (

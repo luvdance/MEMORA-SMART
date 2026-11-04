@@ -31,6 +31,7 @@ import AcademyRoute from "./academy/components/AcademyRoute";
 
 // Loaded on demand: nobody on the CV Builder should pay for Memotify's bundle.
 const MemotifyApp = lazy(() => import("./memotify/MemotifyApp"));
+import MemotifyLoader from "./memotify/Loader";
 
 function App() {
   return (
@@ -61,13 +62,7 @@ function App() {
       <Route
         path="/memotify/*"
         element={
-          <Suspense
-            fallback={
-              <p style={{ minHeight: "100vh", margin: 0, padding: 32, background: "#f6f4fb", color: "#1e1b4b", textAlign: "center" }}>
-                Loading Memotify…
-              </p>
-            }
-          >
+          <Suspense fallback={<MemotifyLoader page label="Loading Memotify" />}>
             <MemotifyApp />
           </Suspense>
         }

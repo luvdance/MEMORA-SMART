@@ -14,7 +14,7 @@ export async function cvApi(action, user, payload = {}) {
   // Browsers don't time out a stuck request for minutes; fail fast instead.
   // AI calls legitimately take ~20–40s, so they get longer.
   const controller = new AbortController();
-  const limitMs = action === "optimize" || action === "ats-score" ? 90000 : 20000;
+  const limitMs = action === "optimize" || action === "ats-score" || action === "assist" ? 90000 : 20000;
   const timer = setTimeout(() => controller.abort(), limitMs);
   let res;
   try {

@@ -1,0 +1,174 @@
+/* ── QUICK EDIT BAR ── */
+.cva {
+  margin: 12px 16px 0;
+}
+
+.cva__bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 12px;
+  transition: border-color 0.15s;
+}
+
+.cva__bar:focus-within {
+  border-color: #94a3b8;
+}
+
+.cva__bar--busy {
+  background: #f8fafc;
+}
+
+.cva__icon-btn,
+.cva__send {
+  flex-shrink: 0;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.cva__icon-btn {
+  width: 36px;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.cva__icon-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.cva__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 36px;
+  max-height: 160px;
+  padding: 8px 4px;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: #0f172a;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.cva__input::placeholder {
+  color: #94a3b8;
+}
+
+.cva__send {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.cva__send:hover:not(:disabled) {
+  background: #1e293b;
+}
+
+.cva__send:disabled,
+.cva__icon-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.cva__spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: cva-spin 0.7s linear infinite;
+}
+
+@keyframes cva-spin {
+  to { transform: rotate(360deg); }
+}
+
+.cva__status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 7px 4px 0;
+  font-size: 0.8rem;
+  color: #334155;
+}
+
+.cva__muted {
+  color: #64748b;
+}
+
+.cva__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 4px 3px 9px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  color: #334155;
+  overflow-wrap: anywhere;
+}
+
+.cva__chip button {
+  border: none;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px 5px;
+}
+
+.cva__note {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cva__note--ok > i { color: #16a34a; }
+.cva__note--info > i { color: #64748b; }
+.cva__note--error { color: #b91c1c; }
+
+.cva__link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #0f172a;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .cva {
+    margin: 10px 12px 0;
+  }
+
+  .cva__input {
+    font-size: 16px; /* stops iOS zooming in on focus */
+  }
+
+  .cva__send {
+    padding: 0 11px;
+  }
+
+  .cva__send-label {
+    display: none;
+  }
+}

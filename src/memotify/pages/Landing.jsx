@@ -8,6 +8,7 @@ import JobRow from "../JobRow";
 import { skillLabel } from "../data/skills";
 import { ArrowRight, Buildings, Prohibit, ShieldCheck } from "../icons";
 import CvBanner from "../CvBanner";
+import AcademyBanner from "../AcademyBanner";
 // A 72 KB copy of assets/memotify_hero.jpg (2.8 MB), for mobile data.
 import heroImage from "../../assets/memotify/hero.webp";
 
@@ -169,6 +170,10 @@ export default function Landing() {
           </div>
         </section>
       )}
+
+      <section className="mf-band mf-band--flush">
+        <div className="mf-band__in"><AcademyBanner /></div>
+      </section>
 
       <section className="mf-band mf-band--paper">
         <div className="mf-band__in mf-three">

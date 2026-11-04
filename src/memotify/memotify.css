@@ -171,9 +171,7 @@
 .mf-stamp--big { width: 220px; margin: 12px auto 18px; padding: 20px 14px; transform: rotate(-3deg); }
 .mf-stamp--big strong { font-size: 24px; }
 
-.mf-wait { padding: 34px 0; text-align: center; color: var(--ink-2); font-size: 15px; }
-.mf-wait__bar { display: block; width: 120px; height: 3px; margin: 0 auto 12px; background: linear-gradient(90deg, var(--line) 30%, var(--violet) 50%, var(--line) 70%); background-size: 300% 100%; animation: mf-slide 1.3s linear infinite; }
-@keyframes mf-slide { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.mf-wait { padding: 8px 0; }
 
 .mf-notice { display: grid; gap: 4px; justify-items: start; padding: 13px 14px; margin: 12px 0; font-size: 15px; background: var(--sheet); border-left: 3px solid var(--line); }
 .mf-notice--warn { background: var(--amber-bg); border-left-color: var(--amber); }
@@ -181,6 +179,7 @@
 
 /* ── Lists ─────────────────────────────── */
 .mf-list { background: var(--sheet); border-block: 1px solid var(--line); margin-inline: calc(var(--gutter) * -1); }
+.mf-list:empty { display: none; }
 .mf-list--sheet { margin-inline: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .mf-row { display: flex; gap: 12px; padding: 14px var(--gutter); border-bottom: 1px solid var(--line); }
 .mf-row:last-child { border-bottom: 0; }
@@ -448,6 +447,11 @@
 .mf-cvban__shot { padding-inline: 18px; }
 .mf-cvban__shot img { display: block; width: 100%; height: 190px; object-fit: cover; object-position: 100% 0; border-radius: 6px 6px 0 0; }
 .mf-cvban--compact { margin-block: 14px; }
+/* The Academy's banner is light, so the two never look like one repeated advert. */
+.mf-cvban--academy { background: var(--lilac); color: var(--ink); box-shadow: inset 0 0 0 1px #e2dcff; }
+.mf-cvban--academy .mf-eyebrow { color: var(--violet); }
+.mf-cvban--academy p:not(.mf-eyebrow) { color: var(--ink-2); }
+.mf-cvban--academy .mf-cvban__shot img { height: 230px; object-position: 50% 12%; }
 .mf-cvban--compact h2 { font-size: 21px; }
 
 /* ── CV tools on the job page ─────────── */
@@ -552,6 +556,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mf-wait__bar, .mf-room__who.is-live, .mf-room__hint i { animation: none; }
+  .mf-room__who.is-live, .mf-room__hint i { animation: none; }
   html { scroll-behavior: auto; }
 }

@@ -17,6 +17,7 @@ import { PLANS, formatResetIn, describeEntitlement, toMillis } from "../cv-build
 import { isPremiumTemplate, PREMIUM_TEMPLATES } from "../cv-builder/utils/templateMeta";
 import { mergeOptimizedCV } from "../cv-builder/utils/cvText";
 import CVAtsPanel from "../cv-builder/components/CVAtsPanel";
+import CVAssist from "../cv-builder/components/CVAssist";
 import { doc as fsDoc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import PaywallModal from "../components/PaywallModal";
@@ -747,6 +748,15 @@ const triggerPrint = async () => {
           Use a free template
         </button>
       </div>
+    )}
+
+    {(!isMobile || tab === "form") && (
+      <CVAssist
+        cv={cv} setCV={setCV}
+        template={template}
+        user={user}
+        onRequireAuth={() => setShowDownloadGate(true)}
+      />
     )}
 
       <div className="cvb__body" data-active-tab={tab}>

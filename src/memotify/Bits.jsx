@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { REACH, SKILLS, TIERS, VERDICTS, skillLabel } from "./data/skills";
 import { GlobeHemisphereWest, MapPin, Seal, SealCheck } from "./icons";
+import Loader from "./Loader";
 
 /** A coloured square with the company's initial. Stable per company. */
 export function Monogram({ name = "" }) {
@@ -42,11 +43,11 @@ export function SkillChip({ id, tier = "none" }) {
   );
 }
 
+/** Waiting for data inside a page. Same mark as the full-page loader, smaller. */
 export function Spinner({ label = "Loading" }) {
   return (
-    <div className="mf-wait" role="status">
-      <span className="mf-wait__bar" />
-      <p>{label}</p>
+    <div className="mf-wait">
+      <Loader label={label} />
     </div>
   );
 }
