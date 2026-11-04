@@ -1,0 +1,294 @@
+/* ── ADMIN MAIL (support inbox) ── */
+.sib {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  min-height: 560px;
+  height: calc(100vh - 260px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  color: #0f172a;
+}
+
+.sib__muted { font-size: 0.8rem; color: #64748b; margin: 0; }
+.sib__error { font-size: 0.84rem; color: #b91c1c; margin: 0; }
+.sib__empty { margin: 40px 20px; text-align: center; color: #94a3b8; font-size: 0.9rem; }
+
+.sib__list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sib__tools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sib__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sib__filters button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #64748b;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sib__filters button span {
+  margin-left: 3px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.sib__filters button.is-on {
+  background: #0f172a;
+  color: #fff;
+}
+
+.sib__filters button.is-on span { color: #cbd5e1; }
+
+.sib__search {
+  display: flex;
+  gap: 6px;
+}
+
+.sib input,
+.sib select,
+.sib textarea {
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #d5dae2;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.sib__search input { flex: 1; min-width: 0; }
+.sib__search select { max-width: 120px; }
+
+.sib__refresh {
+  flex-shrink: 0;
+  width: 36px;
+  border: 1px solid #d5dae2;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.sib__list ul {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.sib__item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid #f1f3f6;
+  border-left: 3px solid transparent;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sib__item:hover { background: #f8fafc; }
+.sib__item.is-on { background: #f1f5f9; border-left-color: #0f172a; }
+
+.sib__item-top,
+.sib__item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sib__item-top strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.sib__item-top span { flex-shrink: 0; font-size: 0.74rem; color: #94a3b8; }
+
+.sib__item.is-unread .sib__item-top strong,
+.sib__item.is-unread .sib__item-subject { font-weight: 800; }
+
+.sib__item.is-unread .sib__item-top strong::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: 0 7px 1px 0;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+.sib__item-subject {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+}
+
+.sib__item-meta { justify-content: flex-start; font-size: 0.78rem; color: #64748b; }
+
+.sib__tag {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.sib__clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sib__read {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.sib__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sib__head-main { flex: 1; min-width: 0; }
+.sib__head-main h3 { margin: 0 0 4px; font-size: 1.02rem; overflow-wrap: anywhere; }
+.sib__head-main p { margin: 0 0 2px; font-size: 0.84rem; overflow-wrap: anywhere; }
+
+.sib__head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.sib__head-actions .admin__back { text-decoration: none; }
+
+.sib__back {
+  display: none;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  cursor: pointer;
+}
+
+.sib__msgs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  overflow-y: auto;
+  background: #fafbfc;
+}
+
+.sib__msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 78%;
+}
+
+.sib__msg--admin { align-self: flex-end; align-items: flex-end; }
+
+.sib__bubble {
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sib__msg--admin .sib__bubble {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+.sib__compose {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 20px 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sib__compose textarea { width: 100%; resize: vertical; line-height: 1.45; }
+
+.sib__compose-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.sib__send {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #fff;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sib__send:disabled { opacity: 0.5; cursor: default; }
+
+@media (max-width: 860px) {
+  .sib {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 480px;
+  }
+
+  .sib__list { border-right: none; }
+  .sib__list ul { max-height: 70vh; }
+  .sib--reading .sib__list { display: none; }
+  .sib:not(.sib--reading) .sib__read { display: none; }
+  .sib__back { display: block; }
+  .sib__head { flex-wrap: wrap; padding: 14px; }
+  .sib__head-actions { justify-content: flex-start; width: 100%; }
+  .sib__msgs { padding: 14px; max-height: 60vh; }
+  .sib__msg { max-width: 90%; }
+  .sib__compose { padding: 12px 14px 14px; }
+  .sib input, .sib select, .sib textarea { font-size: 16px; }
+}

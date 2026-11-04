@@ -1,94 +1,118 @@
-/* ── QUICK EDIT BAR ── */
+/* ── QUICK EDIT BAR ── a slim prompt box in the brand blue→purple */
+/* Lines up with the form cards: .cv-form-panel is 460px with a 16px gutter. */
 .cva {
+  width: 428px;
+  max-width: calc(100% - 32px);
   margin: 12px 16px 0;
 }
 
+/* Two background layers: a faint brand wash inside, the full gradient as a
+   1.5px border. Both drift slowly so the box feels alive without moving. */
 .cva__bar {
   display: flex;
   align-items: flex-end;
-  gap: 6px;
-  padding: 6px;
-  background: #fff;
-  border: 1px solid #dfe3ea;
-  border-radius: 12px;
-  transition: border-color 0.15s;
+  gap: 4px;
+  padding: 5px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background:
+    linear-gradient(110deg, #f7f9ff, #fbf6ff 45%, #f6f2ff 70%, #f7f9ff) padding-box,
+    linear-gradient(110deg, #6699FF, #9D00FF 40%, #c9a6ff 70%, #6699FF) border-box;
+  background-size: 300% 100%, 300% 100%;
+  box-shadow: 0 1px 2px rgba(60, 20, 110, 0.06), 0 6px 18px -6px rgba(110, 60, 255, 0.22);
+  animation: cva-flow 9s ease-in-out infinite alternate;
+  transition: box-shadow 0.2s;
 }
 
 .cva__bar:focus-within {
-  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(130, 70, 255, 0.12), 0 8px 22px -6px rgba(110, 60, 255, 0.3);
 }
 
 .cva__bar--busy {
-  background: #f8fafc;
+  animation-duration: 2.5s;
+}
+
+@keyframes cva-flow {
+  from { background-position: 0% 50%, 0% 50%; }
+  to { background-position: 100% 50%, 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cva__bar { animation: none; }
 }
 
 .cva__icon-btn,
 .cva__send {
   flex-shrink: 0;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   font-family: inherit;
   cursor: pointer;
 }
 
 .cva__icon-btn {
-  width: 36px;
   background: transparent;
-  color: #64748b;
-  font-size: 0.95rem;
+  color: #7f6fb0;
+  font-size: 0.9rem;
 }
 
 .cva__icon-btn:hover:not(:disabled) {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: rgba(157, 0, 255, 0.08);
+  color: #9D00FF;
 }
 
 .cva__input {
   flex: 1;
   min-width: 0;
-  min-height: 36px;
-  max-height: 160px;
-  padding: 8px 4px;
+  min-height: 32px;
+  max-height: 140px;
+  padding: 6px 4px;
   border: none;
   outline: none;
   resize: none;
   background: transparent;
-  color: #0f172a;
+  color: #1f1530;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.45;
 }
 
 .cva__input::placeholder {
-  color: #94a3b8;
+  color: #a094b3;
 }
 
 .cva__send {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 14px;
-  background: #0f172a;
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(135deg, #6699FF, #9D00FF);
   color: #fff;
   font-size: 0.82rem;
-  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(110, 60, 255, 0.3);
+  transition: filter 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 
 .cva__send:hover:not(:disabled) {
-  background: #1e293b;
+  filter: brightness(1.08);
+  box-shadow: 0 3px 10px rgba(110, 60, 255, 0.38);
 }
 
-.cva__send:disabled,
+.cva__send:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+  cursor: default;
+}
+
 .cva__icon-btn:disabled {
   opacity: 0.45;
   cursor: default;
 }
 
 .cva__spinner {
-  width: 13px;
-  height: 13px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-top-color: #fff;
   border-radius: 50%;
   animation: cva-spin 0.7s linear infinite;
@@ -103,13 +127,13 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 7px 4px 0;
-  font-size: 0.8rem;
-  color: #334155;
+  padding: 6px 4px 0;
+  font-size: 0.78rem;
+  color: #3b3050;
 }
 
 .cva__muted {
-  color: #64748b;
+  color: #7d7190;
 }
 
 .cva__chip {
@@ -117,17 +141,17 @@
   align-items: center;
   gap: 6px;
   max-width: 100%;
-  padding: 3px 4px 3px 9px;
-  background: #f1f5f9;
+  padding: 2px 4px 2px 9px;
+  background: #f5efff;
   border-radius: 6px;
-  color: #334155;
+  color: #5b2a8c;
   overflow-wrap: anywhere;
 }
 
 .cva__chip button {
   border: none;
   background: none;
-  color: #64748b;
+  color: #8b7ba3;
   cursor: pointer;
   padding: 2px 5px;
 }
@@ -140,35 +164,118 @@
 }
 
 .cva__note--ok > i { color: #16a34a; }
-.cva__note--info > i { color: #64748b; }
+.cva__note--info > i { color: #7d7190; }
 .cva__note--error { color: #b91c1c; }
 
 .cva__link {
   border: none;
   background: none;
   padding: 0;
-  color: #0f172a;
+  color: #9D00FF;
   font: inherit;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.cva__link:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
-  cursor: pointer;
 }
 
 @media (max-width: 900px) {
   .cva {
+    width: auto;
+    max-width: none;
     margin: 10px 12px 0;
   }
 
   .cva__input {
     font-size: 16px; /* stops iOS zooming in on focus */
   }
+}
 
-  .cva__send {
-    padding: 0 11px;
-  }
+/* ── ATTACH MENU ── */
+.cva__attach {
+  position: relative;
+  flex-shrink: 0;
+}
 
-  .cva__send-label {
-    display: none;
-  }
+.cva__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -6px;
+  z-index: 60;
+  width: 270px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #e7e0f3;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px -8px rgba(40, 20, 90, 0.25);
+  animation: cva-menu-in 0.14s ease-out;
+}
+
+@keyframes cva-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+.cva__menu button {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #1f1530;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cva__menu button:hover {
+  background: #f6f1ff;
+}
+
+.cva__menu i {
+  width: 16px;
+  margin-top: 2px;
+  color: #9D00FF;
+  text-align: center;
+}
+
+.cva__menu span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cva__menu strong {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.cva__menu small {
+  font-size: 0.74rem;
+  color: #7d7190;
+}
+
+/* ── VOICE ── */
+.cva__mic--on {
+  background: rgba(157, 0, 255, 0.1);
+  color: #9D00FF;
+  animation: cva-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cva-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(157, 0, 255, 0.28); }
+  50% { box-shadow: 0 0 0 5px rgba(157, 0, 255, 0); }
+}
+
+.cva__bar--listening {
+  animation-duration: 3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cva__mic--on { animation: none; }
 }

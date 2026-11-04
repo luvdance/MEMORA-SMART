@@ -1,3 +1,4 @@
+import { openSupport } from "../../../support/supportApi";
 import { describeEntitlement, formatResetIn, PLANS } from "../../utils/plans";
 
 // ── MOBILE "MORE" SHEET ──
@@ -21,6 +22,7 @@ export default function MobileMoreSheet({ open, onClose, user, entitlement, isOw
           { label: "My CVs", icon: "fa-folder-open", tone: "orange", onClick: actions.works },
           { label: "Payments", icon: "fa-receipt", tone: "slate", onClick: actions.payments },
           { label: "Dashboard", icon: "fa-house", tone: "blue", onClick: actions.dashboard },
+          { label: "Support", icon: "fa-headset", tone: "teal", onClick: () => openSupport({ app: "cv-builder" }) },
         ]),
   ];
 

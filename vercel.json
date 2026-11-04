@@ -45,6 +45,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/support/:action",
+      "destination": "/api/cv?action=support-:action"
+    },
+    {
       "source": "/api/academy/:action",
       "destination": "/api/academy?action=:action"
     },

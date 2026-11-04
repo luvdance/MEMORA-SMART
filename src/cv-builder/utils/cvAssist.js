@@ -115,28 +115,94 @@ export function applyAssistPatch(cv, set) {
 }
 
 // ── DOCUMENT TEXT ──
-// Same routes as the ATS checker: PDF and TXT read in the browser, DOCX on the server.
-export async function extractDocumentText(file) {
-  const ext = file.name.toLowerCase().split(".").pop();
-  if (ext === "txt") return (await file.text()).trim();
-  if (ext === "pdf") {
-    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
-    pdfjsLib.GlobalWorkerOptions.workerSrc = (await import("pdfjs-dist/legacy/build/pdf.worker.mjs?url")).default;
-    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-    let text = "";
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const content = await (await pdf.getPage(i)).getTextContent();
-      text += content.items.map((item) => item.str).join(" ") + "\n";
+// PDF and TXT are read in the browser and DOCX by mammoth on the server.
+// Scans (photos of a CV, image-only PDFs) go through the Claude Vision OCR in
+// /api/parse-cv. Pages are downscaled to JPEG first, which keeps uploads small
+// and costs fewer image tokens without hurting legibility.
+const OCR_SIDE = 1600;
+const OCR_MAX_PAGES = 3;
+// A text-layer PDF of a one-page CV has well over this many letters.
+const MIN_PDF_TEXT = 200;
+
+export const DOC_IMAGE_EXT = ["jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "bmp"];
+
+async function postParse(blob, name) {
+  const form = new FormData();
+  form.append("cv", blob, name);
+  const res = await fetch("/api/parse-cv", { method: "POST", body: form });
+  const data = await res.json().catch(() => ({}));
+  if (!data.success) throw new Error(data.error || "Could not read that document.");
+  return data.text;
+}
+
+const canvasToJpeg = (canvas) =>
+  new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Could not read that image."))), "image/jpeg", 0.85));
+
+async function ocrImageFile(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("This browser can't open that image. Please try a JPG or PNG."));
+      el.src = url;
+    });
+    const scale = Math.min(1, OCR_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return await postParse(await canvasToJpeg(canvas), "scan.jpg");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function readPdf(file, onProgress) {
+  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = (await import("pdfjs-dist/legacy/build/pdf.worker.mjs?url")).default;
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  let text = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const content = await (await pdf.getPage(i)).getTextContent();
+    text += content.items.map((item) => item.str).join(" ") + "\n";
+  }
+  if (text.replace(/\s/g, "").length >= MIN_PDF_TEXT) return text.trim();
+
+  // No text layer: a scanned PDF. Render the first pages and OCR them.
+  const pages = Math.min(pdf.numPages, OCR_MAX_PAGES);
+  const parts = [];
+  for (let i = 1; i <= pages; i++) {
+    onProgress?.(`Scanning page ${i} of ${pages}…`);
+    const page = await pdf.getPage(i);
+    const base = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({ scale: OCR_SIDE / Math.max(base.width, base.height) });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(viewport.width);
+    canvas.height = Math.round(viewport.height);
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+    try {
+      parts.push(await postParse(await canvasToJpeg(canvas), `page-${i}.jpg`));
+    } catch (err) {
+      if (i === 1) throw err; // a blank later page shouldn't sink the whole CV
     }
-    return text.trim();
   }
-  if (ext === "docx" || ext === "doc") {
-    const form = new FormData();
-    form.append("cv", file);
-    const res = await fetch("/api/parse-cv", { method: "POST", body: form });
-    const data = await res.json().catch(() => ({}));
-    if (!data.success) throw new Error(data.error || "Could not read that document.");
-    return data.text;
+  return parts.join("\n\n").trim();
+}
+
+/** Text of a CV or any document the user attaches, OCR included. */
+export async function extractDocumentText(file, onProgress) {
+  const ext = file.name.toLowerCase().split(".").pop();
+  if (ext === "txt" || ext === "md") return (await file.text()).trim();
+  if (ext === "pdf") return readPdf(file, onProgress);
+  if (ext === "docx") return postParse(file, file.name);
+  if (ext === "doc") throw new Error("Old .doc files can't be read. Save it as .docx or PDF and try again.");
+  if (DOC_IMAGE_EXT.includes(ext) || file.type.startsWith("image/")) {
+    onProgress?.("Scanning the document…");
+    return ocrImageFile(file);
   }
-  throw new Error("Attach a photo (JPG, PNG) or a document (PDF, DOCX, TXT).");
+  throw new Error("Attach a PDF, Word (.docx), text file or a photo of your CV.");
 }

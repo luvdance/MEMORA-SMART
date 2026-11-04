@@ -6162,3 +6162,58 @@
   font-size: 0.84rem;
   cursor: pointer;
 }
+
+/* Contact support, at the end of the ATS tools row */
+.cvb__help-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border: none;
+  background: none;
+  color: #475569;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cvb__help-link:hover {
+  color: #0f172a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── TOP ROW: prompt bar (form-column width) beside the ATS tools ── */
+.cvb__toprow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 12px 16px 0;
+}
+
+.cvb__toprow .cva {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.cvb__toprow .cvb__ats-actions {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  min-height: 45px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .cvb__toprow {
+    display: block;
+    margin: 0;
+  }
+
+  .cvb__toprow .cva {
+    margin: 10px 12px 0;
+  }
+}

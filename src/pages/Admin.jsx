@@ -10,6 +10,8 @@ import "./Admin.css";
 import AcademyAdmin from "./admin/AcademyAdmin";
 import AdminCVs from "./admin/AdminCVs";
 import MemotifyAdmin from "./admin/MemotifyAdmin";
+import SupportInbox from "./admin/SupportInbox";
+import { supportApi } from "../support/supportApi";
 import { PLANS, addPlanPeriod, computeEntitlement, describeEntitlement, toMillis } from "../cv-builder/utils/plans";
 
 export default function Admin() {
@@ -36,6 +38,15 @@ export default function Admin() {
   // Shared state
   const [fetching, setFetching] = useState(true);
   const [processing, setProcessing] = useState(null);
+  const [mailUnread, setMailUnread] = useState(0);
+
+  // Unread support mail, for the badge on the Mail tab.
+  useEffect(() => {
+    if (!isAdmin) return;
+    supportApi("support-admin-list")
+      .then((d) => setMailUnread(d.tickets.filter((t) => t.unread).length))
+      .catch(() => {});
+  }, [isAdmin]);
 
 
   useEffect(() => {
@@ -371,9 +382,18 @@ if (!isAdmin) return null;
           >
             <i className="fas fa-briefcase"></i> Memotify
           </button>
+          <button
+            className={`admin__main-tab ${mainTab === "mail" ? "admin__main-tab--active" : ""}`}
+            onClick={() => setMainTab("mail")}
+          >
+            <i className="fas fa-inbox"></i> Mail
+            {mailUnread > 0 && <span className="admin__tab-count">{mailUnread}</span>}
+          </button>
         </div>
 
         {mainTab === "memotify" && <MemotifyAdmin />}
+
+        {mainTab === "mail" && <SupportInbox onUnreadChange={setMailUnread} />}
 
 
         {/* ────── USERS TAB ────── */}

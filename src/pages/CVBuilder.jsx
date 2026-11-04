@@ -18,6 +18,7 @@ import { isPremiumTemplate, PREMIUM_TEMPLATES } from "../cv-builder/utils/templa
 import { mergeOptimizedCV } from "../cv-builder/utils/cvText";
 import CVAtsPanel from "../cv-builder/components/CVAtsPanel";
 import CVAssist from "../cv-builder/components/CVAssist";
+import { openSupport } from "../support/supportApi";
 import { doc as fsDoc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import PaywallModal from "../components/PaywallModal";
@@ -689,6 +690,17 @@ const triggerPrint = async () => {
       </div>
     )}
 
+    {/* PROMPT BAR + ATS TOOLS: one row on desktop, so the form keeps its height.
+        The prompt bar is as wide as the form column beneath it. */}
+    {(!isMobile || tab === "form") && (
+    <div className="cvb__toprow">
+      <CVAssist
+        cv={cv} setCV={setCV}
+        template={template}
+        user={user}
+        onRequireAuth={() => setShowDownloadGate(true)}
+      />
+
     {/* ATS QUICK ACTIONS + PLAN STATUS (desktop; phones get them on the Edit tab) */}
     {!isMobile && (
     <div className="cvb__ats-actions">
@@ -727,6 +739,13 @@ const triggerPrint = async () => {
             : <span>Free · {entitlement.free.used} of {entitlement.free.limit} downloads used today</span>}
         </button>
       )}
+      {!adminMode && (
+        <button className="cvb__help-link" onClick={() => openSupport({ app: "cv-builder" })}>
+          <i className="fas fa-headset"></i> Contact support
+        </button>
+      )}
+    </div>
+    )}
     </div>
     )}
 
@@ -748,15 +767,6 @@ const triggerPrint = async () => {
           Use a free template
         </button>
       </div>
-    )}
-
-    {(!isMobile || tab === "form") && (
-      <CVAssist
-        cv={cv} setCV={setCV}
-        template={template}
-        user={user}
-        onRequireAuth={() => setShowDownloadGate(true)}
-      />
     )}
 
       <div className="cvb__body" data-active-tab={tab}>

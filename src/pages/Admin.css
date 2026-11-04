@@ -978,3 +978,15 @@
   opacity: 0.6;
   cursor: wait;
 }
+
+/* Unread count on a main tab (Mail) */
+.admin__tab-count {
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  text-align: center;
+}

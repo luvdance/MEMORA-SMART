@@ -1,4 +1,7 @@
-import { routes } from "../lib/cv/handlers.js";
+import { routes as cvRoutes } from "../lib/cv/handlers.js";
+import { supportRoutes } from "../lib/support/handlers.js";
+
+const routes = { ...cvRoutes, ...supportRoutes };
 
 /**
  * One function for every /api/cv/* route (same pattern as api/academy.js).
@@ -13,6 +16,7 @@ import { routes } from "../lib/cv/handlers.js";
  *   /api/optimize-cv               → /api/cv?action=optimize
  *   /api/verify-paystack-payment   → /api/cv?action=verify-payment
  *   /api/requery-payment           → /api/cv?action=requery
+ *   /api/support/:action           → /api/cv?action=support-:action (support inbox, lib/support)
  *
  * Add a route in lib/cv/handlers.js; it is served here automatically.
  */

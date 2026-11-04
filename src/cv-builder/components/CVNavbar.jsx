@@ -4,6 +4,7 @@ import { TEMPLATES, ACCENT, THEME_PRESETS, chooseTheme } from "../utils/constant
 import { isPremiumTemplate } from "../utils/templateMeta";
 import { TEMPLATE_INFO } from "../utils/sampleCV";
 import cvLogo from "../../assets/cv logo.png";
+import { openSupport } from "../../support/supportApi";
 import "../CVNavbar.css";
 
 // Template menu groups (every template appears exactly once).
@@ -299,6 +300,9 @@ export default function CVNavbar({
               </button>
               <button className="wnav__item" role="menuitem" onClick={() => navigate("/dashboard/payments")}>
                 <i className="fas fa-receipt"></i> Plan & payments
+              </button>
+              <button className="wnav__item" role="menuitem" onClick={() => { setMenu(null); openSupport({ app: "cv-builder" }); }}>
+                <i className="fas fa-headset"></i> Contact support
               </button>
               {isOwner && !adminMode && (
                 <>

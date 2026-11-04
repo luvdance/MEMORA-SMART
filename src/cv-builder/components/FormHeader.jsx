@@ -21,7 +21,10 @@ export default function FormHeader({ cv, template, step, setStep, entitlement, o
     rail.scrollTo({ left: chip.offsetLeft - rail.clientWidth / 2 + chip.clientWidth / 2, behavior: "smooth" });
   }, [step]);
 
+  // Two blocks: the strength card scrolls away with the form, while the step
+  // rail and progress (the --pinned block) stay put, so more fields fit on screen.
   return (
+    <>
     <div className="cvf-header">
       <section className={`cvf-strength cvf-strength--${strength.level.tone}`} aria-label="CV strength">
         <div className="cvf-strength__ring" role="img" aria-label={`CV strength ${strength.score} percent`}>
@@ -73,6 +76,9 @@ export default function FormHeader({ cv, template, step, setStep, entitlement, o
         </div>
       )}
 
+    </div>
+
+    <div className="cvf-header cvf-header--pinned">
       <div className="cvf-steps" ref={railRef} role="tablist" aria-label="CV sections">
         {STEP_META.map((s, i) => {
           const done = strength.steps[i];
@@ -102,5 +108,6 @@ export default function FormHeader({ cv, template, step, setStep, entitlement, o
         <span>{strength.steps.filter(Boolean).length} done</span>
       </div>
     </div>
+    </>
   );
 }

@@ -32,9 +32,13 @@ import AcademyRoute from "./academy/components/AcademyRoute";
 // Loaded on demand: nobody on the CV Builder should pay for Memotify's bundle.
 const MemotifyApp = lazy(() => import("./memotify/MemotifyApp"));
 import MemotifyLoader from "./memotify/Loader";
+import SupportCenter from "./support/SupportCenter";
 
 function App() {
   return (
+    <>
+    {/* Help launcher + support dialog for every app (openSupport() opens it). */}
+    <SupportCenter />
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/auth" element={<AuthPage />} />
@@ -142,6 +146,7 @@ function App() {
         }
       />
     </Routes>
+    </>
   );
 }
 
