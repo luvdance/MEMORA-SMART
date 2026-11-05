@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { CATALOG } from "../../academy/data/catalog";
-import { getCourseLessons } from "../../academy/data/lessons";
+import { getCourseLessons } from "../../academy/data/lessonIndex";
 
 /**
  * ACADEMY ADMIN — enrolment and progress roster.

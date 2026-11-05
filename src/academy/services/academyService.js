@@ -21,7 +21,7 @@ import {
   getLevel,
   localDateKey,
 } from "../data/gamification";
-import { getCourseLessons } from "../data/lessons";
+import { getCourseLessons } from "../data/lessonIndex";
 import { getCatalogEntry } from "../data/catalog";
 import { chatDefaultFor, publicNameFor, usernameKey } from "../data/onboarding";
 import { enrollmentRef as enrollmentRefFor, sortByRecency } from "../data/enrollment";

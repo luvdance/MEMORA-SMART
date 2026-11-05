@@ -1,44 +1,50 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import CVLanding from "./cv-builder/components/CVLanding";
-import AuthPage from "./pages/AuthPage";
-import Dashboard from "./pages/Dashboard";
-import CVBuilder from "./pages/CVBuilder";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Pricing from "./pages/Pricing";
-import Admin from "./pages/Admin";
-import AdminCVEditor from "./pages/admin/AdminCVEditor";
-import ATSChecker from "./pages/ATSChecker";
-import DanielNwankwo from "./pages/Daniel-nwankwo";
-import LeadMagnetExcel from "./pages/LeadMagnetExcel";
-import LeadMagnetRemoteJobs from "./pages/LeadMagnetRemoteJobs";
-import LeadMagnetAISideHustles from "./pages/LeadMagnetAISideHustles";
-import LeadMagnetContentCreation from "./pages/LeadMagnetContentCreation";
-import LeadMagnetComputerSkills from "./pages/LeadMagnetComputerSkills";
-import Library from "./pages/Library";
-import ProjectPilot from "./project-formatter/PilotLandingPage";
-import AcademyLanding from "./academy/pages/AcademyLanding";
-import AcademyCourses from "./academy/pages/AcademyCourses";
-import AcademyEnroll from "./academy/pages/AcademyEnroll";
-import AcademyEnrollChoose from "./academy/pages/AcademyEnrollChoose";
-import AcademyLearn from "./academy/pages/AcademyLearn";
-import AcademyProfile from "./academy/pages/AcademyProfile";
-import LessonPlayer from "./academy/pages/LessonPlayer";
-import FinalExam from "./academy/pages/FinalExam";
-import TypingDojo from "./academy/pages/TypingDojo";
 import AcademyRoute from "./academy/components/AcademyRoute";
-
-// Loaded on demand: nobody on the CV Builder should pay for Memotify's bundle.
-const MemotifyApp = lazy(() => import("./memotify/MemotifyApp"));
+import PageLoader from "./components/PageLoader";
+import lazyPage from "./utils/lazyPage";
 import MemotifyLoader from "./memotify/Loader";
 import SupportCenter from "./support/SupportCenter";
+
+// Every page except Home loads on demand. This bundle used to carry the whole
+// site, every Academy course included (11 MB of JavaScript), before the first
+// pixel of any page. Home stays eager because it is the busiest entry point.
+const CVLanding = lazyPage(() => import("./cv-builder/components/CVLanding"));
+const AuthPage = lazyPage(() => import("./pages/AuthPage"));
+const Dashboard = lazyPage(() => import("./pages/Dashboard"));
+const CVBuilder = lazyPage(() => import("./pages/CVBuilder"));
+const Pricing = lazyPage(() => import("./pages/Pricing"));
+const Admin = lazyPage(() => import("./pages/Admin"));
+const AdminCVEditor = lazyPage(() => import("./pages/admin/AdminCVEditor"));
+const ATSChecker = lazyPage(() => import("./pages/ATSChecker"));
+const DanielNwankwo = lazyPage(() => import("./pages/Daniel-nwankwo"));
+const LeadMagnetExcel = lazyPage(() => import("./pages/LeadMagnetExcel"));
+const LeadMagnetRemoteJobs = lazyPage(() => import("./pages/LeadMagnetRemoteJobs"));
+const LeadMagnetAISideHustles = lazyPage(() => import("./pages/LeadMagnetAISideHustles"));
+const LeadMagnetContentCreation = lazyPage(() => import("./pages/LeadMagnetContentCreation"));
+const LeadMagnetComputerSkills = lazyPage(() => import("./pages/LeadMagnetComputerSkills"));
+const Library = lazyPage(() => import("./pages/Library"));
+const ProjectPilot = lazyPage(() => import("./project-formatter/PilotLandingPage"));
+const AcademyLanding = lazyPage(() => import("./academy/pages/AcademyLanding"));
+const AcademyCourses = lazyPage(() => import("./academy/pages/AcademyCourses"));
+const AcademyEnroll = lazyPage(() => import("./academy/pages/AcademyEnroll"));
+const AcademyEnrollChoose = lazyPage(() => import("./academy/pages/AcademyEnrollChoose"));
+const AcademyLearn = lazyPage(() => import("./academy/pages/AcademyLearn"));
+const AcademyProfile = lazyPage(() => import("./academy/pages/AcademyProfile"));
+const LessonPlayer = lazyPage(() => import("./academy/pages/LessonPlayer"));
+const FinalExam = lazyPage(() => import("./academy/pages/FinalExam"));
+const TypingDojo = lazyPage(() => import("./academy/pages/TypingDojo"));
+// Nobody on the CV Builder should pay for Memotify's bundle.
+const MemotifyApp = lazyPage(() => import("./memotify/MemotifyApp"));
 
 function App() {
   return (
     <>
     {/* Help launcher + support dialog for every app (openSupport() opens it). */}
     <SupportCenter />
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/auth" element={<AuthPage />} />
@@ -146,6 +152,7 @@ function App() {
         }
       />
     </Routes>
+    </Suspense>
     </>
   );
 }

@@ -10,7 +10,7 @@ import OnboardingForm from "../components/OnboardingForm";
 import TypingDojoCard from "../typing/TypingDojoCard";
 import { ONBOARDING_FIELDS, isProfileComplete } from "../data/onboarding";
 import { getCatalogEntry } from "../data/catalog";
-import { getCourseLessons, getCourseOutline } from "../data/lessons";
+import { getCourseLessons, getCourseOutline } from "../data/lessonIndex";
 import {
   calculateProgress,
   getAllProgress,
@@ -193,7 +193,7 @@ export default function AcademyProfile() {
 
           {loading && (
             <div className="ac-boot ac-boot--inline">
-              <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+              <span className="ac-spinner" aria-hidden="true" />
               <p>Loading your record…</p>
             </div>
           )}

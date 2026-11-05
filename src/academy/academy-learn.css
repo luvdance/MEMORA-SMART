@@ -34,6 +34,74 @@
   min-height: 220px;
 }
 
+/* ── Skeletons ──────────────────────────────────────────────────────────
+   The shape of the content, drawn while it downloads. A skeleton tells the
+   learner what is coming and where; a spinner only says "wait". */
+.ac-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 0 24px;
+}
+
+.ac-skel__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ac-skel__line,
+.ac-skel__block {
+  display: block;
+  height: 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--ac-line-soft) 0%, var(--ac-line) 40%, var(--ac-line-soft) 80%);
+  background-size: 300% 100%;
+  animation: ac-skel-shimmer 1.4s ease-in-out infinite;
+}
+
+.ac-skel__line--chip { width: 110px; height: 22px; border-radius: 999px; }
+.ac-skel__line--pips { width: 160px; height: 8px; }
+.ac-skel__line--title { width: 70%; height: 30px; margin: 10px 0 6px; }
+.ac-skel__line--short { width: 55%; }
+.ac-skel__block { height: 180px; margin-top: 10px; border-radius: var(--ac-r); }
+
+.ac-skel__block--hero { height: 210px; margin-top: 0; border-radius: var(--ac-r-lg); }
+.ac-skel__block--row { height: 84px; margin-top: 0; }
+
+/* A spinner drawn in CSS. The icon font loads after first paint, so an
+   icon spinner can be blank for exactly the moment it is needed. */
+.ac-spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--ac-primary-soft);
+  border-top-color: var(--ac-primary);
+  animation: ac-spin 0.8s linear infinite;
+}
+
+@keyframes ac-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ac-skel__label {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--ac-muted);
+}
+
+@keyframes ac-skel-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -50% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ac-skel__line,
+  .ac-skel__block { animation: none; }
+  .ac-spinner { animation-duration: 2.4s; }
+}
+
 .ac-boot--error h2 {
   margin: 0;
   font-size: 22px;

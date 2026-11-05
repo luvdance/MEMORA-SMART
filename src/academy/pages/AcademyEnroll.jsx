@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import AcademyNav from "../components/AcademyNav";
 import AcademyFooter from "../components/AcademyFooter";
 import { getCatalogEntry } from "../data/catalog";
-import { getCourseLessons, getAuthoredStats } from "../data/lessons";
+import { getCourseLessons, getAuthoredStats } from "../data/lessonIndex";
 import {
   enroll,
   getEnrollment,

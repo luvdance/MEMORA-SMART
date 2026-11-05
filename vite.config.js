@@ -238,12 +238,125 @@ function labRuntimes() {
   }
 }
 
+/**
+ * The Academy's lessons, as the browser loads them (see src/academy/data/lessonIndex.js).
+ *
+ *   virtual:academy-lesson-index    a light index of every lesson: titles,
+ *                                   modules, minutes, atom counts. No content.
+ *   virtual:academy-modules         loadModule(slug, moduleId), resolving to
+ *                                   that one module's full lessons.
+ *
+ * In a build both are computed here, in Node, from the same registry the
+ * graders use, and every module becomes its own small chunk: opening a lesson
+ * downloads its module (median ~30 KB) instead of its whole course (up to
+ * 1.8 MB). Lessons are plain data, so they ship as JSON.
+ *
+ * In dev both read the full registry in the browser instead, so editing a
+ * lesson file shows up on the next reload with nothing to regenerate.
+ */
+function academyLessons() {
+  const INDEX = 'virtual:academy-lesson-index'
+  const MODULES = 'virtual:academy-modules'
+  const MODULE_PREFIX = 'virtual:academy-module/'
+  const REGISTRY = '/src/academy/data/lessons/index.js'
+  let command = 'build'
+  let registry = null
+
+  const loadRegistry = async () => {
+    if (!registry) {
+      const root = new URL('./src/academy/data/lessons/', import.meta.url)
+      const [index, build] = await Promise.all([
+        import(new URL('index.js', root).href),
+        import(new URL('build.js', root).href),
+      ])
+      registry = { ...index, indexEntry: build.indexEntry }
+    }
+    return registry
+  }
+
+  return {
+    name: 'academy-lessons',
+    configResolved(config) {
+      command = config.command
+    },
+    resolveId(id) {
+      if (id === INDEX || id === MODULES || id.startsWith(MODULE_PREFIX)) return '\0' + id
+    },
+    async load(id) {
+      if (!id.startsWith('\0virtual:academy-')) return
+      const name = id.slice(1)
+
+      if (command === 'serve') {
+        if (name === INDEX) {
+          return [
+            `import * as registry from '${REGISTRY}'`,
+            `import { indexEntry } from '/src/academy/data/lessons/build.js'`,
+            `export default Object.fromEntries(registry.COURSE_SLUGS.map((slug) => [slug, registry.getCourseLessons(slug).map(indexEntry)]))`,
+          ].join('\n')
+        }
+        if (name === MODULES) {
+          return `export const loadModule = (slug, moduleId) => import('${REGISTRY}').then((r) => r.getModuleLessons(slug)[moduleId] || [])`
+        }
+        return
+      }
+
+      const r = await loadRegistry()
+
+      if (name === INDEX) {
+        const index = Object.fromEntries(
+          r.COURSE_SLUGS.map((slug) => [slug, r.getCourseLessons(slug).map(r.indexEntry)])
+        )
+        return `export default ${JSON.stringify(index)}`
+      }
+
+      if (name === MODULES) {
+        const entries = r.COURSE_SLUGS.flatMap((slug) =>
+          Object.keys(r.getModuleLessons(slug)).map((moduleId) => {
+            const key = `${slug}/${moduleId}`
+            return `  ${JSON.stringify(key)}: () => import(${JSON.stringify(MODULE_PREFIX + key)}),`
+          })
+        )
+        return [
+          `const LOADERS = {`,
+          ...entries,
+          `}`,
+          `export const loadModule = (slug, moduleId) => {`,
+          `  const load = LOADERS[slug + '/' + moduleId]`,
+          `  return load ? load().then((m) => m.default) : Promise.resolve([])`,
+          `}`,
+        ].join('\n')
+      }
+
+      const [slug, moduleId] = name.slice(MODULE_PREFIX.length).split('/')
+      const lessons = r.getModuleLessons(slug)[moduleId] || []
+      // JSON.parse of a string literal parses faster than the same object
+      // written as a JavaScript literal, and these are the big chunks.
+      return `export default JSON.parse(${JSON.stringify(JSON.stringify(lessons))})`
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), academyApi(), labRuntimes()],
+  plugins: [react(), academyApi(), labRuntimes(), academyLessons()],
   // PGlite (PostgreSQL in WebAssembly, the SQL labs' server) loads its .wasm
   // and data files relative to its own module, which the dev pre-bundler
   // would break. The production build bundles it, worker and assets, as-is.
   optimizeDeps: { exclude: ['@electric-sql/pglite'] },
   worker: { format: 'es' },
+  // dist/.vite/manifest.json, read by scripts/prerenderMeta.mjs to preload
+  // each route's page chunk from that route's HTML.
+  build: {
+    manifest: true,
+    rolldownOptions: {
+      output: {
+        // Name lesson chunks after their module (lesson-be-w7-express-…js)
+        // rather than the virtual id, so they read sensibly in the network tab.
+        chunkFileNames: (chunk) =>
+          chunk.facadeModuleId?.includes('virtual:academy-module/')
+            ? `assets/lesson-${chunk.facadeModuleId.split('/').pop()}-[hash].js`
+            : 'assets/[name]-[hash].js',
+      },
+    },
+  },
 })

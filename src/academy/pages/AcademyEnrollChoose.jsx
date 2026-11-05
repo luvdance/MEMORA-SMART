@@ -15,7 +15,7 @@ import {
   getAuthoredStats,
   getCourseLessons,
   getResumeLesson,
-} from "../data/lessons";
+} from "../data/lessonIndex";
 import { calculateProgress, getEnrollments } from "../services/academyService";
 import { startAcademyJourney } from "../services/intent";
 import "../academy.css";

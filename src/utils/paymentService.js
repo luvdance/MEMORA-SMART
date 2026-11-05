@@ -2,9 +2,34 @@ import { PLANS } from "../cv-builder/utils/plans";
 import { cvApi } from "../cv-builder/utils/cvAccess";
 
 // Paystack Inline v2 opens a transaction the SERVER created (by access code),
-// so plan codes and prices stay on the server. v1 (index.html) is still used
-// by book purchases; both scripts define window.PaystackPop, so v2 is loaded
-// on demand and v1's global is put back afterwards.
+// so plan codes and prices stay on the server. v1 is still used by book
+// purchases. Both scripts define window.PaystackPop, so v2 is loaded on demand
+// and v1's global is put back afterwards.
+//
+// v1 is loaded on demand too. It used to be a blocking <script> in index.html,
+// which held up the start of every page on the site for the sake of the one
+// button that buys a book.
+let inlineV1 = null;
+function loadPaystackV1() {
+  if (window.PaystackPop?.setup) return Promise.resolve(window.PaystackPop);
+  if (inlineV1) return inlineV1;
+  inlineV1 = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v1/inline.js";
+    script.async = true;
+    script.onload = () =>
+      window.PaystackPop?.setup
+        ? resolve(window.PaystackPop)
+        : reject(new Error("Paystack v1 not available"));
+    script.onerror = () => {
+      inlineV1 = null;
+      reject(new Error("Could not load Paystack"));
+    };
+    document.head.appendChild(script);
+  });
+  return inlineV1;
+}
+
 let inlineV2 = null;
 function loadPaystackV2() {
   if (inlineV2) return inlineV2;
@@ -99,15 +124,19 @@ export async function buyPlan({ user, plan, onSuccess, onClose }) {
  * `book` is one entry from src/data/books.js (paidBooks array) —
  * needs at least { slug, title, price } where price is in Naira.
  */
-export function buyBook({ email, book, onSuccess, onClose }) {
-  if (!window.PaystackPop) {
-    alert("Payment system not loaded. Please refresh the page and try again.");
+export async function buyBook({ email, book, onSuccess, onClose }) {
+  let PaystackPop;
+  try {
+    PaystackPop = await loadPaystackV1();
+  } catch {
+    alert("Payment system could not load. Check your connection and try again.");
+    if (typeof onClose === "function") onClose();
     return;
   }
 
   const reference = "book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
 
-  const handler = window.PaystackPop.setup({
+  const handler = PaystackPop.setup({
     key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
     email: email,
     amount: book.price * 100,

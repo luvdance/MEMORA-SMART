@@ -225,7 +225,7 @@ export default function TypingDojo() {
 
           {loading ? (
             <div className="ac-boot ac-boot--inline">
-              <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+              <span className="ac-spinner" aria-hidden="true" />
               <p>Loading your typing record…</p>
             </div>
           ) : (

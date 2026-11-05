@@ -89,6 +89,64 @@ function setLink(html, rel, href) {
   return html.replace("</head>", `    ${tag}\n  </head>`);
 }
 
+/**
+ * Each route's page module, so its HTML can preload the page's chunk.
+ *
+ * Every page but Home is lazy (src/App.jsx). Without a hint, someone landing
+ * on /academy downloads the main bundle, runs it, and only then learns it
+ * needs the Academy chunk: two round trips in a row. A modulepreload in the
+ * route's own HTML starts both downloads at once.
+ */
+const ROUTE_ENTRIES = {
+  "/cv-builder": "src/cv-builder/components/CVLanding.jsx",
+  "/ats-check": "src/pages/ATSChecker.jsx",
+  "/projectpilot": "src/project-formatter/PilotLandingPage.jsx",
+  "/pricing": "src/pages/Pricing.jsx",
+  "/memotify": "src/memotify/MemotifyApp.jsx",
+  "/memotify/jobs": "src/memotify/MemotifyApp.jsx",
+  "/memotify/hire": "src/memotify/MemotifyApp.jsx",
+  "/academy": "src/academy/pages/AcademyLanding.jsx",
+  "/academy/courses": "src/academy/pages/AcademyCourses.jsx",
+  "/academy/enroll": "src/academy/pages/AcademyEnrollChoose.jsx",
+  "/library": "src/pages/Library.jsx",
+  "/excel-masterclass": "src/pages/LeadMagnetExcel.jsx",
+  "/ai-side-hustles": "src/pages/LeadMagnetAISideHustles.jsx",
+  "/remote-jobs-guide": "src/pages/LeadMagnetRemoteJobs.jsx",
+  "/content-creation": "src/pages/LeadMagnetContentCreation.jsx",
+  "/digital-skills": "src/pages/LeadMagnetComputerSkills.jsx",
+  "/daniel-nwankwo": "src/pages/Daniel-nwankwo.jsx",
+};
+
+const manifestPath = join(DIST, ".vite", "manifest.json");
+const manifest = existsSync(manifestPath)
+  ? JSON.parse(readFileSync(manifestPath, "utf8"))
+  : null;
+
+/** The chunk, its static imports and their CSS, as head tags. */
+function preloadTags(entry) {
+  if (!manifest || !manifest[entry]) {
+    if (entry) console.warn(`prerenderMeta: no chunk for ${entry}; preload skipped`);
+    return "";
+  }
+  const js = new Set();
+  const css = new Set();
+  const walk = (key) => {
+    const chunk = manifest[key];
+    if (!chunk || js.has(chunk.file)) return;
+    js.add(chunk.file);
+    for (const file of chunk.css || []) css.add(file);
+    for (const dep of chunk.imports || []) walk(dep);
+  };
+  walk(entry);
+  return [
+    ...[...css].map((f) => `<link rel="stylesheet" href="/${f}">`),
+    ...[...js].map((f) => `<link rel="modulepreload" crossorigin href="/${f}">`),
+  ]
+    .map((tag) => `    ${tag}
+`)
+    .join("");
+}
+
 function buildHtml(route, meta) {
   const url = `${SITE.origin}${route === "/" ? "/" : route}`;
   const image = meta.image
@@ -121,6 +179,9 @@ function buildHtml(route, meta) {
   if (shouldNoIndex(route)) {
     html = setMeta(html, "name", "robots", "noindex, nofollow");
   }
+
+  const preload = preloadTags(ROUTE_ENTRIES[route]);
+  if (preload) html = html.replace("</head>", `${preload}  </head>`);
 
   return html;
 }

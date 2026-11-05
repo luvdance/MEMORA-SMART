@@ -53,7 +53,7 @@ export default function AcademyRoute({ children }) {
   if (loading || (user && (status === "idle" || status === "loading"))) {
     return (
       <div className="academy ac-boot">
-        <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+        <span className="ac-spinner" aria-hidden="true" />
         <p>Loading your Academy…</p>
       </div>
     );

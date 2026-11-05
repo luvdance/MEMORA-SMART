@@ -5,7 +5,7 @@ import AcademyFooter from "../components/AcademyFooter";
 import { useAuth } from "../../context/AuthContext";
 import { getAllProgress } from "../services/academyService";
 import { ERROR_CODES, reportError } from "../services/errors";
-import { getCourseOutline } from "../data/lessons/index.js";
+import { getCourseOutline } from "../data/lessonIndex";
 import { certificationState, examFor } from "../data/certification";
 import "../academy.css";
 

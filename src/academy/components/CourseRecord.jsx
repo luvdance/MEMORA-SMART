@@ -135,7 +135,7 @@ export default function CourseRecord({
                       <em>{lesson.moduleTitle}</em>
                     </td>
                     <td>
-                      {atoms}/{lesson.atoms.length}
+                      {atoms}/{lesson.atomCount}
                     </td>
                     <td>{a?.attempts || 0}</td>
                     <td>

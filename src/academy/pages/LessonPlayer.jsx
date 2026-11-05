@@ -49,7 +49,14 @@ import OrderTicket from "../components/OrderTicket";
 import BetaBadge from "../components/BetaBadge";
 import { getCatalogEntry, BETA_NOTE } from "../data/catalog";
 import { getExamForModule } from "../data/exams";
-import { getCourseOutline, getLesson, getNextLesson } from "../data/lessons";
+import {
+  getCourseOutline,
+  getLesson,
+  getNextLesson,
+  loadLesson,
+  peekLesson,
+  prefetchLesson,
+} from "../data/lessonIndex";
 import {
   completeAtom,
   completePractice,
@@ -76,7 +83,11 @@ export default function LessonPlayer() {
   // component correct even if that ever changes. A lesson object with an
   // unstable identity in a dependency array re-runs its effect every render.
   const entry = useMemo(() => getCatalogEntry(slug), [slug]);
-  const lesson = useMemo(() => getLesson(slug, lessonId), [slug, lessonId]);
+  // The index entry is there at once; the lesson's content arrives with its
+  // course chunk. Everything that only names the lesson reads `meta`, so the
+  // page frame and curriculum render while the content downloads.
+  const meta = useMemo(() => getLesson(slug, lessonId), [slug, lessonId]);
+  const { lesson, error: loadError, retry } = useFullLesson(slug, meta ? lessonId : null);
   const outline = useMemo(() => getCourseOutline(slug), [slug]);
   const nextLesson = useMemo(() => getNextLesson(slug, lessonId), [slug, lessonId]);
 
@@ -103,7 +114,7 @@ export default function LessonPlayer() {
   const [practiceWarning, setPracticeWarning] = useState(false);
 
   useSEO({
-    title: lesson ? `${lesson.title} — Memora Smart Academy` : "Lesson",
+    title: meta ? `${meta.title} — Memora Smart Academy` : "Lesson",
   });
 
   /* ── Load saved progress ─────────────────────────────────────────── */
@@ -152,6 +163,13 @@ export default function LessonPlayer() {
       alive = false;
     };
   }, [user, slug, lesson, navigate]);
+
+  // Fetch the next lesson's module while this one is being read, so Next
+  // never waits on the network. Within a module it is already in memory.
+  const nextLessonId = nextLesson?.id ?? null;
+  useEffect(() => {
+    if (lessonKey && nextLessonId) prefetchLesson(slug, nextLessonId);
+  }, [slug, lessonKey, nextLessonId]);
 
   /* ── Remember position across devices ────────────────────────────── */
   useEffect(() => {
@@ -263,6 +281,18 @@ export default function LessonPlayer() {
     else setAtomIndex((i) => i + 1);
   }
 
+  if (entry && meta && !lesson) {
+    return (
+      <LessonSkeleton
+        meta={meta}
+        outline={outline}
+        slug={slug}
+        error={loadError}
+        onRetry={retry}
+      />
+    );
+  }
+
   if (!entry || !lesson) {
     return (
       <div className="academy">
@@ -326,10 +356,7 @@ export default function LessonPlayer() {
 
         <main className="ac-player__main">
           {loading ? (
-            <div className="ac-boot ac-boot--inline">
-              <i className="fas fa-spinner fa-spin" aria-hidden="true" />
-              <p>Loading your place…</p>
-            </div>
+            <AtomSkeleton label="Finding your place in this lesson" />
           ) : phase === "learning" ? (
             <article className="ac-atomview">
               <header className="ac-atomview__head">
@@ -1025,6 +1052,132 @@ export default function LessonPlayer() {
           {toast.message}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * A lesson's content, loaded with its course's chunk.
+ *
+ * `lesson` is undefined while loading, null if the course has no such lesson,
+ * and the full lesson otherwise. A course already in memory (the next lesson,
+ * almost always) resolves in the same render, so moving on never flashes a
+ * loading state.
+ */
+function useFullLesson(slug, lessonId) {
+  const key = `${slug}/${lessonId}`;
+  const [state, setState] = useState({ key: null, lesson: undefined, error: null });
+  const [attempt, setAttempt] = useState(0);
+  const peeked = lessonId ? peekLesson(slug, lessonId) : null;
+
+  useEffect(() => {
+    if (!lessonId || peekLesson(slug, lessonId) !== undefined) return;
+    let alive = true;
+    loadLesson(slug, lessonId).then(
+      (lesson) => alive && setState({ key, lesson, error: null }),
+      (error) => {
+        console.error("Could not load lesson content", error);
+        if (alive) setState({ key, lesson: undefined, error });
+      }
+    );
+    return () => {
+      alive = false;
+    };
+  }, [slug, lessonId, key, attempt]);
+
+  if (peeked !== undefined) return { lesson: peeked, error: null, retry: () => {} };
+  const mine = state.key === key;
+  return {
+    lesson: mine ? state.lesson : undefined,
+    error: mine ? state.error : null,
+    retry: () => {
+      setState({ key: null, lesson: undefined, error: null });
+      setAttempt((n) => n + 1);
+    },
+  };
+}
+
+/** The shape of an atom, drawn before its words arrive. */
+function AtomSkeleton({ label }) {
+  return (
+    <div className="ac-skel" role="status" aria-live="polite" aria-label={label}>
+      <div className="ac-skel__row">
+        <span className="ac-skel__line ac-skel__line--chip" />
+        <span className="ac-skel__line ac-skel__line--pips" />
+      </div>
+      <span className="ac-skel__line ac-skel__line--title" />
+      <span className="ac-skel__line" />
+      <span className="ac-skel__line" />
+      <span className="ac-skel__line ac-skel__line--short" />
+      <span className="ac-skel__block" />
+      <p className="ac-skel__label">{label}…</p>
+    </div>
+  );
+}
+
+/**
+ * The player while a lesson's content downloads: the real nav, crumb and
+ * curriculum (all from the index), and a skeleton where the atom will be. On
+ * a slow connection the learner sees where they are, not a blank page.
+ */
+function LessonSkeleton({ meta, outline, slug, error, onRetry }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  return (
+    <div className="academy ac-player">
+      <AcademyNav />
+
+      <div className="ac-player__bar">
+        <div className="ac-container ac-player__bar-inner">
+          <button
+            className="ac-player__menu"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open curriculum"
+          >
+            <i className="fas fa-list-ul" aria-hidden="true" />
+            <span>Curriculum</span>
+          </button>
+
+          <div className="ac-player__crumb">
+            <span>{meta.moduleTitle}</span>
+            <i className="fas fa-chevron-right" aria-hidden="true" />
+            <strong>{meta.title}</strong>
+          </div>
+
+          <Link to="/academy/learn" className="ac-player__exit">
+            <i className="fas fa-xmark" aria-hidden="true" />
+            <span>Exit</span>
+          </Link>
+        </div>
+      </div>
+
+      <div className="ac-player__grid">
+        <LessonSidebar
+          outline={outline}
+          slug={slug}
+          currentLessonId={meta.id}
+          progressMap={{}}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        <main className="ac-player__main">
+          {error ? (
+            <div className="ac-boot ac-boot--inline ac-boot--error">
+              <i className="fas fa-wifi" aria-hidden="true" />
+              <h2>This lesson did not finish downloading</h2>
+              <p>Your progress is safe. Check your connection and try again.</p>
+              <div className="ac-boot__actions">
+                <button className="ac-btn ac-btn--primary" onClick={onRetry}>
+                  Try again
+                </button>
+              </div>
+            </div>
+          ) : (
+            <AtomSkeleton label={`Loading ${meta.title}`} />
+          )}
+        </main>
+      </div>
     </div>
   );
 }

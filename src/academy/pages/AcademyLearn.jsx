@@ -10,7 +10,8 @@ import BetaBadge from "../components/BetaBadge";
 import Leaderboard from "../components/Leaderboard";
 import TypingDojoCard from "../typing/TypingDojoCard";
 import { CATALOG, getCatalogEntry, BETA_NOTE } from "../data/catalog";
-import { getCourseLessons, getResumeLesson } from "../data/lessons";
+import { getCourseLessons, getResumeLesson } from "../data/lessonIndex";
+import { prefetchResume } from "../services/prefetch";
 import {
   calculateProgress,
   getAllProgress,
@@ -107,6 +108,13 @@ export default function AcademyLearn() {
     };
   }, [enrollments, progressByCourse]);
 
+  // Most visits here end in a tap on Resume, so have that lesson ready.
+  const resumeSlug = active?.enrollment.courseId;
+  const resumeId = active?.lesson?.id;
+  useEffect(() => {
+    prefetchResume(resumeSlug, resumeId);
+  }, [resumeSlug, resumeId]);
+
   const firstName =
     (student?.displayName || user?.displayName || "").split(" ")[0] || "there";
 
@@ -134,10 +142,15 @@ export default function AcademyLearn() {
             )}
           </header>
 
+          {/* The shape of the resume card and the course list, so the page
+              does not jump when the progress arrives. */}
           {loading && (
-            <div className="ac-boot ac-boot--inline">
-              <i className="fas fa-spinner fa-spin" aria-hidden="true" />
-              <p>Loading your progress…</p>
+            <div className="ac-skel ac-skel--learn" role="status" aria-live="polite">
+              <span className="ac-skel__block ac-skel__block--hero" />
+              <span className="ac-skel__line ac-skel__line--title" />
+              <span className="ac-skel__block ac-skel__block--row" />
+              <span className="ac-skel__block ac-skel__block--row" />
+              <p className="ac-skel__label">Loading your progress…</p>
             </div>
           )}
 
@@ -166,8 +179,8 @@ export default function AcademyLearn() {
                       {active.percent}% complete · {active.completedCount} of{" "}
                       {active.totalLessons} lessons ·{" "}
                       {active.atomsDone > 0
-                        ? `atom ${active.atomsDone + 1} of ${active.lesson.atoms.length}`
-                        : `${active.lesson.atoms.length} atoms · ~${active.lesson.estimatedMinutes} min`}
+                        ? `atom ${active.atomsDone + 1} of ${active.lesson.atomCount}`
+                        : `${active.lesson.atomCount} atoms · ~${active.lesson.estimatedMinutes} min`}
                     </p>
                   </div>
 

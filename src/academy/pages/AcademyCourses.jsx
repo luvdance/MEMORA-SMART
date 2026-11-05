@@ -7,7 +7,7 @@ import AcademyFooter from "../components/AcademyFooter";
 import ExamCard from "../components/ExamCard";
 import BetaBadge from "../components/BetaBadge";
 import { CATALOG, CATEGORIES, STATUS_LABELS, getCourseStats, BETA_NOTE } from "../data/catalog";
-import { getAuthoredStats } from "../data/lessons";
+import { getAuthoredStats } from "../data/lessonIndex";
 import { EXAMS } from "../data/exams";
 import { startAcademyJourney } from "../services/intent";
 import "../academy.css";

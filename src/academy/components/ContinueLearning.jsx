@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCatalogEntry } from "../data/catalog";
-import { getCourseLessons, getResumeLesson } from "../data/lessons";
+import { getCourseLessons, getResumeLesson } from "../data/lessonIndex";
+import { prefetchResume } from "../services/prefetch";
 import { listEnrollments } from "../data/enrollment";
 import { getEnrollments } from "../services/academyService";
 
@@ -62,6 +63,9 @@ export default function ContinueLearning({ user, onResolved }) {
         });
         setCourses(resolved);
         onResolved?.(resolved.length > 0);
+        // A returning learner's next tap is almost always Continue.
+        const [first] = resolved;
+        if (first?.lesson) prefetchResume(first.slug, first.lesson.id);
       } catch {
         // A read that fails must not leave the page thinking they are new and
         // push them back through onboarding. Show nothing extra, say nothing

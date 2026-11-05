@@ -142,7 +142,7 @@ export default function AssessmentPanel({
   if (state === "loading") {
     return (
       <div className="ac-boot ac-boot--inline">
-        <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+        <span className="ac-spinner" aria-hidden="true" />
         <p>Loading the knowledge check…</p>
       </div>
     );
