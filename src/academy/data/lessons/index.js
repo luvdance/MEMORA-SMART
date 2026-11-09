@@ -5,6 +5,8 @@ import JAVASCRIPT_COURSE from "../javascriptCourse.js";
 import FOREX_COURSE from "../forexCourse.js";
 import PYTHON_COURSE from "../pythonCourse.js";
 import CPP_COURSE from "../cppCourse.js";
+import ALGORITHMS_COURSE from "../algorithmsCourse.js";
+import MACHINE_LEARNING_COURSE from "../machineLearningCourse.js";
 import WEB_DEVELOPMENT_COURSE from "../webDevelopmentCourse.js";
 import CODEBASE_ENGINEERING_COURSE from "../codebaseEngineeringCourse.js";
 import REACT_COURSE from "../reactCourse.js";
@@ -30,6 +32,12 @@ import { PYTHON_LESSONS } from "./pp-registry.js";
 
 // ── C++ Programming: one file per module, registered in cp-registry.js ─────
 import { CPP_LESSONS } from "./cp-registry.js";
+
+// ── Design and Analysis of Algorithms: one file per module, al-registry.js ─
+import { ALGORITHMS_LESSONS } from "./al-registry.js";
+
+// ── Machine Learning and AI: one file per module, ml-registry.js ──────────
+import { MACHINE_LEARNING_LESSONS } from "./ml-registry.js";
 
 // ── Responsive Web Development: one file per module, wd-registry.js ────────
 import { WEB_DEVELOPMENT_LESSONS } from "./wd-registry.js";
@@ -74,6 +82,10 @@ const REGISTRY = {
 
   cpp: CPP_LESSONS,
 
+  algorithms: ALGORITHMS_LESSONS,
+
+  "machine-learning": MACHINE_LEARNING_LESSONS,
+
   "web-development": WEB_DEVELOPMENT_LESSONS,
 
   "codebase-engineering": CODEBASE_ENGINEERING_LESSONS,
@@ -106,6 +118,8 @@ const CURRICULA = {
   [FOREX_COURSE.slug]: FOREX_COURSE,
   [PYTHON_COURSE.slug]: PYTHON_COURSE,
   [CPP_COURSE.slug]: CPP_COURSE,
+  [ALGORITHMS_COURSE.slug]: ALGORITHMS_COURSE,
+  [MACHINE_LEARNING_COURSE.slug]: MACHINE_LEARNING_COURSE,
   [WEB_DEVELOPMENT_COURSE.slug]: WEB_DEVELOPMENT_COURSE,
   [CODEBASE_ENGINEERING_COURSE.slug]: CODEBASE_ENGINEERING_COURSE,
   [REACT_COURSE.slug]: REACT_COURSE,

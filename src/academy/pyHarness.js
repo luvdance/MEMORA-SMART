@@ -60,6 +60,41 @@ import types as __types
 __ACADEMY_LINE_BUDGET = 400000
 __ACADEMY_MAX_OUTPUT = 20000
 
+# Plots render to a buffer, never into the page, wherever the harness runs.
+__os.environ.setdefault("MPLBACKEND", "AGG")
+
+# Third-party libraries (NumPy, pandas, scikit-learn, matplotlib) are not the
+# learner's code: their lines are not counted against the budget, and the
+# ones a program imports are imported BEFORE tracing starts. Importing pandas
+# alone executes far more than the whole budget of Python lines, so without
+# this a correct two-line pandas program would be "stopped for running too
+# long". The learner's own loops are still counted, so an infinite loop still
+# ends with an explanation.
+__ACADEMY_LIBRARIES = ("numpy", "pandas", "sklearn", "scipy", "matplotlib", "statsmodels", "joblib", "fastapi", "pydantic", "starlette")
+
+
+def __academy_is_library(filename):
+    return "site-packages" in filename or "dist-packages" in filename
+
+
+def __academy_preimport(src):
+    try:
+        tree = __ast.parse(src)
+    except SyntaxError:
+        return
+    for node in __ast.walk(tree):
+        names = []
+        if isinstance(node, __ast.Import):
+            names = [a.name for a in node.names]
+        elif isinstance(node, __ast.ImportFrom) and node.module and not node.level:
+            names = [node.module]
+        for name in names:
+            if name.split(".")[0] in __ACADEMY_LIBRARIES:
+                try:
+                    __importlib.import_module(name)
+                except BaseException:
+                    pass  # the learner's own import reports the error
+
 
 class __AcademyStop(BaseException):
     pass
@@ -149,6 +184,19 @@ def __academy_run_one(src, inputs, check, files=None):
         return value
 
     def tracer(frame, event, arg):
+        if event == "call":
+            # Count the learner's code, and whatever it calls in the standard
+            # library (as always); skip third-party libraries and everything
+            # THEY call. A frame is traced iff its caller is, so f_trace on
+            # the caller says whether this call came from the learner.
+            name = frame.f_code.co_filename
+            if __academy_is_library(name):
+                return None
+            if name not in ("<your code>", "<check>"):
+                caller = frame.f_back
+                if caller is None or caller.f_trace is None:
+                    if not name.startswith(__os.getcwd()):
+                        return None
         if event == "line":
             counter[0] += 1
             if counter[0] > __ACADEMY_LINE_BUDGET:
@@ -175,6 +223,8 @@ def __academy_run_one(src, inputs, check, files=None):
     error = ""
     message = ""
     real_out, real_input = __sys.stdout, __builtins.input
+    __academy_preimport(src)
+    __academy_preimport(check or "")
     __sys.stdout = buf
     __builtins.input = fake_input
     __sys.settrace(tracer)

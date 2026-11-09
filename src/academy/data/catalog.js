@@ -5,6 +5,8 @@ import JAVASCRIPT_COURSE from "./javascriptCourse.js";
 import FOREX_COURSE from "./forexCourse.js";
 import PYTHON_COURSE from "./pythonCourse.js";
 import CPP_COURSE from "./cppCourse.js";
+import ALGORITHMS_COURSE from "./algorithmsCourse.js";
+import MACHINE_LEARNING_COURSE from "./machineLearningCourse.js";
 import WEB_DEVELOPMENT_COURSE from "./webDevelopmentCourse.js";
 import CODEBASE_ENGINEERING_COURSE from "./codebaseEngineeringCourse.js";
 import REACT_COURSE from "./reactCourse.js";
@@ -221,6 +223,56 @@ export const CATALOG = [
       "Capstone project",
     ],
     course: CPP_COURSE,
+  },
+  {
+    id: "algorithms",
+    code: "AL-101",
+    slug: "algorithms",
+    title: "Design and Analysis of Algorithms",
+    subtitle: "Design, analyse and implement efficient algorithms",
+    category: "web",
+    icon: "fas fa-sitemap",
+    status: "open",
+    beta: true,
+    level: "Beginner → University level",
+    summary:
+      "The algorithms course that prepares you for your algorithms exams. Design algorithms with pseudocode and flowcharts, prove them correct, derive their complexity with Big O, Omega and Theta, then implement every classic: data structures, searching, sorting, recursion and the Master Theorem, greedy algorithms, dynamic programming, graph algorithms and P versus NP. Every algorithm is written by you in Python, run in the page and checked by tests.",
+    covers: [
+      "Pseudocode, flowcharts & dry runs",
+      "Big O, Omega & Theta with proofs",
+      "Space complexity & data structures",
+      "Searching & sorting algorithms",
+      "Recursion, divide & conquer, Master Theorem",
+      "Greedy algorithms & dynamic programming",
+      "Graph algorithms",
+      "Amortized analysis, P vs NP & capstone",
+    ],
+    course: ALGORITHMS_COURSE,
+  },
+  {
+    id: "machine-learning",
+    code: "ML-101",
+    slug: "machine-learning",
+    title: "Machine Learning and Artificial Intelligence",
+    subtitle: "From the mathematics to deployed, responsible ML systems",
+    category: "ai",
+    icon: "fas fa-brain",
+    status: "open",
+    beta: true,
+    level: "Beginner → Professional",
+    summary:
+      "A five-month machine learning programme: Python and the mathematics behind every algorithm, data preparation with pandas, classical models built from scratch and with scikit-learn, neural networks, CNNs, RNNs and Transformers, then FastAPI deployment, MLOps, fairness and a capstone. Every exercise runs real NumPy, pandas, scikit-learn and FastAPI in the page and is checked by tests.",
+    covers: [
+      "Python, linear algebra, statistics & calculus",
+      "NumPy, pandas, EDA & visualisation",
+      "Preprocessing, feature engineering & leakage",
+      "Regression, classification & clustering",
+      "Cross-validation, tuning & pipelines",
+      "Neural networks, CNNs, RNNs & Transformers",
+      "FastAPI deployment & MLOps",
+      "Responsible AI, applications & capstone",
+    ],
+    course: MACHINE_LEARNING_COURSE,
   },
   {
     id: "forex-trading",

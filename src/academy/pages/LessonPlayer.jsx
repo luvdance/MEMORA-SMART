@@ -467,14 +467,14 @@ export default function LessonPlayer() {
 
               {/* Python. `code` demonstrates and shows its output;
                   `codeExercise` makes the learner predict it. */}
-              {/* The Python Programming course is practice-first, so its worked
-                  examples can be edited and run too (a demo opts out with
-                  runnable: false). Other courses keep their own default. */}
+              {/* The Python, Algorithms and Machine Learning courses are practice-first,
+                  so their worked examples can be edited and run too (a demo opts
+                  out with runnable: false). Other courses keep their own default. */}
               {atom.code && (
                 <CodeTrace
                   key={`${atom.id}-demo`}
                   {...atom.code}
-                  runnable={atom.code.runnable ?? slug === "python"}
+                  runnable={atom.code.runnable ?? (slug === "python" || slug === "algorithms" || slug === "machine-learning")}
                   showOutput
                 />
               )}

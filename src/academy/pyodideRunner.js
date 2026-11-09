@@ -170,9 +170,12 @@ export async function runChallenge(code, tests, { onProgress = () => {} } = {}) 
     harnessReady = true;
   }
   // sqlite3 and a few other stdlib modules are separate downloads in Pyodide.
-  // Load whatever the learner's code imports, so `import sqlite3` just works.
+  // Load whatever the learner's code imports, so `import sqlite3` just works,
+  // AND whatever the checks import: a test may build its data with pandas
+  // even when the learner's own code only imports scikit-learn.
+  const checks = (tests || []).map((t) => t?.check || "").join("\n");
   try {
-    await pyodide.loadPackagesFromImports(code);
+    await pyodide.loadPackagesFromImports(`${code}\n${checks}`);
   } catch {
     /* an unknown import fails inside Python with a readable error instead */
   }

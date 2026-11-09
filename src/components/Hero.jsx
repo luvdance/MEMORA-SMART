@@ -63,6 +63,18 @@ const services = [
     course: "cpp",
   },
   {
+    icon: "fas fa-sitemap",
+    label: "Learn Algorithms & Complexity",
+    path: "/academy/enroll/algorithms",
+    course: "algorithms",
+  },
+  {
+    icon: "fas fa-brain",
+    label: "Learn Machine Learning & AI",
+    path: "/academy/enroll/machine-learning",
+    course: "machine-learning",
+  },
+  {
     icon: "fas fa-diagram-project",
     label: "Learn Codebase Engineering",
     path: "/academy/enroll/codebase-engineering",

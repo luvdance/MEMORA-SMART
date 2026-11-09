@@ -156,9 +156,9 @@ export const ROUTE_META = {
     type: "article",
   },
   "/daniel-nwankwo": {
-    title: "Daniel Nwankwo — Founder, Memora Smart Technologies",
+    title: "Daniel Nwankwo — Full-Stack Engineer & Founder, Memora Smart",
     description:
-      "The founder of Memora Smart Technologies, and why the company builds career tools and training for Nigerians.",
+      "Portfolio of Daniel Nwankwo: full-stack engineer and founder of Memora Smart Technologies. React, Node.js, PostgreSQL, AI and mobile; 12+ products shipped and 14 courses written.",
     type: "profile",
   },
 };
