@@ -44,6 +44,28 @@
     <meta name="twitter:title" content="Memora Smart Technologies — Career Tools and Practical Tech Education" />
     <meta name="twitter:description" content="Nigerian-built software and training. CV tools, an ATS checker, and practical tech courses." />
     <meta name="twitter:image" content="https://www.memorasmart.com/og-image.png" />
+
+    <!-- Academy theme, resolved before first paint so dark mode never flashes
+         white. Mirrors src/academy/theme.js; inert outside the Academy. -->
+    <script>
+      (function () {
+        try {
+          var c = localStorage.getItem("ac-theme");
+          var dark = c === "dark" || (c !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.setAttribute("data-ac-theme", dark ? "dark" : "light");
+          // Until the Academy's own stylesheet arrives, paint the page dark.
+          if (dark && location.pathname.indexOf("/academy") === 0) {
+            document.documentElement.className += " ac-preboot";
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      html.ac-preboot,
+      html.ac-preboot body {
+        background: #0b0d1b;
+      }
+    </style>
   </head>
   <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18163716297"></script>

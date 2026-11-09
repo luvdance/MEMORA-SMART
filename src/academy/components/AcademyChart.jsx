@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SERIES, INK, MUTED, GRID } from "../chartPalette";
+import { SERIES, INK, MUTED, GRID, AXIS, SURFACE } from "../chartPalette";
 
 /**
  * CHARTS FOR THE DASHBOARD MODULE
@@ -156,7 +156,7 @@ export default function AcademyChart({
         <div className="ac-chart__plot">
           <svg viewBox="0 0 240 240" width="240" height="240" role="img" aria-label={title}>
             {slices.map((s) => (
-              <path key={s.label} d={s.d} fill={s.fill} stroke="#fff" strokeWidth="2" />
+              <path key={s.label} d={s.d} fill={s.fill} stroke={SURFACE} strokeWidth="2" />
             ))}
           </svg>
           <ul className="ac-chart__legend ac-chart__legend--stack">
@@ -223,7 +223,7 @@ export default function AcademyChart({
                       cy={py(v)}
                       r="4.5"
                       fill={colour}
-                      stroke="#fff"
+                      stroke={SURFACE}
                       strokeWidth="2"
                       onMouseEnter={() => tip(categories[i], s.name, v)}
                       onMouseLeave={() => setHover(null)}
@@ -284,7 +284,7 @@ export default function AcademyChart({
                 r="5.5"
                 fill={SERIES[0]}
                 fillOpacity="0.75"
-                stroke="#fff"
+                stroke={SURFACE}
                 strokeWidth="2"
                 onMouseEnter={() => setHover({ label: p.label, series: series[0].name, value: `${fmt(p.x)} / ${valuePrefix}${fmt(p.y)}${valueSuffix}` })}
                 onMouseLeave={() => setHover(null)}
@@ -388,7 +388,7 @@ export default function AcademyChart({
                 </g>
               );
             })}
-            <line x1={padL} y1={padT + innerH} x2={W - padR} y2={padT + innerH} stroke="#c9cee0" strokeWidth="1" />
+            <line x1={padL} y1={padT + innerH} x2={W - padR} y2={padT + innerH} stroke={AXIS} strokeWidth="1" />
           </svg>
           {hover && (
             <div className="ac-chart__tip" role="status">
@@ -509,7 +509,7 @@ export default function AcademyChart({
             y1={horizontal ? padT : padT + innerH}
             x2={horizontal ? padL : W - padR}
             y2={padT + innerH}
-            stroke="#c9cee0"
+            stroke={AXIS}
             strokeWidth="1"
           />
         </svg>

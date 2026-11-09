@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { SERIES, INK, MUTED, GRID } from "../chartPalette";
+import { SERIES, INK, MUTED, GRID, SURFACE } from "../chartPalette";
 
 /**
  * A single-series line chart with a hover crosshair.
@@ -108,18 +108,18 @@ export default function LineChart({
         <path d={d} fill="none" stroke={SERIES[0]} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
         {marks?.filter((m) => m.n > 0).map((m) => (
           <g key={m.x}>
-            <line x1={sx(m.x) - 3} x2={sx(m.x) + 3} y1={sy(0) - 9} y2={sy(0) - 3} stroke="#dc2626" strokeWidth="2" />
-            <line x1={sx(m.x) + 3} x2={sx(m.x) - 3} y1={sy(0) - 9} y2={sy(0) - 3} stroke="#dc2626" strokeWidth="2" />
+            <line x1={sx(m.x) - 3} x2={sx(m.x) + 3} y1={sy(0) - 9} y2={sy(0) - 3} stroke="var(--acd-t-dc2626, #dc2626)" strokeWidth="2" />
+            <line x1={sx(m.x) + 3} x2={sx(m.x) - 3} y1={sy(0) - 9} y2={sy(0) - 3} stroke="var(--acd-t-dc2626, #dc2626)" strokeWidth="2" />
           </g>
         ))}
         {points.length <= 40 &&
           points.map((p, i) => (
-            <circle key={i} cx={sx(p.x)} cy={sy(p.y)} r={hover === i ? 5 : 3} fill="#fff" stroke={SERIES[0]} strokeWidth="2" />
+            <circle key={i} cx={sx(p.x)} cy={sy(p.y)} r={hover === i ? 5 : 3} fill={SURFACE} stroke={SERIES[0]} strokeWidth="2" />
           ))}
         {hp && (
           <>
             <line x1={sx(hp.x)} x2={sx(hp.x)} y1={pad.t} y2={sy(0)} stroke={INK} strokeOpacity="0.25" strokeDasharray="3 3" />
-            <circle cx={sx(hp.x)} cy={sy(hp.y)} r="5" fill={SERIES[0]} stroke="#fff" strokeWidth="2" />
+            <circle cx={sx(hp.x)} cy={sy(hp.y)} r="5" fill={SERIES[0]} stroke={SURFACE} strokeWidth="2" />
           </>
         )}
       </svg>

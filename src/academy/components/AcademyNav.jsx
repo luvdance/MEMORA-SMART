@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/memora logo.PNG";
 import { useAuth } from "../../context/AuthContext";
 import { startAcademyJourney } from "../services/intent";
+import { ThemeChoice, ThemeToggle } from "./ThemeToggle";
 
 /**
  * Academy navigation.
@@ -243,6 +244,11 @@ export default function AcademyNav() {
                       My learning
                     </Link>
 
+                    <div className="ac-nav__menutheme">
+                      <span>Appearance</span>
+                      <ThemeChoice />
+                    </div>
+
                     <button
                       type="button"
                       role="menuitem"
@@ -266,6 +272,9 @@ export default function AcademyNav() {
               </>
             )}
           </div>
+
+          {/* Outside .ac-nav__actions so it stays on the bar at every width. */}
+          <ThemeToggle className="ac-nav__theme" />
 
           <button
             className="ac-nav__burger"
@@ -321,6 +330,11 @@ export default function AcademyNav() {
             </span>
           </Link>
         </nav>
+
+        <div className="ac-sheet__theme">
+          <span>Appearance</span>
+          <ThemeChoice />
+        </div>
 
         <div className="ac-sheet__actions">
           {user ? (

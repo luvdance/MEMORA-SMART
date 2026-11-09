@@ -16,6 +16,8 @@
     "test:typing": "node lib/academy/typing/selfTest.mjs",
     "preview": "vite preview",
     "check:terms": "node lib/academy/checkTerms.mjs",
+    "check:theme": "node scripts/academyTheme.mjs",
+    "theme:academy": "node scripts/academyTheme.mjs --write",
     "test:cv": "node lib/cv/selfTest.mjs",
     "test:memotify": "node lib/memotify/selfTest.mjs"
   },

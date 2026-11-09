@@ -26,10 +26,10 @@
 .ac-crypto,
 .ac-decide {
   margin: 22px 0;
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 14px;
   overflow: hidden;
-  background: #fff;
+  background: var(--ac-surface);
 }
 
 .ac-phish__task,
@@ -42,8 +42,8 @@
 .ac-crypto__task,
 .ac-decide__task {
   padding: 14px 16px;
-  background: var(--ac-tint, #f6f7fc);
-  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  background: var(--ac-tint, var(--ac-tint));
+  border-bottom: 1px solid var(--ac-line, var(--ac-line));
 }
 
 .ac-phish__task p,
@@ -74,8 +74,8 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 13px 16px;
-  border-top: 1px solid var(--ac-line, #e5e8f2);
-  background: #fafbfe;
+  border-top: 1px solid var(--ac-line, var(--ac-line));
+  background: var(--acd-b-fafbfe, #fafbfe);
 }
 
 .ac-phish__btn,
@@ -141,7 +141,7 @@
 .ac-term__feedback.is-ok,
 .ac-crypto__feedback.is-ok,
 .ac-decide__feedback.is-ok {
-  color: #15803d;
+  color: var(--acd-t-15803d, #15803d);
 }
 
 .ac-phish__feedback.is-bad,
@@ -153,7 +153,7 @@
 .ac-term__feedback.is-bad,
 .ac-crypto__feedback.is-bad,
 .ac-decide__feedback.is-bad {
-  color: #b91c1c;
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-pcap__hint,
@@ -162,7 +162,7 @@
   margin: 2px 0 0;
   font-size: 12px;
   line-height: 1.6;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -174,7 +174,7 @@
 }
 
 .ac-phish__headers {
-  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border: 1px solid var(--ac-line-soft, var(--ac-line-soft));
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -186,7 +186,7 @@
   padding: 9px 12px;
   border: none;
   border-left: 3px solid transparent;
-  background: #fff;
+  background: var(--ac-surface);
   font-family: inherit;
   font-size: 13px;
   line-height: 1.6;
@@ -200,11 +200,11 @@
 }
 
 .ac-phish__part:not(:disabled):hover {
-  background: #f6f7fc;
+  background: var(--ac-tint);
 }
 
 .ac-phish__part--header + .ac-phish__part--header {
-  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+  border-top: 1px solid var(--ac-line-soft, var(--ac-line-soft));
 }
 
 .ac-phish__part--body {
@@ -218,22 +218,22 @@
    After marking: hit, missed and false alarm are distinguished,
    because "you got 2 of 3" without saying which teaches nothing. */
 .ac-phish__part.is-picked {
-  background: #eef1ff;
+  background: var(--ac-primary-soft);
   border-left-color: var(--ac-primary, #3b52f0);
 }
 
 .ac-phish__part.is-hit {
-  background: #eefcf3;
+  background: var(--acd-b-eefcf3, #eefcf3);
   border-left-color: #15803d;
 }
 
 .ac-phish__part.is-missed {
-  background: #fff7ed;
+  background: var(--acd-b-fff7ed, #fff7ed);
   border-left-color: #c2410c;
 }
 
 .ac-phish__part.is-false {
-  background: #fef2f2;
+  background: var(--acd-b-fef2f2, #fef2f2);
   border-left-color: #b91c1c;
 }
 
@@ -249,24 +249,24 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-phish__value {
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 12.5px;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
   word-break: break-all;
 }
 
 .ac-phish__body {
   display: block;
-  color: var(--ac-text, #4c5370);
+  color: var(--ac-text, var(--ac-text));
 }
 
 .ac-phish__linktext {
   display: inline-block;
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
   text-decoration: underline;
   font-weight: 600;
 }
@@ -278,7 +278,7 @@
   margin-top: 4px;
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 11.5px;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
   word-break: break-all;
 }
 
@@ -288,7 +288,7 @@
   padding: 8px 10px;
   border-radius: 7px;
   background: rgba(194, 65, 12, 0.08);
-  color: #9a3412;
+  color: var(--acd-t-9a3412, #9a3412);
   font-size: 12px;
   line-height: 1.6;
   font-weight: 500;
@@ -301,21 +301,21 @@
 .ac-phish__count {
   font-size: 12px;
   font-weight: 600;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-phish__verdict {
   margin: 0;
   padding: 13px 16px;
-  border-top: 1px solid var(--ac-line, #e5e8f2);
-  background: #f6f7fc;
+  border-top: 1px solid var(--ac-line, var(--ac-line));
+  background: var(--ac-tint);
   font-size: 12.5px;
   line-height: 1.65;
 }
 
 .ac-phish__verdict i {
   margin-right: 8px;
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -328,8 +328,8 @@
   gap: 8px;
   flex-wrap: wrap;
   padding: 11px 16px;
-  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
-  background: #fbfbfe;
+  border-bottom: 1px solid var(--ac-line-soft, var(--ac-line-soft));
+  background: var(--acd-b-fbfbfe, #fbfbfe);
 }
 
 .ac-pcap__filterlabel {
@@ -337,18 +337,18 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-pcap__filter {
   flex: 1 1 220px;
   min-width: 0;
   padding: 8px 11px;
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 7px;
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 12.5px;
-  background: #fff;
+  background: var(--ac-surface);
 }
 
 .ac-pcap__filter:focus {
@@ -364,26 +364,26 @@
 .ac-pcap__apply,
 .ac-pcap__clear {
   padding: 8px 14px;
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 7px;
-  background: #fff;
+  background: var(--ac-surface);
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
   cursor: pointer;
 }
 
 .ac-pcap__apply {
-  background: var(--ac-primary-soft, #eef1ff);
-  border-color: #c7cde6;
+  background: var(--ac-primary-soft, var(--ac-primary-soft));
+  border-color: var(--acd-l-c7cde6, #c7cde6);
 }
 
 .ac-pcap__error {
   margin: 0;
   padding: 10px 16px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--acd-b-fef2f2, #fef2f2);
+  color: var(--acd-t-b91c1c, #b91c1c);
   font-size: 12.5px;
   line-height: 1.55;
 }
@@ -408,15 +408,15 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
-  background: #fbfbfe;
-  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  color: var(--ac-muted, var(--ac-muted));
+  background: var(--acd-b-fbfbfe, #fbfbfe);
+  border-bottom: 1px solid var(--ac-line, var(--ac-line));
 }
 
 .ac-pcap__table td {
   padding: 7px 10px;
-  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
-  color: var(--ac-ink-2, #2a3050);
+  border-bottom: 1px solid var(--ac-line-soft, var(--ac-line-soft));
+  color: var(--ac-ink-2, var(--ac-ink-2));
 }
 
 .ac-pcap__row {
@@ -424,26 +424,26 @@
 }
 
 .ac-pcap__row:hover {
-  background: #f6f7fc;
+  background: var(--ac-tint);
 }
 
 .ac-pcap__row.is-selected {
-  background: #eef1ff;
+  background: var(--ac-primary-soft);
   box-shadow: inset 3px 0 0 var(--ac-primary, #3b52f0);
 }
 
 /* Wireshark colours rows by protocol, and learners who go on to the
    real tool recognise the scheme. Kept deliberately close. */
 .ac-pcap__row--dns td {
-  color: #1d4ed8;
+  color: var(--acd-t-1d4ed8, #1d4ed8);
 }
 
 .ac-pcap__row--http td {
-  color: #15803d;
+  color: var(--acd-t-15803d, #15803d);
 }
 
 .ac-pcap__row--tls td {
-  color: #7c3aed;
+  color: var(--acd-t-7c3aed, #7c3aed);
 }
 
 .ac-pcap__info {
@@ -457,7 +457,7 @@
   font-family: var(--ac-font, sans-serif);
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
   white-space: normal;
 }
 
@@ -467,14 +467,14 @@
   padding: 9px 16px;
   font-size: 12px;
   line-height: 1.6;
-  color: var(--ac-muted, #7a819b);
-  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+  color: var(--ac-muted, var(--ac-muted));
+  border-top: 1px solid var(--ac-line-soft, var(--ac-line-soft));
 }
 
 .ac-pcap__selected {
   font-size: 12px;
   font-weight: 600;
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -486,18 +486,18 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
-  background: #fbfbfe;
+  border-bottom: 1px solid var(--ac-line-soft, var(--ac-line-soft));
+  background: var(--acd-b-fbfbfe, #fbfbfe);
 }
 
 .ac-perm__file i {
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-perm__ls {
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 12.5px;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
   word-break: break-all;
 }
 
@@ -519,7 +519,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
   text-align: center;
 }
 
@@ -529,13 +529,13 @@
   font-size: 12.5px;
   text-transform: none;
   letter-spacing: 0;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
   white-space: nowrap;
 }
 
 /* The row that leaks, coloured so the eye goes there first. */
 .ac-perm__who--other {
-  color: #b91c1c;
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-perm__grid td {
@@ -546,19 +546,19 @@
 .ac-perm__bit {
   width: 44px;
   height: 38px;
-  border: 2px solid var(--ac-line, #e5e8f2);
+  border: 2px solid var(--ac-line, var(--ac-line));
   border-radius: 8px;
-  background: #fff;
+  background: var(--ac-surface);
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 15px;
   font-weight: 700;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .ac-perm__bit:not(:disabled):hover {
-  border-color: #c7cde6;
+  border-color: var(--acd-l-c7cde6, #c7cde6);
 }
 
 .ac-perm__bit:disabled {
@@ -566,16 +566,16 @@
 }
 
 .ac-perm__bit.is-on {
-  background: var(--ac-primary-soft, #eef1ff);
+  background: var(--ac-primary-soft, var(--ac-primary-soft));
   border-color: var(--ac-primary, #3b52f0);
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
 }
 
 .ac-perm__readout {
   padding: 12px 14px;
-  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border: 1px solid var(--ac-line-soft, var(--ac-line-soft));
   border-radius: 10px;
-  background: #fbfbfe;
+  background: var(--acd-b-fbfbfe, #fbfbfe);
 }
 
 .ac-perm__octal {
@@ -587,13 +587,13 @@
 .ac-perm__octal-label {
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 12px;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-perm__octal strong {
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 22px;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
   letter-spacing: 0.06em;
 }
 
@@ -603,15 +603,15 @@
   margin: 10px 0 0;
   font-size: 12.5px;
   line-height: 1.65;
-  color: var(--ac-text, #4c5370);
+  color: var(--ac-text, var(--ac-text));
 }
 
 .ac-perm__alarm {
   margin: 10px 0 0;
   padding: 9px 10px;
   border-radius: 7px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--acd-b-fef2f2, #fef2f2);
+  color: var(--acd-t-b91c1c, #b91c1c);
   font-size: 12px;
   line-height: 1.55;
   font-weight: 600;
@@ -626,7 +626,7 @@
   padding: 0 16px 14px;
   font-size: 12px;
   line-height: 1.6;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -652,22 +652,22 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
-  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  color: var(--ac-muted, var(--ac-muted));
+  border-bottom: 1px solid var(--ac-line, var(--ac-line));
 }
 
 .ac-fw__rule {
-  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border: 1px solid var(--ac-line-soft, var(--ac-line-soft));
   border-radius: 9px;
   margin-top: 6px;
-  background: #fff;
+  background: var(--ac-surface);
   position: relative;
 }
 
 .ac-fw__rule code {
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 11.5px;
-  color: var(--ac-ink-2, #2a3050);
+  color: var(--ac-ink-2, var(--ac-ink-2));
   word-break: break-all;
 }
 
@@ -679,7 +679,7 @@
 }
 
 .ac-fw__rule--default {
-  background: #fbfbfe;
+  background: var(--acd-b-fbfbfe, #fbfbfe);
   border-style: dashed;
   grid-template-columns: 28px 78px 56px 1fr 1fr 74px 1fr;
 }
@@ -687,7 +687,7 @@
 .ac-fw__num {
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-weight: 700;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-fw__action {
@@ -707,13 +707,13 @@
 }
 
 .ac-fw__action--allow {
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--acd-b-dcfce7, #dcfce7);
+  color: var(--acd-t-15803d, #15803d);
 }
 
 .ac-fw__action--deny {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--acd-b-fee2e2, #fee2e2);
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-fw__move {
@@ -724,10 +724,10 @@
 .ac-fw__move button {
   width: 30px;
   height: 28px;
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 6px;
-  background: #fff;
-  color: var(--ac-ink-2, #2a3050);
+  background: var(--ac-surface);
+  color: var(--ac-ink-2, var(--ac-ink-2));
   cursor: pointer;
   font-size: 11px;
 }
@@ -738,7 +738,7 @@
 }
 
 .ac-fw__move button:not(:disabled):hover {
-  background: #f6f7fc;
+  background: var(--ac-tint);
 }
 
 .ac-fw__dead,
@@ -746,13 +746,13 @@
   grid-column: 1 / -1;
   font-size: 11px;
   font-style: italic;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-fw__trafficwrap {
   padding: 12px 16px 14px;
-  border-top: 1px solid var(--ac-line-soft, #eef0f7);
-  background: #fbfbfe;
+  border-top: 1px solid var(--ac-line-soft, var(--ac-line-soft));
+  background: var(--acd-b-fbfbfe, #fbfbfe);
   overflow-x: auto;
 }
 
@@ -764,7 +764,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-fw__traffic {
@@ -780,18 +780,18 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
-  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  color: var(--ac-muted, var(--ac-muted));
+  border-bottom: 1px solid var(--ac-line, var(--ac-line));
 }
 
 .ac-fw__traffic td {
   padding: 7px 8px;
-  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
-  color: var(--ac-ink-2, #2a3050);
+  border-bottom: 1px solid var(--ac-line-soft, var(--ac-line-soft));
+  color: var(--ac-ink-2, var(--ac-ink-2));
 }
 
 .ac-fw__traffic tr.is-wrong {
-  background: #fff5f5;
+  background: var(--acd-b-fff5f5, #fff5f5);
 }
 
 .ac-fw__traffic code {
@@ -807,18 +807,18 @@
 }
 
 .ac-fw__verdict.is-allow {
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--acd-b-dcfce7, #dcfce7);
+  color: var(--acd-t-15803d, #15803d);
 }
 
 .ac-fw__verdict.is-deny {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--acd-b-fee2e2, #fee2e2);
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-fw__by {
   font-size: 11px;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -841,19 +841,19 @@
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 11px;
   font-weight: 700;
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
   min-width: 62px;
 }
 
 .ac-hunt__row select,
 .ac-hunt__row input {
   padding: 7px 9px;
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 7px;
   font-family: inherit;
   font-size: 12.5px;
-  background: #fff;
-  color: var(--ac-ink, #0d1130);
+  background: var(--ac-surface);
+  color: var(--ac-ink, var(--ac-ink));
   min-width: 0;
 }
 
@@ -867,8 +867,8 @@
 }
 
 .ac-hunt__row input:disabled {
-  background: #f6f7fc;
-  color: var(--ac-muted, #7a819b);
+  background: var(--ac-tint);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-hunt__row select:focus,
@@ -880,12 +880,12 @@
 
 .ac-hunt__drop,
 .ac-hunt__add {
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 7px;
-  background: #fff;
+  background: var(--ac-surface);
   font-family: inherit;
   cursor: pointer;
-  color: var(--ac-ink-2, #2a3050);
+  color: var(--ac-ink-2, var(--ac-ink-2));
 }
 
 .ac-hunt__drop {
@@ -907,7 +907,7 @@
 
 .ac-hunt__row--threshold {
   padding-top: 8px;
-  border-top: 1px dashed var(--ac-line, #e5e8f2);
+  border-top: 1px dashed var(--ac-line, var(--ac-line));
 }
 
 /* The rule as a SIEM would print it. Shown so that what the learner
@@ -928,8 +928,8 @@
 
 .ac-hunt__logwrap {
   padding: 12px 16px 14px;
-  border-top: 1px solid var(--ac-line-soft, #eef0f7);
-  background: #fbfbfe;
+  border-top: 1px solid var(--ac-line-soft, var(--ac-line-soft));
+  background: var(--acd-b-fbfbfe, #fbfbfe);
   overflow-x: auto;
 }
 
@@ -946,15 +946,15 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
-  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  color: var(--ac-muted, var(--ac-muted));
+  border-bottom: 1px solid var(--ac-line, var(--ac-line));
   white-space: nowrap;
 }
 
 .ac-hunt__log td {
   padding: 6px 8px;
-  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
-  color: var(--ac-ink-2, #2a3050);
+  border-bottom: 1px solid var(--ac-line-soft, var(--ac-line-soft));
+  color: var(--ac-ink-2, var(--ac-ink-2));
   white-space: nowrap;
 }
 
@@ -966,20 +966,20 @@
 }
 
 .ac-hunt__log tr.is-alerting {
-  background: #fff7ed;
+  background: var(--acd-b-fff7ed, #fff7ed);
 }
 
 .ac-hunt__log tr.is-alerting.is-attack {
-  background: #eefcf3;
+  background: var(--acd-b-eefcf3, #eefcf3);
 }
 
 .ac-hunt__truth {
   font-size: 11px;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-hunt__fire {
-  color: #15803d;
+  color: var(--acd-t-15803d, #15803d);
   font-weight: 700;
   font-size: 11.5px;
 }
@@ -989,7 +989,7 @@
 }
 
 .ac-hunt__quiet {
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1006,27 +1006,27 @@
   gap: 12px;
   align-items: center;
   padding: 12px;
-  border: 1px solid var(--ac-line-soft, #eef0f7);
+  border: 1px solid var(--ac-line-soft, var(--ac-line-soft));
   border-radius: 10px;
   margin-bottom: 8px;
-  background: #fff;
+  background: var(--ac-surface);
 }
 
 .ac-risk__finding.is-settled {
-  border-color: #bbf7d0;
-  background: #fbfffc;
+  border-color: var(--acd-l-bbf7d0, #bbf7d0);
+  background: var(--acd-b-fbfffc, #fbfffc);
 }
 
 .ac-risk__finding.is-wrong {
-  border-color: #fecaca;
-  background: #fffafa;
+  border-color: var(--acd-l-fecaca, #fecaca);
+  background: var(--acd-b-fffafa, #fffafa);
 }
 
 .ac-risk__facts h4 {
   margin: 0 0 6px;
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
   line-height: 1.45;
 }
 
@@ -1046,20 +1046,20 @@
 }
 
 .ac-risk__cvss {
-  background: #eef1ff;
-  color: var(--ac-primary, #3b52f0);
+  background: var(--ac-primary-soft);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-weight: 700;
 }
 
 .ac-risk__exposure {
-  background: #fff7ed;
-  color: #9a3412;
+  background: var(--acd-b-fff7ed, #fff7ed);
+  color: var(--acd-t-9a3412, #9a3412);
 }
 
 .ac-risk__data {
-  background: #f6f7fc;
-  color: var(--ac-text, #4c5370);
+  background: var(--ac-tint);
+  color: var(--ac-text, var(--ac-text));
 }
 
 .ac-risk__bands {
@@ -1070,19 +1070,19 @@
 
 .ac-risk__band {
   padding: 6px 10px;
-  border: 2px solid var(--ac-line, #e5e8f2);
+  border: 2px solid var(--ac-line, var(--ac-line));
   border-radius: 7px;
-  background: #fff;
+  background: var(--ac-surface);
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
   cursor: pointer;
   white-space: nowrap;
 }
 
 .ac-risk__band:not(:disabled):hover {
-  border-color: #c7cde6;
+  border-color: var(--acd-l-c7cde6, #c7cde6);
 }
 
 .ac-risk__band:disabled {
@@ -1091,36 +1091,36 @@
 
 .ac-risk__band--critical.is-chosen {
   border-color: #b91c1c;
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--acd-b-fee2e2, #fee2e2);
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-risk__band--high.is-chosen {
   border-color: #c2410c;
-  background: #ffedd5;
-  color: #9a3412;
+  background: var(--acd-b-ffedd5, #ffedd5);
+  color: var(--acd-t-9a3412, #9a3412);
 }
 
 .ac-risk__band--medium.is-chosen {
   border-color: #b58a00;
-  background: #fef9c3;
-  color: #854d0e;
+  background: var(--acd-b-fef9c3, #fef9c3);
+  color: var(--acd-t-854d0e, #854d0e);
 }
 
 .ac-risk__band--low.is-chosen {
   border-color: #15803d;
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--acd-b-dcfce7, #dcfce7);
+  color: var(--acd-t-15803d, #15803d);
 }
 
 .ac-risk__why {
   grid-column: 1 / -1;
   margin: 4px 0 0;
   padding-top: 9px;
-  border-top: 1px dashed var(--ac-line, #e5e8f2);
+  border-top: 1px dashed var(--ac-line, var(--ac-line));
   font-size: 12px;
   line-height: 1.65;
-  color: var(--ac-text, #4c5370);
+  color: var(--ac-text, var(--ac-text));
 }
 
 /* The two lists side by side. This comparison is the point of the
@@ -1130,8 +1130,8 @@
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 16px;
   padding: 14px 16px;
-  border-top: 1px solid var(--ac-line, #e5e8f2);
-  background: #fbfbfe;
+  border-top: 1px solid var(--ac-line, var(--ac-line));
+  background: var(--acd-b-fbfbfe, #fbfbfe);
 }
 
 .ac-risk__comparelabel {
@@ -1141,7 +1141,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-risk__compare ol {
@@ -1152,12 +1152,12 @@
 .ac-risk__compare li {
   font-size: 12px;
   line-height: 1.7;
-  color: var(--ac-ink-2, #2a3050);
+  color: var(--ac-ink-2, var(--ac-ink-2));
 }
 
 .ac-risk__compare strong {
   font-family: var(--ac-mono, ui-monospace, monospace);
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
 }
 
 .ac-risk__tag {
@@ -1168,23 +1168,23 @@
 }
 
 .ac-risk__tag--critical {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--acd-b-fee2e2, #fee2e2);
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-risk__tag--high {
-  background: #ffedd5;
-  color: #9a3412;
+  background: var(--acd-b-ffedd5, #ffedd5);
+  color: var(--acd-t-9a3412, #9a3412);
 }
 
 .ac-risk__tag--medium {
-  background: #fef9c3;
-  color: #854d0e;
+  background: var(--acd-b-fef9c3, #fef9c3);
+  color: var(--acd-t-854d0e, #854d0e);
 }
 
 .ac-risk__tag--low {
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--acd-b-dcfce7, #dcfce7);
+  color: var(--acd-t-15803d, #15803d);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1216,7 +1216,7 @@
   margin-left: 8px;
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 11.5px;
-  color: #a79bc4;
+  color: var(--acd-t-a79bc4, #a79bc4);
 }
 
 .ac-term__screen {
@@ -1232,7 +1232,7 @@
 
 .ac-term__note {
   margin: 0 0 10px;
-  color: #a79bc4;
+  color: var(--acd-t-a79bc4, #a79bc4);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -1297,23 +1297,23 @@
   padding: 0 16px 14px;
   font-size: 12px;
   line-height: 1.9;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-term__suggest {
   padding: 2px 8px;
   margin: 0 3px 3px 0;
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 20px;
-  background: #fbfbfe;
+  background: var(--acd-b-fbfbfe, #fbfbfe);
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 11px;
-  color: var(--ac-ink-2, #2a3050);
+  color: var(--ac-ink-2, var(--ac-ink-2));
   cursor: pointer;
 }
 
 .ac-term__suggest:hover {
-  background: var(--ac-primary-soft, #eef1ff);
+  background: var(--ac-primary-soft, var(--ac-primary-soft));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1345,18 +1345,18 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-crypto__input,
 .ac-crypto__saltinput {
   width: 100%;
   padding: 8px 11px;
-  border: 1px solid var(--ac-line, #e5e8f2);
+  border: 1px solid var(--ac-line, var(--ac-line));
   border-radius: 7px;
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 12.5px;
-  background: #fff;
+  background: var(--ac-surface);
   box-sizing: border-box;
 }
 
@@ -1391,14 +1391,14 @@
   padding: 0 16px 14px;
   font-size: 12.5px;
   line-height: 1.65;
-  color: var(--ac-text, #4c5370);
+  color: var(--ac-text, var(--ac-text));
 }
 
 .ac-crypto__saltnote {
   display: block;
   margin-top: 6px;
   font-size: 11.5px;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-crypto__words {
@@ -1410,22 +1410,22 @@
 
 .ac-crypto__word {
   padding: 7px 12px;
-  border: 2px solid var(--ac-line, #e5e8f2);
+  border: 2px solid var(--ac-line, var(--ac-line));
   border-radius: 7px;
-  background: #fff;
+  background: var(--ac-surface);
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 12px;
-  color: var(--ac-ink-2, #2a3050);
+  color: var(--ac-ink-2, var(--ac-ink-2));
   cursor: pointer;
 }
 
 .ac-crypto__word:hover {
-  border-color: #c7cde6;
+  border-color: var(--acd-l-c7cde6, #c7cde6);
 }
 
 .ac-crypto__word.is-picked {
   border-color: var(--ac-primary, #3b52f0);
-  background: var(--ac-primary-soft, #eef1ff);
+  background: var(--ac-primary-soft, var(--ac-primary-soft));
 }
 
 .ac-crypto__table {
@@ -1442,20 +1442,20 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ac-muted, #7a819b);
-  border-bottom: 1px solid var(--ac-line, #e5e8f2);
+  color: var(--ac-muted, var(--ac-muted));
+  border-bottom: 1px solid var(--ac-line, var(--ac-line));
 }
 
 .ac-crypto__table td {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--ac-line-soft, #eef0f7);
+  border-bottom: 1px solid var(--ac-line-soft, var(--ac-line-soft));
   vertical-align: middle;
 }
 
 .ac-crypto__table code {
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 11.5px;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
 }
 
 /* The line inviting the learner to verify a digest with sha256sum.
@@ -1464,21 +1464,21 @@
 .ac-crypto__note {
   margin: 0;
   padding: 11px 16px;
-  border-top: 1px solid var(--ac-line-soft, #eef0f7);
+  border-top: 1px solid var(--ac-line-soft, var(--ac-line-soft));
   font-size: 11.5px;
   line-height: 1.7;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-crypto__real i {
   margin-right: 7px;
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
 }
 
 .ac-crypto__real code {
   padding: 1px 5px;
   border-radius: 4px;
-  background: #f6f7fc;
+  background: var(--ac-tint);
   font-family: var(--ac-mono, ui-monospace, monospace);
   font-size: 11px;
 }
@@ -1491,13 +1491,13 @@
   margin: 6px 0 0;
   font-size: 13.5px;
   line-height: 1.65;
-  color: var(--ac-text, #4c5370);
+  color: var(--ac-text, var(--ac-text));
 }
 
 .ac-decide__question {
   margin: 9px 0 0 !important;
   font-weight: 700;
-  color: var(--ac-ink, #0d1130);
+  color: var(--ac-ink, var(--ac-ink));
 }
 
 .ac-decide__options {
@@ -1512,9 +1512,9 @@
   align-items: flex-start;
   gap: 11px;
   padding: 11px 13px;
-  border: 2px solid var(--ac-line, #e5e8f2);
+  border: 2px solid var(--ac-line, var(--ac-line));
   border-radius: 10px;
-  background: #fff;
+  background: var(--ac-surface);
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -1522,24 +1522,24 @@
 }
 
 .ac-decide__option:hover {
-  border-color: #c7cde6;
+  border-color: var(--acd-l-c7cde6, #c7cde6);
 }
 
 .ac-decide__option.is-picked {
   border-color: var(--ac-primary, #3b52f0);
-  background: var(--ac-primary-soft, #eef1ff);
+  background: var(--ac-primary-soft, var(--ac-primary-soft));
 }
 
 .ac-decide__option.is-correct {
   border-color: #15803d;
-  background: #eefcf3;
+  background: var(--acd-b-eefcf3, #eefcf3);
 }
 
 /* Options already tried and ruled out stay visible but recede, so a
    learner can see what they have eliminated. */
 .ac-decide__option.is-ruled-out {
-  border-color: #e5e8f2;
-  background: #fafafa;
+  border-color: var(--ac-line);
+  background: var(--acd-b-fafafa, #fafafa);
   opacity: 0.62;
 }
 
@@ -1549,46 +1549,46 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #f6f7fc;
+  background: var(--ac-tint);
   font-size: 11.5px;
   font-weight: 800;
-  color: var(--ac-muted, #7a819b);
+  color: var(--ac-muted, var(--ac-muted));
 }
 
 .ac-decide__option.is-picked .ac-decide__marker {
-  background: #fff;
-  color: var(--ac-primary, #3b52f0);
+  background: var(--ac-surface);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
 }
 
 .ac-decide__option.is-correct .ac-decide__marker {
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--acd-b-dcfce7, #dcfce7);
+  color: var(--acd-t-15803d, #15803d);
 }
 
 .ac-decide__option.is-ruled-out .ac-decide__marker {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--acd-b-fee2e2, #fee2e2);
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-decide__text {
   font-size: 13px;
   line-height: 1.6;
-  color: var(--ac-ink-2, #2a3050);
+  color: var(--ac-ink-2, var(--ac-ink-2));
 }
 
 .ac-decide__aftermath {
   margin: 0;
   padding: 12px 16px;
-  border-top: 1px solid var(--ac-line, #e5e8f2);
-  background: #f6f7fc;
+  border-top: 1px solid var(--ac-line, var(--ac-line));
+  background: var(--ac-tint);
   font-size: 12.5px;
   line-height: 1.65;
-  color: var(--ac-text, #4c5370);
+  color: var(--ac-text, var(--ac-text));
 }
 
 .ac-decide__aftermath i {
   margin-right: 8px;
-  color: var(--ac-primary, #3b52f0);
+  color: var(--ac-primary, var(--acd-t-3b52f0, #3b52f0));
 }
 
 /* ══════════════════════════════════════════════════════════════

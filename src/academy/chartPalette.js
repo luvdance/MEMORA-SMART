@@ -16,9 +16,24 @@
  * Lives in its own module so the chart component exports only components and
  * keeps fast refresh working.
  */
-export const SERIES = ["#3b52f0", "#d97706", "#0d9488", "#c026d3"];
+/*
+ * Each colour is a CSS variable with the light value as its fallback, so the
+ * SVG follows the Academy theme without re-rendering. The dark-mode values
+ * (academy.css, --ac-chart-*) are the same hues lifted to hold contrast on the
+ * dark card; slot order and the CVD separation are unchanged.
+ */
+export const SERIES = [
+  "var(--ac-chart-s1, #3b52f0)",
+  "var(--ac-chart-s2, #d97706)",
+  "var(--ac-chart-s3, #0d9488)",
+  "var(--ac-chart-s4, #c026d3)",
+];
 
 /** Ink and grid tokens. Text never wears a series colour. */
-export const INK = "#2a3050";
-export const MUTED = "#7a819b";
-export const GRID = "#e5e8f2";
+export const INK = "var(--ac-chart-ink, #2a3050)";
+export const MUTED = "var(--ac-chart-muted, #7a819b)";
+export const GRID = "var(--ac-chart-grid, #e5e8f2)";
+/** The baseline axis, a step stronger than the grid. */
+export const AXIS = "var(--ac-chart-axis, #c9cee0)";
+/** Gaps between marks (pie slices, dots) are cut in the card colour. */
+export const SURFACE = "var(--ac-surface, #fff)";

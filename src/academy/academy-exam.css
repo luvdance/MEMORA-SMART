@@ -138,7 +138,7 @@
   font: inherit;
   font-size: 0.95rem;
   color: var(--ac-ink);
-  background: #fff;
+  background: var(--ac-surface);
 }
 
 .ac-ob__field textarea {
@@ -164,7 +164,7 @@
 .ac-ob__error {
   margin: 7px 0 0;
   font-size: 0.82rem;
-  color: #9a2020;
+  color: var(--acd-t-9a2020, #9a2020);
 }
 
 /* A safeguarding consequence, said on the form at the moment it applies. */
@@ -175,11 +175,11 @@
   margin: 10px 0 0;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #fffaf0;
-  border: 1px solid #f0d9a8;
+  background: var(--acd-b-fffaf0, #fffaf0);
+  border: 1px solid var(--acd-l-f0d9a8, #f0d9a8);
   font-size: 0.82rem;
   line-height: 1.6;
-  color: #7a5310;
+  color: var(--acd-t-7a5310, #7a5310);
 }
 
 /* Multi-select as chips: faster to tap than checkboxes on a phone. */
@@ -194,7 +194,7 @@
   border: 1px solid var(--ac-line);
   border-radius: 999px;
   padding: 8px 14px;
-  background: #fff;
+  background: var(--ac-surface);
   font: inherit;
   font-size: 0.85rem;
   color: var(--ac-ink-2);
@@ -293,7 +293,7 @@
   font-weight: 700;
   color: var(--ac-primary);
   text-decoration: none;
-  border: 1px solid #c3cbf5;
+  border: 1px solid var(--acd-l-c3cbf5, #c3cbf5);
   border-radius: 999px;
   padding: 6px 13px;
   min-height: 36px;
@@ -342,7 +342,7 @@
   padding: 18px;
   border: 1px solid var(--ac-line);
   border-radius: 16px;
-  background: #fff;
+  background: var(--ac-surface);
 }
 
 @media (min-width: 680px) {
@@ -354,7 +354,7 @@
 }
 
 .ac-choose__card:hover:not(.is-locked) {
-  border-color: #bcc5f2;
+  border-color: var(--acd-l-bcc5f2, #bcc5f2);
 }
 
 /* Not open: visible and legible, with no action to press. */
@@ -482,7 +482,7 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--ac-primary);
+  background: var(--ac-primary-fill);
   transition: width 0.3s ease;
 }
 
@@ -734,7 +734,7 @@
 
 /* The dot on "Active now" reads as a status light. */
 .ac-sp__tab:nth-child(2) i {
-  color: #12a150;
+  color: var(--acd-t-12a150, #12a150);
   font-size: 0.5rem;
 }
 
@@ -764,7 +764,7 @@
 
 .ac-sp__row.is-me {
   background: var(--ac-primary-soft);
-  outline: 1px solid #c3cbf5;
+  outline: 1px solid var(--acd-l-c3cbf5, #c3cbf5);
 }
 
 .ac-sp__pos {
@@ -926,11 +926,11 @@
   margin: 0 0 10px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: #f3fbf5;
-  border: 1px solid #b7e0c2;
+  background: var(--acd-b-f3fbf5, #f3fbf5);
+  border: 1px solid var(--acd-l-b7e0c2, #b7e0c2);
   font-size: 0.75rem;
   line-height: 1.5;
-  color: #1c5b30;
+  color: var(--acd-t-1c5b30, #1c5b30);
 }
 
 .ac-sp__crypto i {
@@ -1000,7 +1000,7 @@
   align-self: flex-end;
   border-radius: 12px 12px 4px 12px;
   background: var(--ac-primary-soft);
-  border-color: #c3cbf5;
+  border-color: var(--acd-l-c3cbf5, #c3cbf5);
 }
 
 .ac-sp__composer {
@@ -1055,7 +1055,7 @@
 }
 
 .ac-sp__msg.is-error {
-  color: #9a2020;
+  color: var(--acd-t-9a2020, #9a2020);
 }
 
 .ac-sp__msg.is-notice {
@@ -1158,7 +1158,7 @@
 
 .ac-lb__row.is-me {
   background: var(--ac-primary-soft);
-  outline: 1px solid #c3cbf5;
+  outline: 1px solid var(--acd-l-c3cbf5, #c3cbf5);
 }
 
 .ac-lb__pos {
@@ -1204,7 +1204,7 @@
 }
 
 .ac-lb__msg.is-error {
-  color: #9a2020;
+  color: var(--acd-t-9a2020, #9a2020);
 }
 
 .ac-lb__retry {
@@ -1301,10 +1301,10 @@
    Only ever on screen once a server-issued certificate exists, so this is
    allowed to look like an award rather than a status card. */
 .ac-cert {
-  border: 1px solid #d8bcf5;
+  border: 1px solid var(--acd-l-d8bcf5, #d8bcf5);
   border-radius: 18px;
   padding: 22px 24px;
-  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 65%);
+  background: linear-gradient(180deg, var(--acd-b-faf5ff, #faf5ff) 0%, var(--ac-surface) 65%);
 }
 
 .ac-cert__head {
@@ -1336,7 +1336,7 @@
   gap: 14px 20px;
   margin: 20px 0 0;
   padding: 18px 0 0;
-  border-top: 1px solid #ecdcfb;
+  border-top: 1px solid var(--acd-l-ecdcfb, #ecdcfb);
 }
 
 .ac-cert__meta dt {
@@ -1372,12 +1372,12 @@
 }
 
 .ac-cert__error {
-  color: #9a2020;
+  color: var(--acd-t-9a2020, #9a2020);
 }
 
 .ac-cert__revoked {
   margin-top: 18px;
-  color: #9a2020;
+  color: var(--acd-t-9a2020, #9a2020);
 }
 
 /* ── BETA marker ────────────────────────────────────────────────────────
@@ -1388,9 +1388,9 @@
 .ac-beta {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #d8bcf5;
-  background: #faf5ff;
-  color: #6b21a8;
+  border: 1px solid var(--acd-l-d8bcf5, #d8bcf5);
+  background: var(--acd-b-faf5ff, #faf5ff);
+  color: var(--acd-t-6b21a8, #6b21a8);
   border-radius: 999px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1468,7 +1468,7 @@
 }
 
 .ac-curric__exam.is-ready {
-  background: #faf5ff;
+  background: var(--acd-b-faf5ff, #faf5ff);
 }
 
 .ac-curric__exam.is-ready i {
@@ -1496,9 +1496,9 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  background: #fff5f5;
-  border: 1px solid #f6c9c9;
-  color: #9a2020;
+  background: var(--acd-b-fff5f5, #fff5f5);
+  border: 1px solid var(--acd-l-f6c9c9, #f6c9c9);
+  color: var(--acd-t-9a2020, #9a2020);
   border-radius: var(--ac-r);
   padding: 12px 14px;
   margin: 0 0 18px;
@@ -1510,9 +1510,9 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  background: #fffaf0;
-  border: 1px solid #f0d9a8;
-  color: #7a5310;
+  background: var(--acd-b-fffaf0, #fffaf0);
+  border: 1px solid var(--acd-l-f0d9a8, #f0d9a8);
+  color: var(--acd-t-7a5310, #7a5310);
   border-radius: var(--ac-r);
   padding: 12px 14px;
   margin: 18px 0 0;
@@ -1692,7 +1692,7 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--ac-primary);
+  background: var(--ac-primary-fill);
   transition: width 0.25s ease;
 }
 
@@ -1705,7 +1705,7 @@
 }
 
 .ac-fx__clock.is-low {
-  color: #b42318;
+  color: var(--acd-t-b42318, #b42318);
 }
 
 /* ── Case briefs ──────────────────────────────────────────────────────── */
@@ -2040,13 +2040,13 @@
 }
 
 .ac-fx__verdict.is-pass {
-  border-color: #b7e0c2;
-  background: #f3fbf5;
+  border-color: var(--acd-l-b7e0c2, #b7e0c2);
+  background: var(--acd-b-f3fbf5, #f3fbf5);
 }
 
 .ac-fx__verdict.is-fail {
-  border-color: #f0d9a8;
-  background: #fffaf0;
+  border-color: var(--acd-l-f0d9a8, #f0d9a8);
+  background: var(--acd-b-fffaf0, #fffaf0);
 }
 
 .ac-fx__score {
@@ -2093,11 +2093,11 @@
    because it is not finished. */
 .ac-fx__cert.is-pending {
   border-left-color: #d9920a;
-  background: #fffaf0;
+  background: var(--acd-b-fffaf0, #fffaf0);
 }
 
 .ac-fx__cert.is-pending i {
-  color: #d9920a;
+  color: var(--acd-t-d9920a, #d9920a);
 }
 
 .ac-fx__certid {
@@ -2151,8 +2151,8 @@
 }
 
 .ac-fx__domains li.is-short {
-  border-color: #f0d9a8;
-  background: #fffdf7;
+  border-color: var(--acd-l-f0d9a8, #f0d9a8);
+  background: var(--acd-b-fffdf7, #fffdf7);
 }
 
 .ac-fx__domainname {
@@ -2180,7 +2180,7 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--ac-primary);
+  background: var(--ac-primary-fill);
 }
 
 .ac-fx__domains li.is-short .ac-fx__bar > span {
@@ -2362,7 +2362,7 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--ac-primary);
+  background: var(--ac-primary-fill);
 }
 
 /* ── Message sound toggle ─────────────────────────────────────────────────
@@ -2449,11 +2449,11 @@
 }
 
 .ac-sp__statustext.is-online {
-  color: #15803d;
+  color: var(--acd-t-15803d, #15803d);
 }
 
 .ac-sp__statustext.is-idle {
-  color: #b45309;
+  color: var(--acd-t-b45309, #b45309);
 }
 
 .ac-sp__statustext.is-offline {
@@ -2514,7 +2514,7 @@
   height: 100%;
   min-width: 4px;
   border-radius: inherit;
-  background: var(--ac-primary);
+  background: var(--ac-primary-fill);
   transition: width 0.4s ease;
 }
 
@@ -2565,7 +2565,7 @@
   gap: 8px 16px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #fff;
+  background: var(--ac-surface);
   border: 1px solid rgba(59, 82, 240, 0.18);
 }
 
@@ -2664,7 +2664,7 @@
   margin: 6px 0 0;
   padding: 8px 10px;
   border-radius: 8px;
-  background: var(--ac-surface-2, #f6f7fb);
+  background: var(--ac-surface-2, var(--acd-b-f6f7fb, #f6f7fb));
   border: 1px dashed var(--ac-line);
   font-size: 0.72rem;
   line-height: 1.5;
@@ -2705,7 +2705,7 @@
   padding: 6px;
   border: 1px solid var(--ac-line);
   border-radius: 12px;
-  background: var(--ac-bg);
+  background: var(--ac-surface);
   box-shadow: 0 18px 44px -20px rgba(13, 17, 48, 0.4);
 }
 
@@ -2775,21 +2775,21 @@
   margin-top: 4px;
   border-top: 1px solid var(--ac-line-soft);
   border-radius: 0 0 8px 8px;
-  color: #b91c1c;
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-nav__menuitem.is-signout i {
-  color: #b91c1c;
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-nav__menuitem.is-signout:hover {
-  background: #fef2f2;
-  color: #991b1b;
+  background: var(--acd-b-fef2f2, #fef2f2);
+  color: var(--acd-t-991b1b, #991b1b);
 }
 
 /* The mobile sheet, where the account menu cannot reach. */
 .ac-sheet__signout {
-  color: #b91c1c;
+  color: var(--acd-t-b91c1c, #b91c1c);
 }
 
 .ac-sheet__who {
