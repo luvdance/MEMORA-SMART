@@ -13,6 +13,7 @@ import REACT_COURSE from "./reactCourse.js";
 import MOBILE_DEVELOPMENT_COURSE from "./mobileDevelopmentCourse.js";
 import RDBMS_COURSE from "./rdbmsCourse.js";
 import BACKEND_ENGINEERING_COURSE from "./backendEngineeringCourse.js";
+import UIUX_DESIGN_COURSE from "./uiuxDesignCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -494,14 +495,25 @@ export const CATALOG = [
     code: "UX-101",
     slug: "uiux-design",
     title: "UI/UX Design",
+    subtitle: "Research, design, prototype and test interfaces people can actually use",
     category: "creative",
     icon: "fas fa-pen-ruler",
-    status: "planned",
+    status: "open",
     beta: true,
     level: "Beginner → Professional",
     summary:
-      "Research, wireframe and design interfaces people can use, then hand them over in a way developers can build.",
-    covers: ["User research", "Wireframing", "Figma", "Design systems", "Prototyping"],
+      "Design digital products people can actually use. Sixteen weeks from what UI and UX mean to a portfolio of three case studies: design thinking and user research, personas, journeys and information architecture, user flows and the laws of UX, colour, typography and layout, Figma, wireframes and responsive design, interactive prototypes, usability testing, design systems, accessibility and ethics, developer handoff, real product design including AI interfaces, and your design career. Every lesson has practice that is measured, not guessed: contrast, tap targets, spacing, layouts at three screen sizes and the structure of your research.",
+    covers: [
+      "Design thinking & user research",
+      "Personas, journeys & information architecture",
+      "User flows & interaction design",
+      "Colour, typography & layout",
+      "Figma, wireframes & responsive design",
+      "Prototyping & usability testing",
+      "Design systems & accessibility",
+      "Developer handoff & portfolio",
+    ],
+    course: UIUX_DESIGN_COURSE,
   },
   {
     id: "graphics-design",

@@ -13,6 +13,7 @@ import REACT_COURSE from "../reactCourse.js";
 import MOBILE_DEVELOPMENT_COURSE from "../mobileDevelopmentCourse.js";
 import RDBMS_COURSE from "../rdbmsCourse.js";
 import BACKEND_ENGINEERING_COURSE from "../backendEngineeringCourse.js";
+import UIUX_DESIGN_COURSE from "../uiuxDesignCourse.js";
 import { authoredStats, orderCourseLessons, outlineCourse, resumeLesson } from "./build.js";
 
 // ── Data Analysis: one file per module, registered in da-registry.js ──────
@@ -54,6 +55,9 @@ import { RDBMS_LESSONS } from "./db-registry.js";
 
 // ── Backend Engineering with Node.js: one file per week, be-registry.js ───
 import { BACKEND_ENGINEERING_LESSONS } from "./be-registry.js";
+
+// ── UI/UX Design: one file per module, ux-registry.js ─────────────────────
+import { UIUX_DESIGN_LESSONS } from "./ux-registry.js";
 
 // ── Cybersecurity: one file per week, registered in cs-registry.js ───────
 import { CYBERSECURITY_LESSONS } from "./cs-registry.js";
@@ -98,6 +102,8 @@ const REGISTRY = {
 
   "backend-engineering": BACKEND_ENGINEERING_LESSONS,
 
+  "uiux-design": UIUX_DESIGN_LESSONS,
+
   cybersecurity: CYBERSECURITY_LESSONS,
 };
 
@@ -126,6 +132,7 @@ const CURRICULA = {
   [MOBILE_DEVELOPMENT_COURSE.slug]: MOBILE_DEVELOPMENT_COURSE,
   [RDBMS_COURSE.slug]: RDBMS_COURSE,
   [BACKEND_ENGINEERING_COURSE.slug]: BACKEND_ENGINEERING_COURSE,
+  [UIUX_DESIGN_COURSE.slug]: UIUX_DESIGN_COURSE,
 };
 
 /** Every course with a curriculum, by slug. lessonIndex.js keeps a loader per entry. */

@@ -502,6 +502,37 @@ export const CERTIFICATION = {
     ],
   },
 
+  "uiux-design": {
+    examId: "mst-ux-final",
+    courseCode: "UX-101",
+    path: "/academy/exam/uiux-design",
+    title: "Memora Smart Certification — UI/UX Design",
+    subtitle: "Foundations · UX · UI · Prototypes & systems · Professional practice · Product & career",
+    questionCount: 30,
+    durationMinutes: 60,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/uiux/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "ux-m1-intro",
+      "ux-m2-design-thinking",
+      "ux-m3-visual",
+      "ux-m4-research",
+      "ux-m5-personas-ia",
+      "ux-m6-interaction",
+      "ux-m7-figma",
+      "ux-m8-wireframing",
+      "ux-m9-responsive",
+      "ux-m10-prototyping",
+      "ux-m11-usability",
+      "ux-m12-design-systems",
+      "ux-m13-accessibility",
+      "ux-m14-handoff",
+      "ux-m15-product",
+      "ux-m16-career",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"

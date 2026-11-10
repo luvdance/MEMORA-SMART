@@ -75,6 +75,12 @@ const services = [
     course: "machine-learning",
   },
   {
+    icon: "fas fa-pen-ruler",
+    label: "Learn UI/UX Design",
+    path: "/academy/enroll/uiux-design",
+    course: "uiux-design",
+  },
+  {
     icon: "fas fa-diagram-project",
     label: "Learn Codebase Engineering",
     path: "/academy/enroll/codebase-engineering",
