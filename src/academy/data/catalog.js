@@ -14,6 +14,7 @@ import MOBILE_DEVELOPMENT_COURSE from "./mobileDevelopmentCourse.js";
 import RDBMS_COURSE from "./rdbmsCourse.js";
 import BACKEND_ENGINEERING_COURSE from "./backendEngineeringCourse.js";
 import UIUX_DESIGN_COURSE from "./uiuxDesignCourse.js";
+import NETWORKING_COURSE from "./networkingCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -274,6 +275,33 @@ export const CATALOG = [
       "Responsible AI, applications & capstone",
     ],
     course: MACHINE_LEARNING_COURSE,
+  },
+  {
+    id: "networking",
+    code: "NW-101",
+    slug: "networking",
+    title: "Computer Networking",
+    subtitle: "From your first cable to an enterprise network",
+    // Under Digital Skills beside Cybersecurity, for the same reason: one
+    // course does not justify a category of its own on the filter bar.
+    category: "skills",
+    icon: "fas fa-network-wired",
+    status: "open",
+    beta: true,
+    level: "Beginner → Professional",
+    summary:
+      "Twenty weeks from your first cable to an enterprise network you design, secure and run: the OSI and TCP/IP models, subnetting until it is automatic, TCP/IP services, switching, VLANs and routing configured with real IOS commands in NetLab, wireless, Linux administration, security, troubleshooting, cloud and automation, and a five-department capstone.",
+    covers: [
+      "OSI & TCP/IP models",
+      "IPv4, IPv6 & subnetting (FLSM, VLSM)",
+      "TCP, UDP, DNS, DHCP, NAT & ARP",
+      "Switching, VLANs, STP & routing (OSPF, RIP)",
+      "Wireless & internet infrastructure",
+      "Linux network administration",
+      "Network security & troubleshooting",
+      "Cloud, containers, automation & capstone",
+    ],
+    course: NETWORKING_COURSE,
   },
   {
     id: "forex-trading",

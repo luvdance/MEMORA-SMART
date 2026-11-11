@@ -34,6 +34,8 @@ import FirewallSim from "../components/FirewallSim";
 import LogHunt from "../components/LogHunt";
 import RiskGrid from "../components/RiskGrid";
 import TerminalSim from "../components/TerminalSim";
+import NetLab from "../components/NetLab";
+import NetCalc from "../components/NetCalc";
 import CryptoLab from "../components/CryptoLab";
 import DecisionCheck from "../components/DecisionCheck";
 // The mathematics drill. Same contract as every sim above: generated questions
@@ -220,6 +222,8 @@ export default function LessonPlayer() {
       atom?.huntExercise ||
       atom?.riskExercise ||
       atom?.terminalExercise ||
+      atom?.netLab ||
+      atom?.netCalc ||
       atom?.cryptoExercise ||
       atom?.drill ||
       atom?.calcExercise ||
@@ -474,7 +478,7 @@ export default function LessonPlayer() {
                 <CodeTrace
                   key={`${atom.id}-demo`}
                   {...atom.code}
-                  runnable={atom.code.runnable ?? (slug === "python" || slug === "algorithms" || slug === "machine-learning")}
+                  runnable={atom.code.runnable ?? (slug === "python" || slug === "algorithms" || slug === "machine-learning" || slug === "networking")}
                   showOutput
                 />
               )}
@@ -717,6 +721,27 @@ export default function LessonPlayer() {
                 />
               )}
 
+              {/* A network to configure. `netLab` is graded by its goals;
+                  `netDemo` is the same simulator with nothing to pass. */}
+              {(atom.netLab || atom.netDemo) && (
+                <NetLab
+                  key={`${atom.id}-net`}
+                  {...(atom.netLab || atom.netDemo)}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={atom.netLab ? markSolved : undefined}
+                />
+              )}
+
+              {/* Subnetting by hand: typed answers, recomputed by the content check. */}
+              {atom.netCalc && (
+                <NetCalc
+                  key={`${atom.id}-calc`}
+                  {...atom.netCalc}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
               {/* Real SHA-256, computed in the browser. */}
               {(atom.crypto || atom.cryptoExercise) && (
                 <CryptoLab
@@ -873,6 +898,16 @@ export default function LessonPlayer() {
                         The findings are not prioritised correctly yet. Weigh
                         the context, not just the score, and press{" "}
                         <em>Check my priorities</em>.
+                      </>
+                    ) : atom.netCalc ? (
+                      <>
+                        Some answers are not right yet. Fix them and press{" "}
+                        <em>Check my answers</em>.
+                      </>
+                    ) : atom.netLab ? (
+                      <>
+                        Some of the lab&apos;s goals are not met yet. Configure
+                        the devices and press <em>Check my network</em>.
                       </>
                     ) : atom.terminalExercise ? (
                       <>

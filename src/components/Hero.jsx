@@ -87,6 +87,12 @@ const services = [
     course: "codebase-engineering",
   },
   {
+    icon: "fas fa-network-wired",
+    label: "Learn Computer Networking",
+    path: "/academy/enroll/networking",
+    course: "networking",
+  },
+  {
     icon: "fas fa-money-bill-trend-up",
     label: "Learn Forex Trading",
     path: "/academy/enroll/forex-trading",

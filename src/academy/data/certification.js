@@ -533,6 +533,32 @@ export const CERTIFICATION = {
     ],
   },
 
+  networking: {
+    examId: "mst-nw-final",
+    courseCode: "NW-101",
+    path: "/academy/exam/networking",
+    title: "Memora Smart Certification — Computer Networking",
+    subtitle: "Foundations · Addressing · Protocols · Infrastructure · Admin & security · Operations",
+    questionCount: 30,
+    durationMinutes: 60,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/networking/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "nw-m1-intro",
+      "nw-m2-models",
+      "nw-m3-subnetting",
+      "nw-m4-protocols",
+      "nw-m5-switching-routing",
+      "nw-m6-wireless",
+      "nw-m7-linux",
+      "nw-m8-security",
+      "nw-m9-troubleshooting",
+      "nw-m10-advanced",
+      "nw-m11-capstone",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"

@@ -1,0 +1,465 @@
+/* ══════════════════════════════════════════════════════════════
+   NETLAB — the Computer Networking course's network simulator
+
+   Same shell as the cybersecurity kit (task strip, working area,
+   check bar) so a learner who has used one simulator knows them all.
+   The console is a terminal in both themes, like a real one.
+══════════════════════════════════════════════════════════════ */
+
+.ac-net {
+  margin: 22px 0;
+  border: 1px solid var(--ac-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ac-surface);
+}
+
+.ac-net__task {
+  padding: 14px 16px;
+  background: var(--ac-tint);
+  border-bottom: 1px solid var(--ac-line);
+}
+
+.ac-net__task p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ac-ink-2);
+}
+
+.ac-net__intro {
+  color: var(--ac-text);
+}
+
+.ac-net__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ac-primary);
+}
+
+.ac-net__map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  padding: 8px 6px 2px;
+  box-sizing: border-box;
+}
+
+.ac-net__link {
+  stroke-width: 0.55;
+  stroke-linecap: round;
+}
+
+.ac-net__link.is-up {
+  stroke: var(--acd-t-16a34a, #16a34a);
+}
+
+.ac-net__link.is-down {
+  stroke: var(--acd-t-dc2626, #dc2626);
+  stroke-dasharray: 1.4 1.1;
+}
+
+.ac-net__link--wifi {
+  stroke: var(--acd-t-0891b2, #0891b2);
+  stroke-dasharray: 0.6 0.9;
+}
+
+.ac-net__port {
+  font-size: 2.1px;
+  fill: var(--ac-muted);
+  text-anchor: middle;
+  font-family: var(--ac-mono);
+}
+
+.ac-net__dev {
+  cursor: pointer;
+  outline: none;
+}
+
+.ac-net__hit {
+  fill: transparent;
+}
+
+.ac-net__shape {
+  fill: var(--ac-surface);
+  stroke: var(--ac-ink-2);
+  stroke-width: 0.6;
+}
+
+.ac-net__mark {
+  fill: none;
+  stroke: var(--ac-primary);
+  stroke-width: 0.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ac-net__dev.is-active .ac-net__shape,
+.ac-net__dev:focus-visible .ac-net__shape {
+  fill: var(--ac-primary-soft);
+  stroke: var(--ac-primary);
+  stroke-width: 0.9;
+}
+
+.ac-net__name {
+  font-size: 2.9px;
+  font-weight: 700;
+  fill: var(--ac-ink);
+  text-anchor: middle;
+}
+
+.ac-net__note {
+  font-size: 2.2px;
+  fill: var(--ac-muted);
+  text-anchor: middle;
+  font-family: var(--ac-mono);
+}
+
+.ac-net__tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  border-top: 1px solid var(--ac-line);
+  scrollbar-width: thin;
+}
+
+.ac-net__tab {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  min-height: 34px;
+  border: 1px solid var(--ac-line);
+  border-radius: 999px;
+  background: var(--ac-surface);
+  color: var(--ac-ink-2);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ac-net__tab.is-active {
+  border-color: var(--ac-primary);
+  background: var(--ac-primary-soft);
+  color: var(--ac-primary-dark);
+}
+
+.ac-net__console {
+  /* theme: fixed */
+  background: #0b1020;
+  color: #d7deef;
+  cursor: text;
+}
+
+.ac-net__screen {
+  /* theme: fixed */
+  height: 300px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  font-family: var(--ac-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.ac-net__hello {
+  /* theme: fixed */
+  margin: 0 0 6px;
+  color: #8b95b5;
+}
+
+.ac-net__line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ac-net__prompt {
+  /* theme: fixed */
+  color: #7dd3fc;
+  margin-right: 1px;
+}
+
+.ac-net__out {
+  /* theme: fixed */
+  margin: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #d7deef;
+}
+
+.ac-net__line--input {
+  display: flex;
+  align-items: baseline;
+}
+
+.ac-net__input {
+  /* theme: fixed */
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  padding: 0;
+}
+
+.ac-net__goals {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px;
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--ac-line);
+}
+
+.ac-net__goals li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--ac-text);
+}
+
+.ac-net__goals li i {
+  color: var(--ac-muted);
+  font-size: 12px;
+}
+
+.ac-net__goals li.is-ok i {
+  color: var(--acd-t-16a34a, #16a34a);
+}
+
+.ac-net__goals li.is-bad i {
+  color: var(--acd-t-dc2626, #dc2626);
+}
+
+.ac-net__check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border-top: 1px solid var(--ac-line);
+  background: var(--ac-tint);
+}
+
+.ac-net__btn {
+  padding: 9px 18px;
+  min-height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--ac-gradient);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ac-net__ghost {
+  padding: 8px 14px;
+  min-height: 40px;
+  border: 1px solid var(--ac-line);
+  border-radius: 8px;
+  background: var(--ac-surface);
+  color: var(--ac-ink-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ac-net__btn:active,
+.ac-net__ghost:active {
+  transform: scale(0.97);
+}
+
+.ac-net__feedback {
+  margin: 0;
+  flex: 1 1 240px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.ac-net__feedback.is-ok {
+  color: var(--acd-t-15803d, #15803d);
+}
+
+.ac-net__feedback.is-bad {
+  color: var(--acd-t-b91c1c, #b91c1c);
+}
+
+.ac-net__hint {
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ac-ink-2);
+  border-top: 1px dashed var(--ac-line);
+}
+
+.ac-net__fine {
+  margin: 0;
+  padding: 8px 16px 12px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ac-muted);
+}
+
+@media (max-width: 560px) {
+  .ac-net__screen {
+    height: 260px;
+    font-size: 12px;
+  }
+}
+
+/* ── NetCalc: subnetting by hand ─────────────────────────────────── */
+
+.ac-ncalc {
+  margin: 22px 0;
+  border: 1px solid var(--ac-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ac-surface);
+}
+
+.ac-ncalc__task {
+  padding: 14px 16px;
+  background: var(--ac-tint);
+  border-bottom: 1px solid var(--ac-line);
+}
+
+.ac-ncalc__task p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ac-text);
+}
+
+.ac-ncalc__list {
+  margin: 0;
+  padding: 6px 16px 6px 36px;
+}
+
+.ac-ncalc__item {
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--ac-line);
+  color: var(--ac-text);
+}
+
+.ac-ncalc__item:last-child {
+  border-bottom: none;
+}
+
+.ac-ncalc__q {
+  display: block;
+  font-size: 14px;
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+
+.ac-ncalc__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ac-ncalc__input {
+  flex: 0 1 280px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--ac-line);
+  border-radius: 8px;
+  background: var(--ac-surface);
+  color: var(--ac-ink);
+  font-family: var(--ac-mono);
+  font-size: 14px;
+}
+
+.ac-ncalc__item.is-ok .ac-ncalc__input {
+  border-color: var(--acd-t-16a34a, #16a34a);
+}
+
+.ac-ncalc__item.is-bad .ac-ncalc__input {
+  border-color: var(--acd-t-dc2626, #dc2626);
+}
+
+.ac-ncalc__ok {
+  color: var(--acd-t-16a34a, #16a34a);
+}
+
+.ac-ncalc__bad {
+  color: var(--acd-t-dc2626, #dc2626);
+}
+
+.ac-ncalc__hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ac-ink-2);
+}
+
+.ac-ncalc__working {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--ac-tint);
+  color: var(--ac-ink-2);
+  font-family: var(--ac-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.ac-ncalc__check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border-top: 1px solid var(--ac-line);
+  background: var(--ac-tint);
+}
+
+.ac-ncalc__btn {
+  padding: 9px 18px;
+  min-height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--ac-gradient);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ac-ncalc__btn:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.ac-ncalc__feedback {
+  margin: 0;
+  flex: 1 1 240px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.ac-ncalc__feedback.is-ok {
+  color: var(--acd-t-15803d, #15803d);
+}
+
+.ac-ncalc__feedback.is-bad {
+  color: var(--acd-t-b91c1c, #b91c1c);
+}
