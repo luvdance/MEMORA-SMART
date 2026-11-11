@@ -1,0 +1,299 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   THE WRITING DESK and WRITING SAMPLES
+   Content Writing, Copywriting and Professional Communication (CW-101).
+   Imported by academy.css. Builds on .ac-trace and .ac-weblab__checklist
+   from academy-learn.css. Run `npm run theme:academy` after editing.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.ac-wdesk__brief {
+  border-bottom: 1px solid var(--ac-line-soft);
+  background: var(--acd-b-fffdf6, #fffdf6);
+}
+.ac-wdesk__brief > summary {
+  cursor: pointer;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--acd-t-8a5a00, #8a5a00);
+}
+.ac-wdesk__brief > .ac-md {
+  padding: 0 16px 14px;
+}
+
+.ac-wdesk__desk {
+  padding: 12px 16px 14px;
+}
+
+.ac-wdesk__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ac-wdesk__views,
+.ac-wdesk__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ac-wdesk__views button,
+.ac-wdesk__tools button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--ac-line);
+  border-radius: 7px;
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ac-wdesk__views button.is-active,
+.ac-wdesk__tools button[aria-pressed="true"] {
+  border-color: var(--ac-primary);
+  color: var(--ac-primary);
+  background: var(--ac-primary-soft);
+}
+
+.ac-wdesk__count {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #b45309;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.ac-wdesk__editor {
+  display: block;
+  width: 100%;
+  min-height: 260px;
+  padding: 14px 16px;
+  border: 1px solid var(--ac-line);
+  border-radius: 10px;
+  background: var(--ac-surface);
+  color: var(--ac-ink);
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-size: 16px;
+  line-height: 1.7;
+  resize: vertical;
+  tab-size: 2;
+}
+.ac-wdesk__editor:focus {
+  outline: 2px solid var(--ac-primary);
+  outline-offset: 1px;
+}
+
+.ac-wdesk__preview,
+.ac-wdesk__model {
+  min-height: 260px;
+  padding: 14px 18px;
+  border: 1px solid var(--ac-line);
+  border-radius: 10px;
+  background: var(--ac-surface);
+  overflow-x: auto;
+}
+.ac-wdesk__model {
+  min-height: 0;
+  margin-top: 10px;
+}
+
+.ac-wdesk__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--ac-muted);
+}
+.ac-wdesk__stats strong {
+  color: var(--ac-ink);
+}
+.ac-wdesk__stats em {
+  font-style: normal;
+}
+.ac-wdesk__stats .is-ok strong {
+  color: var(--acd-t-15803d, #15803d);
+}
+.ac-wdesk__stats .is-off strong {
+  color: var(--acd-t-b45309, #b45309);
+}
+
+.ac-wdesk__report {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px dashed var(--ac-line);
+  border-radius: 10px;
+  background: var(--ac-tint);
+}
+.ac-wdesk__clean {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--acd-t-15803d, #15803d);
+}
+.ac-wdesk__flag-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ac-ink);
+}
+.ac-wdesk__flag-head span {
+  padding: 0 7px;
+  border-radius: 9px;
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-line);
+  font-size: 11.5px;
+}
+.ac-wdesk__flag ul {
+  margin: 6px 0 4px;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ac-text);
+}
+.ac-wdesk__flag--long .ac-wdesk__flag-head i { color: var(--acd-t-b45309, #b45309); }
+.ac-wdesk__flag--passive .ac-wdesk__flag-head i { color: var(--acd-t-1d4ed8, #1d4ed8); }
+.ac-wdesk__flag--wordy .ac-wdesk__flag-head i { color: var(--acd-t-7c3aed, #7c3aed); }
+.ac-wdesk__flag--adverbs .ac-wdesk__flag-head i { color: var(--acd-t-0f766e, #0f766e); }
+.ac-wdesk__flag--tells .ac-wdesk__flag-head i { color: var(--acd-t-b91c1c, #b91c1c); }
+.ac-wdesk__tip {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ac-muted);
+}
+
+.ac-wdesk__link {
+  text-decoration: underline;
+  color: var(--ac-primary);
+}
+
+/* ── Rendered Markdown (brief, preview, model answer, samples) ─────────── */
+
+.ac-md {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ac-text);
+  overflow-wrap: anywhere;
+}
+.ac-md > :first-child { margin-top: 0; }
+.ac-md > :last-child { margin-bottom: 0; }
+.ac-md h2,
+.ac-md h3,
+.ac-md h4,
+.ac-md h5,
+.ac-md h6 {
+  margin: 16px 0 6px;
+  color: var(--ac-ink);
+  line-height: 1.3;
+}
+.ac-md h2 { font-size: 1.3rem; }
+.ac-md h3 { font-size: 1.1rem; }
+.ac-md h4,
+.ac-md h5,
+.ac-md h6 { font-size: 1rem; }
+.ac-md p { margin: 0 0 10px; }
+.ac-md ul,
+.ac-md ol { margin: 0 0 10px; padding-left: 22px; }
+.ac-md ul { list-style: disc; }
+.ac-md ol { list-style: decimal; }
+.ac-md li { margin-bottom: 3px; }
+.ac-md blockquote {
+  margin: 0 0 10px;
+  padding: 6px 12px;
+  border-left: 3px solid var(--ac-line);
+  color: var(--ac-muted);
+}
+.ac-md hr {
+  border: 0;
+  border-top: 1px solid var(--ac-line);
+  margin: 14px 0;
+}
+.ac-md code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--ac-tint);
+  font-family: var(--ac-mono);
+  font-size: 0.9em;
+}
+.ac-md__table {
+  overflow-x: auto;
+  margin: 0 0 10px;
+}
+.ac-md table {
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 100%;
+}
+.ac-md th,
+.ac-md td {
+  padding: 6px 9px;
+  border: 1px solid var(--ac-line);
+  text-align: left;
+  vertical-align: top;
+}
+.ac-md th {
+  background: var(--ac-tint);
+  color: var(--ac-ink);
+}
+
+/* ── Writing samples inside an atom ───────────────────────────────────── */
+
+.ac-wsamples {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+.ac-wsample {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--ac-line);
+  border-left-width: 4px;
+  border-radius: 10px;
+  background: var(--ac-surface);
+}
+.ac-wsample--bad { border-left-color: #dc2626; }
+.ac-wsample--good { border-left-color: #16a34a; }
+.ac-wsample figcaption {
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ac-muted);
+}
+.ac-wsample--bad figcaption i { color: var(--acd-t-dc2626, #dc2626); }
+.ac-wsample--good figcaption i { color: var(--acd-t-16a34a, #16a34a); }
+.ac-wsample .ac-md {
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-size: 15.5px;
+  color: var(--ac-ink);
+}
+.ac-wsample__note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--ac-muted);
+}
+
+@media (max-width: 480px) {
+  .ac-wdesk__desk { padding: 10px 12px 12px; }
+  .ac-wdesk__editor { font-size: 15.5px; padding: 12px; }
+  .ac-wdesk__tools button span { display: none; }
+}

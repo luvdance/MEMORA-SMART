@@ -559,6 +559,41 @@ export const CERTIFICATION = {
     ],
   },
 
+  "content-writing": {
+    examId: "mst-cw-final",
+    courseCode: "CW-101",
+    path: "/academy/exam/content-writing",
+    title: "Memora Smart Certification — Content Writing, Copywriting & Professional Communication",
+    subtitle: "Foundations · Content · Copywriting · Professional · Editing & AI · Career",
+    questionCount: 30,
+    durationMinutes: 60,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/writing/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "cw-m1-intro",
+      "cw-m2-grammar",
+      "cw-m3-style",
+      "cw-m4-content",
+      "cw-m5-blogging",
+      "cw-m6-seo",
+      "cw-m7-web-social",
+      "cw-m8-strategy",
+      "cw-m9-copy-intro",
+      "cw-m10-frameworks",
+      "cw-m11-advertising",
+      "cw-m12-email",
+      "cw-m13-business",
+      "cw-m14-workplace",
+      "cw-m15-reports",
+      "cw-m16-career",
+      "cw-m17-editing",
+      "cw-m18-ai",
+      "cw-m19-freelancing",
+      "cw-m20-portfolio",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"

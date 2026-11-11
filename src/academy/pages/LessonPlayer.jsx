@@ -36,6 +36,7 @@ import RiskGrid from "../components/RiskGrid";
 import TerminalSim from "../components/TerminalSim";
 import NetLab from "../components/NetLab";
 import NetCalc from "../components/NetCalc";
+import WritingLab, { WritingSamples } from "../components/WritingLab";
 import CryptoLab from "../components/CryptoLab";
 import DecisionCheck from "../components/DecisionCheck";
 // The mathematics drill. Same contract as every sim above: generated questions
@@ -211,6 +212,7 @@ export default function LessonPlayer() {
       atom?.codeExercise ||
       atom?.codeChallenge ||
       atom?.webLab ||
+      atom?.writingLab ||
       atom?.sqlLab ||
       atom?.apiLab ||
       atom?.nodeLab ||
@@ -534,6 +536,20 @@ export default function LessonPlayer() {
                   key={`${atom.id}-lab`}
                   id={atom.id}
                   {...atom.webLab}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* CONTENT WRITING. `samples` are before-and-after writing shown
+                  in full; `writingLab` is the Writing Desk, graded by checks
+                  run against the learner's own draft. */}
+              {atom.samples && <WritingSamples key={`${atom.id}-samples`} samples={atom.samples} />}
+              {atom.writingLab && (
+                <WritingLab
+                  key={`${atom.id}-write`}
+                  id={atom.id}
+                  {...atom.writingLab}
                   alreadySolved={solved.has(atom.id)}
                   onSolved={markSolved}
                 />
@@ -959,6 +975,12 @@ export default function LessonPlayer() {
                         Your SQL does not pass every check yet. The checklist
                         shows which ones are still red: fix those, run it, read
                         what PostgreSQL returns, and press <em>Check my SQL</em>.
+                      </>
+                    ) : atom.writingLab ? (
+                      <>
+                        Your draft does not pass every check yet. The checklist
+                        above shows which ones are still red: revise those parts
+                        and press <em>Check my writing</em>.
                       </>
                     ) : atom.webLab ? (
                       <>

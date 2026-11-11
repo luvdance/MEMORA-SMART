@@ -71,7 +71,7 @@ export const SKILLS = {
   crm: { label: "CRM tools", field: "sales", aliases: ["crm", "salesforce", "hubspot", "zoho"] },
   sales: { label: "Sales", field: "sales", aliases: ["cold calling", "lead generation", "business development", "sales pipeline", "account executive", "sales target", "sales targets", "b2b sales"] },
   support: { label: "Customer support", field: "support", check: true, aliases: ["customer support", "customer service", "customer success", "customer experience", "zendesk", "intercom", "freshdesk", "help desk", "helpdesk", "call centre", "call center"] },
-  writing: { label: "Professional writing", field: "content", check: true, aliases: ["copywriting", "copywriter", "content writing", "content writer", "technical writing", "technical writer", "proofreading", "written communication", "business writing"] },
+  writing: { label: "Professional writing", field: "content", check: true, course: "content-writing", aliases: ["copywriting", "copywriter", "content writing", "content writer", "technical writing", "technical writer", "proofreading", "written communication", "business writing"] },
   accounting: { label: "Accounting", field: "finance", aliases: ["accounting", "bookkeeping", "quickbooks", "reconciliation", "reconciliations", "ifrs", "accounts payable", "accounts receivable"] },
   finance: { label: "Financial analysis", field: "finance", aliases: ["financial analysis", "financial modelling", "financial modeling", "financial reporting", "credit analysis", "underwriting"] },
   compliance: { label: "Compliance & risk", field: "finance", aliases: ["compliance", "kyc", "aml", "risk management", "internal audit"] },

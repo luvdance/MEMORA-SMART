@@ -15,6 +15,7 @@ import RDBMS_COURSE from "./rdbmsCourse.js";
 import BACKEND_ENGINEERING_COURSE from "./backendEngineeringCourse.js";
 import UIUX_DESIGN_COURSE from "./uiuxDesignCourse.js";
 import NETWORKING_COURSE from "./networkingCourse.js";
+import CONTENT_WRITING_COURSE from "./contentWritingCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -542,6 +543,31 @@ export const CATALOG = [
       "Developer handoff & portfolio",
     ],
     course: UIUX_DESIGN_COURSE,
+  },
+  {
+    id: "content-writing",
+    code: "CW-101",
+    slug: "content-writing",
+    title: "Content Writing, Copywriting & Professional Communication",
+    subtitle: "Write content people read, copy that sells and documents that get things done",
+    category: "creative",
+    icon: "fas fa-pen-nib",
+    status: "open",
+    beta: true,
+    level: "Beginner → Job-ready",
+    summary:
+      "Get paid to write. Twenty weeks from clear, correct English to a ten-piece professional portfolio: grammar, style, tone and audience; articles, blogs and SEO content; websites, social media and content strategy; copywriting with AIDA, PAS and other frameworks; ads, landing pages and email campaigns; business letters, proposals, reports, user guides and CVs; editing, proofreading and responsible AI writing; and freelancing, pricing and clients. Every lesson makes you write on a Writing Desk that checks your draft against the brief: structure, limits, readability and calls to action.",
+    covers: [
+      "Grammar, style, tone & audience",
+      "Articles, blogs & research",
+      "SEO content writing",
+      "Website & social media content",
+      "Copywriting frameworks & ads",
+      "Email marketing",
+      "Business, report & technical writing",
+      "Editing, AI tools & freelancing",
+    ],
+    course: CONTENT_WRITING_COURSE,
   },
   {
     id: "graphics-design",
