@@ -1,0 +1,342 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   THE VA WORKDESK (DeskLab)
+   Virtual Assistant course (VA-101). Imported by academy.css. Builds on
+   .ac-trace, .ac-weblab__checklist and .ac-wdesk__brief. Run
+   `npm run theme:academy` after editing.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.ac-desk__app {
+  padding: 12px 16px 6px;
+}
+
+.ac-desk__appbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--ac-line);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: var(--acd-b-f4f6fb, #f4f6fb);
+  font-size: 13px;
+}
+.ac-desk__appname {
+  font-weight: 700;
+  color: var(--acd-t-1e3a8a, #1e3a8a);
+}
+.ac-desk__appname i {
+  margin-right: 4px;
+}
+.ac-desk__title {
+  color: var(--ac-text);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ac-desk__progress {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ac-muted);
+  white-space: nowrap;
+}
+
+.ac-desk__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ac-line);
+  border-radius: 0 0 10px 10px;
+  background: var(--ac-surface, var(--ac-surface));
+}
+.ac-desk__cal + .ac-desk__items,
+.ac-desk__board + .ac-desk__items {
+  border-radius: 0 0 10px 10px;
+}
+
+.ac-desk__item {
+  padding: 10px 12px;
+  border-top: 1px solid var(--ac-line-soft);
+  border-left: 3px solid transparent;
+}
+.ac-desk__item:first-child {
+  border-top: 0;
+}
+.ac-desk__item.is-ok {
+  border-left-color: #16a34a;
+  background: var(--acd-b-f3fbf5, #f3fbf5);
+}
+.ac-desk__item.is-bad {
+  border-left-color: #dc2626;
+  background: var(--acd-b-fdf4f4, #fdf4f4);
+}
+
+.ac-desk__itemhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ac-text);
+}
+.ac-desk__itemhead > i {
+  width: 14px;
+  font-size: 12px;
+  color: var(--ac-muted);
+}
+.ac-desk__item.is-ok .ac-desk__itemhead > i {
+  color: var(--acd-t-16a34a, #16a34a);
+}
+.ac-desk__item.is-bad .ac-desk__itemhead > i {
+  color: var(--acd-t-dc2626, #dc2626);
+}
+.ac-desk__itemtitle {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.ac-desk__itemmeta {
+  font-size: 12px;
+  color: var(--ac-muted);
+  overflow-wrap: anywhere;
+}
+
+.ac-desk__itembody {
+  margin: 8px 0 0 24px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--acd-b-f8f9fc, #f8f9fc);
+  font-size: 13.5px;
+}
+.ac-desk__itembody .ac-md p {
+  margin: 4px 0;
+}
+
+.ac-desk__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 8px 0 0 24px;
+}
+.ac-desk__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 0 1 240px;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ac-muted);
+}
+.ac-desk__field.is-time {
+  flex-basis: 96px;
+}
+.ac-desk__field.is-wide {
+  flex: 1 1 100%;
+}
+.ac-desk__field select,
+.ac-desk__field input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--ac-line);
+  border-radius: 7px;
+  background: var(--ac-surface, var(--ac-surface));
+  color: var(--ac-text);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ac-desk__field select:focus,
+.ac-desk__field input:focus {
+  outline: 2px solid var(--ac-primary);
+  outline-offset: 1px;
+}
+
+.ac-desk__hint {
+  margin: 8px 0 0 24px;
+  font-size: 13px;
+  color: var(--acd-t-9a3412, #9a3412);
+}
+.ac-desk__why {
+  margin: 6px 0 0 24px;
+  font-size: 13px;
+}
+.ac-desk__why summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--acd-t-166534, #166534);
+}
+.ac-desk__why p {
+  margin: 4px 0 0;
+  line-height: 1.55;
+}
+
+/* Calendar preview */
+.ac-desk__cal {
+  padding: 8px 10px 6px;
+  border: 1px solid var(--ac-line);
+  border-bottom: 0;
+  background: var(--ac-surface, var(--ac-surface));
+  overflow-x: auto;
+}
+.ac-desk__calhead,
+.ac-desk__calbody {
+  display: grid;
+  min-width: 400px;
+}
+.ac-desk__calhead {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--ac-muted);
+  padding-bottom: 4px;
+}
+.ac-desk__calbody {
+  position: relative;
+}
+.ac-desk__calhours,
+.ac-desk__calday {
+  position: relative;
+}
+.ac-desk__calhours span {
+  position: absolute;
+  right: 6px;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--ac-muted);
+}
+.ac-desk__calday {
+  border-left: 1px solid var(--ac-line-soft);
+}
+.ac-desk__calday > i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--acd-l-e5e7eb, #e5e7eb);
+}
+.ac-desk__calblock {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  background: var(--acd-b-dbe4ff, #dbe4ff);
+  border: 1px solid #6b83f2;
+  color: var(--acd-t-1e2a78, #1e2a78);
+  font-size: 10.5px;
+  line-height: 1.25;
+  overflow: hidden;
+}
+.ac-desk__calblock.is-fixed {
+  background: var(--acd-b-eceef3, #eceef3);
+  border-color: var(--acd-l-b9bfcc, #b9bfcc);
+  color: var(--acd-t-4b5563, #4b5563);
+}
+.ac-desk__calblock.is-clash,
+.ac-desk__calblock.is-out {
+  background: var(--acd-b-fde2e2, #fde2e2);
+  border-color: #dc2626;
+  color: var(--acd-t-7f1d1d, #7f1d1d);
+}
+.ac-desk__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--ac-muted);
+}
+.ac-desk__legend span {
+  display: inline-block;
+  width: 12px;
+  height: 10px;
+  margin-left: 8px;
+  border-radius: 3px;
+  background: var(--acd-b-dbe4ff, #dbe4ff);
+  border: 1px solid #6b83f2;
+}
+.ac-desk__legend span.is-fixed {
+  margin-left: 0;
+  background: var(--acd-b-eceef3, #eceef3);
+  border-color: var(--acd-l-b9bfcc, #b9bfcc);
+}
+.ac-desk__legend span.is-clash {
+  background: var(--acd-b-fde2e2, #fde2e2);
+  border-color: #dc2626;
+}
+
+/* Board preview */
+.ac-desk__board {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--ac-line);
+  border-bottom: 0;
+  background: var(--acd-b-f8f9fc, #f8f9fc);
+  overflow-x: auto;
+}
+.ac-desk__col {
+  flex: 1 0 140px;
+  min-width: 140px;
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--acd-b-eef1f7, #eef1f7);
+}
+.ac-desk__col h5 {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--ac-text);
+}
+.ac-desk__col h5 span {
+  color: var(--ac-muted);
+}
+.ac-desk__card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--ac-surface, var(--ac-surface));
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  font-size: 12px;
+}
+.ac-desk__card small {
+  color: var(--ac-muted);
+}
+
+.ac-desk__model {
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .ac-desk__app {
+    padding: 10px 10px 4px;
+  }
+  .ac-desk__fields,
+  .ac-desk__itembody,
+  .ac-desk__hint,
+  .ac-desk__why {
+    margin-left: 0;
+  }
+  .ac-desk__field {
+    flex: 1 1 140px;
+  }
+}

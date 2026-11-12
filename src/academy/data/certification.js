@@ -594,6 +594,33 @@ export const CERTIFICATION = {
     ],
   },
 
+  "virtual-assistant": {
+    examId: "mst-va-final",
+    courseCode: "VA-101",
+    path: "/academy/exam/virtual-assistant",
+    title: "Memora Smart Certification — Professional Virtual Assistant",
+    subtitle: "Foundations · Communication · Executive support · Tools & research · Client services · AI & career",
+    questionCount: 30,
+    durationMinutes: 60,
+    passMark: 70,
+    domainMinimum: 50,
+    /** Mirrors lib/academy/finalExam/va/blueprint.js. Asserted by the tests. */
+    requiresModules: [
+      "va-m1-intro",
+      "va-m2-digital",
+      "va-m3-communication",
+      "va-m4-admin",
+      "va-m5-office",
+      "va-m6-research",
+      "va-m7-customer",
+      "va-m8-projects",
+      "va-m9-social",
+      "va-m10-ai",
+      "va-m11-freelancing",
+      "va-m12-career",
+    ],
+  },
+
   /**
    * Cybersecurity has no exam yet. Deliberately absent rather than present
    * and empty: `examFor()` returning null is what produces the "unavailable"

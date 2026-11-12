@@ -37,6 +37,7 @@ import TerminalSim from "../components/TerminalSim";
 import NetLab from "../components/NetLab";
 import NetCalc from "../components/NetCalc";
 import WritingLab, { WritingSamples } from "../components/WritingLab";
+import DeskLab from "../components/DeskLab";
 import CryptoLab from "../components/CryptoLab";
 import DecisionCheck from "../components/DecisionCheck";
 // The mathematics drill. Same contract as every sim above: generated questions
@@ -213,6 +214,7 @@ export default function LessonPlayer() {
       atom?.codeChallenge ||
       atom?.webLab ||
       atom?.writingLab ||
+      atom?.deskLab ||
       atom?.sqlLab ||
       atom?.apiLab ||
       atom?.nodeLab ||
@@ -550,6 +552,19 @@ export default function LessonPlayer() {
                   key={`${atom.id}-write`}
                   id={atom.id}
                   {...atom.writingLab}
+                  alreadySolved={solved.has(atom.id)}
+                  onSolved={markSolved}
+                />
+              )}
+
+              {/* VIRTUAL ASSISTANT. `deskLab` is the VA Workdesk: a simulated
+                  inbox, help desk, calendar, board or drive, graded per item
+                  and by rules across the whole desk. */}
+              {atom.deskLab && (
+                <DeskLab
+                  key={`${atom.id}-desk`}
+                  id={atom.id}
+                  {...atom.deskLab}
                   alreadySolved={solved.has(atom.id)}
                   onSolved={markSolved}
                 />
@@ -975,6 +990,12 @@ export default function LessonPlayer() {
                         Your SQL does not pass every check yet. The checklist
                         shows which ones are still red: fix those, run it, read
                         what PostgreSQL returns, and press <em>Check my SQL</em>.
+                      </>
+                    ) : atom.deskLab ? (
+                      <>
+                        The desk is not right yet. Items marked red need
+                        another look: reread the instructions and each item,
+                        change your choices and press <em>Check my work</em>.
                       </>
                     ) : atom.writingLab ? (
                       <>

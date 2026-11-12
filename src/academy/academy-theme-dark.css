@@ -9,13 +9,16 @@
     --acd-b-6ee7ff: #094853;
     --acd-b-9db0f5: #343d60;
     --acd-b-d1fae5: #022f1e;
+    --acd-b-dbe4ff: #1e284e;
     --acd-b-dcfce7: #002e18;
     --acd-b-e3e6f1: #2b2f41;
     --acd-b-e3f4ea: #212536;
     --acd-b-e6e9f3: #282c3d;
     --acd-b-e6f5ed: #1f2334;
     --acd-b-e7eefb: #232637;
+    --acd-b-eceef3: #222637;
     --acd-b-edeff7: #212435;
+    --acd-b-eef1f7: #1f2333;
     --acd-b-eef2fb: #1e2132;
     --acd-b-eef3fb: #1d2131;
     --acd-b-eef6ff: #1b1e2e;
@@ -38,6 +41,7 @@
     --acd-b-f3f5f9: #1b1e2e;
     --acd-b-f3fbf5: #171a2a;
     --acd-b-f4f6f2: #1a1e2e;
+    --acd-b-f4f6fb: #191d2d;
     --acd-b-f4f6fc: #191d2d;
     --acd-b-f4f6fd: #191c2d;
     --acd-b-f4fbf7: #16192a;
@@ -49,6 +53,7 @@
     --acd-b-f6f8fa: #181b2b;
     --acd-b-f6fcf8: #151828;
     --acd-b-f7f8fc: #171a2a;
+    --acd-b-f8f9fc: #161929;
     --acd-b-f8fdfc: #151828;
     --acd-b-f9fdf9: #151828;
     --acd-b-faf5ff: #181b2b;
@@ -64,10 +69,12 @@
     --acd-b-fcfcfe: #151828;
     --acd-b-fcfdff: #151828;
     --acd-b-fde2e1: #282c3d;
+    --acd-b-fde2e2: #282b3d;
     --acd-b-fde68a: #4b3f0b;
     --acd-b-fde9e7: #222637;
     --acd-b-fdeeee: #1e2132;
     --acd-b-fdf0ef: #1c2030;
+    --acd-b-fdf4f4: #191c2d;
     --acd-b-fee2e2: #45181c;
     --acd-b-fef2f2: #1a1e2e;
     --acd-b-fef9c3: #282402;
@@ -96,6 +103,7 @@
     --acd-l-6ee7ff: #0d4650;
     --acd-l-86efac: #044a27;
     --acd-l-b7e0c2: #154929;
+    --acd-l-b9bfcc: #45495a;
     --acd-l-bbf7d0: #033f22;
     --acd-l-bcc5f2: #393f70;
     --acd-l-bcc7f7: #363e72;
@@ -123,6 +131,7 @@
     --acd-l-dde5d6: #313546;
     --acd-l-dfe5f1: #303344;
     --acd-l-e4daff: #3b2e54;
+    --acd-l-e5e7eb: #2e3243;
     --acd-l-e8d089: #4d3d06;
     --acd-l-e9e9ef: #2d3141;
     --acd-l-ecdcfb: #3d2c4c;
@@ -153,6 +162,8 @@
     --acd-t-1c5b30: #93d3a1;
     --acd-t-1d4ed8: #a4c1fb;
     --acd-t-1d4f91: #9cc3fa;
+    --acd-t-1e2a78: #abbffa;
+    --acd-t-1e3a8a: #a5c0fc;
     --acd-t-1f2328: #cdd0dd;
     --acd-t-1f2d4d: #aec1e9;
     --acd-t-1fa06b: #68dba3;
@@ -169,6 +180,7 @@
     --acd-t-475069: #b5c0de;
     --acd-t-4a6b3a: #a9ce98;
     --acd-t-4b3b8f: #bdb7fd;
+    --acd-t-4b5563: #b3b6c2;
     --acd-t-4b6aa8: #a1c1fe;
     --acd-t-5a5a66: #b0b3bf;
     --acd-t-5c6484: #b6bfe3;

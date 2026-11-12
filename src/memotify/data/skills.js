@@ -76,7 +76,7 @@ export const SKILLS = {
   finance: { label: "Financial analysis", field: "finance", aliases: ["financial analysis", "financial modelling", "financial modeling", "financial reporting", "credit analysis", "underwriting"] },
   compliance: { label: "Compliance & risk", field: "finance", aliases: ["compliance", "kyc", "aml", "risk management", "internal audit"] },
   hr: { label: "HR & recruiting", field: "people", aliases: ["talent acquisition", "human resources", "hr operations", "payroll"] },
-  admin: { label: "Admin & executive support", field: "operations", aliases: ["virtual assistant", "executive assistant", "administrative assistant", "office administration", "calendar management"] },
+  admin: { label: "Admin & executive support", field: "operations", course: "virtual-assistant", aliases: ["virtual assistant", "executive assistant", "administrative assistant", "office administration", "calendar management"] },
   logistics: { label: "Logistics & supply chain", field: "operations", aliases: ["logistics", "supply chain", "procurement", "inventory management", "fleet management"] },
   aitraining: { label: "AI data work", field: "data", aliases: ["data annotation", "data labeling", "data labelling", "ai trainer", "ai training", "prompt engineering"] },
 };

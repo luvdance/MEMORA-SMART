@@ -87,6 +87,12 @@ const services = [
     course: "content-writing",
   },
   {
+    icon: "fas fa-headset",
+    label: "Become a Virtual Assistant",
+    path: "/academy/enroll/virtual-assistant",
+    course: "virtual-assistant",
+  },
+  {
     icon: "fas fa-diagram-project",
     label: "Learn Codebase Engineering",
     path: "/academy/enroll/codebase-engineering",

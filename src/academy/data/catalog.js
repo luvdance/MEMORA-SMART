@@ -16,6 +16,7 @@ import BACKEND_ENGINEERING_COURSE from "./backendEngineeringCourse.js";
 import UIUX_DESIGN_COURSE from "./uiuxDesignCourse.js";
 import NETWORKING_COURSE from "./networkingCourse.js";
 import CONTENT_WRITING_COURSE from "./contentWritingCourse.js";
+import VIRTUAL_ASSISTANT_COURSE from "./virtualAssistantCourse.js";
 
 /**
  * MEMORA SMART ACADEMY — COURSE CATALOG
@@ -568,6 +569,31 @@ export const CATALOG = [
       "Editing, AI tools & freelancing",
     ],
     course: CONTENT_WRITING_COURSE,
+  },
+  {
+    id: "virtual-assistant",
+    code: "VA-101",
+    slug: "virtual-assistant",
+    title: "Virtual Assistance: From Beginner to Hired VA",
+    subtitle: "Run a client's inbox, calendar, customers and projects from anywhere",
+    category: "skills",
+    icon: "fas fa-headset",
+    status: "open",
+    beta: true,
+    level: "Beginner → Job-ready",
+    summary:
+      "Get hired to work remotely. Twelve weeks from what a virtual assistant does to a portfolio that wins clients: digital skills and online safety, professional communication across time zones, inbox and calendar management, travel itineraries, agendas and minutes, Word, Excel, Google Workspace and PDFs, online research and lead lists, customer support desks, project boards, social media support, AI tools and automation, and freelancing on Upwork, Fiverr and LinkedIn. Every lesson puts you to work on a simulated Workdesk (an inbox, help desk, calendar, project board, drive and lead list) that checks what you do.",
+    covers: [
+      "Inbox & calendar management",
+      "Travel, agendas & minutes",
+      "Word, Excel & Google Workspace",
+      "Research, leads & CRMs",
+      "Customer support desks",
+      "Project coordination",
+      "Social media, AI & automation",
+      "Freelancing & client acquisition",
+    ],
+    course: VIRTUAL_ASSISTANT_COURSE,
   },
   {
     id: "graphics-design",

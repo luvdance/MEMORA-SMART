@@ -15,6 +15,7 @@ import RDBMS_COURSE from "../rdbmsCourse.js";
 import BACKEND_ENGINEERING_COURSE from "../backendEngineeringCourse.js";
 import UIUX_DESIGN_COURSE from "../uiuxDesignCourse.js";
 import CONTENT_WRITING_COURSE from "../contentWritingCourse.js";
+import VIRTUAL_ASSISTANT_COURSE from "../virtualAssistantCourse.js";
 import NETWORKING_COURSE from "../networkingCourse.js";
 import { authoredStats, orderCourseLessons, outlineCourse, resumeLesson } from "./build.js";
 
@@ -67,6 +68,9 @@ import { NETWORKING_LESSONS } from "./nw-registry.js";
 // ── Content Writing: one file per module, cw-registry.js ────────────────
 import { CONTENT_WRITING_LESSONS } from "./cw-registry.js";
 
+// ── Virtual Assistant: one file per module, va-registry.js ──────────────
+import { VIRTUAL_ASSISTANT_LESSONS } from "./va-registry.js";
+
 // ── Cybersecurity: one file per week, registered in cs-registry.js ───────
 import { CYBERSECURITY_LESSONS } from "./cs-registry.js";
 
@@ -116,6 +120,8 @@ const REGISTRY = {
 
   "content-writing": CONTENT_WRITING_LESSONS,
 
+  "virtual-assistant": VIRTUAL_ASSISTANT_LESSONS,
+
   cybersecurity: CYBERSECURITY_LESSONS,
 };
 
@@ -147,6 +153,7 @@ const CURRICULA = {
   [UIUX_DESIGN_COURSE.slug]: UIUX_DESIGN_COURSE,
   [NETWORKING_COURSE.slug]: NETWORKING_COURSE,
   [CONTENT_WRITING_COURSE.slug]: CONTENT_WRITING_COURSE,
+  [VIRTUAL_ASSISTANT_COURSE.slug]: VIRTUAL_ASSISTANT_COURSE,
 };
 
 /** Every course with a curriculum, by slug. lessonIndex.js keeps a loader per entry. */
