@@ -19,7 +19,9 @@
     "check:theme": "node scripts/academyTheme.mjs",
     "theme:academy": "node scripts/academyTheme.mjs --write",
     "test:cv": "node lib/cv/selfTest.mjs",
-    "test:memotify": "node lib/memotify/selfTest.mjs"
+    "test:memotify": "node lib/memotify/selfTest.mjs",
+    "clarity:setup": "node scripts/clarity/setup.mjs",
+    "clarity:lint": "node scripts/clarity/lint.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

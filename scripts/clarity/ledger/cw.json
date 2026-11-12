@@ -1,0 +1,88 @@
+{
+ "terms": {
+  "brief": {
+   "atom": "a-cw-welcome",
+   "gloss": "The set of instructions and facts a client or employer gives you for a piece of writing."
+  },
+  "copy": {
+   "atom": "a-cw-welcome",
+   "gloss": "Writing whose purpose is to sell or persuade people to act."
+  },
+  "seo": {
+   "atom": "a-cw-welcome",
+   "gloss": "Search engine optimisation: writing so that search engines such as Google find your page."
+  },
+  "portfolio": {
+   "atom": "a-cw-welcome",
+   "gloss": "A collection of your best work that shows employers and clients what you can do."
+  },
+  "content writing": {
+   "atom": "a-cw-welcome-parts",
+   "gloss": "Writing that informs and educates the reader."
+  },
+  "copywriting": {
+   "atom": "a-cw-welcome-parts",
+   "gloss": "Writing that persuades the reader to buy, sign up or act."
+  },
+  "capstone": {
+   "atom": "a-cw-welcome-roadmap",
+   "gloss": "The final project of the course, where you write ten pieces for one business."
+  },
+  "template": {
+   "atom": "a-cw-welcome-desk",
+   "gloss": "A ready-made outline in the editor, with headings that divide the piece into parts."
+  },
+  "reading grade": {
+   "atom": "a-cw-welcome-desk",
+   "gloss": "An estimate of how hard a text is to read; a lower number means easier reading."
+  },
+  "features into benefits": {
+   "atom": "a-cw-copywriting",
+   "gloss": "Saying what a product does for the reader, not only what it has."
+  },
+  "call to action": {
+   "atom": "a-cw-copywriting",
+   "gloss": "A sentence that tells the reader what to do next, usually starting with a verb such as \"Order\"."
+  },
+  "conversion": {
+   "atom": "a-cw-three-compared",
+   "gloss": "A reader who takes the action the copy asks for, such as buying or signing up."
+  },
+  "editing in passes": {
+   "atom": "a-cw-process",
+   "gloss": "Improving a draft in several readings: big things first, then sentences, then details."
+  },
+  "7 cs of communication": {
+   "atom": "a-cw-effective",
+   "gloss": "Seven qualities of effective writing: clear, concise, concrete, correct, coherent, complete, courteous."
+  },
+  "key message": {
+   "atom": "a-cw-audience-purpose",
+   "gloss": "The one sentence the reader must remember if they forget everything else."
+  },
+  "jargon": {
+   "atom": "a-cw-audience-purpose",
+   "gloss": "Special words that only experts know."
+  },
+  "freelancer": {
+   "atom": "a-cw-careers",
+   "gloss": "A self-employed writer who works for several clients."
+  },
+  "seo writer": {
+   "atom": "a-cw-careers",
+   "gloss": "A writer who creates content that appears high in search engine results."
+  },
+  "technical writer": {
+   "atom": "a-cw-careers",
+   "gloss": "A writer of manuals, documentation and standard operating procedures."
+  },
+  "ux writer": {
+   "atom": "a-cw-careers",
+   "gloss": "A writer of the words inside apps and websites."
+  },
+  "ghostwriter": {
+   "atom": "a-cw-careers",
+   "gloss": "A writer who writes books, speeches or posts in someone else's name."
+  }
+ }
+}

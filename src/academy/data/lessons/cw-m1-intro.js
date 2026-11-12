@@ -183,14 +183,14 @@ export const LESSONS = [
     subtitle: "The destination, the road there, and the Writing Desk you will practise on",
     estimatedMinutes: 20,
     intro:
-      "Every organisation runs on writing: the website that brings customers, the post that starts a conversation, the email that gets a decision, the proposal that wins the contract. This course teaches you to write all of it well enough to be paid for it. Start here with the whole road, then write your first draft.",
+      "Every organisation depends on writing. A website brings customers. A social media post starts a conversation. An email gets a decision. A proposal wins the contract. This course teaches you to write all of it well enough to be paid for it. Start here with an overview of the whole course, then write your first draft.",
 
     atoms: [
       {
         id: "a-cw-welcome",
         title: "What you will be able to do",
         explain:
-          "By the end of this course you will be able to take a brief from a client or an employer and turn it into writing that does its job. You will write clear, correct English; research and write articles that people finish and search engines find; write websites and social media content; write copy that persuades people to buy, sign up or act, without lying to them; write professional emails, proposals, reports and user guides; edit other people's writing; use AI tools without letting them lower your standards; and price and deliver writing work for clients. You will finish with a ten-piece portfolio for one business that shows employers and clients exactly what you can do.",
+          "By the end of this course, you will be able to take a brief from a client or an employer. A brief is the set of instructions and facts for a piece of writing. You will turn that brief into writing that does its job. You will write clear, correct English. You will research and write articles that people read to the end and that search engines such as Google find. Writing so that search engines find your page is called SEO, which stands for search engine optimisation. You will write websites and social media content. You will write copy that persuades people to buy, sign up or act, without lying to them. Copy is writing that sells or persuades. You will write professional emails, proposals, reports and user guides. You will also learn to edit other people's writing, use AI tools without letting them lower your standards, and price and deliver writing work for clients. At the end, you will have a portfolio of ten pieces of writing for one business. A portfolio is a collection of your best work. It shows employers and clients exactly what you can do.",
         why: "Writing is one of the few skills every employer needs and few people do well. Clear writers are trusted with customers, money and decisions.",
       },
       {
@@ -212,7 +212,7 @@ export const LESSONS = [
         id: "a-cw-welcome-roadmap",
         title: "The whole road, module by module",
         explain:
-          "Here is every module and the practical exercise that ends it. Each practical produces a real piece of writing you can keep. By Module 20 those pieces become your portfolio, and the capstone asks you to write ten of them for a single business. Keep every draft: the Writing Desk lets you copy or download each one.",
+          "Here is every module and the practical exercise that ends it. Each practical produces a real piece of writing you can keep. By Module 20, these pieces become your portfolio. In the capstone, which is the final project of the course, you write ten pieces for a single business. Keep every draft: the Writing Desk lets you copy or download each one.",
         table: {
           caption: "Every module and its practical exercise.",
           headers: ["Module", "Topic", "Practical"],
@@ -223,7 +223,7 @@ export const LESSONS = [
         id: "a-cw-welcome-desk",
         title: "Meet the Writing Desk",
         explain:
-          "Every lesson ends with practice on the Writing Desk. It has four parts. The task and its checklist tell you exactly what the piece must do. The brief, when there is one, gives you the facts, like a client would. The editor is where you write: it starts with a template whose headings divide the piece into parts. Keep the headings and replace the lines in [square brackets] with your own writing. Three marks shape a document. A line starting with \"## \" is a heading, a line starting with \"- \" is a bullet point, and a blank line starts a new paragraph. Press Preview to see the formatted result. Under the editor, a live bar counts your words and sentences and estimates how hard your writing is to read (the reading grade, explained properly in Module 3; lower is easier). The Style report button lists what an editor would question, such as very long sentences. \"Check my writing\" then reads your draft against the checklist.",
+          "Every lesson ends with practice on the Writing Desk. It has four parts. The task and its checklist tell you exactly what the piece must do. The brief, when there is one, gives you the facts, as a client would. The editor is where you write. It starts with a template: a ready-made outline whose headings divide the piece into parts. Keep the headings and replace the lines in [square brackets] with your own writing. You use three marks to format the document. A line starting with \"## \" is a heading, a line starting with \"- \" is a bullet point, and a blank line starts a new paragraph. Press Preview to see the formatted result. Under the editor, a live bar counts your words and sentences. It also estimates how hard your writing is to read. This estimate is called the reading grade, and a lower grade means easier reading. Module 3 explains it properly. The Style report button lists what an editor would question, such as very long sentences. \"Check my writing\" then reads your draft against the checklist.",
         why: "The checks cannot judge whether your writing is beautiful. They check what a professional editor checks first: did you write every part of the brief, within the limits, clearly enough for the reader? A model answer appears after you try, so you can compare.",
         writingLab: {
           task:
@@ -258,21 +258,21 @@ export const LESSONS = [
     subtitle: "What writing is, why workplaces depend on it, and content, copy and professional writing",
     estimatedMinutes: 30,
     intro:
-      "Before you can write for money, you need to know what kind of writing you are being paid for. This lesson defines writing as communication, shows why it matters so much at work, and separates the three disciplines of this course.",
+      "Before you can write for money, you need to know what kind of writing you are being paid for. This lesson defines writing as communication, shows why it matters so much at work, and shows the difference between the three kinds of writing, or disciplines, that this course teaches.",
 
     atoms: [
       {
         id: "a-cw-what-is-writing",
         title: "What is writing?",
         explain:
-          "Writing is communication that does not need the writer to be present. When you speak, you can watch the listener's face, repeat yourself and answer questions. When you write, the page must do all of that alone: the reader cannot ask what you meant. That is why good writing is less about fancy words and more about the reader. A useful definition for this course is: writing is the deliberate arrangement of words so that a specific reader understands, feels or does something specific. Every piece of professional writing has a reader, a purpose and a result it is trying to cause, whether that is knowing how to store tomatoes, buying a solar lamp or approving a budget.",
-        analogy: "Speaking is a conversation; writing is leaving instructions for someone you will never meet, who will read them when you are not there to explain.",
+          "Writing is communication that does not need the writer to be present. When you speak, you can watch the listener's face, repeat yourself and answer questions. When you write, the page must do all of that alone: the reader cannot ask what you meant. That is why good writing is less about fancy words and more about the reader. A useful definition for this course is: writing is the deliberate arrangement of words so that a specific reader understands, feels or does something specific. Every piece of professional writing has a reader, a purpose and a result it wants. The result might be that the reader knows how to store tomatoes, buys a solar lamp or approves a budget.",
+        analogy: "Speaking is a conversation. Writing is like leaving instructions for someone you will never meet. That person reads them when you are not there to explain.",
       },
       {
         id: "a-cw-workplace",
         title: "Why effective writing matters at work",
         explain:
-          "Most work today happens in writing: emails, chat messages on Slack, Teams or WhatsApp, reports, proposals, documentation, websites and social media. Remote and hybrid work increased this, because many colleagues now meet each other mainly through text. Unclear writing has a real cost. A vague email produces three follow-up emails. A confusing instruction produces mistakes. A weak proposal loses a contract. A website that does not explain what a company does loses customers in seconds. Clear writing does the opposite: it saves time, prevents errors, builds trust and moves decisions forward. That is why employers repeatedly list written communication among the skills they want most, in every field, not only in writing jobs.",
+          "Most work today happens in writing: emails, chat messages on Slack, Teams or WhatsApp, reports, proposals, documentation, websites and social media. Remote work (working from home) and hybrid work (partly from home, partly in the office) have increased this. Many colleagues now meet each other mainly through text. Unclear writing has a real cost. A vague email produces three follow-up emails. A confusing instruction produces mistakes. A weak proposal loses a contract. A website that does not explain what a company does loses customers in seconds. Clear writing does the opposite: it saves time, prevents errors, builds trust and moves decisions forward. That is why employers repeatedly list written communication among the skills they want most, in every field, not only in writing jobs.",
         why: "Your writing is often the first and only impression a client, recruiter or manager has of you.",
         decision: {
           scenario:
@@ -291,7 +291,7 @@ export const LESSONS = [
         id: "a-cw-content-writing",
         title: "Understanding content writing",
         explain:
-          "Content writing creates material that informs, educates or entertains an audience, usually to build trust and attention over time. Blog posts, articles, how-to guides, newsletters, social media posts, video scripts, website pages that explain things, case studies and e-books are all content. The reader chooses to read it because it is useful or interesting to them. A business publishes content so that people find it (often through search engines), learn to trust it, and remember it when they are ready to buy. Good content gives value first and asks for little or nothing in return. A content writer's core skills are research, structure, clarity and keeping a reader interested to the end.",
+          "Content writing creates material that informs, educates or entertains an audience, usually to build trust and attention over time. Blog posts, articles, how-to guides, newsletters, social media posts, video scripts, website pages that explain things, case studies and e-books are all content. The reader chooses to read it because it is useful or interesting to them. A business publishes content so that people find it, often through search engines. Then people learn to trust it and remember it when they are ready to buy. Good content gives value first and asks for little or nothing in return. A content writer's core skills are research, structure, clarity and keeping a reader interested to the end.",
         example:
           "Content: \"How to choose the right solar lamp for a power cut: five things to check before you buy.\"",
       },
@@ -299,17 +299,17 @@ export const LESSONS = [
         id: "a-cw-copywriting",
         title: "Understanding copywriting",
         explain:
-          "Copywriting is writing that persuades a reader to take a specific action: buy, sign up, book, download, call, donate or vote. Advertisements, product descriptions, sales pages, landing pages, promotional emails, slogans, flyers and the words on buttons are copy. The word \"copy\" comes from the newspaper trade, where it meant the text of an advertisement. Copy is measured by results: how many people clicked, signed up or bought. A copywriter's core skills are understanding what the customer wants and fears, turning features into benefits, writing headlines that stop people, and asking clearly for the action. Copy is usually short and every word must earn its place.",
+          "Copywriting is writing that persuades a reader to take a specific action: buy, sign up, book, download, call, donate or vote. Advertisements, product descriptions, sales pages, landing pages (web pages made for one offer), promotional emails, slogans, flyers and the words on buttons are copy. The word \"copy\" comes from the newspaper trade, where it meant the text of an advertisement. Copy is measured by results: how many people clicked, signed up or bought. A copywriter needs four core skills. First, understand what the customer wants and fears. Second, turn features into benefits: say what the product does for the reader, not only what it has. Third, write headlines that make people stop and read. Fourth, ask clearly for the action. This request is called a call to action, and it usually starts with a verb such as \"Order\". Copy is usually short, so every word must do useful work.",
         example: "Copy: \"Power cut? Not tonight. 12 hours of light from one sunny day. Order your SunBox today.\"",
       },
       {
         id: "a-cw-professional-writing",
         title: "Understanding professional and business writing",
         explain:
-          "Professional writing (also called business writing) is the writing that gets work done inside and between organisations: emails, letters, memos, notices, proposals, reports, minutes, policies, user guides and CVs. Its reader usually has to read it to do their job, so they want it to be fast to read, accurate and easy to act on. Professional writing is judged by whether the reader understands it the first time and can do what is needed: approve the budget, follow the procedure, attend the meeting, fix the problem. Its core skills are structure, precision, the right level of formality, and getting to the point.",
+          "Professional writing (also called business writing) is the writing that gets work done inside and between organisations. Examples are emails, letters, memos, notices, proposals, reports, minutes, policies, user guides and CVs. The reader usually has to read it to do their job. So they want it to be quick to read, accurate and easy to act on. Professional writing is judged by two questions. Does the reader understand it the first time? Can the reader then do what is needed, such as approve the budget, follow the procedure, attend the meeting or fix the problem? Its core skills are structure, precision, the right level of formality, and getting to the point.",
         example: "Professional: \"Dear Musa, 500 SunBox lamps arrive on Friday. Please confirm your order by Wednesday.\"",
         decision: {
-          scenario: "A bank asks you for a page that explains how mortgages work, with a button at the end that says \"Check what you can borrow\".",
+          scenario: "A bank asks you for a page that explains how mortgages (bank loans to buy a house) work, with a button at the end that says \"Check what you can borrow\".",
           question: "How would you best describe the job?",
           options: [
             { id: "a", text: "Mainly content writing (it educates), finished with a small piece of copy (the call to action)", why: "Right. Most real pieces mix disciplines. Recognising which part does which job tells you how to write each part." },
@@ -324,7 +324,7 @@ export const LESSONS = [
         id: "a-cw-three-compared",
         title: "Differences and similarities between the three",
         explain:
-          "The three disciplines differ mainly in purpose. Content informs and earns attention; copy persuades and asks for action; professional writing gets a task done. They also differ in how success is measured: content by readers, time on page and trust; copy by conversions such as sales and sign-ups; professional writing by whether the right thing happens. Yet they share the same foundations: a clear reader, a clear purpose, correct grammar, a logical structure and plain words. Many real pieces mix them. A product page informs (content) and sells (copy); a proposal is professional writing that must also persuade. That is why this course teaches all three: employers rarely hire a writer who can do only one.",
+          "The three disciplines differ mainly in purpose. Content informs and earns attention. Copy persuades and asks for action. Professional writing gets a task done. They also differ in how success is measured. Content is measured by the number of readers, the time they spend on the page and the trust it builds. Copy is measured by conversions: the number of readers who take the action, such as buying or signing up. Professional writing is measured by whether the right thing happens. Yet they share the same foundations: a clear reader, a clear purpose, correct grammar, a logical structure and plain words. Many real pieces mix the three. A product page informs (content) and sells (copy). A proposal is professional writing that must also persuade. That is why this course teaches all three: employers rarely hire a writer who can do only one.",
         table: {
           caption: "The three disciplines side by side.",
           headers: ["", "Content writing", "Copywriting", "Professional writing"],
@@ -372,14 +372,14 @@ export const LESSONS = [
     subtitle: "The writing process, the qualities of effective writing, and audience and purpose",
     estimatedMinutes: 30,
     intro:
-      "Professional writers do not sit down and produce a perfect piece in one go. They follow a process, they test their work against a set of qualities, and before anything else they decide who they are writing for and why.",
+      "Professional writers do not sit down and produce a perfect piece in one go. Before anything else, they decide who they are writing for and why. Then they follow a process, and they test their work against a set of qualities.",
 
     atoms: [
       {
         id: "a-cw-process",
         title: "The writing process: plan, draft, edit, publish",
         explain:
-          "Writing well is a process of four stages. Planning: understand the brief, the reader and the purpose, gather facts, and outline the main points in order. Drafting: write the whole piece quickly from the outline without stopping to polish; a draft only has to exist. Editing: improve it in passes, first the big things (is everything needed there, in the right order?), then the sentences (clear, short, active), then the details (spelling, punctuation, facts, names, numbers). Publishing: format it for where it will appear, check it one last time in that place, and send or post it. Beginners try to do all four at once, which is why they stare at a blank page. Separating them makes writing faster and better.",
+          "Writing well is a process of four stages. Planning: understand the brief (the instructions you are given for the piece), the reader and the purpose. Gather the facts. Then outline the main points: write a short list of them in the order you will cover them. Drafting: write the whole piece quickly from the outline. Do not stop to polish it (make small improvements). At this stage, a draft only has to exist. Editing: improve the draft in passes. A pass is one full reading with one focus. First check the big things: is everything there needed, and is it in the right order? Then check the sentences: are they clear, short and active (saying who does what)? Finally check the details: spelling, punctuation, facts, names and numbers. Publishing: format the piece for the place where it will appear. Check it one last time in that place. Then send or post it. Beginners try to do all four stages at once. That is why they often sit in front of a blank page and cannot start. Separating them makes writing faster and better.",
         table: {
           caption: "What happens at each stage, and the question it answers.",
           headers: ["Stage", "What you do", "Question it answers"],
@@ -396,7 +396,7 @@ export const LESSONS = [
         id: "a-cw-effective",
         title: "Characteristics of effective writing",
         explain:
-          "Effective writing has seven qualities, often called the 7 Cs of communication. Clear: the reader understands it the first time. Concise: no unnecessary words. Concrete: specific facts, numbers and examples instead of vague claims (\"12 hours of light\", not \"long-lasting\"). Correct: accurate facts and correct grammar, spelling and punctuation. Coherent: ideas follow a logical order and connect to each other. Complete: it answers every question the reader needs answered, such as what, when, where, how much and what next. Courteous: it respects the reader, in tone and in their time. Use the seven as an editing checklist: read your draft once for each.",
+          "Effective writing has seven qualities, often called the 7 Cs of communication. Clear: the reader understands it the first time. Concise: no unnecessary words. Concrete: specific facts, numbers and examples instead of vague claims (\"12 hours of light\", not \"long-lasting\"). Correct: accurate facts and correct grammar, spelling and punctuation. Coherent: ideas follow a logical order and connect to each other. Complete: it answers every question the reader needs answered, such as what, when, where, how much and what next. Courteous: it respects the reader, both in its tone and by not wasting their time. Use the seven qualities as an editing checklist: read your draft once for each quality.",
         samples: [
           { label: "Weak", tone: "bad", text: "We are pleased to inform you that our innovative product offers great benefits and will be available soon at an affordable price." },
           { label: "Effective", tone: "good", text: "The SunBox solar lamp gives 12 hours of light from 6 hours of sunshine. It costs ₦18,500 and arrives in shops on Friday 14 March." },
@@ -417,24 +417,24 @@ export const LESSONS = [
         id: "a-cw-audience-purpose",
         title: "Audience and purpose",
         explain:
-          "Every writing decision depends on two questions: who is reading, and what should happen after they read? The audience is the specific person or group you are writing for: their age, job, what they already know, what they care about, how much time they have, and where they will read (a phone on a bus, a laptop at a desk). The purpose is what you want them to know, feel or do. Common purposes are to inform, educate, persuade, instruct, request and entertain. Write both down before drafting, together with a key message: the one sentence the reader must remember if they forget everything else. A notice for older residents on WhatsApp needs short sentences, large clear facts and no jargon; a report for a finance director needs numbers first and a recommendation.",
+          "Every writing decision depends on two questions: who is reading, and what should happen after they read? The audience is the specific person or group you are writing for. Think about their age and job, what they already know and what they care about. Think also about how much time they have and where they will read (a phone on a bus, a laptop at a desk). The purpose is what you want them to know, feel or do. Common purposes are to inform, educate, persuade, instruct, request and entertain. Write both down before drafting, together with a key message: the one sentence the reader must remember if they forget everything else. For example, a notice for older residents on WhatsApp needs short sentences, clear facts that are easy to see, and no jargon (special words that only experts know). A report for a finance director needs the numbers first, and then a recommendation.",
         why: "A piece written for \"everyone\" is written for no one. The more precisely you picture the reader, the easier every word choice becomes.",
         writingLab: {
           task:
-            "Plan, then draft. Using the brief, write the Audience (at least 8 words, specific), the Purpose (start with one of: inform, educate, persuade, instruct, request or entertain), a Key message of one sentence (25 words or fewer), and then the Draft: a WhatsApp notice of 50 to 120 words in plain English (reading grade 8 or below, no sentence over 25 words) that gives the date, the time, the place and that no appointment is needed.",
+            "Plan, then draft. Using the brief, write four sections. Audience: describe the readers in at least 8 words, and be specific. Purpose: start with one of these words: inform, educate, persuade, instruct, request or entertain. Key message: write one sentence of 25 words or fewer. Draft: write a WhatsApp notice of 50 to 120 words in plain English. Keep it at reading grade 8 or below (a reading grade is a score for how easy text is to read; a lower number is easier). Do not write any sentence over 25 words. The notice must give the date, the time and the place, and say that no appointment is needed.",
           brief: PLAN_BRIEF,
           doc: PLAN_DOC,
           tests: [
             { label: "Audience: specific, at least 8 words", check: "return words(section('Audience')) >= 8;", fail: "Describe the readers: where they are, their age, and what they may not know." },
             { label: "Purpose starts with one of the six purpose words", check: String.raw`return /^(inform|educate|persuade|instruct|request|entertain)/i.test((section('Purpose') || '').trim());`, fail: "Begin the Purpose with one word from the list, for example \"Persuade: …\"." },
             { label: "Key message: one sentence of 25 words or fewer", check: "const k = section('Key message'); return sentences(k).length === 1 && words(k) >= 6 && words(k) <= 25;", fail: "Write a single sentence of up to 25 words that a reader should remember." },
-            { label: "Draft: 50 to 120 words", check: "const d = words(section('Draft')); return d >= 50 && d <= 120;", fail: "The bar under the editor counts the whole document; count the Draft section alone and keep it between 50 and 120 words." },
+            { label: "Draft: 50 to 120 words", check: "const d = words(section('Draft')); return d >= 50 && d <= 120;", fail: "The bar under the editor counts the words in the whole document. Count the words in the Draft section alone, and keep the Draft between 50 and 120 words." },
             { label: "Draft gives the date, the time, the place and \"no appointment\"", check: String.raw`const d = section('Draft') || ''; return /22 March|Saturday/i.test(d) && /8\s?(am|a\.m\.)/i.test(d) && /(Ikeja|Obafemi Awolowo)/i.test(d) && /appointment/i.test(d);`, fail: "Check the brief: a reader needs the day or date, the start time, the place and that no appointment is needed." },
             { label: "Draft is plain English: grade 8 or below, no sentence over 25 words", check: "const d = section('Draft'); return grade(d) <= 8 && longest(d) <= 25;", fail: "Use shorter sentences and everyday words. The audience includes older readers on phones." },
           ],
           solution: PLAN_DONE,
-          hint: "Write the Key message first; the Draft is that sentence plus the facts a reader needs to act on it.",
-          successMessage: "Planned before drafted: the reader, the purpose and the one message decided every sentence of the notice.",
+          hint: "Write the Key message first. Then build the Draft from that sentence, and add the facts a reader needs to act on it.",
+          successMessage: "You planned before you drafted. The reader, the purpose and the key message guided every sentence of your notice.",
         },
       },
     ],
@@ -455,14 +455,14 @@ export const LESSONS = [
     subtitle: "What goes wrong, what people wrongly believe, and where writing can take you",
     estimatedMinutes: 30,
     intro:
-      "Most bad writing fails in the same few ways, and most people who avoid writing believe the same few myths. This lesson clears both away, maps the careers open to good writers, and ends with the module's practical.",
+      "Most bad writing fails in the same few ways. Most people who avoid writing believe the same few myths. This lesson explains both. It then shows the careers open to good writers. It ends with the practical task for this module.",
 
     atoms: [
       {
         id: "a-cw-mistakes",
         title: "Common writing mistakes and misconceptions",
         explain:
-          "The most common mistakes are not grammar errors. They are: writing without knowing the reader or purpose; burying the main point at the end; long, tangled sentences; vague words instead of specific facts; jargon the reader does not know; missing information (what, when, where, how much); no clear next step; and not editing. The most common misconceptions are just as harmful. \"Good writers are born, not made\": writing is a skill built by practice and feedback, like driving. \"Big words sound professional\": they slow readers down; plain words sound confident. \"Longer is better\": readers reward the shortest piece that does the job. \"Grammar tools will fix it\": they catch errors, not unclear thinking. \"AI will write it for me\": AI produces drafts; judgement, facts and voice remain your job (Module 18).",
+          "The most common mistakes are not grammar errors. Here are the eight most common mistakes. The writer does not know the reader or the purpose. The writer hides the main point at the end. The sentences are long and tangled. The words are vague instead of giving specific facts. The text uses jargon (special words of a trade) that the reader does not know. Information is missing: what, when, where or how much. There is no clear next step. The writer does not edit. The most common misconceptions (false beliefs) are equally harmful. \"Good writers are born, not made\": writing is a skill built by practice and feedback, like driving. \"Big words sound professional\": they slow readers down; plain words sound confident. \"Longer is better\": readers reward the shortest piece that does the job. \"Grammar tools will fix it\": they catch errors, but they cannot fix unclear thinking. \"AI will write it for me\": AI produces drafts. Your judgement, the facts and your voice (your own way of writing) are still your job (Module 18).",
         samples: [
           { label: "Sounds \"professional\", says little", tone: "bad", text: "In furtherance of our commitment to operational excellence, we wish to notify all stakeholders that the utilisation of the staff car park will be subject to temporary suspension." },
           { label: "Plain and complete", tone: "good", text: "The staff car park will be closed from Monday 3 to Friday 7 June for resurfacing. Please park at the church car park opposite the main gate." },
@@ -471,7 +471,7 @@ export const LESSONS = [
           scenario: "A new writer says: \"I use long words and long sentences so that my clients see I am educated.\"",
           question: "What is the best advice?",
           options: [
-            { id: "a", text: "Plain words and short sentences read as confident and expert; long words make readers work harder and trust you less", why: "Right. Readers judge writing by how easily they understand it. Clarity is what experts sound like." },
+            { id: "a", text: "Plain words and short sentences read as confident and expert; long words make readers work harder and trust you less", why: "Right. Readers judge writing by how easily they understand it. Experts write clearly." },
             { id: "b", text: "Keep doing it for formal documents, but not for social media", whyWrong: "Even formal documents should use plain words. A report or proposal that is hard to read loses its reader too." },
             { id: "c", text: "Use even more technical terms to sound expert", whyWrong: "Jargon excludes readers who do not know it, and most readers do not." },
             { id: "d", text: "It does not matter as long as the grammar is correct", whyWrong: "Correct grammar in a confusing sentence is still confusing." },
@@ -483,7 +483,7 @@ export const LESSONS = [
         id: "a-cw-careers",
         title: "Career opportunities in the writing industry",
         explain:
-          "Good writers work in almost every sector, as employees or freelancers. Content writers and bloggers write articles, guides and web content for brands and publications. SEO writers specialise in content that ranks in search engines. Copywriters write ads, sales pages and campaigns, at agencies or in-house. Email marketers and social media managers write the messages that keep customers coming back. Communications officers and PR writers write press releases, newsletters and corporate communication. Technical writers write manuals, documentation and SOPs for technology and industry. Proposal and grant writers win contracts and funding. UX writers write the words inside apps and websites. Editors and proofreaders improve other people's writing. Ghostwriters write books, speeches and LinkedIn posts in someone else's name. Many writers combine several roles, and remote work means a writer in Lagos or Kano can serve clients anywhere.",
+          "Good writers work in almost every sector, as employees or as freelancers (self-employed writers who work for several clients). Content writers and bloggers write articles, guides and web content for brands and publications. SEO (search engine optimisation) writers specialise in content that appears high in the results of search engines such as Google. Copywriters write ads, sales pages and campaigns. They work at agencies or in-house (inside one company). Email marketers and social media managers write the messages that keep customers coming back. Communications officers and PR (public relations) writers write press releases, newsletters and corporate communication. Technical writers write manuals, documentation and SOPs (standard operating procedures: step-by-step instructions for a task) for technology and industry. Proposal and grant writers win contracts and funding. UX (user experience) writers write the words inside apps and websites. Editors and proofreaders improve other people's writing. Ghostwriters write books, speeches and LinkedIn posts in someone else's name. Many writers combine several roles. Because of remote work, a writer in Lagos or Kano can serve clients anywhere.",
         table: {
           caption: "Writing roles and what each one produces.",
           headers: ["Role", "What they write", "Main discipline"],
@@ -505,7 +505,7 @@ export const LESSONS = [
         id: "a-cw-m1-practical",
         title: "Practical: type, purpose and audience",
         explain:
-          "Professional writers classify every piece before they write or edit it, because the type tells them the rules. Read the five samples in the brief. For each, decide its type (content, copy or professional), its purpose (use one of the six purpose words from Lesson 3), its target audience, and the evidence in the text that told you. Then write what you noticed about the difference between the three types. This is exactly how you will read a client's examples when they say \"we want something like this\".",
+          "Professional writers classify every piece before they write or edit it, because the type tells them the rules. Read the five samples in the brief. For each, decide its type (content, copy or professional), its purpose (use one of the six purpose words from Lesson 3), its target audience, and the evidence in the text that told you. Then write what you noticed about the difference between the three types. You will read a client's examples in exactly this way when the client says \"we want something like this\".",
         writingLab: {
           task:
             "Fill the table for samples A to E. Type must be exactly Content, Copy or Professional. Purpose must start with inform, educate, persuade, instruct, request or entertain. Give a target audience (at least 3 words) and evidence from the text (at least 6 words). Then, under \"What I noticed\", write at least 30 words on what separates the three types.",
@@ -517,12 +517,12 @@ export const LESSONS = [
             { label: "Samples A and E are classified correctly", check: String.raw`const r = rows(doc); const t = (s) => (r.find((c) => c[0].toUpperCase() === s) || [])[1] || ''; return /^copy$/i.test(t('A')) && /^copy$/i.test(t('E'));`, fail: "Look at A and E again: both ask the reader to act and give reasons to act now." },
             { label: "Samples B and D are classified correctly", check: String.raw`const r = rows(doc); const t = (s) => (r.find((c) => c[0].toUpperCase() === s) || [])[1] || ''; return /^professional$/i.test(t('B')) && /^professional$/i.test(t('D'));`, fail: "B and D get work done between people in organisations: an approval and an instruction to staff." },
             { label: "Sample C is classified correctly", check: String.raw`const r = rows(doc); const c = r.find((x) => x[0].toUpperCase() === 'C') || []; return /^content$/i.test(c[1] || '') && /^(educate|inform|instruct)/i.test(c[2] || '');`, fail: "C teaches the reader something useful and sells nothing." },
-            { label: "The purposes match the samples", check: String.raw`const r = rows(doc); const p = (s) => (r.find((c) => c[0].toUpperCase() === s) || [])[2] || ''; return /^persuade/i.test(p('A')) && /^request/i.test(p('B')) && /^(instruct|inform)/i.test(p('D')) && /^persuade/i.test(p('E'));`, fail: "A and E persuade; B asks for approval (request); D tells staff what to do (instruct)." },
+            { label: "The purposes match the samples", check: String.raw`const r = rows(doc); const p = (s) => (r.find((c) => c[0].toUpperCase() === s) || [])[2] || ''; return /^persuade/i.test(p('A')) && /^request/i.test(p('B')) && /^(instruct|inform)/i.test(p('D')) && /^persuade/i.test(p('E'));`, fail: "A and E persuade. B asks for approval, so its purpose is to request. D tells staff what to do, so its purpose is to instruct." },
             { label: "\"What I noticed\": at least 30 words", check: "return words(section('What I noticed')) >= 30;", fail: "Write two or three sentences on what separates content, copy and professional writing." },
           ],
           solution: SAMPLES_DONE,
           hint: "For each sample ask: what does the writer want the reader to do next? Act now, learn something, or carry out a task?",
-          successMessage: "Five samples read like a professional: type, purpose, audience and the evidence for each. That habit is the first step of every brief you will ever take.",
+          successMessage: "You read five samples like a professional. For each one, you found the type, purpose, audience and evidence. This habit is the first step of every brief (a client's instructions for a piece of writing) you will ever take.",
         },
       },
     ],
@@ -531,11 +531,11 @@ export const LESSONS = [
       title: "Module 1 practical: collect and classify real writing",
       intro: "Do this with real writing you meet this week, then keep your notes.",
       prompts: [
-        "Collect ten real pieces of writing: two adverts, two social media posts, two articles or blog posts, two emails or letters, a website homepage and a notice or memo.",
-        "For each, write down its type (content, copy or professional), its purpose, its target audience, and the words that told you.",
-        "Mark the one you think works best and the one that works worst, and write two sentences on why for each.",
-        "Rewrite the worst one in under 100 words for the same reader and purpose.",
-        "Keep the collection: you will add to it as a swipe file of examples throughout the course.",
+        "Collect ten real pieces of writing. You need: two adverts, two social media posts, two articles or blog posts, two emails or letters, one website homepage and one notice or memo.",
+        "For each piece, write down four things: its type (content, copy or professional), its purpose, its target audience, and the words in the text that showed you this.",
+        "Mark the piece you think works best and the piece that works worst. For each of these two pieces, write two sentences on why.",
+        "Rewrite the worst piece in under 100 words. Write it for the same reader and the same purpose.",
+        "Keep the collection. You will add to it throughout the course. It will become your swipe file: a collection of real examples that you keep and learn from.",
       ],
       closing: "Module 2 builds the foundation every one of those pieces depends on: grammar, vocabulary and sentence construction.",
     },
