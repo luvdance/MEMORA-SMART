@@ -364,10 +364,31 @@ const moveEdu = (i, dir) => {
   // ── AI SUGGEST ──
   // The server writes the prompt from the field name; each use counts
   // against the daily allowance, and the limit message is shown as it comes.
+  // The summary is written from the person's own details. Their name is
+  // never sent: a CV summary does not use it.
+  const summaryFacts = () => {
+    const list = (items) => (Array.isArray(items) ? items : []);
+    const experience = list(cv.experience)
+      .filter(e => e.role || e.company)
+      .slice(0, 4)
+      .map(e => {
+        const when = [e.start, e.current ? "present" : e.end].filter(Boolean).join(" to ");
+        return [e.role, e.company && `at ${e.company}`, when && `(${when})`].filter(Boolean).join(" ");
+      })
+      .join("; ");
+    const education = list(cv.education)
+      .filter(e => e.degree || e.field || e.school)
+      .slice(0, 2)
+      .map(e => [e.degree, e.field && `in ${e.field}`, e.school && `from ${e.school}`].filter(Boolean).join(" "))
+      .join("; ");
+    return { jobTitle: cv.jobTitle, skills: cv.skills, experience, education };
+  };
+
   const aiSuggest = async (key) => {
     setLoading(l => ({ ...l, [key]: true }));
     try {
-      const text = await suggestField(key, { jobTitle: cv.jobTitle, name: cv.name });
+      const context = key === "summary" ? summaryFacts() : { jobTitle: cv.jobTitle };
+      const text = await suggestField(key, context);
       setCV(p => ({ ...p, [key]: text.trim() }));
     } catch (err) {
       alert(err.message);
@@ -699,10 +720,6 @@ const moveEdu = (i, dir) => {
             onBlur={blur("hobbies")}
             placeholder="e.g. Reading, Football, Photography"
             icon="fas fa-heart"
-          />
-          <AiBtn
-            loading={loading.hobbies}
-            onClick={() => aiSuggest("hobbies")}
           />
         </div>
 

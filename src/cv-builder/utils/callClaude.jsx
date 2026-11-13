@@ -7,8 +7,9 @@ import { auth } from "../../firebase";
 import { cvApi } from "./cvAccess";
 
 /**
- * @param {"summary"|"skills"|"languages"|"hobbies"|"responsibilities"|"certifications"} kind
- * @param {{jobTitle?: string, name?: string, role?: string, company?: string}} context
+ * Hobbies have no suggestion on purpose: people write their own.
+ * @param {"summary"|"skills"|"languages"|"responsibilities"|"certifications"} kind
+ * @param {{jobTitle?: string, role?: string, company?: string, skills?: string, experience?: string, education?: string}} context
  * @returns {Promise<string>}
  */
 export async function suggestField(kind, context = {}) {
