@@ -489,7 +489,7 @@ useEffect(() => {
           {user && entitlement && (
             <button
               className={`atsx-pill ${entitlement.premium ? "atsx-pill--pro" : ""}`}
-              onClick={() => (entitlement.premium ? navigate("/dashboard/payments") : setPaywallFor("analyze"))}
+              onClick={() => (entitlement.premium ? navigate("/dashboard/payments", { state: { from: window.location.pathname } }) : setPaywallFor("analyze"))}
             >
               {entitlement.premium ? <><i className="fas fa-crown"></i> PRO</> : <><i className="fas fa-crown"></i> Go Premium</>}
             </button>

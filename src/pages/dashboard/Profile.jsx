@@ -182,7 +182,7 @@ export default function Profile() {
 
       <button
         className="dash-profile__payments-btn"
-        onClick={() => navigate("/dashboard/payments")}
+        onClick={() => navigate("/dashboard/payments", { state: { from: window.location.pathname } })}
       >
         View Payments <i className="fas fa-arrow-right"></i>
       </button>

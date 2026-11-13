@@ -64,6 +64,24 @@ export function decideAi(usage, kind, limit, now = Date.now()) {
 /** The limit for this plan and kind. */
 export const aiLimit = (kind, premium) => (premium ? AI_LIMITS.premium : AI_LIMITS.free)[kind] ?? 0;
 
+export const AI_KINDS = ["write", "assist", "scan", "ats", "optimize", "letter"];
+
+/**
+ * Today's use of every allowance, for the Plan & payments page.
+ * @returns {{[kind: string]: {used: number, limit: number, resetsAt: number|null}}}
+ */
+export function summarizeAi(usage, premium, now = Date.now()) {
+  return Object.fromEntries(AI_KINDS.map((kind) => {
+    const kept = recent(usage?.[kind], now);
+    return [kind, {
+      used: kept.length,
+      limit: aiLimit(kind, premium),
+      // When the oldest counted use stops counting.
+      resetsAt: kept.length ? kept[0] + AI_WINDOW_MS : null,
+    }];
+  }));
+}
+
 /** "in 3 hours" / "in 25 minutes", for the limit message. */
 export function untilText(resetsAt, now = Date.now()) {
   if (!resetsAt) return "later today";

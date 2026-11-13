@@ -26,6 +26,7 @@ import "../cv-builder/CVBuilder.css";
 import { printCV, printNeedsPdf, isAppleMobile } from "../cv-builder/utils/printEngine";
 import { downloadCVPdf, buildCvPdfBlob } from "../cv-builder/utils/pdfEngine";
 import PaymentRequery from "../components/PaymentRequery";
+import CVShareSheet from "../cv-builder/components/CVShareSheet";
 import { track } from "../utils/analytics";
 import { TEMPLATE_INFO } from "../cv-builder/utils/sampleCV";
 import cvLogo from "../assets/cv logo.png";
@@ -98,9 +99,8 @@ export default function CVBuilder({ adminMode = false }) {
   const [showPaywall, setShowPaywall] = useState(false);
 
   // ── MODAL STATE ──
-  const [shareUrl, setShareUrl] = useState("");
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // Share sends the PDF itself, so it counts as a download: { file, url, name }.
+  const [shareReady, setShareReady] = useState(null);
   const [showDownloadGate, setShowDownloadGate] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
 
@@ -295,15 +295,19 @@ useEffect(() => {
     toastTimer.current = setTimeout(() => setDownloadToast(null), ms);
   };
 
-  const describeDownload = (kind, ent) => {
-    if (kind === "premium") return "Downloading. Premium: unlimited downloads.";
+  const describeDownload = (kind, ent, action = "download") => {
+    if (kind === "premium") {
+      return action === "share" ? "Ready to send. Premium: unlimited." : "Downloading. Premium: unlimited downloads.";
+    }
+    // Sharing sends the PDF, so it uses a download like Print and Download do.
+    const lead = action === "share" ? "Sharing uses a download. " : "";
     if (kind === "credit") {
-      return `Used 1 download credit. ${ent.credits} credit${ent.credits !== 1 ? "s" : ""} left.`;
+      return `${lead}Used 1 download credit. ${ent.credits} credit${ent.credits !== 1 ? "s" : ""} left.`;
     }
     const { used, limit, remaining, resetsAt } = ent.free;
     return remaining > 0
-      ? `Free download ${used} of ${limit} used today. ${remaining} left.`
-      : `Free download ${used} of ${limit} used today. Resets ${formatResetIn(resetsAt)}.`;
+      ? `${lead}Free download ${used} of ${limit} used today. ${remaining} left.`
+      : `${lead}Free download ${used} of ${limit} used today. Resets ${formatResetIn(resetsAt)}.`;
   };
 
   // ── OPEN THE PAYWALL ──
@@ -321,6 +325,7 @@ useEffect(() => {
   const runDownload = async (action, { afterPayment = false } = {}) => {
     const doIt = async () => {
       if (action === "print") await triggerPrint();
+      else if (action === "share") await prepareShare();
       else await triggerPdfDownload();
     };
 
@@ -336,6 +341,7 @@ useEffect(() => {
     if (action === "download") setPdfLoading(true);
     // Print had no visible feedback, so any wait looked like a freeze.
     if (action === "print") showToast("Preparing your CV for printing...", "success", 20000);
+    if (action === "share") showToast("Preparing your CV to send...", "success", 20000);
     let result;
     try {
       result = await consumeDownload(user, { template, cvId });
@@ -345,7 +351,7 @@ useEffect(() => {
     if (action === "download") setPdfLoading(false);
 
     if (result.ok) {
-      showToast(describeDownload(result.kind, result.entitlement), "success");
+      showToast(describeDownload(result.kind, result.entitlement, action), "success");
       await doIt();
       return;
     }
@@ -375,6 +381,29 @@ useEffect(() => {
 
   const handlePrint = () => runDownload("print");
   const handleDownloadPDF = () => runDownload("download");
+  // Share sends the PDF itself (WhatsApp, email…), so it goes through the
+  // same server check as Download: plan, daily allowance, Premium templates.
+  const handleShare = () => runDownload("share");
+
+  // Build the PDF once the share is counted, then open the share sheet.
+  const prepareShare = async () => {
+    try {
+      const blob = await buildCvPdfBlob({ previewRef, cv, theme, format });
+      const name = `${(cv.name || "My").trim()} CV.pdf`.replace(/[\\/:*?"<>|]+/g, "");
+      const file = new File([blob], name, { type: "application/pdf" });
+      setDownloadToast(null);
+      setShareReady({ file, url: URL.createObjectURL(blob), name });
+    } catch (err) {
+      console.error("Share failed:", err);
+      showToast("We couldn't prepare your CV to send. Please try Download instead.", "error", 8000);
+    }
+  };
+
+  const closeShareReady = () => {
+    const url = shareReady?.url;
+    setShareReady(null);
+    if (url) setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
 
 const triggerPrint = async () => {
   try {
@@ -542,21 +571,6 @@ const triggerPrint = async () => {
     return null;
   };
 
-  // ── SHARE ──
-  const handleShare = async () => {
-    // Use the id save returns: `cvId` in this closure is still the old value.
-    const id = cvId || await handleSave();
-    if (!id) return;
-    const url = `${window.location.origin}/cv/${id}`;
-    setShareUrl(url);
-    setShowShareModal(true);
-  };
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   // ── CLEAR ──
   const handleClear = () => {
@@ -585,7 +599,7 @@ const triggerPrint = async () => {
           template={template} setTemplate={setTemplate}
           accent={accent} setAccent={setAccent}
           entitlement={entitlement}
-          onPlan={() => (entitlement?.premium ? navigate("/dashboard/payments") : openPaywall("upgrade"))}
+          onPlan={() => (entitlement?.premium ? navigate("/dashboard/payments", { state: { from: window.location.pathname } }) : openPaywall("upgrade"))}
           adminMode={adminMode}
           sectionOrder={sectionOrder}
           onPrint={handlePrint}
@@ -618,7 +632,7 @@ const triggerPrint = async () => {
           onHome={() => navigate(adminMode ? "/admin" : "/dashboard", adminMode ? { state: { tab: "cvs" } } : undefined)}
           user={user}
           entitlement={entitlement}
-          onPlan={() => (entitlement?.premium ? navigate("/dashboard/payments") : openPaywall("upgrade"))}
+          onPlan={() => (entitlement?.premium ? navigate("/dashboard/payments", { state: { from: window.location.pathname } }) : openPaywall("upgrade"))}
           adminMode={adminMode}
         />
       )}
@@ -730,7 +744,7 @@ const triggerPrint = async () => {
       {user && entitlement && !adminMode && (
         <button
           className={`cvb__plan-chip ${entitlement.premium ? "cvb__plan-chip--pro" : ""}`}
-          onClick={() => (entitlement.premium ? navigate("/dashboard/payments") : openPaywall("upgrade"))}
+          onClick={() => (entitlement.premium ? navigate("/dashboard/payments", { state: { from: window.location.pathname } }) : openPaywall("upgrade"))}
           title={describeEntitlement(entitlement).sub}
         >
           <i className={`fas fa-${describeEntitlement(entitlement).icon}`}></i>
@@ -872,44 +886,20 @@ const triggerPrint = async () => {
         </div>
       )}
 
-      {/* ── SHARE MODAL ── */}
-      {showShareModal && (
-        <div className="cvb-modal" onClick={() => setShowShareModal(false)}>
-          <div className="cvb-modal__box" onClick={(e) => e.stopPropagation()}>
-            <div className="cvb-modal__icon">
-              <i className="fas fa-share-alt"></i>
-            </div>
-            <h3>Share this CV</h3>
-            <p>Anyone with this link can view this CV. They'll need to log in to download it.</p>
-            <div className="cvb-modal__link-row">
-              <input className="cvb-modal__link-input" value={shareUrl} readOnly />
-              <button
-                className={`cvb-modal__copy-btn ${copied ? "cvb-modal__copy-btn--copied" : ""}`}
-                onClick={copyLink}
-              >
-                {copied ? (
-                  <><i className="fas fa-check"></i> Copied!</>
-                ) : (
-                  <><i className="fas fa-copy"></i> Copy</>
-                )}
-              </button>
-            </div>
-            <div className="cvb-modal__actions">
-              <button className="cvb-modal__close" onClick={() => setShowShareModal(false)}>Done</button>
-            </div>
-          </div>
-        </div>
+      {/* ── SHARE SHEET (the PDF itself, after the download check) ── */}
+      {shareReady && (
+        <CVShareSheet ready={shareReady} personName={cv.name?.trim()} onClose={closeShareReady} />
       )}
 
-      {/* ── LOGIN GATE (unauthenticated download attempt) ── */}
+      {/* ── LOGIN GATE (unauthenticated download, print or share) ── */}
       {showDownloadGate && (
         <div className="cvb-modal" onClick={() => setShowDownloadGate(false)}>
           <div className="cvb-modal__box" onClick={(e) => e.stopPropagation()}>
             <div className="cvb-modal__icon cvb-modal__icon--lock">
               <i className="fas fa-lock"></i>
             </div>
-            <h3>Login to Download</h3>
-            <p>You need a free Memora account to download your CV. Your progress will be saved automatically.</p>
+            <h3>Sign in to download or share</h3>
+            <p>You need a free Memora account to download, print or send your CV. Your progress will be saved automatically.</p>
             <div className="cvb-modal__actions">
               <button
                 className="cvb-modal__primary"
@@ -1044,7 +1034,7 @@ const triggerPrint = async () => {
               save: handleSave,
               design: () => { setTab("design"); window.scrollTo({ top: 0 }); },
               works: () => navigate("/dashboard/my-works"),
-              payments: () => navigate("/dashboard/payments"),
+              payments: () => navigate("/dashboard/payments", { state: { from: window.location.pathname } }),
               dashboard: () => navigate("/dashboard"),
               admin: () => navigate("/admin", { state: { tab: "cvs" } }),
               upgrade: () => openPaywall("upgrade"),

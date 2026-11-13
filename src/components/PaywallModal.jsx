@@ -10,13 +10,13 @@ const REASONS = {
     icon: "hourglass-half",
     title: "You've used today's free downloads",
     body: (ent) => ent?.free?.resetsAt
-      ? `Your ${ent.free.limit} free downloads reset ${formatResetIn(ent.free.resetsAt)}. Go Premium to download now, as often as you like.`
-      : "Go Premium to download as often as you like.",
+      ? `Your ${ent.free.limit} free downloads reset ${formatResetIn(ent.free.resetsAt)}. Sharing a CV uses a download too. Go Premium to download and share now, as often as you like.`
+      : "Sharing a CV uses a download too. Go Premium to download and share as often as you like.",
   },
   premium_template: {
     icon: "crown",
     title: "This is a Premium template",
-    body: () => "You can keep editing it for free. To download it, choose a Premium plan, or switch to one of the free templates.",
+    body: () => "You can keep editing it for free. To download or share it, choose a Premium plan, or switch to one of the free templates.",
   },
   premium_feature: {
     icon: "magic",

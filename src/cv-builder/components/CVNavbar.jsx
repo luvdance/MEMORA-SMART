@@ -246,7 +246,7 @@ export default function CVNavbar({
             {saveState === "dirty" && <span className="wnav__save-dot" aria-label="Unsaved changes" />}
           </button>
         )}
-        <button className="wnav__btn" onClick={onShare} title="Get a share link">
+        <button className="wnav__btn" onClick={onShare} title="Send the PDF by WhatsApp, email or another app">
           <i className="fas fa-share-nodes"></i>
           <span>Share</span>
         </button>
@@ -298,7 +298,7 @@ export default function CVNavbar({
               <button className="wnav__item" role="menuitem" onClick={() => navigate("/dashboard/my-works")}>
                 <i className="fas fa-folder-open"></i> My CVs
               </button>
-              <button className="wnav__item" role="menuitem" onClick={() => navigate("/dashboard/payments")}>
+              <button className="wnav__item" role="menuitem" onClick={() => navigate("/dashboard/payments", { state: { from: window.location.pathname } })}>
                 <i className="fas fa-receipt"></i> Plan & payments
               </button>
               <button className="wnav__item" role="menuitem" onClick={() => { setMenu(null); openSupport({ app: "cv-builder" }); }}>

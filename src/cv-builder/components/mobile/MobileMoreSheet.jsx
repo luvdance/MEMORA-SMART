@@ -14,7 +14,7 @@ export default function MobileMoreSheet({ open, onClose, user, entitlement, isOw
     { label: "ATS score", icon: "fa-gauge-high", tone: "green", onClick: actions.ats, premium: true },
     { label: "AI rewrite", icon: "fa-wand-magic-sparkles", tone: "violet", onClick: actions.ats, premium: true },
     { label: "Print", icon: "fa-print", tone: "blue", onClick: actions.print },
-    { label: "Share link", icon: "fa-share-nodes", tone: "teal", onClick: actions.share },
+    { label: "Share PDF", icon: "fa-share-nodes", tone: "teal", onClick: actions.share },
     { label: "Save", icon: "fa-cloud-arrow-up", tone: "amber", onClick: actions.save },
     ...(adminMode
       ? [{ label: "Back to admin", icon: "fa-user-shield", tone: "slate", onClick: actions.admin }]
