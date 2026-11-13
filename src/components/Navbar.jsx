@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/memora logo.PNG";
 import { useAuth } from "../context/AuthContext";
+import { authPathFor } from "../utils/authReturn";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  // Signing in from any page brings the person back to that page.
+  const authLink = authPathFor(pathname + search);
 
   useEffect(() => {
     const handleResize = () => {
@@ -60,8 +64,8 @@ export default function Navbar() {
               </Link>
             ) : (
               <>
-                <Link to="/auth" className="login-btn">Login</Link>
-                <Link to="/auth" className="signup-btn">
+                <Link to={authLink} className="login-btn">Login</Link>
+                <Link to={authLink} className="signup-btn">
                   <i className="fas fa-user-plus"></i>
                   Sign Up
                 </Link>
@@ -93,11 +97,11 @@ export default function Navbar() {
             </Link>
           ) : (
             <>
-              <Link to="/auth" className="mobile-menu-signup" onClick={closeMenu}>
+              <Link to={authLink} className="mobile-menu-signup" onClick={closeMenu}>
                 <i className="fas fa-user-plus"></i>
                 Create Account
               </Link>
-              <Link to="/auth" className="mobile-menu-login" onClick={closeMenu}>
+              <Link to={authLink} className="mobile-menu-login" onClick={closeMenu}>
                 Login
               </Link>
             </>

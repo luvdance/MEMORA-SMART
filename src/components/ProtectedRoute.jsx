@@ -27,7 +27,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/auth" state={{ from: location.pathname + location.search }} replace />;
   }
 
   // Grandfathering: existing users skip verification check
@@ -38,7 +38,7 @@ export default function ProtectedRoute({ children }) {
 
   // Block only NEW unverified users
   if (!user.emailVerified && !isExistingUser) {
-    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/auth" state={{ from: location.pathname + location.search }} replace />;
   }
 
   return children;

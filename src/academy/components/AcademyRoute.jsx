@@ -60,7 +60,7 @@ export default function AcademyRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/auth" state={{ from: location.pathname + location.search }} replace />;
   }
 
   if (status === "error") {

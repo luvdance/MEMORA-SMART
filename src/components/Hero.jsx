@@ -159,31 +159,19 @@ function Hero() {
       setAiLoading(true);
       setAiResult(null);
       try {
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
+        // The server holds the key and limits searches per visitor
+        // (lib/cv/handlers.js site-search). An empty answer is normal.
+        const response = await fetch("/api/cv/site-search", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "anthropic-dangerous-direct-browser-access": "true",
-          },
-          body: JSON.stringify({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 1000,
-            system: `You are a helpful assistant for a tech company that offers web development, 
-            mobile apps, data analysis, AI automation, CV creation, and tech education services. 
-            When a user searches for something, respond briefly in 1-2 sentences about whether 
-            the company can help with it and how. Keep it friendly and concise. 
-            Do not use markdown or bullet points.`,
-            messages: [{ role: "user", content: `User searched for: "${query}"` }],
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
         });
         const data = await response.json();
-        const text = data.content?.[0]?.text;
+        const text = data.text;
         if (text) setAiResult(text);
       } catch (err) {
         console.error("AI Search error:", err);
-        setAiResult("Error: " + err.message);
+        setAiResult(null);
       } finally {
         setAiLoading(false);
       }

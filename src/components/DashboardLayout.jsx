@@ -1,7 +1,35 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardMobileNav from "./DashboardMobileNav";
+import { peekReturnTrip, clearReturnTrip } from "../cv-builder/utils/returnTrip";
+
+/**
+ * Someone who came here from a Memotify job (in this tab) gets a one-tap way
+ * back to it on every dashboard page, so checking a CV never loses the job.
+ */
+function MemotifyReturn() {
+  const navigate = useNavigate();
+  const [trip, setTrip] = useState(peekReturnTrip);
+  if (!trip) return null;
+  return (
+    <div className="dash-return" role="region" aria-label="Back to Memotify">
+      <button type="button" className="dash-return__go" onClick={() => navigate(trip.path)}>
+        <i className="fas fa-arrow-left" aria-hidden="true"></i>
+        <span>Back to <strong>{trip.label}</strong> on Memotify</span>
+      </button>
+      <button
+        type="button"
+        className="dash-return__close"
+        aria-label="Hide this link"
+        onClick={() => { clearReturnTrip(); setTrip(null); }}
+      >
+        <i className="fas fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children, title, subtitle }) {
   const { user } = useAuth();
@@ -46,6 +74,7 @@ export default function DashboardLayout({ children, title, subtitle }) {
 
         {/* Page Content */}
         <div className="dash-content">
+          <MemotifyReturn />
           {children}
         </div>
       </div>

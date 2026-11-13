@@ -473,6 +473,10 @@
 .mf-tailored { padding: 12px 13px; background: var(--green-bg); border-radius: 6px; }
 .mf-tailored h3 { font-family: var(--body); font-size: 15px; font-weight: 700; letter-spacing: 0; overflow-wrap: anywhere; }
 .mf-tailored__after { margin-top: 6px !important; font-size: 14px; }
+.mf-letter { display: grid; gap: 8px; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line, rgba(0,0,0,.1)); }
+.mf-letter h3 { font-family: var(--body); font-size: 15px; font-weight: 700; letter-spacing: 0; }
+.mf-letter__text { width: 100%; min-height: 220px; font-size: 15px; line-height: 1.55; resize: vertical; }
+.mf-letter .mf-link { background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
 
 /* ── Interview ─────────────────────────── */
 .mf-track__practise { margin-top: 6px; font-size: 14px; }

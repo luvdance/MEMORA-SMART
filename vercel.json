@@ -61,6 +61,10 @@
       "destination": "/api/cv?action=:action"
     },
     {
+      "source": "/api/claude",
+      "destination": "/api/cv?action=write"
+    },
+    {
       "source": "/api/ats-score",
       "destination": "/api/cv?action=ats-score"
     },

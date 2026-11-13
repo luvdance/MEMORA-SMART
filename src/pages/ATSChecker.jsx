@@ -4,6 +4,7 @@ import "./ATSChecker.css";
 import { track } from "../utils/analytics";
 import { useEffect } from "react"; 
 import { useAuth } from "../context/AuthContext";
+import { auth } from "../firebase";
 import PaywallModal from "../components/PaywallModal";
 import PaymentRequery from "../components/PaymentRequery";
 import { useEntitlement, cvApi } from "../cv-builder/utils/cvAccess";
@@ -157,9 +158,11 @@ const parseImageFile = async (file) => {
   const formData = new FormData();
   formData.append("cv", file);
 
+  const token = await auth.currentUser?.getIdToken().catch(() => null);
   const res = await fetch("/api/parse-cv", {
     method: "POST",
     body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
   const data = await res.json();

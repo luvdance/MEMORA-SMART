@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { intentPath, readIntent } from "../academy/services/intent";
+import { safeReturnPath, rememberReturn, readReturn, clearReturn } from "../utils/authReturn";
 import "./AuthPage.css";
 
 const perks = [
@@ -48,22 +49,33 @@ export default function AuthPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  // Where to land after signing in: the page the person came from.
   // Router state is lost when a new user returns via the email-verification
-  // link (that is a fresh page load), so a stored Academy intent is the
-  // fallback. Without it, someone who set out to enroll on a course lands on
-  // the product dashboard instead.
+  // link or presses "Refresh page" (both are fresh page loads), so the path
+  // also travels as ?next= and in localStorage (src/utils/authReturn.js).
+  // The dashboard is only the fallback for someone who came from nowhere.
   const academyIntent = readIntent();
+  const nextParam = safeReturnPath(new URLSearchParams(location.search).get("next"));
+  const asked = safeReturnPath(location.state?.from) || nextParam;
   const from =
-    location.state?.from ||
+    asked ||
+    readReturn() ||
     (academyIntent ? intentPath(academyIntent) : null) ||
     "/dashboard";
+
+  // Keep the destination through a verification email or a page refresh.
+  useEffect(() => {
+    if (asked) rememberReturn(asked);
+  }, [asked]);
 
   // ── Show success on verified redirect ──
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("verified") === "true") {
       setError("");
-      window.history.replaceState({}, "", "/auth");
+      // Drop the marker, but keep where the person is going.
+      const next = safeReturnPath(params.get("next"));
+      window.history.replaceState({}, "", next ? `/auth?next=${encodeURIComponent(next)}` : "/auth");
     }
   }, [location]);
 
@@ -85,6 +97,7 @@ export default function AuthPage() {
       const isExistingUser = userCreatedAt < ENFORCEMENT_DATE;
 
       if (user.emailVerified || isExistingUser) {
+        clearReturn();
         navigate(from, { replace: true });
       }
     }
@@ -146,7 +159,8 @@ export default function AuthPage() {
           setLoading(false);
           return;
         }
-        await register(name, email, password);
+        // The verification link carries the destination back (?next=).
+        await register(name, email, password, from);
         // Show verify screen
         setVerifyEmail(email);
         setShowVerifyScreen(true);
@@ -203,7 +217,7 @@ export default function AuthPage() {
     setResendSuccess(false);
     setError("");
     try {
-      await resendVerification();
+      await resendVerification(from);
       setResendSuccess(true);
       setResendCooldown(60);
     } catch (err) {

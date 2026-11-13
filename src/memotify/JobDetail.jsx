@@ -10,6 +10,7 @@ import JobRow from "./JobRow";
 import CvWorkbench from "./CvWorkbench";
 import { useCvTools } from "./useCvTools";
 import PaywallModal from "../components/PaywallModal";
+import { rememberMemotifyJob } from "../cv-builder/utils/returnTrip";
 import { LEVELS, REACH, SKILLS, TIERS, VERDICTS } from "./data/skills";
 import {
   ArrowLeft, ArrowSquareOut, BookmarkSimple, CheckCircle, Flag, PaperPlaneTilt,
@@ -95,6 +96,15 @@ export default function JobDetail({ id, onBack }) {
     saveDraft(id, { cvId: next });
   };
   const tools = useCvTools({ id, title: job?.title, company: job?.company }, cvId, chooseCv);
+
+  // If the person goes to the dashboard or My CVs from here, those pages
+  // offer a link straight back to this job.
+  const jobId = job?.id;
+  const jobTitle = job?.title;
+  const jobCompany = job?.company;
+  useEffect(() => {
+    if (jobId) rememberMemotifyJob({ id: jobId, title: jobTitle, company: jobCompany });
+  }, [jobId, jobTitle, jobCompany]);
 
   // Back from the builder: drop the marker, and land on the CV panel.
   const resume = params.get("resume");

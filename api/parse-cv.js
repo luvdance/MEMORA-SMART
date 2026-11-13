@@ -1,6 +1,9 @@
 import formidable from "formidable";
 import { readFile } from "fs/promises";
 import mammoth from "mammoth";
+import { db, verifyCaller } from "../lib/cv/admin.js";
+import { spendAi } from "../lib/cv/quota.js";
+import { computeEntitlement } from "../src/cv-builder/utils/plans.js";
 
 export const config = {
   api: {
@@ -32,8 +35,25 @@ export default async function handler(req, res) {
       text = result.value;
 
     // ── IMAGE — Claude Vision OCR ──
+    // Each scan is a paid model call, so it needs a signed-in user and
+    // spends one "document scan" from their daily allowance.
     } else if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) {
-      text = await extractTextFromImage(buffer, file.mimetype || `image/${ext}`);
+      const who = await verifyCaller(req);
+      if (!who.uid) {
+        return res.status(401).json({ error: "Please sign in to read a scanned image." });
+      }
+      const user = await db().collection("users").doc(who.uid).get();
+      const premium = who.admin || computeEntitlement(user.exists ? user.data() : {}).premium;
+      const spend = await spendAi(db(), who, "scan", premium);
+      if (!spend.ok) {
+        return res.status(429).json({ error: spend.message, reason: "ai_limit", quota: spend.quota });
+      }
+      try {
+        text = await extractTextFromImage(buffer, file.mimetype || `image/${ext}`);
+      } catch (err) {
+        await spend.refund();
+        throw err;
+      }
 
     } else {
       return res.status(400).json({

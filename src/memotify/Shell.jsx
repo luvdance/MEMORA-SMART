@@ -148,7 +148,7 @@ function AccountMenu() {
 
 export default function Shell({ children, tabs = true, dark = false, wide = false }) {
   const { signedIn } = useMe();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -171,7 +171,7 @@ export default function Shell({ children, tabs = true, dark = false, wide = fals
           {signedIn ? (
             <AccountMenu />
           ) : (
-            <Link to="/auth" state={{ from: pathname }} className="mf-top__in-link">
+            <Link to="/auth" state={{ from: pathname + search }} className="mf-top__in-link">
               Sign in
             </Link>
           )}

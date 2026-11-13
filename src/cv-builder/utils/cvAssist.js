@@ -3,6 +3,7 @@
 // This module shrinks the CV before it is sent and applies the reply safely:
 // unknown keys are dropped and list items are coerced to the builder's shapes.
 import { emptyCV } from "./constants";
+import { auth } from "../../firebase";
 
 const TEXT_FIELDS = [
   "name", "jobTitle", "email", "phone", "address", "linkedin", "website", "github",
@@ -129,10 +130,16 @@ export const DOC_IMAGE_EXT = ["jpg", "jpeg", "png", "webp", "heic", "heif", "gif
 async function postParse(blob, name) {
   const form = new FormData();
   form.append("cv", blob, name);
-  const res = await fetch("/api/parse-cv", { method: "POST", body: form });
+  const res = await fetch("/api/parse-cv", { method: "POST", body: form, headers: await signedInHeaders() });
   const data = await res.json().catch(() => ({}));
   if (!data.success) throw new Error(data.error || "Could not read that document.");
   return data.text;
+}
+
+// Image scans call a paid model, so the server needs to know who is asking.
+async function signedInHeaders() {
+  const token = await auth.currentUser?.getIdToken().catch(() => null);
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 const canvasToJpeg = (canvas) =>

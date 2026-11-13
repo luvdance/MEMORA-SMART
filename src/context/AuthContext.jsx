@@ -15,6 +15,7 @@ import {
 import { initUserDoc } from "../utils/userService";
 import { track, identify, resetAnalytics } from "../utils/analytics";
 import { clearKeyCache } from "../academy/services/e2ee";
+import { safeReturnPath } from "../utils/authReturn";
 
 const AuthContext = createContext();
 
@@ -52,15 +53,21 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ── EMAIL/PASSWORD SIGN UP (with verification email) ──
-  const register = async (name, email, password) => {
+  // `next` is where the person was going; the verification link brings them
+  // back to it, even when they open the email on a fresh page.
+  const verifyUrl = (next) => {
+    const safe = safeReturnPath(next);
+    const tail = safe && safe !== "/dashboard" ? `&next=${encodeURIComponent(safe)}` : "";
+    return `${window.location.origin}/auth?verified=true${tail}`;
+  };
+
+  const register = async (name, email, password, next) => {
   const result = await createUserWithEmailAndPassword(auth, email, password);
   if (name) {
     await updateProfile(result.user, { displayName: name });
     await result.user.reload();  // ← ADD: force token refresh
   }
-  await sendEmailVerification(result.user, {
-    url: `${window.location.origin}/auth?verified=true`,
-  });
+  await sendEmailVerification(result.user, { url: verifyUrl(next) });
   track("signup_completed", { method: "email" });
   return result;
 };
@@ -90,11 +97,9 @@ export function AuthProvider({ children }) {
   };
 
   // ── RESEND VERIFICATION EMAIL ──
-  const resendVerification = async () => {
+  const resendVerification = async (next) => {
     if (!auth.currentUser) throw new Error("No user signed in");
-    await sendEmailVerification(auth.currentUser, {
-      url: `${window.location.origin}/auth?verified=true`,
-    });
+    await sendEmailVerification(auth.currentUser, { url: verifyUrl(next) });
   };
 
   // ── PASSWORD RESET ──

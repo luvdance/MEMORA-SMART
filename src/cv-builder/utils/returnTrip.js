@@ -22,6 +22,34 @@ export function readReturnTrip(searchParams) {
   }
 }
 
+/**
+ * Remember the Memotify job someone has open, so that if they wander off to
+ * the dashboard or My CVs in this tab, every page there can offer the way
+ * back. sessionStorage: a new tab or tomorrow's visit starts clean.
+ */
+export function rememberMemotifyJob(job) {
+  if (!job?.id || !job.title) return;
+  const trip = {
+    path: `/memotify/jobs/${encodeURIComponent(job.id)}?resume=cv`,
+    label: `${job.title} at ${job.company || "the employer"}`.slice(0, 120),
+  };
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify(trip));
+  } catch {
+    /* No way back offered this time. */
+  }
+}
+
+/** The held trip, without reading a URL. For pages outside the builder. */
+export function peekReturnTrip() {
+  try {
+    const held = JSON.parse(sessionStorage.getItem(KEY));
+    return isSafe(held?.path) ? held : null;
+  } catch {
+    return null;
+  }
+}
+
 export function clearReturnTrip() {
   try {
     sessionStorage.removeItem(KEY);

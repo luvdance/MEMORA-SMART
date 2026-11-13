@@ -3,7 +3,7 @@ import { STEPS } from "../utils/constants";
 import { STEP_META, stepCompletion } from "../utils/cvStrength";
 import FormHeader from "./FormHeader";
 import "../CVForm.css";
-import { callClaude } from "../utils/callClaude";
+import { suggestField } from "../utils/callClaude";
 import { smartCase, liveTitleCase, liveCapitalizeSentences, liveCommaListTitleCase } from "../utils/textCasing";
 import { compressImage, readFileAsDataURL } from "../utils/imageCompress";
 import { templateUsesPhoto } from "../utils/templateMeta";
@@ -362,13 +362,15 @@ const moveEdu = (i, dir) => {
   };
 
   // ── AI SUGGEST ──
-  const aiSuggest = async (key, prompt) => {
+  // The server writes the prompt from the field name; each use counts
+  // against the daily allowance, and the limit message is shown as it comes.
+  const aiSuggest = async (key) => {
     setLoading(l => ({ ...l, [key]: true }));
     try {
-      const text = await callClaude(prompt);
+      const text = await suggestField(key, { jobTitle: cv.jobTitle, name: cv.name });
       setCV(p => ({ ...p, [key]: text.trim() }));
     } catch (err) {
-      alert("AI error: " + err.message);
+      alert(err.message);
     }
     setLoading(l => ({ ...l, [key]: false }));
   };
@@ -378,14 +380,12 @@ const moveEdu = (i, dir) => {
     const key = "resp_" + i;
     setLoading(l => ({ ...l, [key]: true }));
     try {
-      const text = await callClaude(
-        `Write 4-5 concise job responsibilities for a ${e.role || "professional"} at ${e.company || "a company"}. Use action verbs. Each responsibility on a new line starting with a dash (-). No headings, no markdown, no preamble, no extra formatting. Just the lines.`
-      );
+      const text = await suggestField("responsibilities", { role: e.role, company: e.company });
       const exp = [...cv.experience];
       exp[i] = { ...exp[i], responsibilities: text.trim() };
       setCV(p => ({ ...p, experience: exp }));
     } catch (err) {
-      alert("AI error: " + err.message);
+      alert(err.message);
     }
     setLoading(l => ({ ...l, [key]: false }));
   };
@@ -393,9 +393,7 @@ const moveEdu = (i, dir) => {
   const aiCertifications = async () => {
     setLoading(l => ({ ...l, certifications: true }));
     try {
-      const text = await callClaude(
-        `Suggest 3 industry-recognized certifications for a ${cv.jobTitle || "professional"}. Return ONLY a valid JSON array, nothing else. Format: [{"name": "certification name", "issuer": "issuing organization"}]. No markdown, no backticks, no explanation, no preamble.`
-      );
+      const text = await suggestField("certifications", { jobTitle: cv.jobTitle });
       const clean = text.replace(/```json|```/g, "").trim();
       const suggestions = JSON.parse(clean);
       const newCerts = suggestions.map(s => ({
@@ -412,7 +410,7 @@ const moveEdu = (i, dir) => {
         certifications: [...(Array.isArray(p.certifications) ? p.certifications : []), ...newCerts]
       }));
     } catch (err) {
-      alert("AI error: " + err.message);
+      alert(err.message);
     }
     setLoading(l => ({ ...l, certifications: false }));
   };
@@ -524,10 +522,7 @@ const moveEdu = (i, dir) => {
           />
           <AiBtn
             loading={loading.summary}
-            onClick={() => aiSuggest(
-              "summary",
-              `Write a 2-sentence professional summary for a ${cv.jobTitle || "professional"}${cv.name ? " named " + cv.name : ""}. Be specific, confident, and concise. No heading, no label, no markdown. Start directly with the person's name or role.`
-            )}
+            onClick={() => aiSuggest("summary")}
           />
         </div>
       </div>
@@ -677,10 +672,7 @@ const moveEdu = (i, dir) => {
           <SkillChips text={cv.skills} />
           <AiBtn
             loading={loading.skills}
-            onClick={() => aiSuggest(
-              "skills",
-              `List 8-10 relevant professional skills for a ${cv.jobTitle || "professional"}. Return ONLY a comma-separated list of skill names. No headings, no numbers, no markdown, no preamble, no extra text. Example format: Project Management, Data Analysis, Leadership`
-            )}
+            onClick={() => aiSuggest("skills")}
           />
         </div>
 
@@ -695,10 +687,7 @@ const moveEdu = (i, dir) => {
           />
           <AiBtn
             loading={loading.languages}
-            onClick={() => aiSuggest(
-              "languages",
-              `Suggest a realistic set of languages and proficiency levels for a ${cv.jobTitle || "professional"} based in Nigeria. Return ONLY a comma-separated list like: English (Fluent), Yoruba (Native). No headings, no markdown, no preamble.`
-            )}
+            onClick={() => aiSuggest("languages")}
           />
         </div>
 
@@ -713,10 +702,7 @@ const moveEdu = (i, dir) => {
           />
           <AiBtn
             loading={loading.hobbies}
-            onClick={() => aiSuggest(
-              "hobbies",
-              `Suggest 4-6 professional-sounding hobbies and interests for a ${cv.jobTitle || "professional"}. Return ONLY a comma-separated list. No headings, no markdown, no preamble.`
-            )}
+            onClick={() => aiSuggest("hobbies")}
           />
         </div>
 

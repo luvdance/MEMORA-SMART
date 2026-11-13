@@ -15,6 +15,11 @@ export function useCvTools(job, cvId, setCvId) {
   const [fit, setFit] = useState(null);
   const [ats, setAts] = useState(null);
   const [tailored, setTailored] = useState(null);
+  // The cover letter for this job, as the person has edited it.
+  const [letter, setLetter] = useState("");
+  const [letterAts, setLetterAts] = useState(null);
+  // What the last AI call left of today's allowance ({ kind, left, limit }).
+  const [quota, setQuota] = useState(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [paywall, setPaywall] = useState(null);
@@ -27,6 +32,8 @@ export function useCvTools(job, cvId, setCvId) {
         if (!alive) return;
         setFit(result);
         setAts(result.ats || null);
+        setLetter(result.letter?.text || "");
+        setLetterAts(result.letterAts || null);
         setError("");
       })
       .catch(() => alive && setFit(null));
@@ -51,14 +58,31 @@ export function useCvTools(job, cvId, setCvId) {
     guarded("check", async () => {
       const result = await api("cv-ats", { body: { jobId: job.id, cvId } });
       setAts(result.ats);
+      setQuota(result.quota || null);
     });
 
   const optimize = () =>
     guarded("optimize", async () => {
       const result = await api("cv-tailor", { body: { jobId: job.id, cvId } });
       setTailored(result);
+      setQuota(result.quota || null);
       await reloadMe();
       setCvId(result.cvId);
+    });
+
+  const writeLetter = () =>
+    guarded("letter", async () => {
+      const result = await api("cv-letter", { body: { jobId: job.id, cvId } });
+      setLetter(result.letter.text);
+      setLetterAts(null);
+      setQuota(result.quota || null);
+    });
+
+  const checkLetter = () =>
+    guarded("letterCheck", async () => {
+      const result = await api("cv-letter-check", { body: { jobId: job.id, cvId, letterText: letter } });
+      setLetterAts(result.letterAts);
+      setQuota(result.quota || null);
     });
 
   const paid = () => {
@@ -66,7 +90,12 @@ export function useCvTools(job, cvId, setCvId) {
     setPaywall(null);
     if (pending === "check") check();
     if (pending === "optimize") optimize();
+    if (pending === "letter") writeLetter();
+    if (pending === "letterCheck") checkLetter();
   };
 
-  return { fit, ats, tailored, busy, error, paywall, check, optimize, paid, closePaywall: () => setPaywall(null) };
+  return {
+    fit, ats, tailored, letter, setLetter, letterAts, quota, busy, error, paywall,
+    check, optimize, writeLetter, checkLetter, paid, closePaywall: () => setPaywall(null),
+  };
 }
